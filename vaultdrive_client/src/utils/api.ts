@@ -19,7 +19,10 @@ export const createEmailAccount = async (account: EmailAccountPayload, token: st
     body: JSON.stringify(account),
   });
   if (!response.ok) {
-    throw new Error('Failed to create email account');
+    const error: any = new Error('Failed to create email account');
+    error.status = response.status;
+    error.response = await response.json().catch(() => ({}));
+    throw error;
   }
   return response.json();
 };
