@@ -6,10 +6,35 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
+
+type AuditLog struct {
+	ID           uuid.UUID
+	UserID       uuid.NullUUID
+	Action       string
+	ResourceType string
+	ResourceID   uuid.NullUUID
+	Metadata     pqtype.NullRawMessage
+	IpAddress    pqtype.Inet
+	CreatedAt    time.Time
+}
+
+type EmailAccount struct {
+	ID                    uuid.UUID
+	UserID                uuid.UUID
+	Email                 string
+	ImapHost              string
+	ImapPort              int32
+	ImapUser              string
+	EncryptedImapPassword []byte
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+}
 
 type File struct {
 	ID                uuid.UUID
@@ -21,6 +46,8 @@ type File struct {
 	CurrentKeyVersion sql.NullInt32
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
+	Starred           bool
+	DropSourceID      uuid.NullUUID
 }
 
 type FileAccessKey struct {
@@ -31,12 +58,88 @@ type FileAccessKey struct {
 	CreatedAt  sql.NullTime
 }
 
+type FileRequest struct {
+	ID            uuid.UUID
+	OwnerID       uuid.UUID
+	Token         string
+	Description   sql.NullString
+	ExpiresAt     sql.NullTime
+	MaxFileSize   sql.NullInt64
+	IsActive      sql.NullBool
+	UploadedFiles pqtype.NullRawMessage
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type FileShare struct {
 	ID               uuid.UUID
 	FileID           uuid.NullUUID
 	SharedWithUserID uuid.NullUUID
 	WrappedKey       string
 	CreatedAt        time.Time
+}
+
+type FileTag struct {
+	FileID    uuid.UUID
+	TagID     uuid.UUID
+	CreatedAt time.Time
+}
+
+type FileVersion struct {
+	ID                 uuid.UUID
+	FileID             uuid.UUID
+	VersionNumber      int32
+	FileSize           int64
+	EncryptedPath      string
+	EncryptionMetadata sql.NullString
+	CreatedBy          uuid.NullUUID
+	CreatedAt          time.Time
+}
+
+type Folder struct {
+	ID        uuid.UUID
+	OwnerID   uuid.UUID
+	Name      string
+	ParentID  uuid.NullUUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Group struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	Name        string
+	Description sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type GroupFileShare struct {
+	ID         uuid.UUID
+	GroupID    uuid.UUID
+	FileID     uuid.UUID
+	WrappedKey string
+	CreatedAt  sql.NullTime
+	CreatedBy  uuid.UUID
+}
+
+type GroupMember struct {
+	ID        uuid.UUID
+	GroupID   uuid.UUID
+	UserID    uuid.UUID
+	Role      sql.NullString
+	CreatedAt sql.NullTime
+}
+
+type PluginsManifest struct {
+	ID        uuid.UUID
+	OwnerID   uuid.UUID
+	Name      string
+	Version   string
+	Manifest  json.RawMessage
+	IsEnabled sql.NullBool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type RefreshToken struct {
@@ -46,6 +149,39 @@ type RefreshToken struct {
 	RevokedAt sql.NullTime
 	UserID    uuid.UUID
 	ExpiresAt time.Time
+}
+
+type SecureNote struct {
+	ID                 uuid.UUID
+	OwnerID            uuid.UUID
+	Title              string
+	EncryptedContent   string
+	EncryptionMetadata string
+	IsLocked           sql.NullBool
+	LastAccessedAt     sql.NullTime
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type Tag struct {
+	ID        uuid.UUID
+	OwnerID   uuid.UUID
+	Name      string
+	Color     sql.NullString
+	CreatedAt time.Time
+}
+
+type UploadToken struct {
+	ID             uuid.UUID
+	Token          string
+	OwnerUserID    uuid.UUID
+	TargetFolderID uuid.UUID
+	ExpiresAt      sql.NullTime
+	MaxFiles       sql.NullInt32
+	FilesUploaded  sql.NullInt32
+	Used           sql.NullBool
+	CreatedAt      sql.NullTime
+	PasswordHash   sql.NullString
 }
 
 type User struct {
@@ -59,4 +195,5 @@ type User struct {
 	PrivateKeyEncrypted string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+	IsAdmin             sql.NullBool
 }

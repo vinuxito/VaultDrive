@@ -1,0 +1,80 @@
+package main
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/google/uuid"
+)
+
+func (cfg *ApiConfig) handlerToggleFileStar(w http.ResponseWriter, r *http.Request, user database.User) {
+	fileIDStr := r.PathValue("fileID")
+	fileID, err := uuid.Parse(fileIDStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid file ID", err)
+		return
+	}
+
+	// Verify file ownership
+	file, err := cfg.dbQueries.GetFileByID(r.Context(), fileID)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "File not found", err)
+		return
+	}
+
+	if file.OwnerID.UUID != user.ID {
+		respondWithError(w, http.StatusForbidden, "You don't have permission to star this file", nil)
+		return
+	}
+
+	// Toggle starred status
+	updatedFile, err := cfg.dbQueries.ToggleFileStarred(r.Context(), database.ToggleFileStarredParams{
+		ID:        fileID,
+		UpdatedAt: time.Now().UTC(),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to toggle star status", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"id":       updatedFile.ID,
+		"filename": updatedFile.Filename,
+		"starred":  updatedFile.Starred,
+	})
+}
+
+func (cfg *ApiConfig) handlerGetStarredFiles(w http.ResponseWriter, r *http.Request, user database.User) {
+	files, err := cfg.dbQueries.GetStarredFilesByOwnerID(r.Context(), uuid.NullUUID{
+		UUID:  user.ID,
+		Valid: true,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to fetch starred files", err)
+		return
+	}
+
+	type fileResponse struct {
+		ID        uuid.UUID `json:"id"`
+		Filename  string    `json:"filename"`
+		FileSize  int64     `json:"file_size"`
+		Starred   bool      `json:"starred"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+	}
+
+	response := make([]fileResponse, len(files))
+	for i, file := range files {
+		response[i] = fileResponse{
+			ID:        file.ID,
+			Filename:  file.Filename,
+			FileSize:  file.FileSize,
+			Starred:   file.Starred,
+			CreatedAt: file.CreatedAt,
+			UpdatedAt: file.UpdatedAt,
+		}
+	}
+
+	respondWithJSON(w, http.StatusOK, response)
+}

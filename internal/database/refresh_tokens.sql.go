@@ -82,9 +82,22 @@ JOIN refresh_tokens ON users.id = refresh_tokens.user_id
 WHERE refresh_tokens.token = $1
 `
 
-func (q *Queries) GetUserByRefreshToken(ctx context.Context, token string) (User, error) {
+type GetUserByRefreshTokenRow struct {
+	ID                  uuid.UUID
+	FirstName           string
+	LastName            string
+	Username            string
+	Email               string
+	PasswordHash        string
+	PublicKey           string
+	PrivateKeyEncrypted string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+}
+
+func (q *Queries) GetUserByRefreshToken(ctx context.Context, token string) (GetUserByRefreshTokenRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByRefreshToken, token)
-	var i User
+	var i GetUserByRefreshTokenRow
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,

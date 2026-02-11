@@ -25,7 +25,7 @@ INSERT INTO users (
   updated_at
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin
 `
 
 type CreateUserParams struct {
@@ -64,6 +64,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PrivateKeyEncrypted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
@@ -78,8 +79,59 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteUserAsAdmin = `-- name: DeleteUserAsAdmin :exec
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUserAsAdmin(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUserAsAdmin, id)
+	return err
+}
+
+const getAllUsers = `-- name: GetAllUsers :many
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
+ORDER BY created_at DESC
+`
+
+// Admin queries
+func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Username,
+			&i.Email,
+			&i.PasswordHash,
+			&i.PublicKey,
+			&i.PrivateKeyEncrypted,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.IsAdmin,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
 WHERE email = $1
 `
 
@@ -97,12 +149,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PrivateKeyEncrypted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
 WHERE id = $1
 `
 
@@ -120,12 +173,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PrivateKeyEncrypted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
 WHERE username = $1
 `
 
@@ -143,8 +197,68 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.PrivateKeyEncrypted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
+}
+
+const searchUsers = `-- name: SearchUsers :many
+SELECT id, username, email, first_name, last_name, created_at, updated_at
+FROM users
+WHERE
+  LOWER(username) LIKE LOWER($1) OR
+  LOWER(email) LIKE LOWER($1) OR
+  LOWER(first_name) LIKE LOWER($1) OR
+  LOWER(last_name) LIKE LOWER($1)
+ORDER BY created_at DESC
+LIMIT $2
+`
+
+type SearchUsersParams struct {
+	Lower string
+	Limit int32
+}
+
+type SearchUsersRow struct {
+	ID        uuid.UUID
+	Username  string
+	Email     string
+	FirstName string
+	LastName  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+// User search query
+func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]SearchUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchUsers, arg.Lower, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchUsersRow
+	for rows.Next() {
+		var i SearchUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.FirstName,
+			&i.LastName,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateUser = `-- name: UpdateUser :one
@@ -155,7 +269,7 @@ SET
   email = $4,
   updated_at = $5
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin
 `
 
 type UpdateUserParams struct {
@@ -186,6 +300,73 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.PrivateKeyEncrypted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
+}
+
+const updateUserAsAdmin = `-- name: UpdateUserAsAdmin :one
+UPDATE users
+SET
+  first_name = $2,
+  last_name = $3,
+  email = $4,
+  username = $5,
+  updated_at = $6
+WHERE id = $1
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin
+`
+
+type UpdateUserAsAdminParams struct {
+	ID        uuid.UUID
+	FirstName string
+	LastName  string
+	Email     string
+	Username  string
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpdateUserAsAdmin(ctx context.Context, arg UpdateUserAsAdminParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAsAdmin,
+		arg.ID,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.Username,
+		arg.UpdatedAt,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.PublicKey,
+		&i.PrivateKeyEncrypted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+	)
+	return i, err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+SET
+  password_hash = $2,
+  updated_at = $3
+WHERE id = $1
+`
+
+type UpdateUserPasswordParams struct {
+	ID           uuid.UUID
+	PasswordHash string
+	UpdatedAt    time.Time
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.ID, arg.PasswordHash, arg.UpdatedAt)
+	return err
 }

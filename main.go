@@ -69,35 +69,73 @@ func main() {
 	fmt.Println("Connected to the database successfully.")
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /healthz", apiConfig.middlewareMetricsInc(http.HandlerFunc(healthCheckHandler)))
 
-	mux.Handle("POST /register", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler)))
+	mux.Handle("GET /api/healthz", apiConfig.middlewareMetricsInc(http.HandlerFunc(healthCheckHandler)))
 
-	mux.Handle("POST /login", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin)))
+	mux.HandleFunc("DELETE /api/upload-links/{id}", apiConfig.handlerDeleteDropToken)
 
-	mux.Handle("GET /user-by-username", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByUsernameHandler)))
+	mux.Handle("POST /api/register", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler)))
 
-	mux.Handle("GET /user-by-email", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByEmailHandler)))
+	mux.Handle("POST /api/login", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin)))
 
-	mux.Handle("GET /user/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKey)))
+	mux.Handle("GET /api/user-by-username", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByUsernameHandler)))
 
-	mux.Handle("POST /files/upload", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateFiles)))
+	mux.Handle("GET /api/user-by-email", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByEmailHandler)))
 
-	mux.Handle("GET /files/{id}/download", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDownloadFile)))
+	mux.Handle("GET /api/user/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKey)))
 
-	mux.Handle("POST /files/{id}/share", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerShareFile)))
+	mux.Handle("GET /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleListFolders)))
 
-	mux.Handle("GET /files/{id}/shares", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFileShares)))
+	mux.Handle("POST /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleCreateFolder)))
 
-	mux.Handle("DELETE /files/{id}/revoke/{user_id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerRevokeFileAccess)))
+	mux.Handle("POST /api/drop/create", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateDropToken)))
 
-	mux.Handle("GET /files", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFiles)))
+	mux.Handle("GET /api/drop/tokens", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListDropTokens)))
 
-	mux.Handle("GET /files/shared", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListSharedFiles)))
+	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
+	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
+	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
+	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
+	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 
-	mux.Handle("DELETE /files/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDeleteFile)))
+	mux.Handle("POST /api/files/upload", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateFiles)))
+
+	mux.Handle("GET /api/files/{id}/download", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDownloadFile)))
+
+	mux.Handle("POST /api/files/{id}/share", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerShareFile)))
+
+	mux.Handle("GET /api/files/{id}/shares", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFileShares)))
+
+	mux.Handle("DELETE /api/files/{id}/revoke/{user_id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerRevokeFileAccess)))
+
+	mux.Handle("GET /api/files", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFiles)))
+
+	mux.Handle("GET /api/files/shared", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListSharedFiles)))
+
+	mux.Handle("DELETE /api/files/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDeleteFile)))
 
 	fmt.Printf("Starting server on port %s...\n", port)
+
+	// SPA catch-all handler - must be registered AFTER API routes
+	// Handles any non-API route that doesn't match file
+	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if path == "" || path == "/" {
+			path = "/index.html"
+		}
+
+		// Try to serve actual file if it exists
+		filePath := "vaultdrive_client/dist" + path
+		if _, err := os.Stat(filePath); err == nil {
+			http.ServeFile(w, r, filePath)
+			return
+		}
+
+		// SPA catch-all: serve index.html for all client-side routes
+		http.ServeFile(w, r, "vaultdrive_client/dist/index.html")
+	})
+
+	log.Printf("Server listening on port %s", port)
 	err = http.ListenAndServe(":"+port, middlewareCORS(mux))
 	if err != nil {
 		log.Fatalf("Error starting server: %v\n", err)

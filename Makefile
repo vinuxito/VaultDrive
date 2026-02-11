@@ -1,14 +1,14 @@
 # Build and run the application
 run:
-	go build -o out && ./out
+	go build -o abrndrive && ./abrndrive
 
 # Just build without running
 build:
-	go build -o out
+	go build -o abrndrive
 
 # Clean up built binaries
 clean:
-	rm -f out
+	rm -f abrndrive
 
 # Run with live reload during development
 dev:
@@ -16,7 +16,7 @@ dev:
 
 # Build for production (with optimizations)
 build-prod:
-	go build -ldflags="-w -s" -o out
+	go build -ldflags="-w -s" -o abrndrive
 
 # Connect to the database
 db-connect:

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:manual": "tsc -b && vite build && echo '\n✅ Build complete! Watch service will auto-restart backend...'",
     "lint": "eslint .",
     "preview": "vite preview"
   },

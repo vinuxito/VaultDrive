@@ -1,0 +1,20 @@
+// SPA Catch-all - serve index.html for unmatched routes
+	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
+    // Skip API and Drop routes
+		path := r.URL.Path
+		if strings.HasPrefix(path, "/api/") || 
+		   strings.HasPrefix(path, "/abrn/") ||
+		   strings.HasPrefix(path, "/drop/") {
+			return
+		}
+		
+		// Try to serve static file from dist
+		filePath := filepath.Join("vaultdrive_client/dist", path)
+		if _, err := os.Stat(filePath); err == nil {
+			http.ServeFile(w, r, filePath)
+			return
+		}
+		
+		// Serve index.html for SPA routing
+		http.ServeFile(w, r, filepath.Join("vaultdrive_client/dist", "index.html"))
+	})

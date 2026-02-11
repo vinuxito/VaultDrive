@@ -1,0 +1,39 @@
+--- a/main.go
++++ b/main.go
+@@ -6,6 +6,9 @@
+ 	"encoding/json"
+ 	"fmt"
+ 	"log"
+ 	"net/http"
+ 	"os"
++	"path/filepath"
++	"strings"
+ 	"sync/atomic"
+ 
+ 	"github.com/Pranay0205/VaultDrive/internal/database"
+@@ -104,6 +107,23 @@
+ 	fmt.Printf("Starting server on port %s...\n", port)
++	// SPA Catch-all handler for React app
++	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
++		// Skip API routes
++		path := r.URL.Path
++		if strings.HasPrefix(path, "/api/") ||
++		   strings.HasPrefix(path, "/abrn/") ||
++		   strings.HasPrefix(path, "/drop/") {
++			return
++		}
++
++		// Try to serve static file
++		filePath := filepath.Join("vaultdrive_client/dist", path)
++		if _, err := os.Stat(filePath); err == nil {
++			http.ServeFile(w, r, filePath)
++			return
++		}
+
++		// Serve index.html for SPA routing
++		http.ServeFile(w, r, filepath.Join("vaultdrive_client/dist", "index.html"))
++	})
+ 	// Folders API
+ 	mux.Handle("GET /folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleListFolders)))
+ 	mux.Handle("POST /folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleCreateFolder)))
+

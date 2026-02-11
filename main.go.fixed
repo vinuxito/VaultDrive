@@ -1,0 +1,17 @@
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync/atomic"
+
+	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+)

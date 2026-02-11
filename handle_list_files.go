@@ -21,18 +21,29 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files, err := cfg.dbQueries.GetFilesByOwnerID(r.Context(), uuid.NullUUID{UUID: userID, Valid: true})
+	files, err := cfg.dbQueries.GetFilesWithDropSource(r.Context(), uuid.NullUUID{UUID: userID, Valid: true})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not retrieve files", err)
 		return
 	}
 
 	type FileResponse struct {
-		ID        uuid.UUID `json:"id"`
-		Filename  string    `json:"filename"`
-		FileSize  int64     `json:"file_size"`
-		CreatedAt time.Time `json:"created_at"`
-		Metadata  string    `json:"metadata"` // Return raw JSON string of metadata
+		ID             uuid.UUID `json:"id"`
+		Filename       string    `json:"filename"`
+		FileSize       int64     `json:"file_size"`
+		CreatedAt      time.Time `json:"created_at"`
+		Metadata       string    `json:"metadata"`
+		IsOwner        bool      `json:"is_owner"`
+		OwnerEmail     *string   `json:"owner_email"`
+		OwnerName      *string   `json:"owner_name"`
+		GroupName      *string   `json:"group_name"`
+		GroupID        *string   `json:"group_id"`
+		SharedBy       *string   `json:"shared_by"`
+		SharedByEmail  *string   `json:"shared_by_email"`
+		SharedByName   *string   `json:"shared_by_name"`
+		SharedAt       *string   `json:"shared_at"`
+		DropToken      *string   `json:"drop_token"`
+		DropFolderName *string   `json:"drop_folder_name"`
 	}
 
 	fileResponses := []FileResponse{}
@@ -41,12 +52,26 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 		if f.EncryptedMetadata.Valid {
 			meta = f.EncryptedMetadata.String
 		}
+
+		var dropToken *string = nil
+		if f.DropToken.Valid && f.DropToken.String != "" {
+			dropToken = &f.DropToken.String
+		}
+
+		var dropFolderName *string = nil
+		if f.DropFolderName.Valid && f.DropFolderName.String != "" {
+			dropFolderName = &f.DropFolderName.String
+		}
+
 		fileResponses = append(fileResponses, FileResponse{
-			ID:        f.ID,
-			Filename:  f.Filename,
-			FileSize:  f.FileSize,
-			CreatedAt: f.CreatedAt,
-			Metadata:  meta,
+			ID:             f.ID,
+			Filename:       f.Filename,
+			FileSize:       f.FileSize,
+			CreatedAt:      f.CreatedAt,
+			Metadata:       meta,
+			IsOwner:        true,
+			DropToken:      dropToken,
+			DropFolderName: dropFolderName,
 		})
 	}
 

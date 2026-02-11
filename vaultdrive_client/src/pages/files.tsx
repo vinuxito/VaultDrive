@@ -15,13 +15,13 @@ import {
   AlertCircle,
   Lock,
   Key,
-  ChevronDown,
-  ChevronUp,
-  Shield,
-  Share2,
-  Users,
   X,
   Loader2,
+  Shield,
+  ChevronDown,
+  ChevronUp,
+  Share2,
+  Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/api";
@@ -31,8 +31,9 @@ import {
   encryptFile,
   decryptFile,
   arrayBufferToBase64,
-  base64ToArrayBuffer,
+base64ToArrayBuffer,
 } from "../utils/crypto";
+import { UploadLinksSection } from "../components/upload";
 
 interface FileData {
   id: string;
@@ -96,7 +97,7 @@ export default function Files() {
       email: string;
       shared_at: string;
     }>
-  >([]);
+>([]);
   const [loadingShares, setLoadingShares] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
 
@@ -840,7 +841,12 @@ export default function Files() {
               </div>
             )}
           </CardContent>
-        </Card>
+</Card>
+
+        {/* Upload Links */}
+        <div className="mt-12">
+          <UploadLinksSection />
+        </div>
 
         {/* Password Modal */}
         {showPasswordModal && (

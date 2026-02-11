@@ -9,7 +9,7 @@ import {
   Key,
   Share2,
 } from "lucide-react";
-import VaultIcon from "../components/ui/vault-icon";
+import { ABRNLogo, LandingPageFooter } from "../components/branding";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
@@ -20,16 +20,15 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <div className="flex items-center justify-center mb-6">
-            <VaultIcon className="w-24 h-24 drop-shadow-2xl" />
+            <ABRNLogo className="w-32 h-32 drop-shadow-2xl" />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            VaultDrive
+            ABRN Asesores
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            A secure file storage system built with Go, React, and PostgreSQL.
-            Demonstrates modern web architecture with JWT authentication and
-            encrypted file handling.
+            Enterprise-grade secure cloud storage with zero-knowledge encryption.
+            Built with cutting-edge technology for maximum privacy and security.
           </p>
 
           <div className="flex gap-3 justify-center pt-4">
@@ -49,9 +48,9 @@ export default function Home() {
             <Button
               variant="outline"
               className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 dark:text-blue-400"
-              onClick={() => navigate("/files")}
+              onClick={() => navigate("/login")}
             >
-              Try Demo
+              Get Started
             </Button>
           </div>
         </div>
@@ -178,31 +177,30 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <Card className="bg-muted/50">
             <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4">About This Project</h2>
+              <h2 className="text-xl font-semibold mb-4">About ABRN Drive</h2>
               <div className="space-y-3 text-sm text-muted-foreground">
                 <p>
-                  VaultDrive is a full-stack web application developed as a
-                  college project to demonstrate modern software development
-                  practices and security implementations.
+                  ABRN Drive is an enterprise-grade zero-knowledge encrypted cloud storage platform
+                  designed for businesses that demand maximum privacy and security.
                 </p>
                 <p>
-                  The system implements user authentication, file
-                  upload/download functionality, and proper database management
-                  using industry-standard tools and frameworks.
+                  Built with modern technologies including Go, React 19, PostgreSQL, and industry-standard
+                  encryption protocols (RSA-2048, AES-256-GCM), ensuring your data remains private.
                 </p>
                 <p className="pt-2">
                   <strong className="text-foreground">
-                    Key Learning Outcomes:
+                    Key Features:
                   </strong>{" "}
-                  RESTful API design, secure authentication flows, database
-                  schema design, React state management, and deployment
-                  practices.
+                  Zero-knowledge encryption, secure file sharing, team collaboration,
+                  integrated email support, and comprehensive audit logging.
                 </p>
               </div>
             </CardContent>
           </Card>
         </div>
       </section>
+
+      <LandingPageFooter />
     </div>
   );
 }

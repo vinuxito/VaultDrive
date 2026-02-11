@@ -1,0 +1,16 @@
+{
+  "name": "abrn-drive",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">      <img src=\"vaultdrive_client/public/abrn-logo.png\" alt=\"ABRN Drive Logo\" width=\"120\">      <h1>ABRN Drive</h1>      <p><em>Your Personal Zero-Knowledge Cloud Storage</em></p>      <p>          <img src=\"https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white\" alt=\"Go\">          <img src=\"https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black\" alt=\"React\">          <img src=\"https://img.sh.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white\" alt=\"PostgreSQL\">          <img src=\"https://img.shields.io/badge/AES--256--GCM-Encrypted-green?style=for-the-badge&logoColor=white\" alt=\"Encrypted\">      </p>      <p><strong>Status: ✅ Production Ready | Tested: January 25, 2026</strong></p> </div>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.58.0",
+    "playwright": "^1.58.0"
+  }
+}

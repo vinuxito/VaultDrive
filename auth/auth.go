@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,6 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type TokenType string
@@ -31,6 +35,79 @@ func HashPassword(password string) (string, error) {
 	}
 
 	return string(hashedPassword), nil
+}
+
+// WrapKey encrypts a random key with a password, compatible with Web Crypto PBKDF2
+// Returns base64 encoded: salt + iv + encryptedKey
+func WrapKey(password, randomKey string) (string, error) {
+	salt := make([]byte, 16)
+	if _, err := rand.Read(salt); err != nil {
+		return "", fmt.Errorf("failed to generate salt: %w", err)
+	}
+
+	iv := make([]byte, 12)
+	if _, err := rand.Read(iv); err != nil {
+		return "", fmt.Errorf("failed to generate IV: %w", err)
+	}
+
+	// Derive key from password using PBKDF2 (same as Web Crypto)
+	derivedKey := pbkdf2.Key([]byte(password), salt, 100000, 32, sha256.New)
+
+	block, err := aes.NewCipher(derivedKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to create cipher: %w", err)
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", fmt.Errorf("failed to create GCM: %w", err)
+	}
+
+	encryptedKey := gcm.Seal(nil, iv, []byte(randomKey), nil)
+
+	// Combine salt + iv + encryptedKey
+	result := make([]byte, 0, len(salt)+len(iv)+len(encryptedKey))
+	result = append(result, salt...)
+	result = append(result, iv...)
+	result = append(result, encryptedKey...)
+
+	return hex.EncodeToString(result), nil
+}
+
+// UnwrapKey decrypts a wrapped key using a password
+func UnwrapKey(password, wrappedKeyHex string) (string, error) {
+	data, err := hex.DecodeString(wrappedKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode hex: %w", err)
+	}
+
+	if len(data) < 16+12+16 {
+		return "", errors.New("invalid wrapped key length")
+	}
+
+	salt := data[:16]
+	iv := data[16:28]
+	encryptedKey := data[28:]
+
+	// Derive key from password using PBKDF2
+	derivedKey := pbkdf2.Key([]byte(password), salt, 100000, 32, sha256.New)
+
+	block, err := aes.NewCipher(derivedKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to create cipher: %w", err)
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", fmt.Errorf("failed to create GCM: %w", err)
+	}
+
+	randomKey, err := gcm.Open(nil, iv, encryptedKey, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to decrypt: %w", err)
+	}
+
+	return string(randomKey), nil
 }
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {

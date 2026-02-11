@@ -7,9 +7,10 @@ INSERT INTO files (
     encrypted_metadata,
     current_key_version,
     created_at,
-    updated_at
+    updated_at,
+    drop_source_id
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: GetFileByID :one
@@ -59,3 +60,10 @@ LIMIT $2 OFFSET $3;
 -- name: CountFilesByOwnerID :one
 SELECT COUNT(*) FROM files
 WHERE owner_id = $1;
+
+-- name: ToggleFileStarred :one
+UPDATE files
+SET starred = $2,
+    updated_at = $3
+WHERE id = $1
+RETURNING *;

@@ -11,7 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { ThemeToggle } from "./theme-toggle";
-import VaultIcon from "./ui/vault-icon";
+import { ABRNLogo } from "./branding";
+import { Shield } from "lucide-react";
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -28,7 +29,7 @@ export default function Navbar({ children }: NavbarProps) {
     if (token && userData) {
       return {
         isLoggedIn: true,
-        user: JSON.parse(userData) as { username: string; email: string },
+        user: JSON.parse(userData) as { username: string; email: string; is_admin?: boolean },
       };
     }
     return { isLoggedIn: false, user: null };
@@ -37,7 +38,7 @@ export default function Navbar({ children }: NavbarProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(
     getInitialAuthState().isLoggedIn
   );
-  const [user, setUser] = useState<{ username: string; email: string } | null>(
+  const [user, setUser] = useState<{ username: string; email: string; is_admin?: boolean } | null>(
     getInitialAuthState().user
   );
 
@@ -84,7 +85,8 @@ export default function Navbar({ children }: NavbarProps) {
     navigate("/");
   };
 
-  const getInitials = (name: string) => {
+const getInitials = (name: string) => {
+    if (!name) return "";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -101,8 +103,8 @@ export default function Navbar({ children }: NavbarProps) {
               className="flex items-center gap-4 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <VaultIcon className="w-10 h-10 m-1" />
-              <h1 className="text-2xl font-bold text-primary">VaultDrive</h1>
+              <ABRNLogo className="w-10 h-10 m-1" />
+              <h1 className="text-2xl font-bold text-primary">ABRN Drive</h1>
             </div>
             <ul className="flex gap-6">
               <li>
@@ -128,6 +130,17 @@ export default function Navbar({ children }: NavbarProps) {
                       Shared
                     </Link>
                   </li>
+                  {user?.is_admin && (
+                    <li>
+                      <Link
+                        to="/admin"
+                        className="hover:text-primary transition-colors flex items-center gap-1"
+                      >
+                        <Shield className="h-4 w-4" />
+                        Admin
+                      </Link>
+                    </li>
+                  )}
                 </>
               )}
               <li>

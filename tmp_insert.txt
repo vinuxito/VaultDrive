@@ -1,0 +1,4 @@
+
+	// Folders API
+	mux.Handle("GET /folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleListFolders)))
+	mux.Handle("POST /folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleCreateFolder)))

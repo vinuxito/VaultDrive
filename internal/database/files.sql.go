@@ -34,10 +34,11 @@ INSERT INTO files (
     encrypted_metadata,
     current_key_version,
     created_at,
-    updated_at
+    updated_at,
+    drop_source_id
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id
 `
 
 type CreateFileParams struct {
@@ -49,6 +50,7 @@ type CreateFileParams struct {
 	CurrentKeyVersion sql.NullInt32
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
+	DropSourceID      uuid.NullUUID
 }
 
 func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, error) {
@@ -61,6 +63,7 @@ func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, e
 		arg.CurrentKeyVersion,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.DropSourceID,
 	)
 	var i File
 	err := row.Scan(
@@ -73,6 +76,8 @@ func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, e
 		&i.CurrentKeyVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Starred,
+		&i.DropSourceID,
 	)
 	return i, err
 }
@@ -98,7 +103,7 @@ func (q *Queries) DeleteFilesByOwnerID(ctx context.Context, ownerID uuid.NullUUI
 }
 
 const getFileByID = `-- name: GetFileByID :one
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id FROM files
 WHERE id = $1
 `
 
@@ -115,12 +120,14 @@ func (q *Queries) GetFileByID(ctx context.Context, id uuid.UUID) (File, error) {
 		&i.CurrentKeyVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Starred,
+		&i.DropSourceID,
 	)
 	return i, err
 }
 
 const getFilesByOwnerID = `-- name: GetFilesByOwnerID :many
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id FROM files
 WHERE owner_id = $1
 ORDER BY created_at DESC
 `
@@ -144,6 +151,8 @@ func (q *Queries) GetFilesByOwnerID(ctx context.Context, ownerID uuid.NullUUID) 
 			&i.CurrentKeyVersion,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Starred,
+			&i.DropSourceID,
 		); err != nil {
 			return nil, err
 		}
@@ -159,7 +168,7 @@ func (q *Queries) GetFilesByOwnerID(ctx context.Context, ownerID uuid.NullUUID) 
 }
 
 const getFilesByOwnerIDWithPagination = `-- name: GetFilesByOwnerIDWithPagination :many
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id FROM files
 WHERE owner_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -190,6 +199,8 @@ func (q *Queries) GetFilesByOwnerIDWithPagination(ctx context.Context, arg GetFi
 			&i.CurrentKeyVersion,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Starred,
+			&i.DropSourceID,
 		); err != nil {
 			return nil, err
 		}
@@ -204,6 +215,39 @@ func (q *Queries) GetFilesByOwnerIDWithPagination(ctx context.Context, arg GetFi
 	return items, nil
 }
 
+const toggleFileStarred = `-- name: ToggleFileStarred :one
+UPDATE files
+SET starred = $2,
+    updated_at = $3
+WHERE id = $1
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id
+`
+
+type ToggleFileStarredParams struct {
+	ID        uuid.UUID
+	Starred   bool
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ToggleFileStarred(ctx context.Context, arg ToggleFileStarredParams) (File, error) {
+	row := q.db.QueryRowContext(ctx, toggleFileStarred, arg.ID, arg.Starred, arg.UpdatedAt)
+	var i File
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.Filename,
+		&i.FilePath,
+		&i.FileSize,
+		&i.EncryptedMetadata,
+		&i.CurrentKeyVersion,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Starred,
+		&i.DropSourceID,
+	)
+	return i, err
+}
+
 const updateFile = `-- name: UpdateFile :one
 UPDATE files
 SET 
@@ -214,7 +258,7 @@ SET
     current_key_version = $6,
     updated_at = $7
 WHERE id = $1
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id
 `
 
 type UpdateFileParams struct {
@@ -248,6 +292,8 @@ func (q *Queries) UpdateFile(ctx context.Context, arg UpdateFileParams) (File, e
 		&i.CurrentKeyVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Starred,
+		&i.DropSourceID,
 	)
 	return i, err
 }
@@ -259,7 +305,7 @@ SET
     current_key_version = $3,
     updated_at = $4
 WHERE id = $1
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id
 `
 
 type UpdateFileMetadataParams struct {
@@ -287,6 +333,8 @@ func (q *Queries) UpdateFileMetadata(ctx context.Context, arg UpdateFileMetadata
 		&i.CurrentKeyVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Starred,
+		&i.DropSourceID,
 	)
 	return i, err
 }

@@ -1,0 +1,16 @@
+Yo, read these three files to get comfy with this project:
+
+1. @AGENT_MASTER.md - The ops runbook (architecture, build timing, SQL rules, database connection)
+2. @README.md - Full architecture docs
+3. @QUICK_REFERENCE.md - Fast lookup tables
+
+**Key things to know:**
+
+- **Frontend**: `/lamp/www/ABRN-Drive/vaultdrive_client/` → `npm run build`, **wait 10 seconds** before testing
+- **Backend**: `/lamp/www/ABRN-Drive/` → `go build && sudo systemctl restart abrndrive`
+- **SQL**: Write queries in `sql/queries/*.sql`, always run `sqlc generate` after editing
+- **Database**: Connection string in `.env` file: `postgres://postgres:postgres@localhost:5432/vaultdrive?sslmode=disable`
+
+**Never forget**: Wait 10 seconds after frontend build. Frontend takes 8-10s to build, auto-reload takes ~3s, backend needs ~2s to start up.
+
+Let's go!

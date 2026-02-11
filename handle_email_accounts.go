@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Pranay0205/ABRN-Drive/auth"
-	"github.com/Pranay0205/ABRN-Drive/internal/database"
-	"github.com/go-chi/chi/v5"
+	"github.com/Pranay0205/VaultDrive/auth"
+	"github.com/Pranay0205/VaultDrive/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -65,7 +64,7 @@ func (cfg *ApiConfig) handleCreateEmailAccount(w http.ResponseWriter, r *http.Re
 	}
 	encryptedPassword := []byte(encryptedPasswordStr)
 
-	account, err := cfg.DB.CreateEmailAccount(r.Context(), database.CreateEmailAccountParams{
+	account, err := cfg.dbQueries.CreateEmailAccount(r.Context(), database.CreateEmailAccountParams{
 		UserID:                userID,
 		Email:                 params.Email,
 		ImapHost:              params.ImapHost,
@@ -87,7 +86,7 @@ func (cfg *ApiConfig) handleCreateEmailAccount(w http.ResponseWriter, r *http.Re
 }
 
 func (cfg *ApiConfig) handleGetEmailAccount(w http.ResponseWriter, r *http.Request) {
-	accountID, err := uuid.Parse(chi.URLParam(r, "id"))
+	accountID, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid account ID", err)
 		return
@@ -99,7 +98,7 @@ func (cfg *ApiConfig) handleGetEmailAccount(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	account, err := cfg.DB.GetEmailAccountByID(r.Context(), database.GetEmailAccountByIDParams{
+	account, err := cfg.dbQueries.GetEmailAccountByID(r.Context(), database.GetEmailAccountByIDParams{
 		ID:     accountID,
 		UserID: userID,
 	})
@@ -118,7 +117,7 @@ func (cfg *ApiConfig) handleListEmailAccounts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	accounts, err := cfg.DB.ListEmailAccountsByUser(r.Context(), userID)
+	accounts, err := cfg.dbQueries.ListEmailAccountsByUser(r.Context(), userID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to list email accounts", err)
 		return
@@ -134,7 +133,7 @@ func (cfg *ApiConfig) handleListEmailAccounts(w http.ResponseWriter, r *http.Req
 }
 
 func (cfg *ApiConfig) handleUpdateEmailAccount(w http.ResponseWriter, r *http.Request) {
-	accountID, err := uuid.Parse(chi.URLParam(r, "id"))
+	accountID, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid account ID", err)
 		return
@@ -160,14 +159,28 @@ func (cfg *ApiConfig) handleUpdateEmailAccount(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	encryptedPasswordStr, err := auth.EncryptPassword(params.Password, cfg.jwtSecret)
+	// Get existing account to preserve password if not provided
+	existingAccount, err := cfg.dbQueries.GetEmailAccountByID(r.Context(), database.GetEmailAccountByIDParams{
+		ID:     accountID,
+		UserID: userID,
+	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to encrypt password", err)
+		respondWithError(w, http.StatusNotFound, "Email account not found", err)
 		return
 	}
-	encryptedPassword := []byte(encryptedPasswordStr)
 
-	account, err := cfg.DB.UpdateEmailAccount(r.Context(), database.UpdateEmailAccountParams{
+	// Use existing encrypted password if no new password provided
+	encryptedPassword := existingAccount.EncryptedImapPassword
+	if params.Password != "" {
+		encryptedPasswordStr, err := auth.EncryptPassword(params.Password, cfg.jwtSecret)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Failed to encrypt password", err)
+			return
+		}
+		encryptedPassword = []byte(encryptedPasswordStr)
+	}
+
+	account, err := cfg.dbQueries.UpdateEmailAccount(r.Context(), database.UpdateEmailAccountParams{
 		ID:                    accountID,
 		UserID:                userID,
 		Email:                 params.Email,
@@ -185,7 +198,7 @@ func (cfg *ApiConfig) handleUpdateEmailAccount(w http.ResponseWriter, r *http.Re
 }
 
 func (cfg *ApiConfig) handleDeleteEmailAccount(w http.ResponseWriter, r *http.Request) {
-	accountID, err := uuid.Parse(chi.URLParam(r, "id"))
+	accountID, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid account ID", err)
 		return
@@ -197,7 +210,7 @@ func (cfg *ApiConfig) handleDeleteEmailAccount(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = cfg.DB.DeleteEmailAccount(r.Context(), database.DeleteEmailAccountParams{
+	err = cfg.dbQueries.DeleteEmailAccount(r.Context(), database.DeleteEmailAccountParams{
 		ID:     accountID,
 		UserID: userID,
 	})

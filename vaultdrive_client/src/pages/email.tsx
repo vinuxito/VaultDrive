@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import EmailAccountSettings from '../components/email/EmailAccountSettings';
+import EditEmailAccountModal from '../components/email/EditEmailAccountModal';
 import MailboxList from '../components/email/MailboxList';
 import EmailList from '../components/email/EmailList';
 import EmailView from '../components/email/EmailView';
 import type { EmailSummary } from '../utils/api';
-import { listEmailAccounts, listMailboxes } from '../utils/api';
+import { listEmailAccounts, listMailboxes, deleteEmailAccount } from '../utils/api';
+
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface EmailAccount {
   id: string;
   email: string;
+  imapHost: string;
+  imapPort: number;
+  imapUser: string;
 }
 
 const EmailPage: React.FC = () => {
@@ -19,6 +25,8 @@ const EmailPage: React.FC = () => {
   const [selectedEmail, setSelectedEmail] = useState<EmailSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingAccount, setEditingAccount] = useState<EmailAccount | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -68,20 +76,100 @@ const EmailPage: React.FC = () => {
     }
   }, [selectedAccount]);
 
+  const fetchAccounts = async () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const fetchedAccounts = await listEmailAccounts(token);
+        setAccounts(fetchedAccounts);
+        if (fetchedAccounts.length > 0 && !selectedAccount) {
+          setSelectedAccount(fetchedAccounts[0]);
+        }
+      } catch (error) {
+        setError('Failed to fetch email accounts');
+        console.error('Failed to fetch email accounts', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleEditAccount = (account: EmailAccount) => {
+    setEditingAccount(account);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateComplete = () => {
+    setIsEditModalOpen(false);
+    setEditingAccount(null);
+    fetchAccounts();
+  };
+
+  const handleDeleteAccount = async (account: EmailAccount) => {
+    if (!window.confirm(`Are you sure you want to delete the email account "${account.email}"?`)) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication required');
+      return;
+    }
+
+    try {
+      await deleteEmailAccount(account.id, token);
+      if (selectedAccount?.id === account.id) {
+        setSelectedAccount(null);
+      }
+      fetchAccounts();
+    } catch (error) {
+      setError('Failed to delete email account');
+      console.error('Failed to delete email account', error);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <EditEmailAccountModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        account={editingAccount}
+        onUpdate={handleUpdateComplete}
+      />
       <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4">
         <EmailAccountSettings />
         <h2 className="mt-4 text-lg font-semibold">Accounts</h2>
         {error && <p className="text-red-500">{error}</p>}
         <ul className="space-y-2">
           {accounts.map((account) => (
-            <li key={account.id}>
+            <li key={account.id} className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedAccount(account)}
-                className={`w-full text-left px-4 py-2 text-sm rounded-md ${selectedAccount?.id === account.id ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                className={`flex-1 text-left px-4 py-2 text-sm rounded-md ${selectedAccount?.id === account.id ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
               >
                 {account.email}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditAccount(account);
+                }}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"
+                title="Edit account"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteAccount(account);
+                }}
+                className="p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-md text-red-600 dark:text-red-400"
+                title="Delete account"
+              >
+                <Trash2 className="h-4 w-4" />
               </button>
             </li>
           ))}

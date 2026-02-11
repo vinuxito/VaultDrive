@@ -100,6 +100,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		CurrentKeyVersion: sql.NullInt32{Int32: 1, Valid: true},
 		CreatedAt:         time.Now().UTC(),
 		UpdatedAt:         time.Now().UTC(),
+		DropSourceID:      uuid.NullUUID{},
 	})
 
 	if err != nil {

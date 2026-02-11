@@ -1,0 +1,72 @@
+# QUICKSTART — ABRN Drive Development
+
+> Drop this file to get started immediately with ABRN Drive development.
+
+---
+
+## TL;DR — Essential Commands
+
+```bash
+cd /lamp/www/ABRN-Drive
+
+# Frontend work (React/TypeScript)
+cd vaultdrive_client
+npm run build
+sleep 10  # Wait for build + auto-reload
+# Now test
+
+# Backend work (Go)
+cd /lamp/www/ABRN-Drive
+go build
+sudo systemctl restart abrndrive
+# Now test
+
+# SQL work (use sqlc ONLY!)
+# 1. Edit: sql/queries/*.sql
+# 2. Generate: sqlc generate
+# 3. Rebuild: go build && sudo systemctl restart abrndrive
+
+# Database connection
+psql "postgres://postgres:postgres@localhost:5432/vaultdrive?sslmode=disable" -c "SELECT version();"
+```
+
+---
+
+## Project Locations
+
+| Component | Path |
+|-----------|------|
+| **Backend** | `/lamp/www/ABRN-Drive/` |
+| **Frontend** | `/lamp/www/ABRN-Drive/vaultdrive_client/` |
+| **Database** | PostgreSQL 16, connection in `.env` |
+
+---
+
+## Key Rules
+
+1. **Frontend build takes 8-10s, WAIT 10s before testing**
+2. **All SQL queries MUST use sqlc** (never write raw SQL in Go)
+3. **Never write `sqlc generate` output** — it gets regenerated
+4. **Database credentials**: Read from `/lamp/www/ABRN-Drive/.env`
+
+---
+
+## Read These First
+
+1. `AGENT_MASTER.md` — Full operations runbook
+2. `README.md` — Complete architecture documentation
+3. `QUICK_REFERENCE.md` — Fast lookup tables
+
+---
+
+## Gotchas
+
+- ✅ Do work in correct directory
+- ✅ Wait 10s after `npm run build`
+- ✅ Use `sqlc generate` after editing SQL
+- ❌ Don't write raw SQL in Go
+- ❌ Don't test immediately after build
+
+---
+
+Last updated: February 3, 2026

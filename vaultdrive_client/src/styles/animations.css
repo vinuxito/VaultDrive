@@ -1,0 +1,1016 @@
+/**
+ * Animation Keyframes
+ * VaultDrive v2.0 - Phase 2A: Foundation
+ */
+
+/* Fade Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Scale Animations */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes scaleInBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Pulse Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Shimmer Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Float Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Bounce Animations */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Spin Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Encryption Animation */
+@keyframes encrypt {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes encrypt-particles {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Success Checkmark Animation */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmark-circle {
+  0% {
+    stroke-dashoffset: 314;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Progress Bar Animation */
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress);
+  }
+}
+
+@keyframes progress-striped {
+  from {
+    background-position: 40px 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* Ripple Animation */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Typing Animation */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Confetti Animation */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-explode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Wave Animation */
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-5px);
+  }
+  75% {
+    transform: translateY(5px);
+  }
+}
+
+/* Shake Animation */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Swing Animation */
+@keyframes swing {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+}
+
+/* Flip Animation */
+@keyframes flip {
+  0% {
+    transform: perspective(400px) rotateY(0);
+  }
+  100% {
+    transform: perspective(400px) rotateY(360deg);
+  }
+}
+
+/* Zoom Animation */
+@keyframes zoom {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Morph Animation */
+@keyframes morph {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+}
+
+/* Gradient Animation */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.8), 0 0 30px rgba(99, 102, 241, 0.6);
+  }
+}
+
+/* Skeleton Loading Animation */
+@keyframes skeleton {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Notification Slide Animation */
+@keyframes notification-slide {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Animation */
+@keyframes modal-in {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes modal-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Dropdown Animation */
+@keyframes dropdown-in {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Tooltip Animation */
+@keyframes tooltip-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Accordion Animation */
+@keyframes accordion-down {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    max-height: 500px;
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+/* Tab Animation */
+@keyframes tab-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Theme Transition Animation */
+@keyframes theme-transition {
+  0% {
+    background: var(--background-light);
+  }
+  50% {
+    background: var(--accent-primary);
+  }
+  100% {
+    background: var(--background-dark);
+  }
+}
+
+/* Onboarding Animation */
+@keyframes onboarding-step {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes onboarding-step-out {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* Drag and Drop Animation */
+@keyframes drag-over {
+  0%, 100% {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(99, 102, 241, 0.05);
+  }
+  50% {
+    border-color: rgba(99, 102, 241, 0.6);
+    background: rgba(99, 102, 241, 0.1);
+  }
+}
+
+/* Upload Progress Animation */
+@keyframes upload-progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* Success Animation */
+@keyframes success-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Error Animation */
+@keyframes error-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-3px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(3px);
+  }
+}
+
+/* Loading Spinner Animation */
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dots Loading Animation */
+@keyframes dots {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Bar Loading Animation */
+@keyframes bars {
+  0%, 100% {
+    height: 10px;
+  }
+  50% {
+    height: 30px;
+  }
+}
+
+/* Wave Loading Animation */
+@keyframes wave-bars {
+  0%, 100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* Orbit Animation */
+@keyframes orbit {
+  from {
+    transform: rotate(0deg) translateX(50px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(50px) rotate(-360deg);
+  }
+}
+
+/* Heartbeat Animation */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* Blink Animation */
+@keyframes blink {
+  0%, 50%, 100% {
+    opacity: 1;
+  }
+  25%, 75% {
+    opacity: 0;
+  }
+}
+
+/* Wiggle Animation */
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+/* Jello Animation */
+@keyframes jello {
+  0%, 100% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+}
+
+/* ========================================
+   Phase 2C: Upload Component Animations
+   ======================================== */
+
+/* Dropzone Pulse Animation */
+@keyframes dropzone-pulse {
+  0%, 100% {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    border-color: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 0 20px 5px rgba(99, 102, 241, 0.2);
+  }
+}
+
+/* Gradient X Animation for progress bars */
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Sparkle Animation for key generation */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: rotate(var(--rotation, 0deg)) translateY(-32px) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(var(--rotation, 0deg)) translateY(-32px) scale(1);
+  }
+}
+
+/* Flow Animation for encryption arrows */
+@keyframes flow {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+/* Confetti Animation for success */
+@keyframes confetti {
+  0% {
+    transform: rotate(var(--rotation, 0deg)) translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rotation, 0deg)) translateY(-50px) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Upload Icon Bounce */
+@keyframes upload-icon-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Progress Pulse */
+@keyframes progress-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ========================================
+   Phase 2: UI/UX Overhaul
+   ======================================== */
+@keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.aurora-background {
+  background: radial-gradient(ellipse at top, #0f172a, transparent),
+              radial-gradient(ellipse at bottom, #3b0764, transparent);
+  background-size: 400% 400%;
+  animation: aurora 15s ease-in-out infinite;
+  filter: blur(80px);
+}
+
+.dark .aurora-background {
+    background: linear-gradient(125deg, #020422, #0f172a, #230b4b, #020422);
+    background-size: 400% 400%;
+    animation: aurora 15s ease-in-out infinite;
+    filter: blur(80px);
+}
+
+
+/* Animation Utility Classes */
+.animate-fade-in { animation: fadeIn 300ms ease-out; }
+.animate-fade-out { animation: fadeOut 300ms ease-out; }
+.animate-fade-in-up { animation: fadeInUp 400ms ease-out; }
+.animate-fade-in-down { animation: fadeInDown 400ms ease-out; }
+.animate-fade-in-left { animation: fadeInLeft 400ms ease-out; }
+.animate-fade-in-right { animation: fadeInRight 400ms ease-out; }
+
+.animate-slide-up { animation: slideUp 300ms ease-out; }
+.animate-slide-down { animation: slideDown 300ms ease-out; }
+.animate-slide-left { animation: slideLeft 300ms ease-out; }
+.animate-slide-right { animation: slideRight 300ms ease-out; }
+
+.animate-scale-in { animation: scaleIn 300ms ease-out; }
+.animate-scale-out { animation: scaleOut 300ms ease-out; }
+.animate-scale-in-bounce { animation: scaleInBounce 500ms ease-out; }
+
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+
+.animate-shimmer { animation: shimmer 2s linear infinite; }
+.animate-shine { animation: shine 3s ease-in-out infinite; }
+
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+
+.animate-bounce { animation: bounce 1s ease-in-out infinite; }
+.animate-bounce-in { animation: bounce-in 600ms ease-out; }
+
+.animate-spin { animation: spin 1s linear infinite; }
+.animate-spin-slow { animation: spin-slow 3s linear infinite; }
+
+.animate-encrypt { animation: encrypt 1s linear infinite; }
+.animate-checkmark { animation: checkmark 500ms ease-out forwards; }
+.animate-checkmark-circle { animation: checkmark-circle 600ms ease-out forwards; }
+
+.animate-ripple { animation: ripple 600ms ease-out; }
+.animate-wave { animation: wave 1.5s ease-in-out infinite; }
+.animate-shake { animation: shake 500ms ease-in-out; }
+.animate-swing { animation: swing 1s ease-in-out infinite; }
+.animate-flip { animation: flip 600ms ease-in-out; }
+.animate-zoom { animation: zoom 1s ease-in-out infinite; }
+.animate-morph { animation: morph 8s ease-in-out infinite; }
+.animate-glow { animation: glow 2s ease-in-out infinite; }
+.animate-skeleton { animation: skeleton 1.5s linear infinite; }
+.animate-notification-slide { animation: notification-slide 300ms ease-out; }
+.animate-modal-in { animation: modal-in 300ms ease-out; }
+.animate-modal-out { animation: modal-out 200ms ease-out; }
+.animate-dropdown-in { animation: dropdown-in 200ms ease-out; }
+.animate-tooltip-in { animation: tooltip-in 200ms ease-out; }
+.animate-accordion-down { animation: accordion-down 300ms ease-out; }
+.animate-accordion-up { animation: accordion-up 300ms ease-out; }
+.animate-tab-slide { animation: tab-slide 300ms ease-out; }
+.animate-theme-transition { animation: theme-transition 500ms ease-in-out; }
+.animate-onboarding-step { animation: onboarding-step 400ms ease-out; }
+.animate-onboarding-step-out { animation: onboarding-step-out 400ms ease-out; }
+.animate-drag-over { animation: drag-over 1s ease-in-out infinite; }
+.animate-upload-progress { animation: upload-progress 300ms ease-out; }
+.animate-success-pop { animation: success-pop 400ms ease-out; }
+.animate-error-shake { animation: error-shake 500ms ease-in-out; }
+.animate-spinner { animation: spinner 1s linear infinite; }
+.animate-dots { animation: dots 1.4s ease-in-out infinite; }
+.animate-bars { animation: bars 1s ease-in-out infinite; }
+.animate-wave-bars { animation: wave-bars 1.2s ease-in-out infinite; }
+.animate-orbit { animation: orbit 4s linear infinite; }
+.animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+.animate-blink { animation: blink 1s step-end infinite; }
+.animate-wiggle { animation: wiggle 0.8s ease-in-out infinite; }
+.animate-jello { animation: jello 1s both; }
+
+/* Phase 2C: Upload Animation Utilities */
+.animate-dropzone-pulse { animation: dropzone-pulse 1.5s ease-in-out infinite; }
+.animate-gradient-x { 
+  background-size: 200% 100%;
+  animation: gradient-x 2s ease-in-out infinite; 
+}
+.animate-sparkle { animation: sparkle 1s ease-in-out infinite; }
+.animate-flow { animation: flow 1s ease-in-out infinite; }
+.animate-confetti { animation: confetti 0.8s ease-out forwards; }
+.animate-upload-icon-bounce { animation: upload-icon-bounce 0.6s ease-in-out infinite; }
+.animate-progress-pulse { animation: progress-pulse 1.5s ease-in-out infinite; }
+
+/* Animation Delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+.delay-900 { animation-delay: 900ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* Animation Durations */
+.duration-100 { animation-duration: 100ms; }
+.duration-200 { animation-duration: 200ms; }
+.duration-300 { animation-duration: 300ms; }
+.duration-400 { animation-duration: 400ms; }
+.duration-500 { animation-duration: 500ms; }
+.duration-600 { animation-duration: 600ms; }
+.duration-700 { animation-duration: 700ms; }
+.duration-800 { animation-duration: 800ms; }
+.duration-900 { animation-duration: 900ms; }
+.duration-1000 { animation-duration: 1000ms; }
+
+/* Animation Timing Functions */
+.ease-linear { animation-timing-function: linear; }
+.ease-in { animation-timing-function: ease-in; }
+.ease-out { animation-timing-function: ease-out; }
+.ease-in-out { animation-timing-function: ease-in-out; }
+.ease-bounce { animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

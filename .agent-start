@@ -1,0 +1,7 @@
+Yo, read @README.md and @AGENT_MASTER.md to get comfy with this project, please.
+
+**Quick ref:**
+- Frontend: `cd vaultdrive_client && npm run build && sleep 10`
+- Backend: `go build && sudo systemctl restart abrndrive`
+- SQL: Edit in `sql/queries/*.sql` → `sqlc generate`
+- DB: Read credentials from `.env` file

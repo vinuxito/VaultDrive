@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import {
-  Download,
   File,
   AlertCircle,
   Lock,
@@ -23,6 +22,8 @@ import {
   base64ToArrayBuffer,
 } from "../utils/crypto";
 import { API_URL } from "../utils/api";
+import { FileWidget } from "../components/files";
+
 
 interface SharedFile {
   id: string;
@@ -172,18 +173,6 @@ export default function SharedFiles() {
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
-
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleString();
-  };
-
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -244,46 +233,22 @@ export default function SharedFiles() {
             ) : (
               <div className="space-y-2">
                 {sharedFiles.map((file) => (
-                  <div
+                  <FileWidget
                     key={file.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-                        <File className="w-5 h-5 text-purple-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{file.filename}</p>
-                        <div className="flex gap-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {file.owner_username}
-                          </span>
-                          <span>•</span>
-                          <span>{formatFileSize(file.file_size)}</span>
-                          <span>•</span>
-                          <span>Shared {formatDate(file.shared_at)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          handleDownload(
-                            file.id,
-                            file.filename,
-                            file.encrypted_metadata
-                          )
-                        }
-                        className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 dark:text-blue-400"
-                      >
-                        <Download className="w-4 h-4" />
-                        Download
-                      </Button>
-                    </div>
-                  </div>
+                    file={{
+                      ...file,
+                      created_at: file.shared_at,
+                      metadata: file.encrypted_metadata,
+                      shared_by: file.owner_username,
+                      shared_by_name: file.owner_username,
+                      is_owner: false,
+                    }}
+                    context="shared-files"
+                    onDownload={handleDownload}
+                    showActions={true}
+                    showDetails={true}
+                    enableExpand={true}
+                  />
                 ))}
               </div>
             )}

@@ -18,10 +18,13 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	type response struct {
 		Username            string `json:"username"`
 		Email               string `json:"email"`
+		FirstName           string `json:"first_name"`
+		LastName            string `json:"last_name"`
 		Token               string `json:"token"`
 		RefreshToken        string `json:"refresh_token"`
 		PublicKey           string `json:"public_key"`
 		PrivateKeyEncrypted string `json:"private_key_encrypted"`
+		IsAdmin             bool   `json:"is_admin"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -67,12 +70,19 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isAdmin := false
+	if user.IsAdmin.Valid {
+		isAdmin = user.IsAdmin.Bool
+	}
 	respondWithJSON(w, http.StatusOK, response{
 		Username:            user.Username,
 		Email:               user.Email,
+		FirstName:           user.FirstName,
+		LastName:            user.LastName,
 		Token:               accessToken,
 		RefreshToken:        refreshToken,
 		PublicKey:           user.PublicKey,
 		PrivateKeyEncrypted: user.PrivateKeyEncrypted,
+		IsAdmin:             isAdmin,
 	})
 }

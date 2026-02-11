@@ -1,0 +1,42 @@
+-- Groups Feature Schema
+-- Enables creating user groups for easy file sharing
+
+-- Groups table
+CREATE TABLE IF NOT EXISTS groups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_user_group_name UNIQUE (user_id, name)
+);
+
+-- Group members table
+CREATE TABLE IF NOT EXISTS group_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL DEFAULT 'member',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_group_user UNIQUE (group_id, user_id),
+  CONSTRAINT chk_role CHECK (role IN ('member', 'admin', 'owner'))
+);
+
+-- Group file shares table
+CREATE TABLE IF NOT EXISTS group_file_shares (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+  wrapped_key TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_by UUID NOT NULL REFERENCES users(id),
+  CONSTRAINT uq_group_file UNIQUE (group_id, file_id)
+);
+
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_groups_user ON groups(user_id);
+CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
+CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_group_file_shares_group ON group_file_shares(group_id);
+CREATE INDEX IF NOT EXISTS idx_group_file_shares_file ON group_file_shares(file_id);

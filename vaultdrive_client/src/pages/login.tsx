@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Lock, Mail, User, Eye, EyeOff } from "lucide-react";
-import VaultIcon from "../components/ui/vault-icon";
+import { ABRNLogo, PoweredByBadge } from "../components/branding";
 import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 
@@ -59,7 +59,13 @@ export default function Login() {
       localStorage.setItem("refresh_token", data.refresh_token);
       localStorage.setItem(
         "user",
-        JSON.stringify({ username: data.username, email: data.email })
+        JSON.stringify({
+          username: data.username,
+          email: data.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          is_admin: data.is_admin
+        })
       );
 
       // Dispatch custom event to notify navbar
@@ -112,15 +118,15 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <VaultIcon className="w-16 h-16" />
+            <ABRNLogo className="w-20 h-20" />
           </div>
           <CardTitle className="text-2xl">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isLogin ? "Welcome to ABRN Drive" : "Join ABRN Drive"}
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? "Enter your credentials to access your vault"
-              : "Sign up to start securing your files"}
+              ? "Secure, encrypted cloud storage for your business"
+              : "Create your account and start protecting your files"}
           </CardDescription>
         </CardHeader>
 
@@ -328,6 +334,10 @@ export default function Login() {
                 </button>
               </p>
             )}
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <PoweredByBadge />
           </div>
         </CardContent>
       </Card>

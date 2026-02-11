@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
+export const API_URL = import.meta.env.VITE_API_URL || "/abrn/api";
 
 // Email Accounts API
 export interface EmailAccountPayload {
@@ -78,6 +78,37 @@ export const getEmail = async (accountId: string, mailboxName: string, uid: numb
   });
   if (!response.ok) {
     throw new Error('Failed to get email');
+  }
+  return response.json();
+};
+
+export const updateEmailAccount = async (accountId: string, account: EmailAccountPayload, token: string) => {
+  const response = await fetch(`${API_URL}/email/accounts/${accountId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(account),
+  });
+  if (!response.ok) {
+    const error: any = new Error('Failed to update email account');
+    error.status = response.status;
+    error.response = await response.json().catch(() => ({}));
+    throw error;
+  }
+  return response.json();
+};
+
+export const deleteEmailAccount = async (accountId: string, token: string) => {
+  const response = await fetch(`${API_URL}/email/accounts/${accountId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete email account');
   }
   return response.json();
 };

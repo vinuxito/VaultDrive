@@ -1,0 +1,291 @@
+/**
+ * Elegant Complete CSS - All styles in one file (No CSS @import issues)
+ * VaultDrive v2.0 - Modern UI/UX System
+ */
+
+/* ========== Elegant Card ========== */
+.elegant-card {
+  background: var(--surface-primary, #fafafa);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  box-shadow: var(--elevation-low, 0 2px 8px rgba(0,0,0,0.04));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .elegant-card {
+    --surface-primary: #0f172a;
+    --surface-secondary: #1e293b;
+    --text-primary: #f8fafc;
+  }
+}
+
+.elegant-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-medium, 0 4px 16px rgba(0,0,0,0.08));
+}
+
+.elegant-fade-in {
+  opacity: 0;
+  animation: elegant-fade-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes elegant-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== Elegant Button ========== */
+.elegant-button {
+  background: #6366f1;
+  color: #f8fafc;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.elegant-button:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.elegant-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.elegant-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.elegant-button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* ========== Elegant Input ========== */
+.elegant-input {
+  background: #f4f4f5;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #222;
+  outline: none;
+  transition: border-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              background-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@media (prefers-color-scheme: dark) {
+  .elegant-input {
+    background: #1e293b;
+    color: #f8fafc;
+  }
+}
+
+.elegant-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.elegant-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ========== Elegant Modal ========== */
+.elegant-modal {
+  background: #fafafa;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .elegant-modal {
+    background: #0f172a;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+}
+
+/* Breathing animations */
+.elegant-breathe-lift:hover {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.elegant-breathe-glow {
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.elegant-breathe-glow:hover {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15),
+              0 0 20px rgba(99, 102, 241, 0.08);
+}
+
+@keyframes elegant-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.elegant-breathe-scale {
+  animation: elegant-breathe 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Staggered animations */
+.elegant-stagger-1 { animation-delay: 50ms; }
+.elegant-stagger-2 { animation-delay: 100ms; }
+.elegant-stagger-3 { animation-delay: 150ms; }
+.elegant-stagger-4 { animation-delay: 200ms; }
+.elegant-stagger-5 { animation-delay: 250ms; }
+.elegant-stagger-6 { animation-delay: 300ms; }
+
+/* Color variants */
+.elegant-primary {
+  background: #6366f1;
+  color: #fafafa;
+}
+
+.elegant-secondary {
+  background: #fafafa;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+}
+
+.elegant-accent {
+  background: #818cf8;
+  color: #fafafa;
+}
+
+.elegant-success {
+  background: #10b981;
+  color: #fafafa;
+}
+
+.elegant-warning {
+  background: #f59e0b;
+  color: #fafafa;
+}
+
+.elegant-danger {
+  background: #ef4444;
+  color: #fafafa;
+}
+
+.elegant-subtle {
+  background: #f4f4f5;
+  color: #222;
+  opacity: 0.85;
+}
+
+.elegant-outline {
+  background: transparent;
+  border: 2px solid #6366f1;
+  color: #6366f1;
+}
+
+.elegant-ghost {
+  background: transparent;
+  color: #6366f1;
+}
+
+/* Loading states */
+.elegant-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes elegant-spinner {
+  to { transform: rotate(360deg); }
+}
+
+.elegant-spinner {
+  animation: elegant-spinner 1s linear infinite;
+}
+
+.elegant-spinning {
+  animation: elegant-spinner 0.8s linear infinite;
+}
+
+@keyframes elegant-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+.elegant-breathe-scale,
+.elegant-fade-in {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.elegant-overlay {
+  background: #0a0a14;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 64px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  .elegant-overlay {
+    background: #0a0a14;
+  }
+}
+
+/* CSS Variables for theming (at bottom for Tailwind compatibility) */
+:root {
+  --surface-primary: #fafafa;
+  --surface-secondary: #f4f4f5;
+  --surface-tertiary: #e5e5e5;
+  --text-primary: #222;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  --accent-primary: #6366f1;
+  --accent-secondary: #818cf8;
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+  --elevation-low: 0 2px 8px rgba(0,0,0,0.04);
+  --elevation-medium: 0 4px 16px rgba(0,0,0,0.08);
+  --elevation-high: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-primary: #0f172a;
+    --surface-secondary: #1e293b;
+    --surface-tertiary: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --elevation-low: 0 2px 8px rgba(0,0,0,0.2);
+    --elevation-medium: 0 4px 16px rgba(0,0,0,0.3);
+    --elevation-high: 0 8px 32px rgba(0,0,0,0.4);
+  }
+}
