@@ -44,8 +44,9 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 		SharedByName   *string   `json:"shared_by_name"`
 		SharedAt       *string   `json:"shared_at"`
 		DropToken      *string   `json:"drop_token"`
+		DropFolderID   *string   `json:"drop_folder_id"`
 		DropFolderName *string   `json:"drop_folder_name"`
-		DropWrappedKey *string   `json:"drop_wrapped_key"`
+		PinWrappedKey  *string   `json:"pin_wrapped_key"`
 	}
 
 	fileResponses := []FileResponse{}
@@ -65,9 +66,15 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 			dropFolderName = &f.DropFolderName.String
 		}
 
-		var dropWrappedKey *string = nil
-		if f.DropWrappedKey.Valid && f.DropWrappedKey.String != "" {
-			dropWrappedKey = &f.DropWrappedKey.String
+		var dropFolderID *string = nil
+		if f.DropFolderID.Valid {
+			id := f.DropFolderID.UUID.String()
+			dropFolderID = &id
+		}
+
+		var pinWrappedKey *string = nil
+		if f.PinWrappedKey.Valid && f.PinWrappedKey.String != "" {
+			pinWrappedKey = &f.PinWrappedKey.String
 		}
 
 		fileResponses = append(fileResponses, FileResponse{
@@ -79,8 +86,9 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 			IsOwner:        true,
 			Starred:        f.Starred,
 			DropToken:      dropToken,
+			DropFolderID:   dropFolderID,
 			DropFolderName: dropFolderName,
-			DropWrappedKey: dropWrappedKey,
+			PinWrappedKey:  pinWrappedKey,
 		})
 	}
 

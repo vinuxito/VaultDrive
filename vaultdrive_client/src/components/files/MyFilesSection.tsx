@@ -26,7 +26,7 @@ interface FileData {
   file_size: number;
   created_at: string;
   metadata: string;
-  drop_wrapped_key?: string;
+  pin_wrapped_key?: string;
 }
 
 interface MyFilesSectionProps {
@@ -222,7 +222,7 @@ export const MyFilesSection: React.FC<MyFilesSectionProps> = ({
                               file.id,
                               file.filename,
                               file.metadata,
-                              file.drop_wrapped_key
+                              file.pin_wrapped_key
                             )
                           }
                           className="gap-2 border-blue-500 text-[#7d4f50] hover:bg-[#f2d7d8] dark:hover:bg-[#6b4345] dark:text-[#c4999b]"

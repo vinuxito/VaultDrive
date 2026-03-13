@@ -3,6 +3,8 @@ import { Button } from "../ui/button";
 
 interface BulkActionBarProps {
   selectedCount: number;
+  deletableCount?: number;
+  scopeLabel?: string;
   onDownload: () => void;
   onDelete: () => void;
   onClear: () => void;
@@ -10,6 +12,8 @@ interface BulkActionBarProps {
 
 export function BulkActionBar({
   selectedCount,
+  deletableCount = selectedCount,
+  scopeLabel = "in this view",
   onDownload,
   onDelete,
   onClear,
@@ -23,7 +27,7 @@ export function BulkActionBar({
         style={{ background: "#3d2526" }}
       >
         <span className="text-sm font-semibold text-white/90">
-          {selectedCount} selected
+          {selectedCount} selected {scopeLabel}
         </span>
 
         <div className="w-px h-5 bg-white/20" />
@@ -37,14 +41,16 @@ export function BulkActionBar({
           Download {selectedCount}
         </Button>
 
-        <Button
-          size="sm"
-          onClick={onDelete}
-          className="rounded-full bg-transparent hover:bg-red-900/40 text-red-400 hover:text-red-300 border border-red-800/50 gap-1.5 px-3 h-8 text-sm"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Delete
-        </Button>
+        {deletableCount > 0 && (
+          <Button
+            size="sm"
+            onClick={onDelete}
+            className="rounded-full bg-transparent hover:bg-red-900/40 text-red-400 hover:text-red-300 border border-red-800/50 gap-1.5 px-3 h-8 text-sm"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            {deletableCount === selectedCount ? "Delete" : `Delete ${deletableCount}`}
+          </Button>
+        )}
 
         <button
           onClick={onClear}

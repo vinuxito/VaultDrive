@@ -19,14 +19,14 @@ The audit surfaced **9 issues** across 5 files: 1 critical, 4 high, 2 medium, 2 
 
 ### BUG 1 — CRITICAL — `settings.tsx:76-80` — Double encryption of private key
 
-**Root cause:** `private_key_encrypted` stored in `localStorage["user"]` is the RSA private key encrypted with the user's **login password** (via AES-GCM + PBKDF2, same format as file keys). It is not a plaintext PEM string. The code was passing this ciphertext blob directly to `encryptPrivateKeyWithPIN(pin, blob)`, which encrypted the already-encrypted blob a second time.
+**Root cause:** `private_key_encrypted` stored in `localStorage["user"]` is the RSA private key encrypted with the user's login password. It is not a plaintext PEM string. The code was passing this ciphertext blob directly to `encryptPrivateKeyWithPIN(pin, blob)`, which encrypted the already-encrypted blob a second time.
 
 **Effect:** When `shared.tsx` later called `decryptPrivateKeyWithPIN(pin, private_key_pin_encrypted)` it received the password-encrypted blob (not a PEM), and `importRSAPrivateKey(pkcs8, ...)` threw a `DataError`. **Every shared-file download would silently fail.**
 
 **Fix:** Added an account password field to the PIN form. On submit:
 
 ```typescript
-const privateKeyPem = await unwrapKey(passwordInput, private_key_encrypted);
+const privateKeyPem = await decryptPrivateKeyWithPassword(passwordInput, private_key_encrypted);
 const privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pin, privateKeyPem);
 ```
 
@@ -140,6 +140,28 @@ async function handlePinSubmit() {
 
 ---
 
+## Post-Audit Fixes
+
+After the original audit, two additional production regressions were identified and fixed.
+
+### BUG 8 — CRITICAL — `login.tsx` / `settings.tsx` — Wrong decryptor for `private_key_encrypted`
+
+**Root cause:** the frontend was using `unwrapKey()` for `private_key_encrypted`. That helper is correct for file/drop wrapped AES keys (`hex + PBKDF2`), but the backend registration flow stores the user's password-encrypted RSA key as `base64([16B salt][12B nonce][ciphertext])` using `SHA-256(salt || password)`.
+
+**Effect:** password login could not reliably hydrate the in-memory RSA private key, and Settings could fail before `POST /api/users/pin` was even sent, surfacing a misleading password/decryption error.
+
+**Fix:** added `decryptPrivateKeyWithPassword()` in `vaultdrive_client/src/utils/crypto.ts` and switched both `vaultdrive_client/src/pages/login.tsx` and `vaultdrive_client/src/pages/settings.tsx` to use it.
+
+### BUG 9 — HIGH — `settings.tsx` / `files.tsx` — Duplicate dashboard shell
+
+**Root cause:** `ProtectedRoute` already wraps authenticated pages with `DashboardLayout`, but `vaultdrive_client/src/pages/settings.tsx` and `vaultdrive_client/src/pages/files.tsx` were wrapping themselves in `DashboardLayout` again.
+
+**Effect:** the sticky top header and the PIN banner rendered twice on affected authenticated pages.
+
+**Fix:** removed the redundant page-level `DashboardLayout` wrappers so the protected-route shell is the single layout owner.
+
+---
+
 ## Issues Found But Not Fixed
 
 ### MEDIUM — `files.tsx:279-281` — Folder tree node uses `drop_folder_name` as filter
@@ -151,8 +173,9 @@ The "folder" tree node filters files by `drop_folder_name` (a Secure Drop field)
 ## Verification After Fixes
 
 ```
-tsc -b     → 0 errors
-vite build → ✓ built in 11.53s (no new warnings)
+npm run build → tsc -b && vite build ✓
+PIN flow e2e → register → password login → set PIN → PIN login ✓
+Playwright UI check → `/settings` renders one sticky header; PIN setup succeeds ✓
 ```
 
 Go service was already running clean (`go build` passed before the audit).
@@ -176,13 +199,17 @@ Users who set their PIN during the session **before this fix** have a corrupted 
 | 5 | `share-modal.tsx` (silent member errors) | HIGH | Fixed |
 | 6 | `shared.tsx` (modal close order) | LOW | Fixed |
 | 7 | `share-modal.tsx` (UI copy) | LOW | Fixed |
-| 8 | `files.tsx` (folder filter field) | MEDIUM | Not fixed — pre-existing |
+| 8 | `login.tsx` / `settings.tsx` wrong decryptor | CRITICAL | Fixed |
+| 9 | `settings.tsx` / `files.tsx` duplicate layout | HIGH | Fixed |
+| 10 | `files.tsx` (folder filter field) | MEDIUM | Not fixed — pre-existing |
 
 ## Files Changed in This Task
 
 | File | Changes |
 |------|---------|
-| `vaultdrive_client/src/pages/settings.tsx` | Password field added; `unwrapKey` call before PIN-encrypt |
+| `vaultdrive_client/src/pages/settings.tsx` | Password field added; uses `decryptPrivateKeyWithPassword()` before PIN-encrypt |
 | `vaultdrive_client/src/pages/files.tsx` | `is_owner` forwarded; strict equality for routing |
 | `vaultdrive_client/src/components/share-modal.tsx` | Null public key throws; member response.ok check; UI copy |
 | `vaultdrive_client/src/pages/shared.tsx` | Modal close moved after download |
+| `vaultdrive_client/src/utils/crypto.ts` | Added `decryptPrivateKeyWithPassword()` for backend password blob |
+| `vaultdrive_client/src/pages/login.tsx` | Uses `decryptPrivateKeyWithPassword()` after password login |

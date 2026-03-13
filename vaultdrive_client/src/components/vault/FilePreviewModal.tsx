@@ -19,7 +19,7 @@ export interface FileEntry {
   filename: string;
   metadata: string;
   is_owner?: boolean;
-  drop_wrapped_key?: string | null;
+  pin_wrapped_key?: string | null;
 }
 
 interface FilePreviewModalProps {
@@ -48,8 +48,8 @@ async function fetchAndDecryptBlob(
   const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
   let encryptionKey: CryptoKey;
 
-  if (isDropUpload && file.drop_wrapped_key) {
-    const rawKey = await unwrapKey(credential, file.drop_wrapped_key);
+  if (isDropUpload && file.pin_wrapped_key) {
+    const rawKey = await unwrapKey(credential, file.pin_wrapped_key);
     const keyBytes = hexToBytes(rawKey);
     encryptionKey = await crypto.subtle.importKey(
       "raw",
@@ -84,7 +84,7 @@ async function fetchAndDecryptBlob(
 }
 
 function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
-  if (file.drop_wrapped_key) return "drop-pin";
+  if (file.pin_wrapped_key) return "drop-pin";
   if (file.is_owner === false) return "pin";
   return "password";
 }
@@ -109,7 +109,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     setCredential("");
 
     const vaultKey = getPrivateKey();
-    if (vaultKey && file.is_owner === false && !file.drop_wrapped_key) {
+    if (vaultKey && file.is_owner === false && !file.pin_wrapped_key) {
       setShowCredentialPrompt(false);
       loadPreview("");
     } else {

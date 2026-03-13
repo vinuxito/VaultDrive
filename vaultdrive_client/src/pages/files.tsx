@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -23,7 +23,6 @@ import {
   Search,
   Upload,
   MoreHorizontal,
-  Settings2,
   ChevronRight,
   Menu,
   Link2,
@@ -75,8 +74,9 @@ interface FileData {
   shared_by_name?: string | null;
   shared_at?: string | null;
   drop_token?: string | null;
+  drop_folder_id?: string | null;
   drop_folder_name?: string | null;
-  drop_wrapped_key?: string | null;
+  pin_wrapped_key?: string | null;
 }
 
 interface SharedFile {
@@ -138,6 +138,53 @@ function getFileExtension(filename: string): string {
   return filename.split(".").pop()?.toLowerCase() ?? "";
 }
 
+function collectFolderDescendantIds(folders: Folder[], folderId: string): Set<string> {
+  const descendants = new Set<string>([folderId]);
+  const childrenByParent = new Map<string, string[]>();
+
+  folders.forEach((folder) => {
+    if (!folder.parentId) return;
+    const siblings = childrenByParent.get(folder.parentId) ?? [];
+    siblings.push(folder.id);
+    childrenByParent.set(folder.parentId, siblings);
+  });
+
+  const queue = [folderId];
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId) continue;
+
+    const childIds = childrenByParent.get(currentId) ?? [];
+    childIds.forEach((childId) => {
+      if (descendants.has(childId)) return;
+      descendants.add(childId);
+      queue.push(childId);
+    });
+  }
+
+  return descendants;
+}
+
+function getFolderFileCounts(files: FileData[]): Record<string, number> {
+  return files.reduce<Record<string, number>>((counts, file) => {
+    if (!file.drop_folder_id) return counts;
+    counts[file.drop_folder_id] = (counts[file.drop_folder_id] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function getSelectableFileIds(files: FileData[]): Set<string> {
+  return new Set(files.map((file) => file.id));
+}
+
+function areAllFilesSelected(files: FileData[], selectedIds: Set<string>): boolean {
+  return files.length > 0 && files.every((file) => selectedIds.has(file.id));
+}
+
+function hasSomeFilesSelected(files: FileData[], selectedIds: Set<string>): boolean {
+  return files.some((file) => selectedIds.has(file.id));
+}
+
 export default function Files() {
   const navigate = useNavigate();
   const sessionVault = useSessionVault();
@@ -166,16 +213,18 @@ export default function Files() {
     fileId: string;
     filename: string;
     metadata: string;
-    drop_wrapped_key?: string;
+    pin_wrapped_key?: string;
     is_owner?: boolean;
   } | null>(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<{ id: string; filename: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
-  const [fileToShare, setFileToShare] = useState<{ id: string; filename: string; metadata?: string; drop_wrapped_key?: string } | null>(null);
+  const [fileToShare, setFileToShare] = useState<{ id: string; filename: string; metadata?: string; pin_wrapped_key?: string } | null>(null);
 
   const [showManageSharesModal, setShowManageSharesModal] = useState(false);
   const [fileToManage, setFileToManage] = useState<{ id: string; filename: string } | null>(null);
@@ -202,6 +251,7 @@ export default function Files() {
   const [uploadTray, setUploadTray] = useState<UploadTrayItem[]>([]);
   const dragCounter = useRef(0);
   const droppedFilesRef = useRef<globalThis.File[] | null>(null);
+  const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
 
   const [previewFile, setPreviewFile] = useState<FileData | null>(null);
 
@@ -218,7 +268,7 @@ export default function Files() {
     id: string;
     filename: string;
     metadata: string;
-    drop_wrapped_key?: string | null;
+    pin_wrapped_key?: string | null;
   } | null>(null);
 
   const fetchFiles = useCallback(async () => {
@@ -253,6 +303,7 @@ export default function Files() {
         setSharedFiles(data || []);
       }
     } catch {
+      return;
     }
   }, []);
 
@@ -267,6 +318,7 @@ export default function Files() {
         setFolders(data || []);
       }
     } catch {
+      return;
     }
   }, []);
 
@@ -281,6 +333,7 @@ export default function Files() {
         setDropTokens(data || []);
       }
     } catch {
+      return;
     }
   }, []);
 
@@ -296,6 +349,7 @@ export default function Files() {
         setDropLinkFiles((prev) => ({ ...prev, [dropToken]: data || [] }));
       }
     } catch {
+      return;
     }
   }, [dropLinkFiles]);
 
@@ -371,21 +425,24 @@ export default function Files() {
     });
   }, [sortBy, sortAsc]);
 
-  const visibleFiles: FileData[] = (() => {
+  const sharedAsFiles = useMemo<FileData[]>(() => {
+    return sharedFiles.map((sf) => ({
+      id: sf.id,
+      filename: sf.filename,
+      file_size: sf.file_size,
+      created_at: sf.shared_at,
+      metadata: sf.encrypted_metadata,
+      is_owner: false,
+      shared_by: sf.owner_username,
+    }));
+  }, [sharedFiles]);
+
+  const visibleFiles = useMemo<FileData[]>(() => {
     const q = searchQuery.trim().toLowerCase();
 
     if (q) {
-      const sharedAsMine: FileData[] = sharedFiles.map((sf) => ({
-        id: sf.id,
-        filename: sf.filename,
-        file_size: sf.file_size,
-        created_at: sf.shared_at,
-        metadata: sf.encrypted_metadata,
-        is_owner: false,
-        shared_by: sf.owner_username,
-      }));
-      const allFiles = [...myFiles, ...sharedAsMine];
-      const filtered = allFiles.filter((f) => f.filename.toLowerCase().includes(q));
+      const allFiles = [...myFiles, ...sharedAsFiles];
+      const filtered = allFiles.filter((file) => file.filename.toLowerCase().includes(q));
       return applySort(applyTypeFilter(filtered));
     }
 
@@ -396,23 +453,15 @@ export default function Files() {
         list = myFiles;
         break;
       case "starred":
-        list = myFiles.filter((f) => f.starred);
+        list = myFiles.filter((file) => file.starred);
         break;
-      case "folder":
-        list = myFiles.filter(
-          (f) => f.drop_folder_name === selectedNode.folderName
-        );
+      case "folder": {
+        const descendantIds = collectFolderDescendantIds(folders, selectedNode.folderId);
+        list = myFiles.filter((file) => file.drop_folder_id && descendantIds.has(file.drop_folder_id));
         break;
+      }
       case "shared":
-        list = sharedFiles.map((sf) => ({
-          id: sf.id,
-          filename: sf.filename,
-          file_size: sf.file_size,
-          created_at: sf.shared_at,
-          metadata: sf.encrypted_metadata,
-          is_owner: false,
-          shared_by: sf.owner_username,
-        }));
+        list = sharedAsFiles;
         break;
       case "drop-link":
         list = dropLinkFiles[selectedNode.token] || [];
@@ -420,9 +469,71 @@ export default function Files() {
     }
 
     return applySort(applyTypeFilter(list));
-  })();
+  }, [applySort, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles]);
 
-  const starredCount = myFiles.filter((f) => f.starred).length;
+  const folderFileCounts = useMemo(() => getFolderFileCounts(myFiles), [myFiles]);
+  const visibleFileIds = useMemo(() => getSelectableFileIds(visibleFiles), [visibleFiles]);
+  const selectedVisibleFiles = useMemo(
+    () => visibleFiles.filter((file) => selectedFileIds.has(file.id)),
+    [selectedFileIds, visibleFiles]
+  );
+  const allVisibleSelected = useMemo(
+    () => areAllFilesSelected(visibleFiles, selectedFileIds),
+    [selectedFileIds, visibleFiles]
+  );
+  const someVisibleSelected = useMemo(
+    () => hasSomeFilesSelected(visibleFiles, selectedFileIds),
+    [selectedFileIds, visibleFiles]
+  );
+  const selectedBulkFiles = useMemo<BulkDownloadFile[]>(() => {
+    return selectedVisibleFiles.map((file) => ({
+      id: file.id,
+      filename: file.filename,
+      metadata: file.metadata,
+      pin_wrapped_key: file.pin_wrapped_key,
+      is_owner: file.is_owner,
+    }));
+  }, [selectedVisibleFiles]);
+  const deletableSelectedCount = useMemo(
+    () => selectedVisibleFiles.filter((file) => file.is_owner !== false).length,
+    [selectedVisibleFiles]
+  );
+  const bulkDeleteCandidates = useMemo(
+    () => selectedVisibleFiles.filter((file) => file.is_owner !== false),
+    [selectedVisibleFiles]
+  );
+
+  const starredCount = myFiles.filter((file) => file.starred).length;
+
+  useEffect(() => {
+    setSelectedFileIds((prev) => {
+      const next = new Set<string>();
+      prev.forEach((fileId) => {
+        if (visibleFileIds.has(fileId)) {
+          next.add(fileId);
+        }
+      });
+
+      if (next.size === prev.size) {
+        let identical = true;
+        prev.forEach((fileId) => {
+          if (!next.has(fileId)) {
+            identical = false;
+          }
+        });
+        if (identical) {
+          return prev;
+        }
+      }
+
+      return next;
+    });
+  }, [visibleFileIds]);
+
+  useEffect(() => {
+    if (!headerCheckboxRef.current) return;
+    headerCheckboxRef.current.indeterminate = someVisibleSelected && !allVisibleSelected;
+  }, [allVisibleSelected, someVisibleSelected]);
 
   const toggleStar = async (fileId: string) => {
     const token = localStorage.getItem("token");
@@ -435,6 +546,7 @@ export default function Files() {
         prev.map((f) => (f.id === fileId ? { ...f, starred: !f.starred } : f))
       );
     } catch {
+      return;
     }
   };
 
@@ -563,7 +675,7 @@ export default function Files() {
         throw new Error("Failed to download file");
       }
 
-      let metadataStr = response.headers.get("X-File-Metadata") ?? file.metadata;
+      const metadataStr = response.headers.get("X-File-Metadata") ?? file.metadata;
       let metadataObj: { iv?: string; salt?: string };
       try {
         metadataObj = JSON.parse(metadataStr);
@@ -578,8 +690,8 @@ export default function Files() {
       const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
       let encryptionKey: CryptoKey;
 
-      if (isDropUpload && file.drop_wrapped_key) {
-        const rawKey = await unwrapKey(credential, file.drop_wrapped_key);
+      if (isDropUpload && file.pin_wrapped_key) {
+        const rawKey = await unwrapKey(credential, file.pin_wrapped_key);
         const keyBytes = hexToBytes(rawKey);
         encryptionKey = await crypto.subtle.importKey(
           "raw",
@@ -636,17 +748,17 @@ export default function Files() {
     fileId: string,
     filename: string,
     metadata: string,
-    drop_wrapped_key?: string,
+    pin_wrapped_key?: string,
     is_owner?: boolean
   ) => {
-    if (is_owner === false && !drop_wrapped_key) {
+    if (is_owner === false && !pin_wrapped_key) {
       const sessionKey = sessionVault.getPrivateKey();
       if (sessionKey) {
         setDownloading(true);
         setError("");
         try {
           const result = await downloadFileWithCredential(
-            { id: fileId, filename, metadata, drop_wrapped_key, is_owner },
+            { id: fileId, filename, metadata, pin_wrapped_key, is_owner },
             ""
           );
           if (!result.success) setError(result.error ?? "Download failed");
@@ -656,7 +768,7 @@ export default function Files() {
         return;
       }
     }
-    setPendingDownload({ fileId, filename, metadata, drop_wrapped_key, is_owner });
+    setPendingDownload({ fileId, filename, metadata, pin_wrapped_key, is_owner });
     setPasswordAction("download");
     setShowPasswordModal(true);
   };
@@ -671,7 +783,7 @@ export default function Files() {
           id: pendingDownload.fileId,
           filename: pendingDownload.filename,
           metadata: pendingDownload.metadata,
-          drop_wrapped_key: pendingDownload.drop_wrapped_key,
+          pin_wrapped_key: pendingDownload.pin_wrapped_key,
           is_owner: pendingDownload.is_owner,
         },
         password
@@ -717,24 +829,77 @@ export default function Files() {
     }
   };
 
-  const handleBulkDelete = async () => {
-    const ids = Array.from(selectedFileIds);
-    const token = localStorage.getItem("token");
-    for (const id of ids) {
-      try {
-        await fetch(`${API_URL}/files/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch {
-      }
-    }
-    setMyFiles((prev) => prev.filter((f) => !selectedFileIds.has(f.id)));
-    setSelectedFileIds(new Set());
+  const handleBulkDeleteClick = () => {
+    if (bulkDeleteCandidates.length === 0) return;
+    setShowBulkDeleteModal(true);
   };
 
-  const handleShareClick = (fileId: string, filename: string, metadata?: string, drop_wrapped_key?: string) => {
-    setFileToShare({ id: fileId, filename, metadata, drop_wrapped_key });
+  const handleBulkDeleteConfirm = async () => {
+    if (bulkDeleteCandidates.length === 0) return;
+
+    setBulkDeleting(true);
+    setError("");
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const succeededIds: string[] = [];
+    const failedFiles: string[] = [];
+
+    try {
+      for (const file of bulkDeleteCandidates) {
+        try {
+          const response = await fetch(`${API_URL}/files/${file.id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              navigate("/login");
+              return;
+            }
+            failedFiles.push(file.filename);
+            continue;
+          }
+
+          succeededIds.push(file.id);
+        } catch {
+          failedFiles.push(file.filename);
+        }
+      }
+
+      if (succeededIds.length > 0) {
+        const deletedIds = new Set(succeededIds);
+        setMyFiles((prev) => prev.filter((file) => !deletedIds.has(file.id)));
+        setSelectedFileIds((prev) => {
+          const next = new Set(prev);
+          succeededIds.forEach((id) => next.delete(id));
+          return next;
+        });
+      }
+
+      if (failedFiles.length > 0) {
+        const failedList = failedFiles.slice(0, 3).join(", ");
+        const remainingCount = failedFiles.length - Math.min(failedFiles.length, 3);
+        setError(
+          succeededIds.length > 0
+            ? `Deleted ${succeededIds.length} of ${bulkDeleteCandidates.length} files. Failed: ${failedList}${remainingCount > 0 ? ` and ${remainingCount} more` : ""}.`
+            : `Failed to delete the selected files: ${failedList}${remainingCount > 0 ? ` and ${remainingCount} more` : ""}.`
+        );
+      }
+
+      setShowBulkDeleteModal(false);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleShareClick = (fileId: string, filename: string, metadata?: string, pin_wrapped_key?: string) => {
+    setFileToShare({ id: fileId, filename, metadata, pin_wrapped_key });
     setShowShareModal(true);
   };
 
@@ -743,7 +908,7 @@ export default function Files() {
       id: file.id,
       filename: file.filename,
       metadata: file.metadata,
-      drop_wrapped_key: file.drop_wrapped_key,
+      pin_wrapped_key: file.pin_wrapped_key,
     });
     setShowShareLinkModal(true);
   };
@@ -793,6 +958,29 @@ export default function Files() {
     }
   };
 
+  const openCreateFolderModal = (parentId: string | null = null) => {
+    setFolderModalMode("create");
+    setFolderModalParentId(parentId);
+    setFolderToEdit(null);
+    setShowFolderModal(true);
+  };
+
+  const openRenameFolderModal = (folderId: string, name: string) => {
+    setFolderModalMode("rename");
+    setFolderToEdit({ id: folderId, name });
+    setFolderModalParentId(null);
+    setShowFolderModal(true);
+  };
+
+  const openDeleteFolderModal = (folderId: string, name: string) => {
+    setFolderToDelete({
+      id: folderId,
+      name,
+      hasSubfolders: folders.some((folder) => folder.parentId === folderId),
+    });
+    setShowDeleteFolderModal(true);
+  };
+
   const handleFolderModalSubmit = async (name: string) => {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
@@ -803,6 +991,10 @@ export default function Files() {
         body: JSON.stringify({ name, parentId: folderModalParentId || undefined }),
       });
       if (!response.ok) { const e = await response.json(); throw new Error(e.error || "Failed to create folder"); }
+      const createdFolder = await response.json();
+      if (createdFolder?.id && createdFolder?.name) {
+        setSelectedNode({ type: "folder", folderId: createdFolder.id, folderName: createdFolder.name });
+      }
     } else {
       if (!folderToEdit) return;
       const response = await fetch(`${API_URL}/folders/${folderToEdit.id}`, {
@@ -811,6 +1003,15 @@ export default function Files() {
         body: JSON.stringify({ name }),
       });
       if (!response.ok) { const e = await response.json(); throw new Error(e.error || "Failed to rename folder"); }
+      const updatedFolder = await response.json();
+      if (
+        updatedFolder?.id &&
+        updatedFolder?.name &&
+        selectedNode.type === "folder" &&
+        selectedNode.folderId === updatedFolder.id
+      ) {
+        setSelectedNode({ type: "folder", folderId: updatedFolder.id, folderName: updatedFolder.name });
+      }
     }
     await fetchFolders();
     setShowFolderModal(false);
@@ -822,12 +1023,16 @@ export default function Files() {
     if (!folderToDelete) return;
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
+    const deletedFolderSubtree = collectFolderDescendantIds(folders, folderToDelete.id);
     const response = await fetch(`${API_URL}/folders/${folderToDelete.id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) { const e = await response.json(); throw new Error(e.error || "Failed to delete folder"); }
     await fetchFolders();
+    if (selectedNode.type === "folder" && deletedFolderSubtree.has(selectedNode.folderId)) {
+      setSelectedNode({ type: "all" });
+    }
     setShowDeleteFolderModal(false);
     setFolderToDelete(null);
   };
@@ -841,6 +1046,15 @@ export default function Files() {
     });
   };
 
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedFileIds(new Set());
+      return;
+    }
+
+    setSelectedFileIds(new Set(visibleFiles.map((file) => file.id)));
+  };
+
   const handleSort = (field: "name" | "date" | "size") => {
     if (sortBy === field) {
       setSortAsc((prev) => !prev);
@@ -849,15 +1063,6 @@ export default function Files() {
       setSortAsc(false);
     }
   };
-
-  const selectedBulkFiles: BulkDownloadFile[] = visibleFiles
-    .filter((f) => selectedFileIds.has(f.id))
-    .map((f) => ({
-      id: f.id,
-      filename: f.filename,
-      metadata: f.metadata,
-      drop_wrapped_key: f.drop_wrapped_key,
-    }));
 
   const isSharedView = selectedNode.type === "shared";
 
@@ -978,6 +1183,11 @@ export default function Files() {
               allFilesCount={myFiles.length}
               starredCount={starredCount}
               sharedCount={sharedFiles.length}
+              fileCountsByFolderId={folderFileCounts}
+              onCreateFolder={() => openCreateFolderModal()}
+              onCreateSubfolder={(parentId) => openCreateFolderModal(parentId)}
+              onRenameFolder={openRenameFolderModal}
+              onDeleteFolder={openDeleteFolderModal}
             />
           </aside>
 
@@ -1094,7 +1304,16 @@ export default function Files() {
               {!loading && visibleFiles.length > 0 && (
                 <div className="space-y-1">
                   <div className="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider">
-                    <div className="w-4 shrink-0" />
+                    <div className="w-4 shrink-0 flex items-center justify-center">
+                      <input
+                        ref={headerCheckboxRef}
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={toggleSelectAllVisible}
+                        className="w-4 h-4 rounded border-slate-300 accent-[#7d4f50] cursor-pointer"
+                        aria-label={allVisibleSelected ? "Clear current view selection" : "Select current view"}
+                      />
+                    </div>
                     <div className="flex-1">Name</div>
                     <div className="w-28 hidden sm:block">Origin</div>
                     <div className="w-16 text-right hidden md:block">Size</div>
@@ -1148,7 +1367,7 @@ export default function Files() {
 
                         <div className="hidden md:flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                           <button
-                            onClick={() => handleDownload(file.id, file.filename, file.metadata, file.drop_wrapped_key || undefined, file.is_owner)}
+                            onClick={() => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-[#7d4f50] hover:bg-[#f2d7d8]/60 transition-colors"
                             title="Download"
                           >
@@ -1157,7 +1376,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
-                              onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.drop_wrapped_key || undefined)}
+                              onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                               title="Share"
                             >
@@ -1227,7 +1446,7 @@ export default function Files() {
                           {openActionMenu === file.id && (
                             <div className="absolute right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1 min-w-[160px]">
                               <button
-                                onClick={() => { handleDownload(file.id, file.filename, file.metadata, file.drop_wrapped_key || undefined, file.is_owner); setOpenActionMenu(null); }}
+                                onClick={() => { handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner); setOpenActionMenu(null); }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                               >
                                 <Download className="w-3.5 h-3.5" /> Download
@@ -1240,7 +1459,7 @@ export default function Files() {
                               </button>
                               {file.is_owner !== false && (
                                 <button
-                                  onClick={() => { handleShareClick(file.id, file.filename, file.metadata, file.drop_wrapped_key || undefined); setOpenActionMenu(null); }}
+                                  onClick={() => { handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined); setOpenActionMenu(null); }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                 >
                                   <Share2 className="w-3.5 h-3.5" /> Share
@@ -1309,9 +1528,11 @@ export default function Files() {
       )}
 
       <BulkActionBar
-        selectedCount={selectedFileIds.size}
+        selectedCount={selectedVisibleFiles.length}
+        deletableCount={deletableSelectedCount}
+        scopeLabel="in this view"
         onDownload={() => setShowBulkDownload(true)}
-        onDelete={handleBulkDelete}
+        onDelete={handleBulkDeleteClick}
         onClear={() => setSelectedFileIds(new Set())}
       />
 
@@ -1328,7 +1549,7 @@ export default function Files() {
           file={previewFile}
           onClose={() => setPreviewFile(null)}
           onDownload={() => {
-            handleDownload(previewFile.id, previewFile.filename, previewFile.metadata, previewFile.drop_wrapped_key || undefined, previewFile.is_owner);
+            handleDownload(previewFile.id, previewFile.filename, previewFile.metadata, previewFile.pin_wrapped_key || undefined, previewFile.is_owner);
             setPreviewFile(null);
           }}
         />
@@ -1342,14 +1563,14 @@ export default function Files() {
                 <Lock className="w-5 h-5 text-[#f2d7d8]" />
                 {passwordAction === "upload" || passwordAction === "drop-upload"
                   ? "Encrypt File"
-                  : (pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false)
+                  : (pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false)
                   ? "Enter Your PIN"
                   : "Decrypt File"}
               </CardTitle>
               <CardDescription className="text-white/70">
                 {passwordAction === "upload" || passwordAction === "drop-upload"
                   ? "Enter a password to encrypt your file. Remember this password to decrypt it later."
-                  : (pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false)
+                  : (pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false)
                   ? "Enter your 4-digit PIN to decrypt this file."
                   : "Enter the password you used to encrypt this file."}
               </CardDescription>
@@ -1364,20 +1585,20 @@ export default function Files() {
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2 text-white/90">
                   <Key className="w-4 h-4" />
-                  {(pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false) ? "4-digit PIN" : "Encryption Password"}
+                  {(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? "4-digit PIN" : "Encryption Password"}
                 </label>
                 <input
                   type="password"
-                  inputMode={(pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false) ? "numeric" : undefined}
-                  maxLength={(pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false) ? 4 : undefined}
+                  inputMode={(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? "numeric" : undefined}
+                  maxLength={(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? 4 : undefined}
                   value={encryptionPassword}
                   onChange={(e) => setEncryptionPassword(
-                    (pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false)
+                    (pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false)
                       ? e.target.value.replace(/\D/g, "").slice(0, 4)
                       : e.target.value
                   )}
-                  placeholder={(pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false) ? "••••" : "Enter password"}
-                  className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${(pendingDownload?.drop_wrapped_key || pendingDownload?.is_owner === false) ? " text-center tracking-widest text-xl" : ""}`}
+                  placeholder={(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? "••••" : "Enter password"}
+                  className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? " text-center tracking-widest text-xl" : ""}`}
                   autoFocus
                   onKeyDown={(e) => { if (e.key === "Enter" && encryptionPassword) handlePasswordSubmit(); }}
                 />
@@ -1423,7 +1644,7 @@ export default function Files() {
         fileId={fileToShare?.id || ""}
         fileName={fileToShare?.filename || ""}
         fileMetadata={fileToShare?.metadata}
-        dropWrappedKey={fileToShare?.drop_wrapped_key}
+        pinWrappedKey={fileToShare?.pin_wrapped_key}
         onShareComplete={fetchFiles}
       />
 
@@ -1568,11 +1789,59 @@ export default function Files() {
         </div>
       )}
 
-      <div className="hidden">
-        <button onClick={() => { setFolderModalMode("create"); setShowFolderModal(true); }}>
-          <Settings2 className="w-4 h-4" />
-        </button>
-      </div>
+      {showBulkDeleteModal && bulkDeleteCandidates.length > 0 && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <Card className="w-full max-w-lg mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+            <CardHeader className="border-b border-white/10">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Trash2 className="w-5 h-5 text-[#ef4444]" />
+                Delete {bulkDeleteCandidates.length} File{bulkDeleteCandidates.length !== 1 ? "s" : ""}
+              </CardTitle>
+              <CardDescription className="text-white/70">
+                This deletes the owned files in your current selection. Shared files stay untouched.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                {bulkDeleteCandidates.slice(0, 6).map((file) => (
+                  <div key={file.id} className="p-3 bg-white/10 border border-white/20 rounded-md">
+                    <p className="text-sm font-medium truncate text-white">{file.filename}</p>
+                  </div>
+                ))}
+                {bulkDeleteCandidates.length > 6 && (
+                  <p className="text-xs text-white/70 px-1">
+                    ...and {bulkDeleteCandidates.length - 6} more file{bulkDeleteCandidates.length - 6 !== 1 ? "s" : ""}
+                  </p>
+                )}
+              </div>
+              <div className="p-3 bg-[#6b4345]/30 border border-[#d4a5a6]/40 rounded-md">
+                <p className="text-xs text-[#f2d7d8] flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#d4a5a6]" />
+                  <span>This action cannot be undone. Files that fail to delete will remain selected so you can retry.</span>
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBulkDeleteModal(false)}
+                  disabled={bulkDeleting}
+                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleBulkDeleteConfirm}
+                  disabled={bulkDeleting}
+                  className="flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white border-0"
+                >
+                  {bulkDeleting ? "Deleting..." : `Delete ${bulkDeleteCandidates.length}`}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {showShareLinkModal && fileForShareLink && (
         <CreateShareLinkModal

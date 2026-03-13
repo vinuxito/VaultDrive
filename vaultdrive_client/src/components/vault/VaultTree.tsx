@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Files,
   Star,
   Users,
   Link2,
-  Folder,
   ChevronRight,
   ChevronDown,
+  FolderPlus,
 } from "lucide-react";
 import type { Folder as FolderType } from "../files/FolderBreadcrumb";
+import { FolderTree } from "../folders/FolderTree";
 
 export type TreeNode =
   | { type: "all" }
@@ -33,6 +34,11 @@ interface VaultTreeProps {
   allFilesCount: number;
   starredCount: number;
   sharedCount: number;
+  fileCountsByFolderId?: Record<string, number>;
+  onCreateFolder?: () => void;
+  onCreateSubfolder?: (parentId: string) => void;
+  onRenameFolder?: (folderId: string, name: string) => void;
+  onDeleteFolder?: (folderId: string, name: string) => void;
 }
 
 function isDropExpired(token: DropTokenInfo): boolean {
@@ -54,6 +60,10 @@ function isSameNode(a: TreeNode, b: TreeNode): boolean {
   return nodeKey(a) === nodeKey(b);
 }
 
+function getDropLabel(token: DropTokenInfo): string {
+  return token.link_name?.trim() || `${token.token.slice(0, 8)}...`;
+}
+
 interface TreeItemProps {
   icon: React.ReactNode;
   label: string;
@@ -70,24 +80,21 @@ function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: Tre
       onClick={onClick}
       className={`
         w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors
-        ${active
-          ? "bg-[#f2d7d8] text-[#6b4345] font-medium"
-          : "text-slate-600 hover:bg-[#7d4f50]/8 hover:text-[#7d4f50]"
+        ${
+          active
+            ? "bg-[#f2d7d8] text-[#6b4345] font-medium"
+            : "text-slate-600 hover:bg-[#7d4f50]/8 hover:text-[#7d4f50]"
         }
         ${depth > 0 ? "pl-7" : ""}
       `}
     >
-      <span className={`shrink-0 ${active ? "text-[#7d4f50]" : "text-slate-400"}`}>
-        {icon}
-      </span>
+      <span className={`shrink-0 ${active ? "text-[#7d4f50]" : "text-slate-400"}`}>{icon}</span>
       <span className="flex-1 text-sm truncate">{label}</span>
       {badge}
       {count !== undefined && (
         <span
           className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
-            active
-              ? "bg-[#7d4f50]/15 text-[#7d4f50]"
-              : "bg-slate-100 text-slate-500"
+            active ? "bg-[#7d4f50]/15 text-[#7d4f50]" : "bg-slate-100 text-slate-500"
           }`}
         >
           {count}
@@ -101,21 +108,22 @@ interface SectionHeaderProps {
   label: string;
   open: boolean;
   onToggle: () => void;
+  action?: React.ReactNode;
 }
 
-function SectionHeader({ label, open, onToggle }: SectionHeaderProps) {
+function SectionHeader({ label, open, onToggle, action }: SectionHeaderProps) {
   return (
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center gap-1.5 px-3 py-1.5 text-left group"
-    >
-      <span className="text-slate-400 group-hover:text-slate-600 transition-colors">
-        {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-      </span>
-      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-600 transition-colors">
-        {label}
-      </span>
-    </button>
+    <div className="flex items-center gap-2 px-3 py-1.5 group">
+      <button onClick={onToggle} className="flex-1 flex items-center gap-1.5 text-left">
+        <span className="text-slate-400 group-hover:text-slate-600 transition-colors">
+          {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-600 transition-colors">
+          {label}
+        </span>
+      </button>
+      {action}
+    </div>
   );
 }
 
@@ -127,16 +135,32 @@ export function VaultTree({
   allFilesCount,
   starredCount,
   sharedCount,
+  fileCountsByFolderId = {},
+  onCreateFolder,
+  onCreateSubfolder,
+  onRenameFolder,
+  onDeleteFolder,
 }: VaultTreeProps) {
   const [foldersOpen, setFoldersOpen] = useState(true);
   const [linksOpen, setLinksOpen] = useState(true);
 
+  const sortedDropTokens = useMemo(() => {
+    return [...dropTokens].sort((a, b) => {
+      const aInactive = isDropExpired(a) || isDropUsed(a);
+      const bInactive = isDropExpired(b) || isDropUsed(b);
+
+      if (aInactive !== bInactive) {
+        return aInactive ? 1 : -1;
+      }
+
+      return getDropLabel(a).localeCompare(getDropLabel(b));
+    });
+  }, [dropTokens]);
+
   return (
     <nav className="h-full flex flex-col gap-0.5 py-3 px-2 overflow-y-auto">
       <div className="px-3 pb-2 mb-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Quick Access
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Quick Access</p>
       </div>
 
       <TreeItem
@@ -160,30 +184,45 @@ export function VaultTree({
       <SectionHeader
         label="My Folders"
         open={foldersOpen}
-        onToggle={() => setFoldersOpen((o) => !o)}
+        onToggle={() => setFoldersOpen((open) => !open)}
+        action={
+          onCreateFolder ? (
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                onCreateFolder();
+              }}
+              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-slate-400 hover:text-[#7d4f50] hover:bg-[#7d4f50]/8 transition-colors"
+              aria-label="Create folder"
+              title="Create folder"
+            >
+              <FolderPlus className="w-3.5 h-3.5" />
+            </button>
+          ) : null
+        }
       />
 
-      {foldersOpen && folders.length === 0 && (
-        <p className="text-xs text-slate-400 px-7 py-1">No folders yet</p>
-      )}
+      {foldersOpen && folders.length === 0 && <p className="text-xs text-slate-400 px-7 py-1">No folders yet</p>}
 
-      {foldersOpen &&
-        folders.map((folder) => (
-          <TreeItem
-            key={folder.id}
-            icon={<Folder className="w-4 h-4" />}
-            label={folder.name}
-            depth={1}
-            active={isSameNode(selected, {
-              type: "folder",
-              folderId: folder.id,
-              folderName: folder.name,
-            })}
-            onClick={() =>
-              onSelect({ type: "folder", folderId: folder.id, folderName: folder.name })
-            }
+      {foldersOpen && folders.length > 0 && onCreateSubfolder && onRenameFolder && onDeleteFolder && (
+        <div className="px-1">
+          <FolderTree
+            folders={folders}
+            activeFolderId={selected.type === "folder" ? selected.folderId : null}
+            countsByFolderId={fileCountsByFolderId}
+            showActions
+            variant="sidebar"
+            onNavigateToFolder={(folderId) => {
+              const folder = folders.find((entry) => entry.id === folderId);
+              if (!folder) return;
+              onSelect({ type: "folder", folderId, folderName: folder.name });
+            }}
+            onRenameFolder={onRenameFolder}
+            onDeleteFolder={onDeleteFolder}
+            onCreateSubfolder={onCreateSubfolder}
           />
-        ))}
+        </div>
+      )}
 
       <div className="my-2 mx-3 border-t border-slate-200" />
 
@@ -200,43 +239,41 @@ export function VaultTree({
       <SectionHeader
         label="Drop Links"
         open={linksOpen}
-        onToggle={() => setLinksOpen((o) => !o)}
+        onToggle={() => setLinksOpen((open) => !open)}
       />
 
-      {linksOpen && dropTokens.length === 0 && (
-        <p className="text-xs text-slate-400 px-7 py-1">No drop links</p>
-      )}
+      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-400 px-7 py-1">No drop links</p>}
 
       {linksOpen &&
-        dropTokens.map((t) => {
-          const expired = isDropExpired(t);
-          const used = isDropUsed(t);
+        sortedDropTokens.map((token) => {
+          const expired = isDropExpired(token);
+          const used = isDropUsed(token);
           const inactive = expired || used;
-          const label = t.link_name || t.token.slice(0, 8) + "…";
+          const label = getDropLabel(token);
 
           return (
             <TreeItem
-              key={t.id}
+              key={token.id}
               icon={<Link2 className="w-4 h-4" />}
               label={label}
               depth={1}
               active={isSameNode(selected, {
                 type: "drop-link",
-                token: t.token,
-                tokenId: t.id,
+                token: token.token,
+                tokenId: token.id,
                 linkName: label,
               })}
               onClick={() =>
                 onSelect({
                   type: "drop-link",
-                  token: t.token,
-                  tokenId: t.id,
+                  token: token.token,
+                  tokenId: token.id,
                   linkName: label,
                 })
               }
               badge={
                 inactive ? (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-400 shrink-0">
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">
                     {used ? "used" : "expired"}
                   </span>
                 ) : (

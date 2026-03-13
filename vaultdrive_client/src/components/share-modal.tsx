@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -46,7 +46,7 @@ interface ShareModalProps {
   fileId: string;
   fileName: string;
   fileMetadata?: string;
-  dropWrappedKey?: string;
+  pinWrappedKey?: string;
   onShareComplete: () => void;
 }
 
@@ -56,7 +56,7 @@ export default function ShareModal({
   fileId,
   fileName,
   fileMetadata,
-  dropWrappedKey,
+  pinWrappedKey,
   onShareComplete,
 }: ShareModalProps) {
   const [tab, setTab] = useState<"users" | "groups">("users");
@@ -70,18 +70,11 @@ export default function ShareModal({
 
   const [pinInput, setPinInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
-  const credentialMode = dropWrappedKey ? "pin" : "password";
+  const credentialMode = pinWrappedKey ? "pin" : "password";
 
   useEffect(() => {
     if (isOpen && tab === "groups") fetchGroups();
   }, [isOpen, tab]);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (search.length >= 2 && tab === "users") searchUsers();
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [search, tab]);
 
   async function fetchGroups() {
     try {
@@ -96,7 +89,7 @@ export default function ShareModal({
     }
   }
 
-  async function searchUsers() {
+  const searchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -111,11 +104,20 @@ export default function ShareModal({
     } finally {
       setLoading(false);
     }
-  }
+  }, [search]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (search.length >= 2 && tab === "users") {
+        searchUsers();
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [search, searchUsers, tab]);
 
   async function resolveFileAESKey(credential: string): Promise<CryptoKey> {
-    if (dropWrappedKey) {
-      const rawHex = await unwrapKey(credential, dropWrappedKey);
+    if (pinWrappedKey) {
+      const rawHex = await unwrapKey(credential, pinWrappedKey);
       return importKey(rawHex);
     }
 
@@ -367,7 +369,7 @@ export default function ShareModal({
                     Your credential to authorize sharing
                   </p>
 
-                  {dropWrappedKey ? (
+                  {pinWrappedKey ? (
                     <div>
                       <label className="block text-xs text-white/70 mb-1">Your PIN</label>
                       <Input
@@ -413,7 +415,7 @@ export default function ShareModal({
               </Button>
               <Button
                 onClick={handleShare}
-                disabled={!recipient || sharing || (dropWrappedKey ? !pinInput : !passwordInput)}
+                disabled={!recipient || sharing || (pinWrappedKey ? !pinInput : !passwordInput)}
                 className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
               >
                 {sharing ? (

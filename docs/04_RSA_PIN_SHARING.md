@@ -14,7 +14,7 @@ Every file in the system — own uploads, files shared user-to-user, files share
 
 ```
 User password
-    └── PBKDF2-SHA256 (100k iterations)
+    └── SHA-256(salt || password)
             └── AES-256-GCM
                     └── Decrypt private_key_encrypted → RSA-2048 private key PEM
 
@@ -39,7 +39,7 @@ AES-256-GCM file key
 | File key derivation (owner) | PBKDF2-SHA256, 100k iters | client `deriveKeyFromPassword` |
 | File key wrapping (share) | RSA-OAEP / SHA-256 | client `wrapKeyWithRSA` |
 | File key unwrapping (recipient) | RSA-OAEP / SHA-256 | client `unwrapKeyWithRSA` |
-| Private key encryption (password) | AES-256-GCM + PBKDF2 | server `WrapKey` at registration |
+| Private key encryption (password) | AES-256-GCM + SHA-256(salt || password) | server `encryptPrivateKey` at registration |
 | Private key encryption (PIN) | AES-256-GCM + PBKDF2 | client `encryptPrivateKeyWithPIN` |
 | PIN storage | bcrypt cost 10 | server `handle_user_pin.go` |
 
@@ -86,6 +86,8 @@ Now accepts `private_key_pin_encrypted` in the PIN request body and stores it vi
 
 The login response now includes `private_key_pin_encrypted` (null if the user hasn't set a PIN yet). The client stores this in `localStorage`.
 
+Password login also keeps using `private_key_encrypted`, but that blob must be decrypted with `decryptPrivateKeyWithPassword()` because it is a backend registration blob (`base64([salt][nonce][ciphertext])`), not the hex/PBKDF2 format used by `unwrapKey()`.
+
 ### `handle_get_public_key.go` (new file)
 
 ```
@@ -116,12 +118,13 @@ mux.Handle("GET /api/users/{userId}/public-key", apiConfig.middlewareAuth(apiCon
 
 ## Frontend Changes
 
-### `utils/crypto.ts` — new RSA functions
+### `utils/crypto.ts` — RSA/PIN functions
 
-Six new functions added at lines 346–449:
+Core functions used by the sharing and PIN flow:
 
 | Function | Description |
 |----------|-------------|
+| `decryptPrivateKeyWithPassword(password, b64)` | Decrypts backend `private_key_encrypted` blob → PEM |
 | `importRSAPublicKey(pem)` | Imports SPKI PEM → `CryptoKey` for encrypt |
 | `importRSAPrivateKey(b64)` | Imports PKCS8 PEM → `CryptoKey` for decrypt |
 | `wrapKeyWithRSA(pubKey, aesKey)` | RSA-OAEP encrypts AES key → base64 |
@@ -231,7 +234,7 @@ Added `is_owner` field to the `BulkDownloadFile` type so the modal can correctly
 2. PIN banner prompts them to set a PIN
 3. User opens Settings → "Set PIN"
 4. Form asks for: account password + new 4-digit PIN
-5. Password decrypts `private_key_encrypted` → RSA private key PEM
+5. `decryptPrivateKeyWithPassword(password, private_key_encrypted)` decrypts the backend password blob → RSA private key PEM
 6. PIN re-encrypts PEM → `private_key_pin_encrypted` stored in DB + localStorage
 
 ### Sharing a file
@@ -279,10 +282,10 @@ Added `is_owner` field to the `BulkDownloadFile` type so the modal can correctly
 | `handle_file_share.go` | Accepts `user_id` instead of `recipient_email` |
 | `handle_file_download.go` | Group fallback; returns `X-Wrapped-Key` header |
 | `main.go` | New route registered |
-| `vaultdrive_client/src/utils/crypto.ts` | 6 new RSA/PIN functions (lines 346–449) |
+| `vaultdrive_client/src/utils/crypto.ts` | RSA/PIN helpers including `decryptPrivateKeyWithPassword` |
 | `vaultdrive_client/src/utils/api.ts` | `setPIN` updated; `getUserPublicKey` added |
 | `vaultdrive_client/src/pages/login.tsx` | Stores key fields to localStorage |
-| `vaultdrive_client/src/pages/settings.tsx` | Password field + `unwrapKey` call before PIN-encrypt |
+| `vaultdrive_client/src/pages/settings.tsx` | Password field + password-blob decrypt before PIN-encrypt |
 | `vaultdrive_client/src/components/share-modal.tsx` | Full rewrite — RSA key wrapping |
 | `vaultdrive_client/src/pages/shared.tsx` | Full rewrite — PIN modal replaces password modal |
 | `vaultdrive_client/src/pages/files.tsx` | Three-path download routing |

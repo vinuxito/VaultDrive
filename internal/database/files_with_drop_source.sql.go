@@ -25,7 +25,8 @@ SELECT
     f.encrypted_metadata,
     f.drop_source_id,
     u.token as drop_token,
-    u.password_hash as drop_wrapped_key,
+    u.password_hash as pin_wrapped_key,
+    fol.id as drop_folder_id,
     fol.name as drop_folder_name
 FROM files f
 LEFT JOIN upload_tokens u ON f.drop_source_id = u.id
@@ -45,7 +46,8 @@ type GetFilesWithDropSourceRow struct {
 	EncryptedMetadata sql.NullString
 	DropSourceID      uuid.NullUUID
 	DropToken         sql.NullString
-	DropWrappedKey    sql.NullString
+	PinWrappedKey     sql.NullString
+	DropFolderID      uuid.NullUUID
 	DropFolderName    sql.NullString
 }
 
@@ -69,7 +71,8 @@ func (q *Queries) GetFilesWithDropSource(ctx context.Context, ownerID uuid.NullU
 			&i.EncryptedMetadata,
 			&i.DropSourceID,
 			&i.DropToken,
-			&i.DropWrappedKey,
+			&i.PinWrappedKey,
+			&i.DropFolderID,
 			&i.DropFolderName,
 		); err != nil {
 			return nil, err

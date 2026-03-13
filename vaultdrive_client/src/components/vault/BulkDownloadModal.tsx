@@ -13,7 +13,7 @@ export interface BulkDownloadFile {
   id: string;
   filename: string;
   metadata: string;
-  drop_wrapped_key?: string | null;
+  pin_wrapped_key?: string | null;
   is_owner?: boolean;
 }
 
@@ -33,8 +33,8 @@ export function BulkDownloadModal({
   onDownloadFile,
   onClose,
 }: BulkDownloadModalProps) {
-  const needsPin = files.some((f) => f.drop_wrapped_key);
-  const needsPassword = files.some((f) => !f.drop_wrapped_key);
+  const needsPin = files.some((f) => f.pin_wrapped_key);
+  const needsPassword = files.some((f) => !f.pin_wrapped_key);
 
   const [pinCredential, setPinCredential] = useState("");
   const [passwordCredential, setPasswordCredential] = useState("");
@@ -55,7 +55,7 @@ export function BulkDownloadModal({
     for (const file of files) {
       setStatus(file.id, "downloading");
 
-      const credential = file.drop_wrapped_key ? pinCredential : passwordCredential;
+      const credential = file.pin_wrapped_key ? pinCredential : passwordCredential;
 
       const result = await onDownloadFile(file, credential);
 
@@ -179,7 +179,7 @@ export function BulkDownloadModal({
                       </p>
                     )}
                   </div>
-                  {file.drop_wrapped_key && (
+                  {file.pin_wrapped_key && (
                     <span className="text-xs text-violet-300 shrink-0">PIN</span>
                   )}
                 </div>

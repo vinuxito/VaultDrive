@@ -24,7 +24,7 @@ export interface CreateShareLinkModalProps {
     id: string;
     filename: string;
     metadata: string;
-    drop_wrapped_key?: string | null;
+    pin_wrapped_key?: string | null;
     is_owner?: boolean;
   };
 }
@@ -36,7 +36,7 @@ export function CreateShareLinkModal({
   onClose,
   file,
 }: CreateShareLinkModalProps) {
-  const isDropFile = !!file.drop_wrapped_key;
+  const isDropFile = !!file.pin_wrapped_key;
   const [credential, setCredential] = useState("");
   const [step, setStep] = useState<Step>("credential");
   const [shareUrl, setShareUrl] = useState("");
@@ -51,8 +51,8 @@ export function CreateShareLinkModal({
     try {
       let aesKey: CryptoKey;
 
-      if (isDropFile && file.drop_wrapped_key) {
-        const rawHex = await unwrapKey(credential, file.drop_wrapped_key);
+      if (isDropFile && file.pin_wrapped_key) {
+        const rawHex = await unwrapKey(credential, file.pin_wrapped_key);
         const keyBytes = hexToBytes(rawHex);
         aesKey = await crypto.subtle.importKey(
           "raw",
