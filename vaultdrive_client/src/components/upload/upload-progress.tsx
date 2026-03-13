@@ -46,7 +46,7 @@ export function UploadProgress({
   return (
     <div className={cn('glass rounded-xl overflow-hidden', className)}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-[#7d4f50]/15 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-sm">
             {activeCount > 0 ? 'Uploading' : completedCount === files.length ? 'Complete' : 'Upload Queue'}
@@ -88,12 +88,12 @@ export function UploadProgress({
 
       {/* Footer with overall progress */}
       {activeCount > 0 && (
-        <div className="px-4 py-2 border-t border-white/10 bg-white/5">
+        <div className="px-4 py-2 border-t border-[#7d4f50]/15 bg-[#7d4f50]/3">
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
             <span>Overall Progress</span>
             <span>{Math.round((completedCount / files.length) * 100)}%</span>
           </div>
-          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-1 bg-[#7d4f50]/15 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
               style={{ width: `${(completedCount / files.length) * 100}%` }}
@@ -174,7 +174,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
           {isActive && (
             <button
               onClick={onCancel}
-              className="p-1 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground hover:bg-[#7d4f50]/10 rounded transition-colors"
               title="Cancel upload"
             >
               <X className="w-4 h-4" />
@@ -184,7 +184,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
           {(isComplete || isError) && onRemove && (
             <button
               onClick={onRemove}
-              className="p-1 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground hover:bg-[#7d4f50]/10 rounded transition-colors"
               title="Remove from list"
             >
               <X className="w-4 h-4" />
@@ -203,7 +203,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
               file.encryptionProgress === 100 ? 'text-green-500' : 
               isEncrypting ? 'text-primary' : 'text-muted-foreground/50'
             )} />
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="flex-1 h-1.5 bg-[#7d4f50]/15 rounded-full overflow-hidden">
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-300',
@@ -230,7 +230,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
               file.uploadProgress === 100 ? 'text-green-500' : 
               isUploading ? 'text-primary' : 'text-muted-foreground/50'
             )} />
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="flex-1 h-1.5 bg-[#7d4f50]/15 rounded-full overflow-hidden">
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-300',

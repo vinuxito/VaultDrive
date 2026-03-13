@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Lock } from "lucide-react";
+import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint } from "lucide-react";
 import { API_URL } from "../../utils/api";
 
 interface Folder {
@@ -22,7 +22,6 @@ export function CreateUploadLinkModal({
   onClose,
   onSuccess
 }: CreateUploadLinkModalProps) {
-  // onSuccess reserved for future use
   void onSuccess;
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState("");
@@ -34,8 +33,9 @@ export function CreateUploadLinkModal({
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [creatingFolder, setCreatingFolder] = useState(false);
-  const [encryptionPassword, setEncryptionPassword] = useState("");
-  const [createdLink, setCreatedLink] = useState<{url: string; password: string} | null>(null);
+  const [pinInput, setPinInput] = useState("");
+  const [linkName, setLinkName] = useState("");
+  const [createdLink, setCreatedLink] = useState<{ url: string } | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -109,18 +109,14 @@ export function CreateUploadLinkModal({
     }
   };
 
-  // Auto-generate password on mount
-  useEffect(() => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-    let password = "";
-    for (let i = 0; i < 16; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setEncryptionPassword(password);
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!/^\d{4}$/.test(pinInput)) {
+      setError("PIN must be exactly 4 digits.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -142,7 +138,8 @@ export function CreateUploadLinkModal({
           target_folder_id: selectedFolderId,
           expires_at: expiresAt,
           max_files: maxFiles,
-          password: encryptionPassword
+          pin: pinInput,
+          link_name: linkName
         })
       });
 
@@ -157,6 +154,8 @@ export function CreateUploadLinkModal({
             errorMessage = "Please log in again";
           } else if (errorText.includes("Folder")) {
             errorMessage = "Folder not found";
+          } else if (errorText.includes("PIN")) {
+            errorMessage = "Set a 4-digit PIN in Settings before creating links";
           } else {
             errorMessage = errorText || errorMessage;
           }
@@ -165,13 +164,7 @@ export function CreateUploadLinkModal({
       }
 
       const data = await response.json();
-      console.log("Upload link created:", data);
-      
-      // Show success with URL and password
-      setCreatedLink({
-        url: data.upload_url,
-        password: encryptionPassword
-      });
+      setCreatedLink({ url: data.upload_url });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create upload link");
     } finally {
@@ -180,18 +173,12 @@ export function CreateUploadLinkModal({
   };
 
   const [copied, setCopied] = useState(false);
-  const [copiedPassword, setCopiedPassword] = useState(false);
 
-  const copyToClipboard = async (text: string, type: "url" | "password") => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      if (type === "url") {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        setCopiedPassword(true);
-        setTimeout(() => setCopiedPassword(false), 2000);
-      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -218,13 +205,12 @@ export function CreateUploadLinkModal({
         </div>
 
         {createdLink ? (
-          // Success view
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-[#10b981]/20 border border-[#10b981]/40">
               <p className="text-white text-sm">
                 <strong>Upload link created successfully!</strong>
                 <br />
-                Share this link with anyone - uploads are password-protected.
+                Share this URL with your client. They can upload files without logging in.
               </p>
             </div>
 
@@ -240,7 +226,7 @@ export function CreateUploadLinkModal({
                   className="bg-white/10 border-white/20 text-white text-sm"
                 />
                 <Button
-                  onClick={() => copyToClipboard(createdLink.url, "url")}
+                  onClick={() => copyToClipboard(createdLink.url)}
                   className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                   title="Copy URL"
                 >
@@ -249,29 +235,10 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40">
-              <Label className="text-[#f2d7d8] text-sm flex items-center gap-1">
-                <Lock className="w-4 h-4" />
-                Owner Password
-              </Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  value={createdLink.password}
-                  readOnly
-                  onFocus={(e) => e.currentTarget.select()}
-                  className="bg-white/10 border-white/20 text-white text-sm"
-                />
-                <Button
-                  onClick={() => copyToClipboard(createdLink.password, "password")}
-                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
-                  title="Copy password"
-                >
-                  {copiedPassword ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                </Button>
-              </div>
-              <p className="text-[#f2d7d8] text-xs mt-2">
-                Keep this password safe! You'll need it to decrypt uploaded files.
-                The uploader doesn't need to enter anything - the encryption key is embedded in the URL.
+            <div className="p-3 rounded-lg bg-white/10 border border-white/20">
+              <p className="text-white/90 text-sm flex items-center gap-2">
+                <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                Use your <strong>4-digit PIN</strong> to decrypt files uploaded via this link.
               </p>
             </div>
 
@@ -284,159 +251,187 @@ export function CreateUploadLinkModal({
               </Button>
             </div>
           </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="folder" className="text-white/90 text-sm">
-                  Target Folder
-                </Label>
-            <div className="mt-1 flex gap-2">
-              {fetchingFolders ? (
-                <div className="text-white/70 text-sm">Loading folders...</div>
-              ) : showCreateFolder ? (
-                <div className="flex-1 flex gap-2">
-                  <Input
-                    id="newFolderName"
-                    type="text"
-                    placeholder="Enter folder name..."
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-                    className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
-                    disabled={creatingFolder}
-                    autoFocus
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleCreateFolder}
-                    disabled={creatingFolder || !newFolderName.trim()}
-                    className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
-                  >
-                    {creatingFolder ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Create"
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { setShowCreateFolder(false); setNewFolderName(""); }}
-                    className="text-white/70 hover:text-white hover:bg-white/10"
-                  >
-                    Cancel
-                  </Button>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="linkName" className="text-white/90 text-sm">
+                Link Name (optional)
+              </Label>
+              <Input
+                id="linkName"
+                type="text"
+                placeholder="e.g. ALPLA"
+                value={linkName}
+                onChange={(e) => setLinkName(e.target.value)}
+                className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="folder" className="text-white/90 text-sm">
+                Target Folder
+              </Label>
+              <div className="mt-1 flex gap-2">
+                {fetchingFolders ? (
+                  <div className="text-white/70 text-sm">Loading folders...</div>
+                ) : showCreateFolder ? (
+                  <div className="flex-1 flex gap-2">
+                    <Input
+                      id="newFolderName"
+                      type="text"
+                      placeholder="Enter folder name..."
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
+                      className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+                      disabled={creatingFolder}
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleCreateFolder}
+                      disabled={creatingFolder || !newFolderName.trim()}
+                      className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                    >
+                      {creatingFolder ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Create"
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => { setShowCreateFolder(false); setNewFolderName(""); }}
+                      className="text-white/70 hover:text-white hover:bg-white/10"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      id="folder"
+                      value={selectedFolderId}
+                      onChange={(e) => setSelectedFolderId(e.target.value)}
+                      className="flex-1 bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:border-white/40 focus:bg-white/15"
+                    >
+                      {folders.length === 0 ? (
+                        <option value="">-- Create a folder --</option>
+                      ) : (
+                        folders.map((folder) => (
+                          <option key={folder.id} value={folder.id}>
+                            {folder.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => { setShowCreateFolder(true); setNewFolderName(""); }}
+                      className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                      title="Create new folder"
+                    >
+                      <FolderIcon className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              {folders.length === 0 && !showCreateFolder && (
+                <div className="mt-1 text-sm text-[#f2d7d8]">
+                  ↑ Click folder icon to create your first folder
                 </div>
-              ) : (
-                <>
-                  <select
-                    id="folder"
-                    value={selectedFolderId}
-                    onChange={(e) => setSelectedFolderId(e.target.value)}
-                    className="flex-1 bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:border-white/40 focus:bg-white/15"
-                  >
-                    {folders.length === 0 ? (
-                      <option value="">-- Create a folder --</option>
-                    ) : (
-                      folders.map((folder) => (
-                        <option key={folder.id} value={folder.id}>
-                          {folder.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => { setShowCreateFolder(true); setNewFolderName(""); }}
-                    className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
-                    title="Create new folder"
-                  >
-                    <FolderIcon className="w-4 h-4" />
-                  </Button>
-                </>
               )}
             </div>
-            {folders.length === 0 && !showCreateFolder && (
-              <div className="mt-1 text-sm text-[#f2d7d8]">
-                ↑ Click folder icon to create your first folder
+
+            <div>
+              <Label htmlFor="expiresIn" className="text-white/90 text-sm">
+                Link Expiration
+              </Label>
+              <select
+                id="expiresIn"
+                value={expiresIn}
+                onChange={(e) => setExpiresIn(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 mt-1 focus:border-white/40 focus:bg-white/15"
+              >
+                <option value="0">Never</option>
+                <option value="1">1 Day</option>
+                <option value="7">7 Days</option>
+                <option value="30">30 Days</option>
+              </select>
+            </div>
+
+            <div>
+              <Label htmlFor="maxFiles" className="text-white/90 text-sm">
+                Max Files (0 = Unlimited)
+              </Label>
+              <Input
+                id="maxFiles"
+                type="number"
+                min="0"
+                value={maxFiles}
+                onChange={(e) => setMaxFiles(parseInt(e.target.value, 10) || 0)}
+                className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="pin" className="text-white/90 text-sm flex items-center gap-1">
+                <Fingerprint className="w-4 h-4" />
+                Your 4-digit PIN
+              </Label>
+              <input
+                id="pin"
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                placeholder="••••"
+                className="mt-1 w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 text-center tracking-widest text-xl"
+              />
+              <p className="text-white/60 text-xs mt-1">
+                Files will be encrypted so only you can decrypt them with this PIN.
+                Set your PIN in Settings if you haven't yet.
+              </p>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
+                {error}
               </div>
             )}
-          </div>
 
-          <div>
-            <Label htmlFor="expiresIn" className="text-white/90 text-sm">
-              Link Expiration
-            </Label>
-            <select
-              id="expiresIn"
-              value={expiresIn}
-              onChange={(e) => setExpiresIn(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 mt-1 focus:border-white/40 focus:bg-white/15"
-            >
-              <option value="0">Never</option>
-              <option value="1">1 Day</option>
-              <option value="7">7 Days</option>
-              <option value="30">30 Days</option>
-            </select>
-          </div>
-
-          <div>
-            <Label htmlFor="maxFiles" className="text-white/90 text-sm">
-              Max Files (0 = Unlimited)
-            </Label>
-            <Input
-              id="maxFiles"
-              type="number"
-              min="0"
-              value={maxFiles}
-              onChange={(e) => setMaxFiles(parseInt(e.target.value, 10) || 0)}
-              className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
-            />
-          </div>
-
-          <div className="p-3 rounded-lg bg-white/5 border border-white/20">
-            <p className="text-sm text-white/90">
-              <strong>Secure link with encryption key</strong> will be created automatically.
-              Share the link - the uploader doesn't need to enter any password.
-            </p>
-          </div>
-
-          {error && (
-            <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
-              {error}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId || pinInput.length !== 4}
+                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Link
+                  </>
+                )}
+              </Button>
             </div>
-          )}
-
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-              className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId}
-              className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Link
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+          </form>
         )}
       </div>
     </div>

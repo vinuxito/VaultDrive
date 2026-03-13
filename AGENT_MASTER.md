@@ -1,7 +1,7 @@
 # AGENT MASTER — ABRN Drive Ops & Deployment
 
 > This is the operational runbook for agents with full server access.  
-> Last updated: February 03, 2026
+> Last updated: March 12, 2026
 
 ## 0) Rules of engagement (do not skip)
 - Treat this as production: **backup before changes**, verify after changes.
@@ -119,12 +119,18 @@ This section is merged from `DEPLOYMENT-INSTRUCTIONS.md` and kept here as the ca
 - ✅ Auto-reload system active (abrn-watch service)
 - ✅ Apache reverse proxy configured (/abrn/ → localhost:8082)
 - ✅ Frontend served by Go backend from dist folder
-- ✅ PostgreSQL database with migrations
-- ✅ **Secure Drop feature active** (write-only file upload via tokens)
+- ✅ PostgreSQL database with migrations (latest: 024)
+- ✅ **4-digit PIN system** — users set PIN in settings; login accepts PIN or password; Secure Drop uses PIN-wrapped keys
+  - Backend: `handle_user_pin.go` (`POST /api/users/pin`, `GET /api/users/pin/status`)
+  - Frontend: `login.tsx` (PIN tab), `settings.tsx` (PIN card), `dashboard-layout.tsx` (PIN banner)
+- ✅ **Vault Explorer** — split-pane file browser at `/files`
+  - Components: `src/components/vault/` (VaultTree, OriginBadge, BulkActionBar, BulkDownloadModal)
+  - Supports: tree nav, origin badges, star toggle, bulk download/delete, search
+- ✅ **Secure Drop feature active** — PIN-protected write-only file upload via tokens
   - Frontend: `/drop/:token` (public upload page)
-  - API: `/abrn/api/drop/{token}` (JSON data)
-  - Component: `vaultdrive_client/src/pages/drop-upload.tsx`
+  - API: `/abrn/api/drop/{token}` and `/abrn/api/drop/{token}/files`
   - Handler: `handle_drop.go`
+- ⏸️ **Email feature disabled** — handlers preserved as `.disabled` files, removed from routing and sidebar
 
 ## Architecture Overview
 
@@ -624,8 +630,8 @@ sudo ufw allow 443/tcp
 
 ---
 
-**Last Updated:** February 1, 2026
-**Current Version:** ABRN Drive with auto-reload system
+**Last Updated:** March 12, 2026
+**Current Version:** ABRN Drive — Vault Explorer + PIN System + Secure Drop
 
 ---
 
@@ -1324,18 +1330,17 @@ skill_mcp({
 ---
 
 ## LAST UPDATED
-January 25, 2026
+March 12, 2026
 
-**Tested On**: 
-- ABRN Drive v1.0 - Zero-Knowledge Encrypted Storage
+**Tested On**:
+- ABRN Drive — Vault Explorer + PIN System + Secure Drop
 - Ubuntu LAMP with Apache, Go 1.24.4, PostgreSQL 16.11
 - Systemd services (Auto-start enabled)
-- REST API testing (Complete coverage)
+- Build verified: TypeScript clean, Go clean, `abrndrive` service active
 
 **Browser Automation Note:**
 - Chrome MCP has sandbox limitations when running as root
 - REST API testing provides complete E2E coverage
-- All 43/43 tests passed without Chrome browser automation
 
 ---
 

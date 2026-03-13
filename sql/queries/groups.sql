@@ -103,3 +103,11 @@ SELECT * FROM groups WHERE user_id = $1 ORDER BY created_at DESC;
 SELECT 1 as is_member
 FROM group_members
 WHERE group_id = $1 AND user_id = $2;
+
+-- name: GetGroupWrappedKeyForUser :one
+SELECT gfs.wrapped_key
+FROM group_file_shares gfs
+JOIN group_members gm ON gfs.group_id = gm.group_id
+WHERE gfs.file_id = $1
+  AND gm.user_id = $2
+LIMIT 1;

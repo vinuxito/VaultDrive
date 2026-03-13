@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/Pranay0205/VaultDrive/internal/database"
 	"github.com/joho/godotenv"
@@ -34,7 +35,7 @@ func middlewareCORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key")
+		w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -93,6 +94,8 @@ func main() {
 	mux.Handle("GET /api/user-by-email", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByEmailHandler)))
 
 	mux.Handle("GET /api/user/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKey)))
+
+	mux.Handle("GET /api/users/{userId}/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKeyByID)))
 
 	mux.Handle("GET /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleListFolders)))
 
@@ -181,6 +184,29 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.searchUsersHandler)))
 
+	mux.Handle("POST /api/users/pin",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerSetUserPIN)))
+	mux.Handle("GET /api/users/pin/status",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetPINStatus)))
+
+	mux.Handle("POST /api/files/{fileId}/share-link",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerCreatePublicShareLink)))
+
+	mux.HandleFunc("GET /api/share/{token}", apiConfig.handlerGetPublicShareLinkFile)
+
+	mux.Handle("GET /api/files/{fileId}/share-links",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListPublicShareLinks)))
+
+	mux.Handle("DELETE /api/share-links/{linkId}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerRevokePublicShareLink)))
+
+	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
+
 	fmt.Printf("Starting server on port %s...\n", port)
 
 	// SPA catch-all handler - must be registered AFTER API routes
@@ -195,12 +221,18 @@ func main() {
 			return
 		}
 
-		if path == "" || path == "/" {
-			path = "/index.html"
+		// Vite builds with base:"/abrn/" so asset URLs carry a /abrn prefix,
+		// but the files in dist/ live at the root of dist (not in an abrn/ subdir).
+		// The old domain strips /abrn/ via Apache ProxyPass; the new dedicated
+		// domain does not, so we normalise here for both cases.
+		cleanPath := strings.TrimPrefix(path, "/abrn")
+
+		if cleanPath == "" || cleanPath == "/" {
+			cleanPath = "/index.html"
 		}
 
 		// Try to serve actual file if it exists
-		filePath := "vaultdrive_client/dist" + path
+		filePath := "vaultdrive_client/dist" + cleanPath
 		if _, err := os.Stat(filePath); err == nil {
 			http.ServeFile(w, r, filePath)
 			return
@@ -211,7 +243,17 @@ func main() {
 	})
 
 	log.Printf("Server listening on port %s", port)
-	err = http.ListenAndServe(":"+port, middlewareCORS(mux))
+	// Configure server with explicit timeouts for large file uploads
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: middlewareCORS(mux),
+		// Timeouts configured for 2GB uploads (30 minutes)
+		ReadTimeout:    30 * time.Minute, // Maximum time to read request body
+		WriteTimeout:   30 * time.Minute, // Maximum time to write response
+		IdleTimeout:    60 * time.Minute, // Keep-alive timeout
+		MaxHeaderBytes: 1 << 20,          // 1MB max header size to prevent overflow attacks
+	}
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Error starting server: %v\n", err)
 	}

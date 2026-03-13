@@ -17,13 +17,15 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
-  deriveKeyFromPassword,
+  decryptPrivateKeyWithPIN,
+  importRSAPrivateKey,
+  unwrapKeyWithRSA,
   decryptFile,
   base64ToArrayBuffer,
 } from "../utils/crypto";
 import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
-
+import { useSessionVault } from "../context/SessionVaultContext";
 
 interface SharedFile {
   id: string;
@@ -36,13 +38,13 @@ interface SharedFile {
 
 export default function SharedFiles() {
   const navigate = useNavigate();
+  const { getPrivateKey } = useSessionVault();
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Password modal for decryption
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [decryptionPassword, setDecryptionPassword] = useState("");
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinValue, setPinValue] = useState("");
   const [pendingDownload, setPendingDownload] = useState<{
     fileId: string;
     filename: string;
@@ -50,111 +52,126 @@ export default function SharedFiles() {
   } | null>(null);
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
-
     fetchSharedFiles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const fetchSharedFiles = async () => {
     setLoading(true);
     setError("");
-
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/shared`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (!response.ok) {
-        if (response.status === 401) {
-          navigate("/login");
-          return;
-        }
+        if (response.status === 401) { navigate("/login"); return; }
         throw new Error("Failed to fetch shared files");
       }
-
       const data = await response.json();
       setSharedFiles(data || []);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load shared files"
-      );
+      setError(err instanceof Error ? err.message : "Failed to load shared files");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownload = async (
-    fileId: string,
-    filename: string,
-    metadata: string
-  ) => {
-    // Request password for decryption
+  const handleDownload = async (fileId: string, filename: string, metadata: string) => {
+    const sessionKey = getPrivateKey();
+    if (sessionKey) {
+      setError("");
+      try {
+        await performDownloadWithKey(fileId, filename, metadata, sessionKey);
+        return;
+      } catch {
+      }
+    }
     setPendingDownload({ fileId, filename, metadata });
-    setShowPasswordModal(true);
+    setShowPinModal(true);
   };
 
-  const performDownload = async (password: string) => {
+  const performDownloadWithKey = async (
+    fileId: string,
+    filename: string,
+    metadata: string,
+    rsaKey: CryptoKey
+  ) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/files/${fileId}/download`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      if (response.status === 401) { navigate("/login"); return; }
+      throw new Error("Failed to download file");
+    }
+    const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
+    if (!wrappedKeyB64) throw new Error("No wrapped key in response.");
+    const aesKey = await unwrapKeyWithRSA(rsaKey, wrappedKeyB64);
+    const metaStr = response.headers.get("X-File-Metadata") || metadata;
+    const metaObj = JSON.parse(metaStr);
+    const iv = new Uint8Array(base64ToArrayBuffer(metaObj.iv));
+    const encryptedBlob = await response.blob();
+    const encryptedData = await encryptedBlob.arrayBuffer();
+    const decryptedData = await decryptFile(encryptedData, aesKey, iv);
+    const blob = new Blob([decryptedData]);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const performDownload = async (pin: string) => {
     if (!pendingDownload) return;
+    setError("");
 
     try {
-      // 1. Fetch encrypted file from server
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${API_URL}/files/${pendingDownload.fileId}/download`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/files/${pendingDownload.fileId}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          navigate("/login");
-          return;
-        }
+        if (response.status === 401) { navigate("/login"); return; }
         throw new Error("Failed to download file");
       }
 
-      // 2. Get metadata from response header or use stored metadata
-      let metadataStr = response.headers.get("X-File-Metadata");
-      if (!metadataStr) {
-        metadataStr = pendingDownload.metadata;
+      const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
+      if (!wrappedKeyB64) {
+        throw new Error("No wrapped key in response. The file owner must re-share this file.");
       }
 
-      if (!metadataStr) {
-        throw new Error("File metadata not found. Cannot decrypt.");
+      const stored = localStorage.getItem("user");
+      const userObj = stored ? JSON.parse(stored) : null;
+      const privateKeyPinEncrypted: string | null = userObj?.private_key_pin_encrypted ?? null;
+
+      if (!privateKeyPinEncrypted) {
+        throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings to enable PIN-based decryption.");
       }
 
-      // 3. Parse metadata to get salt and IV
-      const metadataObj = JSON.parse(metadataStr);
-      const salt = new Uint8Array(base64ToArrayBuffer(metadataObj.salt));
-      const iv = new Uint8Array(base64ToArrayBuffer(metadataObj.iv));
+      const privateKeyPem = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted);
+      const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+      const aesKey = await unwrapKeyWithRSA(rsaPrivateKey, wrappedKeyB64);
 
-      // 4. Derive encryption key from password + salt
-      const encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
+      const metaStr = response.headers.get("X-File-Metadata") || pendingDownload.metadata;
+      if (!metaStr) throw new Error("File metadata not found");
+      const metaObj = JSON.parse(metaStr);
+      const iv = new Uint8Array(base64ToArrayBuffer(metaObj.iv));
 
-      // 5. Get encrypted data
       const encryptedBlob = await response.blob();
       const encryptedData = await encryptedBlob.arrayBuffer();
+      const decryptedData = await decryptFile(encryptedData, aesKey, iv);
 
-      // 6. Decrypt the file
-      const decryptedData = await decryptFile(encryptedData, encryptionKey, iv);
-
-      // 7. Create blob and trigger download
-      const decryptedBlob = new Blob([decryptedData]);
-      const url = window.URL.createObjectURL(decryptedBlob);
+      const blob = new Blob([decryptedData]);
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = pendingDownload.filename;
@@ -165,16 +182,12 @@ export default function SharedFiles() {
 
       setPendingDownload(null);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to download or decrypt file. Check your password."
-      );
+      setError(err instanceof Error ? err.message : "Failed to decrypt. Check your PIN.");
     }
   };
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="abrn-page-bg py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -183,14 +196,11 @@ export default function SharedFiles() {
             </div>
             <div>
               <h1 className="text-3xl font-bold">Shared With Me</h1>
-              <p className="text-muted-foreground">
-                Files that other users have shared with you
-              </p>
+              <p className="text-muted-foreground">Files that other users have shared with you</p>
             </div>
           </div>
         </div>
 
-        {/* Error Display */}
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-destructive/10 text-destructive flex items-center gap-2">
             <AlertCircle className="w-5 h-5" />
@@ -198,34 +208,27 @@ export default function SharedFiles() {
           </div>
         )}
 
-        {/* Shared Files List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
+        <div className="abrn-glass-card p-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
               Shared Files
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
               {loading
                 ? "Loading shared files..."
-                : `${sharedFiles.length} file${
-                    sharedFiles.length !== 1 ? "s" : ""
-                  } shared with you`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+                : `${sharedFiles.length} file${sharedFiles.length !== 1 ? "s" : ""} shared with you`}
+            </p>
+          </div>
+          <div>
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Loading shared files...
-              </div>
+              <div className="text-center py-8 text-muted-foreground">Loading shared files...</div>
             ) : sharedFiles.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/20 flex items-center justify-center">
                   <Share2 className="w-8 h-8 text-[#c4999b]" />
                 </div>
-                <p className="text-muted-foreground font-medium">
-                  No shared files yet
-                </p>
+                <p className="text-muted-foreground font-medium">No shared files yet</p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Files shared with you by other users will appear here
                 </p>
@@ -252,43 +255,36 @@ export default function SharedFiles() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Info Card */}
-        <Card className="mt-6 border-[#7d4f50]/30">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/20 flex items-center justify-center shrink-0">
-                <Lock className="w-5 h-5 text-[#c4999b]" />
-              </div>
-              <div className="space-y-1">
-                <p className="font-medium text-sm">About Shared Files</p>
-                <p className="text-sm text-muted-foreground">
-                  These files are encrypted and shared securely. You need to
-                  know the encryption password used by the file owner to decrypt
-                  and download these files.
-                </p>
-              </div>
+        <div className="abrn-glass-card mt-6 p-6">
+          <div className="flex gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-primary" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-1">
+              <p className="font-medium text-sm">About Shared Files</p>
+              <p className="text-sm text-muted-foreground">
+                Shared files are decrypted using your 4-digit PIN. No passwords are exchanged between users.
+              </p>
+            </div>
+          </div>
+        </div>
 
-        {/* Password Modal for Decryption */}
-        {showPasswordModal && pendingDownload && (
-          <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4 bg-black">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
+        {showPinModal && pendingDownload && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+              <CardHeader className="border-b border-white/10">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Lock className="w-5 h-5 text-[#f2d7d8]" />
                   Decrypt Shared File
                 </CardTitle>
-                <CardDescription>
-                  Enter the password used to encrypt this file. Ask the file
-                  owner if you don't know it.
+                <CardDescription className="text-white/70">
+                  Enter your 4-digit PIN to decrypt this file
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 pt-4">
                 <div className="p-3 bg-muted rounded-md">
                   <p className="text-sm font-medium truncate flex items-center gap-2">
                     <File className="w-4 h-4" />
@@ -299,49 +295,39 @@ export default function SharedFiles() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Key className="w-4 h-4" />
-                    Decryption Password
+                    Your PIN
                   </label>
                   <input
                     type="password"
-                    value={decryptionPassword}
-                    onChange={(e) => setDecryptionPassword(e.target.value)}
-                    placeholder="Enter password"
-                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={pinValue}
+                    onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
+                    placeholder="4-digit PIN"
+                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                     autoFocus
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && decryptionPassword) {
-                        handlePasswordSubmit();
-                      }
+                      if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
                     }}
                   />
-                </div>
-
-                <div className="p-3 bg-[#7d4f50]/10 border border-[#7d4f50]/30 rounded-md">
-                  <p className="text-xs text-[#7d4f50] dark:text-[#c4999b] flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>
-                      This file was encrypted by the owner. You need the same
-                      password they used to encrypt it.
-                    </span>
-                  </p>
                 </div>
 
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setShowPasswordModal(false);
-                      setDecryptionPassword("");
+                      setShowPinModal(false);
+                      setPinValue("");
                       setPendingDownload(null);
                     }}
-                    className="flex-1"
+                    className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
                   >
                     Cancel
                   </Button>
                   <Button
-                    onClick={handlePasswordSubmit}
-                    disabled={!decryptionPassword}
-                    className="flex-1 bg-[#7d4f50] hover:bg-[#6b4345] text-white"
+                    onClick={handlePinSubmit}
+                    disabled={pinValue.length !== 4}
+                    className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                   >
                     Decrypt & Download
                   </Button>
@@ -354,13 +340,11 @@ export default function SharedFiles() {
     </div>
   );
 
-  async function handlePasswordSubmit() {
-    if (!decryptionPassword) return;
-
-    setShowPasswordModal(false);
-    const password = decryptionPassword;
-    setDecryptionPassword("");
-
-    await performDownload(password);
+  async function handlePinSubmit() {
+    if (pinValue.length !== 4) return;
+    const pin = pinValue;
+    setPinValue("");
+    await performDownload(pin);
+    setShowPinModal(false);
   }
 }

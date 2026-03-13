@@ -222,6 +222,44 @@ export async function unwrapKey(password: string, wrappedKeyHex: string): Promis
   return rawKey;
 }
 
+export async function decryptPrivateKeyWithPassword(
+  password: string,
+  encryptedPrivateKeyB64: string,
+): Promise<string> {
+  const encryptedBuffer = base64ToArrayBuffer(encryptedPrivateKeyB64);
+  const data = new Uint8Array(encryptedBuffer);
+
+  if (data.length < 16 + 12 + 16) {
+    throw new Error("Invalid encrypted private key length");
+  }
+
+  const salt = data.slice(0, 16);
+  const iv = data.slice(16, 28);
+  const ciphertext = data.slice(28);
+
+  const passwordBytes = new TextEncoder().encode(password.normalize("NFC"));
+  const combined = new Uint8Array(salt.length + passwordBytes.length);
+  combined.set(salt, 0);
+  combined.set(passwordBytes, salt.length);
+
+  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    hashBuffer,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    aesKey,
+    ciphertext,
+  );
+
+  return new TextDecoder().decode(decrypted);
+}
+
 // Helper: Create a Blob from decrypted data
 export function createBlobFromDecrypted(
   decryptedData: ArrayBuffer,
@@ -341,4 +379,109 @@ export async function verifyFileIntegrity(
 ): Promise<boolean> {
   const actualHash = await hashFile(data);
   return actualHash === expectedHash;
+}
+
+// Import an RSA public key from PEM or SPKI base64 string
+export async function importRSAPublicKey(publicKeyPem: string): Promise<CryptoKey> {
+  const pemHeader = "-----BEGIN PUBLIC KEY-----";
+  const pemFooter = "-----END PUBLIC KEY-----";
+  let b64 = publicKeyPem.trim();
+  if (b64.startsWith(pemHeader)) {
+    b64 = b64.replace(pemHeader, "").replace(pemFooter, "").replace(/\s/g, "");
+  }
+  const keyBuffer = base64ToArrayBuffer(b64);
+  return await window.crypto.subtle.importKey(
+    "spki",
+    keyBuffer,
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    false,
+    ["encrypt"]
+  );
+}
+
+// Import an RSA private key from PKCS8 base64 string (decrypted)
+export async function importRSAPrivateKey(privateKeyB64: string): Promise<CryptoKey> {
+  const pemHeader = "-----BEGIN PRIVATE KEY-----";
+  const pemFooter = "-----END PRIVATE KEY-----";
+  let b64 = privateKeyB64.trim();
+  if (b64.startsWith(pemHeader)) {
+    b64 = b64.replace(pemHeader, "").replace(pemFooter, "").replace(/\s/g, "");
+  }
+  const keyBuffer = base64ToArrayBuffer(b64);
+  return await window.crypto.subtle.importKey(
+    "pkcs8",
+    keyBuffer,
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    false,
+    ["decrypt"]
+  );
+}
+
+// Wrap an AES file key with a recipient's RSA public key (RSA-OAEP)
+// Returns base64-encoded ciphertext to store in file_access_keys.wrapped_key
+export async function wrapKeyWithRSA(recipientPublicKey: CryptoKey, aesKey: CryptoKey): Promise<string> {
+  const rawKey = await window.crypto.subtle.exportKey("raw", aesKey);
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: "RSA-OAEP" },
+    recipientPublicKey,
+    rawKey
+  );
+  return arrayBufferToBase64(encrypted);
+}
+
+// Unwrap an RSA-OAEP wrapped AES key using the user's RSA private key
+// wrappedKeyB64: base64 string from file_access_keys.wrapped_key or X-Wrapped-Key header
+export async function unwrapKeyWithRSA(privateKey: CryptoKey, wrappedKeyB64: string): Promise<CryptoKey> {
+  const wrappedBytes = base64ToArrayBuffer(wrappedKeyB64);
+  const rawKey = await window.crypto.subtle.decrypt(
+    { name: "RSA-OAEP" },
+    privateKey,
+    wrappedBytes
+  );
+  return await window.crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+}
+
+// Encrypt the user's RSA private key (PEM string) with their PIN using AES-256-GCM
+// Returns hex string in same format as unwrapKey() [16B salt][12B IV][ciphertext]
+export async function encryptPrivateKeyWithPIN(pin: string, privateKeyPem: string): Promise<string> {
+  const salt = window.crypto.getRandomValues(new Uint8Array(16));
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const wrappingKey = await deriveKeyFromPassword(pin, salt, 100000);
+  const encoder = new TextEncoder();
+  const privateKeyBytes = encoder.encode(privateKeyPem);
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    wrappingKey,
+    privateKeyBytes
+  );
+  const result = new Uint8Array(16 + 12 + encrypted.byteLength);
+  result.set(salt, 0);
+  result.set(iv, 16);
+  result.set(new Uint8Array(encrypted), 28);
+  return bytesToHex(result);
+}
+
+// Decrypt the user's RSA private key using their PIN
+// Reverses encryptPrivateKeyWithPIN — returns the PEM string
+export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string): Promise<string> {
+  const data = hexToBytes(encryptedHex);
+  if (data.length < 16 + 12 + 16) {
+    throw new Error("Invalid encrypted private key length");
+  }
+  const salt = data.slice(0, 16);
+  const iv = data.slice(16, 28);
+  const ciphertext = data.slice(28);
+  const wrappingKey = await deriveKeyFromPassword(pin, salt, 100000);
+  const decrypted = await window.crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    wrappingKey,
+    ciphertext
+  );
+  return new TextDecoder().decode(decrypted);
 }

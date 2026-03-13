@@ -77,13 +77,13 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         onClick={onClose}
       />
       <div className="fixed inset-y-0 left-0 w-[280px] elegant-overlay z-50 animate-slide-right flex flex-col md:hidden">
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4 border-b border-[#7d4f50]/15">
           <Link to="/" onClick={onClose} className="flex items-center gap-2">
             <ABRNLogo className="h-8" alt="ABRN Asesores" />
           </Link>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-[#7d4f50]/10 rounded-full transition-colors"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -91,7 +91,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         </div>
 
         {user.username && (
-          <div className="p-4 border-b border-white/10">
+          <div className="p-4 border-b border-[#7d4f50]/15">
             <Link to="/profile" onClick={onClose} className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
                 <AvatarImage src={user.avatar_url} />
@@ -100,7 +100,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-white">{user.first_name} {user.last_name}</p>
+                <p className="font-medium text-foreground">{user.first_name} {user.last_name}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
             </Link>
@@ -123,7 +123,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         </nav>
 
         {user.username && (
-          <div className="p-3 border-t border-white/10">
+          <div className="p-3 border-t border-[#7d4f50]/15">
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 p-3 rounded-lg text-red-500/80 hover:bg-red-500/10 hover:text-red-500 transition-colors"
@@ -135,7 +135,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           </div>
         )}
 
-        <div className="p-3 border-t border-white/10">
+        <div className="p-3 border-t border-[#7d4f50]/15">
           <PoweredByBadge className="text-xs" />
         </div>
       </div>
@@ -157,8 +157,8 @@ function NavLink({ to, icon, label, onClick, isActive, handler }: NavLinkProps) 
       to={handler ? "/files" : to}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-lg transition-colors text-slate-300",
-        isActive ? "bg-primary/20 text-primary" : "hover:bg-white/10 hover:text-white"
+        "flex items-center gap-3 p-3 rounded-lg transition-colors text-foreground/70",
+        isActive ? "bg-[#7d4f50]/20 text-[#c4999b]" : "hover:bg-[#7d4f50]/10 hover:text-foreground"
       )}
       role="menuitem"
     >

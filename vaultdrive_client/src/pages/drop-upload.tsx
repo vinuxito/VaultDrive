@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft } from "lucide-react";
+import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
@@ -9,6 +9,7 @@ import ABRNLogo from "../components/branding/abrn-logo";
 interface TokenInfo {
   valid: boolean;
   folder_name: string;
+  link_name?: string;
   files_limit: number | null;
   uploaded: number | null;
   expires_at: string | null;
@@ -20,6 +21,8 @@ interface UploadProgress {
   fileName: string;
   status: "pending" | "uploading" | "success" | "error";
   progress: number;
+  bytesUploaded: number;
+  bytesTotal: number;
   error?: string;
 }
 
@@ -34,14 +37,12 @@ export default function DropUpload() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [password, setPassword] = useState("");
-  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
     initializeDropLink();
   }, [token]);
 
   const initializeDropLink = async () => {
-    // Extract key from URL
     const urlKey = searchParams.get("key");
     
     try {
@@ -67,9 +68,8 @@ export default function DropUpload() {
         return;
       }
 
-setTokenInfo(data);
+      setTokenInfo(data);
       
-      // Auto-fill password from URL if key is present
       if (urlKey) {
         setPassword(urlKey);
       }
@@ -89,9 +89,36 @@ setTokenInfo(data);
     e.preventDefault();
     e.stopPropagation();
     
-    const files = Array.from(e.dataTransfer.files) as File[];
+    const items = Array.from(e.dataTransfer?.items || []);
+    const files: File[] = [];
+    
+    for (const item of items) {
+      const entry = item.webkitGetAsEntry?.();
+      if (entry) {
+        processEntry(entry, files);
+      }
+    }
+    
     if (files.length > 0) {
       handleUpload(files);
+    }
+  };
+
+  const processEntry = (entry: any, files: File[], path: string = "") => {
+    if (entry.isFile) {
+      entry.file((file: File) => {
+        if (path) {
+          (file as any).webkitRelativePath = path + "/" + file.name;
+        }
+        files.push(file);
+      });
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      dirReader.readEntries(async (entries: any[]) => {
+        for (const entry of entries) {
+          processEntry(entry, files, path ? `${path}/${entry.name}` : entry.name);
+        }
+      });
     }
   };
 
@@ -102,9 +129,16 @@ setTokenInfo(data);
     }
   };
 
-const handleUpload = async (files: File[]) => {
+  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[];
+    if (files.length > 0) {
+      handleUpload(files, true);
+    }
+  };
+
+  const handleUpload = async (files: File[], isFolder: boolean = false) => {
     if (!password) {
-      setError("Please enter the encryption password");
+      setError("Please enter the encryption key");
       return;
     }
 
@@ -115,130 +149,172 @@ const handleUpload = async (files: File[]) => {
       fileName: f.name,
       status: "pending",
       progress: 0,
+      bytesUploaded: 0,
+      bytesTotal: f.size,
     })));
 
-    for (const file of files) {
-      await uploadFile(file);
-    }
-
+    await Promise.allSettled(
+      files.map(f => uploadFile(f, isFolder))
+    );
+    
     setUploading(false);
     await initializeDropLink();
   };
 
-  const uploadFile = async (file: File): Promise<void> => {
+  const uploadFile = async (file: File, isFolder: boolean): Promise<void> => {
     const fileName = file.name;
-
-    setUploadProgress(prev => {
-      const updated = [...prev];
-      const idx = updated.findIndex(p => p.fileName === fileName);
-      if (idx === -1) {
-        updated[updated.length] = { fileName, status: "uploading", progress: 0 };
-      } else {
-        updated[idx] = { ...updated[idx], status: "uploading", progress: 0 };
-      }
-      return updated;
+    const relativePath = isFolder && (file as any).webkitRelativePath || "";
+    
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(prev => {
+            const updated = [...prev];
+            const idx = updated.findIndex(p => p.fileName === fileName);
+            if (idx !== -1) {
+              updated[idx] = { 
+                ...updated[idx], 
+                progress: percent,
+                status: "uploading",
+                bytesUploaded: event.loaded,
+                bytesTotal: event.total
+              };
+            }
+            return updated;
+          });
+        }
+      };
+      
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setUploadProgress(prev => {
+            const updated = [...prev];
+            const idx = updated.findIndex(p => p.fileName === fileName);
+            if (idx !== -1) {
+              updated[idx] = { 
+                ...updated[idx], 
+                status: "success", 
+                progress: 100,
+                bytesUploaded: file.size
+              };
+            }
+            return updated;
+          });
+          resolve();
+        } else {
+          setUploadProgress(prev => {
+            const updated = [...prev];
+            const idx = updated.findIndex(p => p.fileName === fileName);
+            if (idx !== -1) {
+              updated[idx] = { ...updated[idx], status: "error", error: `Upload failed (${xhr.status})` };
+            }
+            return updated;
+          });
+          reject(new Error(`Upload failed: ${xhr.statusText}`));
+        }
+      };
+      
+      xhr.onerror = () => {
+        setUploadProgress(prev => {
+          const updated = [...prev];
+          const idx = updated.findIndex(p => p.fileName === fileName);
+          if (idx !== -1) {
+            updated[idx] = { ...updated[idx], status: "error", error: "Network error" };
+          }
+          return updated;
+        });
+        reject(new Error("Network error"));
+      };
+      
+      xhr.ontimeout = () => {
+        setUploadProgress(prev => {
+          const updated = [...prev];
+          const idx = updated.findIndex(p => p.fileName === fileName);
+          if (idx !== -1) {
+            updated[idx] = { ...updated[idx], status: "error", error: "Upload timeout (30 minutes)" };
+          }
+          return updated;
+        });
+        reject(new Error("Upload timeout"));
+      };
+      
+      xhr.timeout = 30 * 60 * 1000;
+      
+      setTimeout(() => {
+        (async () => {
+          try {
+            const urlKey = password;
+            if (!urlKey) {
+              throw new Error("No encryption key");
+            }
+            
+            const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(urlKey)}`);
+            if (!keyResponse.ok) {
+              throw new Error("Failed to get encryption key");
+            }
+            const keyData = await keyResponse.json();
+            const rawEncryptionKey = keyData.encryption_key;
+            
+            const fileBuffer = await file.arrayBuffer();
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encryptionKeyBytes = hexToBytes(rawEncryptionKey);
+            const aesKey = await crypto.subtle.importKey(
+              "raw",
+              new Uint8Array(encryptionKeyBytes),
+              { name: "AES-GCM", length: 256 },
+              false,
+              ["encrypt"]
+            );
+            
+            const encryptedData = await crypto.subtle.encrypt(
+              { name: "AES-GCM", iv },
+              aesKey,
+              fileBuffer
+            );
+            
+            const ivBytes = new Uint8Array(iv);
+            const formData = new FormData();
+            const blobName = relativePath ? fileName : "files[]";
+            formData.append(blobName, new Blob([encryptedData]), relativePath || fileName);
+            formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
+            formData.append("salt", "");
+            formData.append("algorithm", "AES-256-GCM");
+            formData.append("wrapped_key", urlKey);
+            formData.append("password", urlKey);
+            
+            xhr.open("POST", `/abrn/api/drop/${token}/upload`);
+            xhr.send(formData);
+          } catch (err) {
+            setUploadProgress(prev => {
+              const updated = [...prev];
+              const idx = updated.findIndex(p => p.fileName === fileName);
+              if (idx !== -1) {
+                updated[idx] = { ...updated[idx], status: "error", error: err instanceof Error ? err.message : "Upload failed" };
+              }
+              return updated;
+            });
+            reject(err);
+          }
+        })();
+      }, 0);
     });
-
-    try {
-      // Get wrapped key from URL (this is what was set as "password" during initialization)
-      const urlKey = password;
-      if (!urlKey) {
-        throw new Error("No encryption key in URL");
-      }
-
-      // Step 1: Get raw encryption key from backend
-      const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(urlKey)}`);
-      if (!keyResponse.ok) {
-        throw new Error("Failed to get encryption key");
-      }
-      const keyData = await keyResponse.json();
-      const rawEncryptionKey = keyData.encryption_key;
-
-      // Step 2: Read file as ArrayBuffer
-      const fileBuffer = await file.arrayBuffer();
-
-      // Step 3: Generate random IV
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-
-      // Step 4: Decode hex key and import as AES-256-GCM key
-      const encryptionKeyBytes = hexToBytes(rawEncryptionKey);
-      const aesKey = await crypto.subtle.importKey(
-        "raw",
-        new Uint8Array(encryptionKeyBytes),
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt"]
-      );
-
-      // Step 5: Encrypt file with AES-GCM
-      const encryptedData = await crypto.subtle.encrypt(
-        { name: "AES-GCM", iv },
-        aesKey,
-        fileBuffer
-      );
-
-      // Step 6: Create form data with encrypted file
-      const ivBytes = new Uint8Array(iv);
-      const formData = new FormData();
-      formData.append("file", new Blob([encryptedData]), file.name);
-      formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
-      formData.append("salt", "");  // Not needed with raw key approach
-      formData.append("algorithm", "AES-256-GCM");
-      formData.append("wrapped_key", urlKey);  // For backend storage
-      formData.append("password", urlKey);  // For backend validation (legacy field)
-
-      // Step 7: Upload encrypted file
-      const response = await fetch(`/abrn/api/drop/${token}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      setUploadProgress(prev => {
-        const updated = [...prev];
-        const idx = updated.findIndex(p => p.fileName === fileName);
-        if (idx !== -1) {
-          updated[idx] = { ...updated[idx], status: "success", progress: 100 };
-        }
-        return updated;
-      });
-
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Upload failed";
-      setUploadProgress(prev => {
-        const updated = [...prev];
-        const idx = updated.findIndex(p => p.fileName === fileName);
-        if (idx !== -1) {
-          updated[idx] = { ...updated[idx], status: "error", error: errorMsg };
-        }
-        return updated;
-      });
-    }
   };
 
-  const handleDone = async () => {
-    try {
-      const response = await fetch(`/abrn/api/drop/${token}/done`, {
-        method: "POST",
-      });
 
-      if (!response.ok) {
-        throw new Error("Failed to deactivate link");
-      }
-
-      setCompleted(true);
-      setTokenInfo(null);
-    } catch (err) {
-      setError("Failed to deactivate link");
-    }
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="abrn-page-bg flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-[#7d4f50]" />
       </div>
     );
@@ -246,7 +322,7 @@ const handleUpload = async (files: File[]) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+      <div className="abrn-page-bg flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
@@ -264,43 +340,17 @@ const handleUpload = async (files: File[]) => {
     );
   }
 
-  if (completed) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader className="text-center">
-            <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
-            <CardTitle>Upload Complete</CardTitle>
-            <CardDescription>Your files have been uploaded successfully</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center text-sm text-muted-foreground">
-              <div className="font-semibold mb-2">✓ Done!</div>
-              <p>Files were encrypted with the password set by the file owner.</p>
-              <p className="mt-2 text-xs">
-                Contact the file owner if you need the password to decrypt files.
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={() => navigate("/")} variant="outline" className="w-full">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
 
   if (!tokenInfo) {
     return null;
   }
 
+  const completedCount = uploadProgress.filter(p => p.status === "success").length;
+  const totalCount = uploadProgress.length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
+    <div className="abrn-page-bg p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* ABRN Logo */}
         <div className="flex justify-start mb-4">
           <ABRNLogo className="h-12" alt="ABRN Asesores SC" />
         </div>
@@ -309,7 +359,7 @@ const handleUpload = async (files: File[]) => {
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7d4f50] to-[#c4999b]">
             Secure Drop - ABRN Asesores SC
           </h1>
-          <p className="text-muted-foreground">Upload files securely to {tokenInfo.folder_name}</p>
+          <p className="text-muted-foreground">Upload files securely to {tokenInfo.link_name ? `${tokenInfo.link_name} Workspace` : tokenInfo.folder_name}</p>
         </div>
 
         <Card>
@@ -334,70 +384,108 @@ const handleUpload = async (files: File[]) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                !uploading ? "border-slate-300 hover:border-[#7d4f50] hover:bg-[#7d4f50]/5 dark:border-slate-700 dark:hover:border-[#c4999b] dark:hover:bg-[#c4999b]/10" : "border-slate-300 bg-slate-50"
-              }`}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            >
-              {!uploading ? (
-                <div className="space-y-4">
-                  <Upload className="w-12 h-12 mx-auto text-slate-400" />
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Drag & drop files here, or{" "}
-                      <label className="text-[#7d4f50] cursor-pointer hover:underline">
-                        click to browse
-                        <input
-                          type="file"
-                          multiple
-                          className="hidden"
-                          onChange={handleFileChange}
-                        />
-                      </label>
+            {!uploading ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label htmlFor="file-input" className="group relative">
+                    <input
+                      id="file-input"
+                      type="file"
+                      multiple
+                      className="sr-only"
+                      onChange={handleFileChange}
+                    />
+                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 cursor-pointer">
+                      <FileIcon className="w-8 h-8 mx-auto mb-3 text-slate-600 dark:text-slate-400 group-hover:text-[#7d4f50] transition-colors duration-300" />
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-[#7d4f50] transition-colors duration-300">
+                        Select Files
+                      </span>
+                    </div>
+                  </label>
+
+                  <label htmlFor="folder-input" className="group relative">
+                    <input
+                      id="folder-input"
+                      {...({ type: "file", webkitdirectory: "", directory: "", multiple: true, className: "sr-only", onChange: handleFolderChange } as any)}
+                    />
+                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 cursor-pointer">
+                      <FolderOpen className="w-8 h-8 mx-auto mb-3 text-slate-600 dark:text-slate-400 group-hover:text-[#7d4f50] transition-colors duration-300" />
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-[#7d4f50] transition-colors duration-300">
+                        Select Folder
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                <div
+                  className="border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer border-[#7d4f50]/30 hover:border-[#7d4f50] hover:bg-gradient-to-br hover:from-[#7d4f50]/5 hover:to-[#c4999b]/5"
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                >
+                  <div className="mb-4 transition-transform duration-300 group-hover:scale-110">
+                    <Upload className="w-16 h-16 mx-auto text-slate-400 group-hover:text-[#7d4f50] transition-colors duration-300" />
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-base font-medium text-slate-700 dark:text-slate-300">
+                      Drag & drop files or folders here
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Max file size: 10MB per file
+                    <p className="text-sm text-slate-500 dark:text-slate-500">
+                      Or use the buttons above
                     </p>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span>Max upload size: 2GB per file</span>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <Loader2 className="w-12 h-12 mx-auto text-[#7d4f50] animate-spin" />
-                  <p className="text-sm text-muted-foreground">Uploading files...</p>
-                </div>
-              )}
-            </div>
-
-            <div className="hidden space-y-2">
-              <label className="text-sm font-medium">Encryption Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password..."
-                className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
-              />
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Loader2 className="w-12 h-12 mx-auto text-[#7d4f50] animate-spin" />
+                <p className="text-sm text-muted-foreground text-center">
+                  {totalCount > 0 ? `Uploading ${totalCount} file${totalCount > 1 ? 's' : ''}...` : 'Uploading...'}
+                </p>
+              </div>
+            )}
 
             {uploadProgress.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Upload Progress</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Upload Progress</h3>
+                  <span className="text-xs text-muted-foreground">
+                    {completedCount}/{totalCount} completed
+                  </span>
+                </div>
                 {uploadProgress.map((progress, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="truncate flex-1">{progress.fileName}</span>
+                  <div key={idx} className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="truncate flex-1 mr-2" title={progress.fileName}>
+                        {progress.fileName}
+                      </span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {progress.bytesUploaded && progress.bytesTotal
+                          ? `${formatBytes(progress.bytesUploaded)} / ${formatBytes(progress.bytesTotal)}`
+                          : `${progress.progress}%`
+                        }
+                      </span>
                       {progress.status === "success" && (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <CheckCircle className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
                       )}
                       {progress.status === "error" && (
-                        <XCircle className="w-4 h-4 text-red-500" />
+                        <XCircle className="w-4 h-4 text-red-500 ml-2 flex-shrink-0" />
                       )}
                       {progress.status === "uploading" && (
-                        <Loader2 className="w-4 h-4 text-[#7d4f50] animate-spin" />
+                        <Loader2 className="w-4 h-4 text-[#7d4f50] animate-spin ml-2 flex-shrink-0" />
                       )}
                     </div>
+
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="bg-[#7d4f50] transition-all duration-300 h-full"
+                        style={{ width: `${progress.progress}%` }}
+                      />
+                    </div>
+
                     {progress.status === "error" && (
                       <p className="text-xs text-red-600">{progress.error}</p>
                     )}
@@ -406,27 +494,18 @@ const handleUpload = async (files: File[]) => {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex gap-2">
-            <Button
-              onClick={handleDone}
-              variant="destructive"
-              disabled={uploading || uploadProgress.length === 0}
-            >
-              Done & Deactivate
-            </Button>
+          <CardFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => {
-                // Check if user is logged in by checking for token
                 const token = localStorage.getItem("token");
                 if (token) {
-                  // User is logged in - go to files page
                   navigate("/abrn/files");
                 } else {
-                  // User is not logged in - go to ABRN website
                   window.location.href = "https://abrn.mx/";
                 }
               }}
               variant="outline"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -441,7 +520,7 @@ const handleUpload = async (files: File[]) => {
                 <p className="font-medium">Security Notice</p>
                 <p className="text-muted-foreground">
                   Files uploaded here will be encrypted client-side and stored securely.
-                  The file owner will need the encryption password you provide above.
+                  The file owner will need the encryption key to decrypt files.
                 </p>
               </div>
             </div>

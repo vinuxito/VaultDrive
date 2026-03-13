@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ INSERT INTO users (
   updated_at
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted
 `
 
 type CreateUserParams struct {
@@ -65,6 +66,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsAdmin,
+		&i.PinHash,
+		&i.PinSetAt,
+		&i.PrivateKeyPinEncrypted,
 	)
 	return i, err
 }
@@ -90,7 +94,7 @@ func (q *Queries) DeleteUserAsAdmin(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
 ORDER BY created_at DESC
 `
 
@@ -116,6 +120,9 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.IsAdmin,
+			&i.PinHash,
+			&i.PinSetAt,
+			&i.PrivateKeyPinEncrypted,
 		); err != nil {
 			return nil, err
 		}
@@ -131,7 +138,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
 WHERE email = $1
 `
 
@@ -150,12 +157,15 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsAdmin,
+		&i.PinHash,
+		&i.PinSetAt,
+		&i.PrivateKeyPinEncrypted,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
 WHERE id = $1
 `
 
@@ -174,12 +184,15 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsAdmin,
+		&i.PinHash,
+		&i.PinSetAt,
+		&i.PrivateKeyPinEncrypted,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
 WHERE username = $1
 `
 
@@ -198,7 +211,44 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsAdmin,
+		&i.PinHash,
+		&i.PinSetAt,
+		&i.PrivateKeyPinEncrypted,
 	)
+	return i, err
+}
+
+const getUserPINStatus = `-- name: GetUserPINStatus :one
+SELECT pin_hash, pin_set_at FROM users
+WHERE id = $1
+`
+
+type GetUserPINStatusRow struct {
+	PinHash  sql.NullString
+	PinSetAt sql.NullTime
+}
+
+func (q *Queries) GetUserPINStatus(ctx context.Context, id uuid.UUID) (GetUserPINStatusRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserPINStatus, id)
+	var i GetUserPINStatusRow
+	err := row.Scan(&i.PinHash, &i.PinSetAt)
+	return i, err
+}
+
+const getUserPublicKeyByID = `-- name: GetUserPublicKeyByID :one
+SELECT id, public_key FROM users
+WHERE id = $1
+`
+
+type GetUserPublicKeyByIDRow struct {
+	ID        uuid.UUID
+	PublicKey string
+}
+
+func (q *Queries) GetUserPublicKeyByID(ctx context.Context, id uuid.UUID) (GetUserPublicKeyByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserPublicKeyByID, id)
+	var i GetUserPublicKeyByIDRow
+	err := row.Scan(&i.ID, &i.PublicKey)
 	return i, err
 }
 
@@ -261,6 +311,39 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Sea
 	return items, nil
 }
 
+const setPrivateKeyPinEncrypted = `-- name: SetPrivateKeyPinEncrypted :exec
+UPDATE users
+SET private_key_pin_encrypted = $2
+WHERE id = $1
+`
+
+type SetPrivateKeyPinEncryptedParams struct {
+	ID                     uuid.UUID
+	PrivateKeyPinEncrypted sql.NullString
+}
+
+func (q *Queries) SetPrivateKeyPinEncrypted(ctx context.Context, arg SetPrivateKeyPinEncryptedParams) error {
+	_, err := q.db.ExecContext(ctx, setPrivateKeyPinEncrypted, arg.ID, arg.PrivateKeyPinEncrypted)
+	return err
+}
+
+const setUserPIN = `-- name: SetUserPIN :exec
+UPDATE users
+SET pin_hash = $2, pin_set_at = $3
+WHERE id = $1
+`
+
+type SetUserPINParams struct {
+	ID       uuid.UUID
+	PinHash  sql.NullString
+	PinSetAt sql.NullTime
+}
+
+func (q *Queries) SetUserPIN(ctx context.Context, arg SetUserPINParams) error {
+	_, err := q.db.ExecContext(ctx, setUserPIN, arg.ID, arg.PinHash, arg.PinSetAt)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET 
@@ -269,7 +352,7 @@ SET
   email = $4,
   updated_at = $5
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted
 `
 
 type UpdateUserParams struct {
@@ -301,6 +384,9 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsAdmin,
+		&i.PinHash,
+		&i.PinSetAt,
+		&i.PrivateKeyPinEncrypted,
 	)
 	return i, err
 }
@@ -314,7 +400,7 @@ SET
   username = $5,
   updated_at = $6
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted
 `
 
 type UpdateUserAsAdminParams struct {
@@ -348,6 +434,9 @@ func (q *Queries) UpdateUserAsAdmin(ctx context.Context, arg UpdateUserAsAdminPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsAdmin,
+		&i.PinHash,
+		&i.PinSetAt,
+		&i.PrivateKeyPinEncrypted,
 	)
 	return i, err
 }

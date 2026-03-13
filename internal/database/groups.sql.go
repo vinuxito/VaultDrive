@@ -322,6 +322,27 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]Get
 	return items, nil
 }
 
+const getGroupWrappedKeyForUser = `-- name: GetGroupWrappedKeyForUser :one
+SELECT gfs.wrapped_key
+FROM group_file_shares gfs
+JOIN group_members gm ON gfs.group_id = gm.group_id
+WHERE gfs.file_id = $1
+  AND gm.user_id = $2
+LIMIT 1
+`
+
+type GetGroupWrappedKeyForUserParams struct {
+	FileID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetGroupWrappedKeyForUser(ctx context.Context, arg GetGroupWrappedKeyForUserParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getGroupWrappedKeyForUser, arg.FileID, arg.UserID)
+	var wrapped_key string
+	err := row.Scan(&wrapped_key)
+	return wrapped_key, err
+}
+
 const getGroupsByUserID = `-- name: GetGroupsByUserID :many
 SELECT g.id, g.user_id, g.name, g.description, g.created_at, g.updated_at,
        (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as member_count,

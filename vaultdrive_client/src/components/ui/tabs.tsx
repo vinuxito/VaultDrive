@@ -23,7 +23,7 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div
       role="tablist"
-      className={`flex gap-1 border-b border-white/10 mb-6 overflow-x-auto ${className}`}
+      className={`flex gap-1 border-b border-[#7d4f50]/20 mb-6 overflow-x-auto ${className}`}
     >
       {tabs.map((tab) => (
         <button
@@ -39,9 +39,9 @@ export const Tabs: React.FC<TabsProps> = ({
             ${
               activeTab === tab.id
                 ? "border-[#7d4f50] text-[#c4999b] font-medium"
-                : "border-transparent text-gray-400 hover:text-gray-300 hover:border-white/20"
+                : "border-transparent text-foreground/50 hover:text-foreground/80 hover:border-[#7d4f50]/25"
             }
-            focus:outline-none focus:ring-2 focus:ring-[#7d4f50]/50 focus:ring-offset-2 focus:ring-offset-gray-900
+            focus:outline-none focus:ring-2 focus:ring-[#7d4f50]/50 focus:ring-offset-2 focus:ring-offset-background
             min-h-[44px]
           `}
         >
@@ -56,7 +56,7 @@ export const Tabs: React.FC<TabsProps> = ({
                 ${
                   activeTab === tab.id
                     ? "bg-[#7d4f50]/20 text-[#c4999b]"
-                    : "bg-white/5 text-gray-400"
+                    : "bg-[#7d4f50]/8 text-foreground/50"
                 }
               `}
             >

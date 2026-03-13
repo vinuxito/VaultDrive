@@ -66,6 +66,15 @@ WHERE id = $1;
 DELETE FROM users
 WHERE id = $1;
 
+-- name: SetUserPIN :exec
+UPDATE users
+SET pin_hash = $2, pin_set_at = $3
+WHERE id = $1;
+
+-- name: GetUserPINStatus :one
+SELECT pin_hash, pin_set_at FROM users
+WHERE id = $1;
+
 -- User search query
 -- name: SearchUsers :many
 SELECT id, username, email, first_name, last_name, created_at, updated_at
@@ -77,3 +86,11 @@ WHERE
   LOWER(last_name) LIKE LOWER($1)
 ORDER BY created_at DESC
 LIMIT $2;
+-- name: SetPrivateKeyPinEncrypted :exec
+UPDATE users
+SET private_key_pin_encrypted = $2
+WHERE id = $1;
+
+-- name: GetUserPublicKeyByID :one
+SELECT id, public_key FROM users
+WHERE id = $1;

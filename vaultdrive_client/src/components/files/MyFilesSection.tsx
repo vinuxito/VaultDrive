@@ -121,7 +121,7 @@ export const MyFilesSection: React.FC<MyFilesSectionProps> = ({
               <Button
                 onClick={onUpload}
                 disabled={!selectedFile || uploading}
-                className="gap-2 bg-sky-950 hover:bg-sky-900 text-white rounded-md"
+                className="gap-2 bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0 rounded-md"
               >
                 <Upload className="w-4 h-4" />
                 {uploading ? "Uploading..." : "Upload"}

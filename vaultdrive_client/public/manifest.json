@@ -1,0 +1,14 @@
+{
+  "name": "ABRN Drive",
+  "short_name": "ABRN Drive",
+  "description": "Your personal encrypted cloud drive",
+  "start_url": "/abrn/",
+  "scope": "/abrn/",
+  "display": "standalone",
+  "background_color": "#1a0f0f",
+  "theme_color": "#7d4f50",
+  "icons": [
+    { "src": "/abrn/abrn-logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/abrn/abrn-logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

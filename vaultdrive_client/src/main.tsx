@@ -6,7 +6,7 @@ import { ThemeProvider } from "./components/theme-provider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vaultdrive-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="vaultdrive-ui-theme">
       <App />
     </ThemeProvider>
   </StrictMode>

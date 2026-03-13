@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -110,6 +111,7 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 	response := map[string]interface{}{
 		"valid":       true,
 		"folder_name": folder.Name,
+		"link_name":   uploadToken.LinkName.String,
 		"files_limit": filesLimit,
 		"uploaded":    uploaded,
 		"expires_at":  expiresAt,
@@ -220,15 +222,54 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	// Get the uploaded file
-	file, handler, err := r.FormFile("file")
-	if err != nil {
+	// Parse multipart form with memory limit for large files (512MB in memory)
+	var fileHeaders []*multipart.FileHeader
+
+	if err := r.ParseMultipartForm(512 << 20); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Error retrieving the file"})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid form data"})
 		return
 	}
-	defer file.Close()
+
+	// Get files from form - check for multiple files first
+	multipleFiles := r.MultipartForm.File["files[]"]
+	if multipleFiles != nil && len(multipleFiles) > 0 {
+		// Multiple files case - use the files directly
+		fileHeaders = multipleFiles
+	} else {
+		// Single file case - use original FormFile approach
+		_, handler, err := r.FormFile("file")
+		if err != nil && handler != nil {
+			fileHeaders = append(fileHeaders, handler)
+		}
+	}
+
+	if len(fileHeaders) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "No files provided"})
+		return
+	}
+
+	// Validate password by trying to unwrap
+	providedPassword := r.FormValue("password")
+	if providedPassword == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Password is required"})
+		return
+	}
+
+	// Validate wrapped key by comparing with stored key
+	storedWrappedKey := uploadToken.PasswordHash.String
+	providedWrappedKey := r.FormValue("wrapped_key")
+	if providedWrappedKey != storedWrappedKey {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid encryption key"})
+		return
+	}
 
 	uploadDir := "uploads"
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
@@ -241,115 +282,174 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	filename := uuid.New().String() + filepath.Ext(handler.Filename)
-	filePath := filepath.Join(uploadDir, filename)
-
-	dst, err := os.Create(filePath)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not create file on server"})
-		return
-	}
-	defer dst.Close()
-
-	if _, err := io.Copy(dst, file); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not save file"})
-		return
+	// Process each file
+	type FileResult struct {
+		FileName string    `json:"file_name"`
+		FileID   uuid.UUID `json:"file_id"`
+		Path     string    `json:"path"`
+		Error    string    `json:"error,omitempty"`
 	}
 
-	// Validate password by trying to unwrap the key
-	providedPassword := r.FormValue("password")
-	if providedPassword == "" {
-		os.Remove(filePath)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Password is required"})
-		return
+	var results []FileResult
+	createdFiles := 0
+
+	for _, handler := range fileHeaders {
+		// Extract relative path from filename (preserves folder structure)
+		originalPath := handler.Filename
+		safeFilename := filepath.Base(originalPath)
+		relativeDir := filepath.Dir(originalPath)
+
+		// Generate unique filename with UUID
+		fileUUID := uuid.New().String()
+		ext := filepath.Ext(safeFilename)
+		storedFilename := fileUUID + ext
+
+		// Create nested directory structure if needed
+		var storagePath string
+		if relativeDir != "." && relativeDir != "" {
+			// Clean the relative path to prevent directory traversal
+			relativeDir = filepath.Clean(relativeDir)
+			targetDir := filepath.Join(uploadDir, relativeDir)
+			if err := os.MkdirAll(targetDir, 0755); err != nil {
+				log.Printf("Failed to create directory %s: %v", targetDir, err)
+				results = append(results, FileResult{
+					FileName: originalPath,
+					Error:    fmt.Sprintf("Failed to create directory: %v", err),
+				})
+				continue
+			}
+			storagePath = filepath.Join(targetDir, storedFilename)
+		} else {
+			storagePath = filepath.Join(uploadDir, storedFilename)
+		}
+
+		// Open uploaded file
+		file, err := handler.Open()
+		if err != nil {
+			log.Printf("Failed to open uploaded file %s: %v", originalPath, err)
+			results = append(results, FileResult{
+				FileName: originalPath,
+				Error:    fmt.Sprintf("Failed to open file: %v", err),
+			})
+			continue
+		}
+
+		// Save to disk
+		dst, err := os.Create(storagePath)
+		if err != nil {
+			file.Close()
+			log.Printf("Failed to create file %s: %v", storagePath, err)
+			results = append(results, FileResult{
+				FileName: originalPath,
+				Error:    fmt.Sprintf("Failed to create file on server: %v", err),
+			})
+			continue
+		}
+		defer dst.Close()
+
+		if _, err := io.Copy(dst, file); err != nil {
+			file.Close()
+			dst.Close()
+			os.Remove(storagePath)
+			log.Printf("Failed to save file %s: %v", storagePath, err)
+			results = append(results, FileResult{
+				FileName: originalPath,
+				Error:    fmt.Sprintf("Failed to save file: %v", err),
+			})
+			continue
+		}
+		file.Close()
+
+		// Create file metadata
+		metadata := map[string]string{
+			"iv":        r.FormValue("iv"),
+			"salt":      r.FormValue("salt"),
+			"algorithm": r.FormValue("algorithm"),
+		}
+
+		metadataJSON, err := json.Marshal(metadata)
+		if err != nil {
+			os.Remove(storagePath)
+			log.Printf("Failed to marshal metadata for %s: %v", originalPath, err)
+			results = append(results, FileResult{
+				FileName: originalPath,
+				Error:    "Error processing metadata",
+			})
+			continue
+		}
+
+		// Create database entry
+		dbfile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
+			OwnerID:           uuid.NullUUID{UUID: uploadToken.OwnerUserID, Valid: true},
+			Filename:          originalPath,
+			FilePath:          storagePath,
+			FileSize:          handler.Size,
+			EncryptedMetadata: sql.NullString{String: string(metadataJSON), Valid: true},
+			CurrentKeyVersion: sql.NullInt32{Int32: 1, Valid: true},
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			DropSourceID:      uuid.NullUUID{UUID: uploadToken.ID, Valid: true},
+		})
+
+		if err != nil {
+			os.Remove(storagePath)
+			cfg.dbQueries.DeleteFile(r.Context(), dbfile.ID)
+			log.Printf("Failed to create file entry for %s: %v", originalPath, err)
+			results = append(results, FileResult{
+				FileName: originalPath,
+				Error:    "Could not create file entry",
+			})
+			continue
+		}
+
+		accessKey := uploadToken.PinWrappedKey.String
+		if accessKey == "" {
+			accessKey = r.FormValue("wrapped_key")
+		}
+		_, err = cfg.dbQueries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
+			FileID:     uuid.NullUUID{UUID: dbfile.ID, Valid: true},
+			UserID:     uuid.NullUUID{UUID: uploadToken.OwnerUserID, Valid: true},
+			WrappedKey: accessKey,
+		})
+
+		if err != nil {
+			os.Remove(storagePath)
+			cfg.dbQueries.DeleteFile(r.Context(), dbfile.ID)
+			log.Printf("Failed to create file access key for %s: %v", originalPath, err)
+			results = append(results, FileResult{
+				FileName: originalPath,
+				Error:    "Could not save file access key",
+			})
+			continue
+		}
+
+		createdFiles++
+		broadcastToUser(uploadToken.OwnerUserID, "drop_upload", map[string]interface{}{
+			"filename": originalPath,
+			"token":    tokenStr,
+		})
+		results = append(results, FileResult{
+			FileName: originalPath,
+			FileID:   dbfile.ID,
+			Path:     relativeDir,
+		})
 	}
 
-	// Validate the wrapped key by comparing with stored key
-	storedWrappedKey := uploadToken.PasswordHash.String
-	providedWrappedKey := r.FormValue("wrapped_key")
-	if providedWrappedKey != storedWrappedKey {
-		os.Remove(filePath)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid encryption key"})
-		return
-	}
-
-	metadata := map[string]string{
-		"iv":        r.FormValue("iv"),
-		"salt":      r.FormValue("salt"),
-		"algorithm": r.FormValue("algorithm"),
-	}
-
-	metadataJSON, err := json.Marshal(metadata)
-	if err != nil {
-		os.Remove(filePath)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Error processing metadata"})
-		return
-	}
-
-	dbfile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
-		OwnerID:           uuid.NullUUID{UUID: uploadToken.OwnerUserID, Valid: true},
-		Filename:          handler.Filename,
-		FilePath:          filePath,
-		FileSize:          handler.Size,
-		EncryptedMetadata: sql.NullString{String: string(metadataJSON), Valid: true},
-		CurrentKeyVersion: sql.NullInt32{Int32: 1, Valid: true},
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-		DropSourceID:      uuid.NullUUID{UUID: uploadToken.ID, Valid: true},
-	})
-
-	if err != nil {
-		os.Remove(filePath)
-		cfg.dbQueries.DeleteFile(r.Context(), dbfile.ID)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not create file entry"})
-		return
-	}
-
-	wrappedKey := r.FormValue("wrapped_key")
-	_, err = cfg.dbQueries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
-		FileID:     uuid.NullUUID{UUID: dbfile.ID, Valid: true},
-		UserID:     uuid.NullUUID{UUID: uploadToken.OwnerUserID, Valid: true},
-		WrappedKey: wrappedKey,
-	})
-
-	if err != nil {
-		os.Remove(filePath)
-		cfg.dbQueries.DeleteFile(r.Context(), dbfile.ID)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not save file access key"})
-		return
-	}
-
-	_, err = cfg.dbQueries.IncrementTokenFileCount(r.Context(), uploadToken.ID)
-	if err != nil {
-		os.Remove(filePath)
-		cfg.dbQueries.DeleteFile(r.Context(), dbfile.ID)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not update file count"})
-		return
+	// Update token file count
+	if createdFiles > 0 {
+		_, err = cfg.dbQueries.IncrementTokenFileCount(r.Context(), uploadToken.ID)
+		if err != nil {
+			log.Printf("Failed to update token file count: %v", err)
+		}
 	}
 
 	respondWithJSON(w, http.StatusCreated, map[string]interface{}{
-		"file_name":  dbfile.Filename,
-		"file_id":    dbfile.ID,
-		"created_at": dbfile.CreatedAt,
+		"success":  true,
+		"files":    results,
+		"count":    len(results),
+		"uploaded": createdFiles,
 	})
 }
-
 func (cfg *ApiConfig) handlerDropDone(w http.ResponseWriter, r *http.Request) {
 	// Extract token from URL path
 	urlPath := strings.TrimSuffix(r.URL.Path, "/")
@@ -452,7 +552,8 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		TargetFolderID string `json:"target_folder_id"`
 		ExpiresAt      string `json:"expires_at"`
 		MaxFiles       int    `json:"max_files"`
-		Password       string `json:"password"`
+		Pin            string `json:"pin"`
+		LinkName       string `json:"link_name"`
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&req)
@@ -518,7 +619,33 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		maxFiles = sql.NullInt32{Int32: int32(req.MaxFiles), Valid: true}
 	}
 
-	// Generate random encryption key for files
+	if req.Pin == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "pin is required"})
+		return
+	}
+
+	owner, err := cfg.dbQueries.GetUserByID(r.Context(), ownerID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Could not load user"})
+		return
+	}
+	if !owner.PinHash.Valid || owner.PinHash.String == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Set your 4-digit PIN in Settings before creating drop links"})
+		return
+	}
+	if err := auth.CheckPasswordHash(req.Pin, owner.PinHash.String); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect PIN"})
+		return
+	}
+
 	randomKeyBytes := make([]byte, 32)
 	_, err = rand.Read(randomKeyBytes)
 	if err != nil {
@@ -529,8 +656,16 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 	}
 	randomKey := hex.EncodeToString(randomKeyBytes)
 
-	// Wrap the key with the password for secure storage
-	wrappedKey, err := auth.WrapKey(req.Password, randomKey)
+	internalPasswordBytes := make([]byte, 32)
+	if _, err = rand.Read(internalPasswordBytes); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Could not generate internal password"})
+		return
+	}
+	internalPassword := hex.EncodeToString(internalPasswordBytes)
+
+	wrappedKey, err := auth.WrapKey(internalPassword, randomKey)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -538,7 +673,14 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Store the wrapped key in the database
+	pinWrappedKey, err := auth.WrapKey(req.Pin, randomKey)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Could not wrap key with PIN"})
+		return
+	}
+
 	uploadToken, err := cfg.dbQueries.CreateUploadToken(r.Context(), database.CreateUploadTokenParams{
 		Token:            dropToken,
 		OwnerUserID:      ownerID,
@@ -547,6 +689,8 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		MaxFiles:         maxFiles,
 		PasswordHash:     sql.NullString{String: wrappedKey, Valid: true},
 		RawEncryptionKey: sql.NullString{String: randomKey, Valid: true},
+		LinkName:         sql.NullString{String: req.LinkName, Valid: req.LinkName != ""},
+		PinWrappedKey:    sql.NullString{String: pinWrappedKey, Valid: true},
 	})
 
 	if err != nil {
@@ -567,6 +711,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		"expires_at":       uploadToken.ExpiresAt,
 		"max_files":        uploadToken.MaxFiles,
 		"upload_url":       uploadURL,
+		"pin_protected":    true,
 	})
 }
 

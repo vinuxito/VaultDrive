@@ -34,6 +34,7 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 		CreatedAt      time.Time `json:"created_at"`
 		Metadata       string    `json:"metadata"`
 		IsOwner        bool      `json:"is_owner"`
+		Starred        bool      `json:"starred"`
 		OwnerEmail     *string   `json:"owner_email"`
 		OwnerName      *string   `json:"owner_name"`
 		GroupName      *string   `json:"group_name"`
@@ -76,6 +77,7 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 			CreatedAt:      f.CreatedAt,
 			Metadata:       meta,
 			IsOwner:        true,
+			Starred:        f.Starred,
 			DropToken:      dropToken,
 			DropFolderName: dropFolderName,
 			DropWrappedKey: dropWrappedKey,

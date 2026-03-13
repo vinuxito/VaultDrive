@@ -13,6 +13,14 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type ActivityLog struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	EventType string
+	Payload   pqtype.NullRawMessage
+	CreatedAt time.Time
+}
+
 type AuditLog struct {
 	ID           uuid.UUID
 	UserID       uuid.NullUUID
@@ -142,6 +150,16 @@ type PluginsManifest struct {
 	UpdatedAt time.Time
 }
 
+type PublicShareLink struct {
+	ID        uuid.UUID
+	FileID    uuid.UUID
+	OwnerID   uuid.UUID
+	Token     string
+	ExpiresAt sql.NullTime
+	IsActive  bool
+	CreatedAt time.Time
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt sql.NullTime
@@ -183,18 +201,23 @@ type UploadToken struct {
 	CreatedAt        sql.NullTime
 	PasswordHash     sql.NullString
 	RawEncryptionKey sql.NullString
+	LinkName         sql.NullString
+	PinWrappedKey    sql.NullString
 }
 
 type User struct {
-	ID                  uuid.UUID
-	FirstName           string
-	LastName            string
-	Username            string
-	Email               string
-	PasswordHash        string
-	PublicKey           string
-	PrivateKeyEncrypted string
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	IsAdmin             sql.NullBool
+	ID                     uuid.UUID
+	FirstName              string
+	LastName               string
+	Username               string
+	Email                  string
+	PasswordHash           string
+	PublicKey              string
+	PrivateKeyEncrypted    string
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	IsAdmin                sql.NullBool
+	PinHash                sql.NullString
+	PinSetAt               sql.NullTime
+	PrivateKeyPinEncrypted sql.NullString
 }

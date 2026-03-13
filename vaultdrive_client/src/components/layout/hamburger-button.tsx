@@ -12,7 +12,7 @@ export function HamburgerButton({ isOpen, onClick }: HamburgerButtonProps) {
       onClick={onClick}
       className={cn(
         "p-2 rounded-lg glass transition-all duration-300",
-        "hover:bg-white/10 active:scale-95",
+        "hover:bg-[#7d4f50]/10 active:scale-95",
         "min-w-[44px] min-h-[44px] flex items-center justify-center"
       )}
       aria-label={isOpen ? "Close menu" : "Open menu"}

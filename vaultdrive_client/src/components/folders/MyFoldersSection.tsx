@@ -47,7 +47,7 @@ export const MyFoldersSection: React.FC<MyFoldersSectionProps> = ({
             </div>
             <Button
               onClick={onCreateFolder}
-              className="gap-2 bg-sky-950 hover:bg-sky-900 text-white"
+              className="gap-2 bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0"
             >
               <FolderPlus className="w-4 h-4" />
               Create Root Folder

@@ -1,7 +1,7 @@
 # ABRN Drive - Operator Quick Reference
 
 > **Fast-lookup guide for coding, debugging, reloading, and rebuilding**  
-> Last updated: February 3, 2026
+> Last updated: March 12, 2026
 
 ---
 
@@ -76,37 +76,50 @@ sudo /lamp/apache2/bin/apachectl restart
 | Method | Endpoint | Auth Required |
 |--------|----------|---------------|
 | POST | `/abrn/api/register` | No |
-| POST | `/abrn/api/login` | No |
+| POST | `/abrn/api/login` | No — accepts `password` or `pin`; returns `pin_set` |
 | GET | `/abrn/api/users/me` | JWT Bearer |
+
+### PIN
+| Method | Endpoint | Auth Required |
+|--------|----------|---------------|
+| POST | `/abrn/api/users/pin` | JWT Bearer — set 4-digit PIN |
+| GET | `/abrn/api/users/pin/status` | JWT Bearer — returns `{ pin_set: bool }` |
 
 ### Files
 | Method | Endpoint | Auth Required |
 |--------|----------|---------------|
 | POST | `/abrn/api/files/upload` | JWT Bearer |
-| GET | `/abrn/api/files` | JWT Bearer |
+| GET | `/abrn/api/files` | JWT Bearer — includes `starred` field |
 | GET | `/abrn/api/files/{id}/download` | JWT Bearer |
+| POST | `/abrn/api/files/{id}/star` | JWT Bearer — toggle star |
+| DELETE | `/abrn/api/files/{id}` | JWT Bearer |
 | POST | `/abrn/api/files/{id}/share` | JWT Bearer |
+| GET | `/abrn/api/files/{id}/shares` | JWT Bearer |
+| DELETE | `/abrn/api/files/{id}/revoke/{user_id}` | JWT Bearer |
+| GET | `/abrn/api/files/shared` | JWT Bearer — files shared with me |
 
-### **Secure Drop (NEW - No Auth Required)**
+### Secure Drop (PIN-protected)
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | GET | `/abrn/api/drop/{token}` | Returns token info (JSON) |
-| GET | `/abrn/drop/{token}` | **Frontend upload page (HTML)** |
+| GET | `/abrn/drop/{token}` | Frontend upload page (HTML) |
 | POST | `/abrn/api/drop/{token}/upload` | Upload encrypted file |
+| GET | `/abrn/api/drop/{token}/files` | List files for this token (owner, auth required) |
 | POST | `/abrn/api/drop/{token}/done` | Deactivate link |
 | GET | `/abrn/api/drop/{token}/owner-info` | Get owner's public key |
-| POST | `/abrn/api/drop/create` | Create new token (auth required) |
+| POST | `/abrn/api/drop/create` | Create new token (auth required, uses PIN) |
 | GET | `/abrn/api/drop/tokens` | List user's tokens (auth required) |
 
 ### Frontend Routes (React Router)
 | Route | Component | Auth |
 |-------|-----------|------|
 | `/` | Home | No |
-| `/login` | Login Form | No |
-| `/files` | Files Page | Yes |
+| `/login` | Login — password or PIN tab | No |
+| `/files` | Vault Explorer (split-pane) | Yes |
 | `/shared` | Shared Files | Yes |
 | `/groups` | Groups | Yes |
-| `/drop/:token` | **Drop Upload Page** | No |
+| `/settings` | Settings — PIN management | Yes |
+| `/drop/:token` | Drop Upload Page | No |
 
 ---
 
@@ -403,36 +416,43 @@ grep -i error /lamp/apache2/logs/portscanner_error.log | tail -3 2>/dev/null || 
 
 ```
 /lamp/www/ABRN-Drive/
-├── main.go                    # HTTP server & routing
-├── handle_*.go                # API endpoint handlers
-│   ├── handle_drop.go         # NEW: Secure Drop handlers
-│   ├── handle_folders.go      # Folder management
-│   ├── handle_files.go        # File operations
-│   ├── handle_login.go        # Authentication
-│   └── handle_user_create.go  # User registration
-├── middleware_*.go            # HTTP middleware
-├── internal/database/         # sqlc generated code
+├── main.go                         # HTTP server & routing
+├── handle_*.go                     # API endpoint handlers
+│   ├── handle_login.go             # PIN + password dual-auth
+│   ├── handle_user_pin.go          # Set PIN / PIN status
+│   ├── handle_drop.go              # Secure Drop (PIN-wrapped keys)
+│   ├── handle_list_files.go        # File list (includes starred field)
+│   ├── handle_file_star.go         # Star toggle
+│   ├── handle_folders.go           # Folder management
+│   ├── handle_email_*.go.disabled  # Email handlers (inactive, preserved)
+│   └── imap_client.go.disabled     # IMAP client (inactive, preserved)
+├── middleware_*.go                 # HTTP middleware
+├── internal/database/              # sqlc generated code
 ├── sql/
-│   ├── schema/                # Migrations (*.sql)
-│   │   ├── 018_upload_tokens.sql  # NEW: Drop tokens table
-│   │   ├── 017_*.sql
-│   │   └── ...
-│   └── queries/               # SQL queries (*.sql)
-│       └── upload_tokens.sql  # NEW: Drop token queries
-├── vaultdrive_client/         # React frontend
+│   ├── schema/                     # Migrations (*.sql)
+│   │   ├── 023_user_pin.sql        # pin_hash, pin_set_at on users
+│   │   └── 024_upload_tokens_pin_wrapped_key.sql
+│   └── queries/                    # SQL queries (*.sql)
+├── vaultdrive_client/              # React frontend
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── drop-upload.tsx       # NEW: Drop upload page
-│   │   │   ├── files.tsx
-│   │   │   ├── files.tsx             # "Create Upload Link" modal
+│   │   │   ├── files.tsx           # Vault Explorer (split-pane redesign)
+│   │   │   ├── login.tsx           # PIN ↔ password toggle
+│   │   │   ├── settings.tsx        # PIN management card
+│   │   │   ├── drop-upload.tsx     # Public drop upload page
 │   │   │   └── ...
 │   │   ├── components/
-│   │   └── App.tsx              # React Router config
-│   ├── dist/                    # Build output (served by Go)
+│   │   │   ├── vault/              # VaultTree, OriginBadge, BulkActionBar, BulkDownloadModal
+│   │   │   ├── layout/             # dashboard-layout (PIN banner), sidebar (email removed)
+│   │   │   └── upload/             # CreateUploadLinkModal (PIN field)
+│   │   ├── utils/
+│   │   │   └── api.ts              # setPIN, getPINStatus helpers
+│   │   └── App.tsx                 # React Router (email route removed)
+│   ├── dist/                       # Build output (served by Go)
 │   └── package.json
-├── abrndrive                   # Compiled binary
-├── watch-and-reload.sh         # Auto-reload script
-└── README.md                   # Main documentation
+├── abrndrive                       # Compiled binary
+├── watch-and-reload.sh             # Auto-reload script
+└── README.md                       # Main documentation
 ```
 
 ---
@@ -475,5 +495,5 @@ curl -i http://localhost:8082/abrn/api/drop/testtoken123
 
 ---
 
-**Last Updated:** February 3, 2026  
-**Version:** ABRN Drive v1.0 with Secure Drop feature
+**Last Updated:** March 12, 2026  
+**Version:** ABRN Drive — Vault Explorer + PIN System + Secure Drop

@@ -8,6 +8,7 @@ import {
 } from "../components/ui/card";
 import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
+import { Button } from "../components/ui/button";
 import {
   Shield,
   User,
@@ -18,10 +19,18 @@ import {
   Key,
   Sun,
   Moon,
+  Fingerprint,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../components/theme-provider";
-import { DashboardLayout } from "../components/layout/dashboard-layout";
+import { getPINStatus, setPIN } from "../utils/api";
+import {
+  decryptPrivateKeyWithPassword,
+  encryptPrivateKeyWithPIN,
+} from "../utils/crypto";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -31,22 +40,93 @@ export default function Settings() {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
+  const [pinSet, setPinSet] = useState<boolean | null>(null);
+  const [showPinForm, setShowPinForm] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [oldPinInput, setOldPinInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [pinSuccess, setPinSuccess] = useState("");
+  const [pinLoading, setPinLoading] = useState(false);
+
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem("token");
     if (!token || !userData) {
       navigate("/login");
+      return;
     }
+    getPINStatus(token)
+      .then((s) => setPinSet(s.pin_set))
+      .catch(() => setPinSet(false));
   }, [userData, navigate]);
 
+  const handlePinSubmit = async () => {
+    setPinError("");
+    setPinSuccess("");
+    if (!/^\d{4}$/.test(pinInput)) {
+      setPinError("PIN must be exactly 4 digits.");
+      return;
+    }
+    if (pinSet && !oldPinInput) {
+      setPinError("Enter your current PIN to change it.");
+      return;
+    }
+    if (!passwordInput) {
+      setPinError("Enter your account password to protect your PIN.");
+      return;
+    }
+    setPinLoading(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const stored = localStorage.getItem("user");
+      const userObj = stored ? JSON.parse(stored) : null;
+      const privateKeyEncrypted: string | null = userObj?.private_key_encrypted ?? null;
+
+      let privateKeyPinEncrypted: string | undefined;
+      if (privateKeyEncrypted) {
+        // private_key_encrypted is the RSA private key PEM encrypted with the user's
+        // login password using AES-256-GCM + PBKDF2 (same format as file keys).
+        // We must decrypt it with the password first to get the plaintext PEM,
+        // then re-encrypt it with the PIN so later PIN-based decryption works.
+        const privateKeyPem = await decryptPrivateKeyWithPassword(
+          passwordInput,
+          privateKeyEncrypted,
+        );
+        privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pinInput, privateKeyPem);
+        if (userObj) {
+          userObj.private_key_pin_encrypted = privateKeyPinEncrypted;
+        }
+      }
+
+      await setPIN(pinInput, token, pinSet ? oldPinInput : undefined, privateKeyPinEncrypted);
+      setPinSet(true);
+      setPinSuccess(pinSet ? "PIN changed successfully." : "PIN set successfully.");
+      setShowPinForm(false);
+      setPinInput("");
+      setOldPinInput("");
+      setPasswordInput("");
+      if (stored && userObj) {
+        localStorage.setItem("user", JSON.stringify({ ...userObj, pin_set: true }));
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to save PIN.";
+      // Provide a clearer message if password decryption fails
+      if (msg.includes("Decryption failed") || msg.includes("decrypt")) {
+        setPinError("Incorrect password — enter your account login password.");
+      } else {
+        setPinError(msg);
+      }
+    } finally {
+      setPinLoading(false);
+    }
+  };
+
   if (!userData) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (
-    <DashboardLayout>
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground mt-1">
@@ -137,6 +217,122 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Secure Drop PIN */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Fingerprint className="w-5 h-5" />
+              Secure Drop PIN
+            </CardTitle>
+            <CardDescription>
+              4-digit PIN used to decrypt files uploaded via your Secure Drop links
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {pinSet === null ? (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Checking PIN status…
+              </div>
+            ) : pinSet ? (
+              <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-green-900 dark:text-green-100">PIN is set</p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-0.5">
+                    Your Secure Drop links are protected. Use your 4-digit PIN to decrypt received files.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-amber-900 dark:text-amber-100">No PIN set yet</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
+                    Set a PIN before creating Secure Drop links. You'll need it to decrypt uploaded files.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {pinSuccess && !showPinForm && (
+              <p className="text-sm text-green-600 dark:text-green-400">{pinSuccess}</p>
+            )}
+
+            {!showPinForm ? (
+              <Button
+                variant="outline"
+                onClick={() => { setShowPinForm(true); setPinError(""); setPinSuccess(""); setPinInput(""); setOldPinInput(""); }}
+              >
+                {pinSet ? "Change PIN" : "Set PIN"}
+              </Button>
+            ) : (
+              <div className="space-y-3 max-w-xs">
+                {pinSet && (
+                  <div className="space-y-1">
+                    <Label>Current PIN</Label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={oldPinInput}
+                      onChange={(e) => setOldPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      placeholder="••••"
+                      className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-center tracking-widest text-xl"
+                    />
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <Label>{pinSet ? "New PIN" : "PIN"}</Label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    placeholder="••••"
+                    className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-center tracking-widest text-xl"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handlePinSubmit(); }}
+                  />
+                  <p className="text-xs text-muted-foreground">Enter exactly 4 digits</p>
+                </div>
+                {pinError && (
+                  <p className="text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {pinError}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                <div className="space-y-1">
+                  <Label>Account Password</Label>
+                  <input
+                    type="password"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    placeholder="Your login password"
+                    className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <p className="text-xs text-muted-foreground">Needed to bind your PIN to your encryption key</p>
+                </div>
+              <Button
+                  variant="outline"
+                  onClick={() => { setShowPinForm(false); setPinInput(""); setOldPinInput(""); setPasswordInput(""); setPinError(""); }}
+                  disabled={pinLoading}
+                >
+                    Cancel
+                  </Button>
+                  <Button onClick={handlePinSubmit} disabled={pinLoading || pinInput.length !== 4 || !passwordInput}>
+                    {pinLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                    {pinSet ? "Change PIN" : "Set PIN"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Security Information */}
         <Card>
           <CardHeader>
@@ -223,8 +419,6 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
-    </DashboardLayout>
   );
 }

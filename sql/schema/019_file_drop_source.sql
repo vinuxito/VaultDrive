@@ -1,3 +1,5 @@
--- Add drop_source_id to files table to track upload source
--- name: 019_file_drop_source :one
-ALTER TABLE files ADD COLUMN drop_source_id UUID REFERENCES upload_tokens(id);
+-- +goose Up
+ALTER TABLE files ADD COLUMN IF NOT EXISTS drop_source_id UUID REFERENCES upload_tokens(id);
+
+-- +goose Down
+ALTER TABLE files DROP COLUMN IF EXISTS drop_source_id;

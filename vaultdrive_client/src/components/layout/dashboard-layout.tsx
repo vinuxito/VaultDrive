@@ -1,7 +1,7 @@
 
 
 import { useState, type ReactNode, useEffect } from "react";
-import { Menu, Search, Bell, Command } from "lucide-react";
+import { Menu, Search, Bell, Command, Fingerprint, X } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
@@ -18,6 +18,12 @@ import { useNavigate } from "react-router-dom";
 import { CommandPalette } from "./command-palette";
 import { PoweredByBadge } from "../branding";
 import { cn } from "../../lib/utils";
+import { useSessionVault } from "../../context/SessionVaultContext";
+import { useSSE } from "../../hooks";
+import type { ActivityEvent } from "../../hooks";
+import { ActivityFeedPanel } from "./ActivityFeedPanel";
+import { Toast } from "./Toast";
+import type { ToastMessage } from "./Toast";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,13 +31,26 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const { clearVault } = useSessionVault();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [activityFeedOpen, setActivityFeedOpen] = useState(false);
+  const [events, setEvents] = useState<ActivityEvent[]>([]);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  
-  // Effect to listen for Cmd+K to open the command palette
+  const [pinBannerDismissed, setPinBannerDismissed] = useState(
+    () => sessionStorage.getItem("pin_banner_dismissed") === "true"
+  );
+  const showPinBanner = user.pin_set === false && !pinBannerDismissed;
+
+  const dismissPinBanner = () => {
+    sessionStorage.setItem("pin_banner_dismissed", "true");
+    setPinBannerDismissed(true);
+  };
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
@@ -43,7 +62,33 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (toasts.length === 0) return;
+    const timer = setTimeout(() => {
+      setToasts((prev) => prev.slice(1));
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toasts]);
+
+  useSSE((event) => {
+    setEvents((prev) => [event, ...prev].slice(0, 50));
+    setUnreadCount((prev) => prev + 1);
+    const message =
+      event.event_type === "file_shared"
+        ? "A file was shared with you"
+        : event.event_type === "drop_upload"
+        ? "New file received via drop link"
+        : `New activity: ${event.event_type}`;
+    const newToast: ToastMessage = {
+      id: crypto.randomUUID(),
+      message,
+      type: "info",
+    };
+    setToasts((prev) => [...prev, newToast]);
+  });
+
   const handleLogout = () => {
+    clearVault();
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
@@ -62,8 +107,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
 
   return (
-    <div className="min-h-screen w-full bg-[#1e2330] text-foreground flex">
-      <div className="fixed inset-0 z-[-1] bg-gradient-to-br from-[#1e2330] via-[#2c3240] to-[#6b4345]" />
+    <div className="min-h-screen w-full bg-background text-foreground flex">
+      <div className="fixed inset-0 z-[-1]" style={{background: "linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%)"}} />
       
       <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} />
 
@@ -77,18 +122,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 bg-[#2c3240]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between shadow-lg shadow-black/5">
+        <header className="sticky top-0 z-30 abrn-glass-nav px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-[#7d4f50]/5">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors hidden md:block"
+              className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors hidden md:block"
               aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowMobileMenu(true)}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors md:hidden"
+              className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors md:hidden"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
@@ -96,11 +141,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             
             <button 
               onClick={() => setShowCommandPalette(true)}
-              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-[#7d4f50]/5 transition-colors"
             >
                 <Search className="w-4 h-4" />
                 <span>Search...</span>
-                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-white/10 rounded-md bg-white/5 flex items-center gap-1">
+                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-[#7d4f50]/20 rounded-md bg-[#7d4f50]/5 flex items-center gap-1">
                     <Command className="w-2.5 h-2.5" />K
                 </kbd>
             </button>
@@ -109,14 +154,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setShowCommandPalette(true)}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors sm:hidden" aria-label="Search"
+              className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors sm:hidden" aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
 
-            <button className="p-2 rounded-full hover:bg-white/10 transition-colors relative" aria-label="Notifications">
+            <button
+              onClick={() => { setActivityFeedOpen(true); setUnreadCount(0); }}
+              className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors relative"
+              aria-label="Notifications"
+            >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </button>
 
             <DropdownMenu>
@@ -151,12 +204,44 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
+        {showPinBanner && (
+          <div className="flex items-center gap-3 px-4 sm:px-6 py-2.5 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
+            <Fingerprint className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span className="flex-1">
+              Set a 4-digit PIN to enable PIN login.{" "}
+              <button
+                onClick={() => navigate("/settings")}
+                className="font-medium underline underline-offset-2 hover:no-underline"
+              >
+                Go to Settings
+              </button>
+            </span>
+            <button
+              onClick={dismissPinBanner}
+              className="p-0.5 rounded hover:bg-amber-200/60 dark:hover:bg-amber-800/60 transition-colors"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         <div className="flex-1 overflow-auto p-4 sm:p-6">
           {children}
         </div>
       </main>
 
       <BottomNav />
+
+      <ActivityFeedPanel
+        isOpen={activityFeedOpen}
+        onClose={() => setActivityFeedOpen(false)}
+        events={events}
+      />
+      <Toast
+        toasts={toasts}
+        onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+      />
     </div>
   );
 }

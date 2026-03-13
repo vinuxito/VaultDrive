@@ -78,7 +78,9 @@
       "Bash(sudo apt install:*)",
       "Bash(dos2unix:*)",
       "Bash(tee:*)",
-      "Bash(journalctl:*)"
+      "Bash(journalctl:*)",
+      "mcp__zai-mcp-server__analyze_image",
+      "mcp__web-reader__webReader"
     ],
     "deny": [],
     "ask": []

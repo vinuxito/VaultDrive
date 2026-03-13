@@ -1,31 +1,34 @@
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { Lock, Mail, User, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, User, Eye, EyeOff, Fingerprint } from "lucide-react";
 import { ABRNLogo, PoweredByBadge } from "../components/branding";
 import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
+import { useSessionVault } from "../context/SessionVaultContext";
+import {
+  decryptPrivateKeyWithPassword,
+  decryptPrivateKeyWithPIN,
+  importRSAPrivateKey,
+} from "../utils/crypto";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setPrivateKey } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
+  const [loginMode, setLoginMode] = useState<"password" | "pin">("password");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Login form state
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [pinValue, setPinValue] = useState("");
 
-  // Register form state
   const [registerData, setRegisterData] = useState({
     first_name: "",
     last_name: "",
@@ -40,12 +43,15 @@ export default function Login() {
     setLoading(true);
 
     try {
+      const body =
+        loginMode === "pin"
+          ? { email: loginData.email, pin: pinValue }
+          : { email: loginData.email, password: loginData.password };
+
       const response = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(loginData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -54,7 +60,6 @@ export default function Login() {
         throw new Error(data.error || "Login failed");
       }
 
-      // Store tokens in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("refresh_token", data.refresh_token);
       localStorage.setItem(
@@ -64,14 +69,32 @@ export default function Login() {
           email: data.email,
           first_name: data.first_name,
           last_name: data.last_name,
-          is_admin: data.is_admin
+          is_admin: data.is_admin,
+          pin_set: data.pin_set,
+          private_key_encrypted: data.private_key_encrypted,
+          private_key_pin_encrypted: data.private_key_pin_encrypted || null,
+          public_key: data.public_key,
         })
       );
 
-      // Dispatch custom event to notify navbar
       window.dispatchEvent(new Event("auth-change"));
 
-      // Navigate to home (don't use window.location.href)
+      try {
+        if (loginMode === "password" && data.private_key_encrypted) {
+          const pem = await decryptPrivateKeyWithPassword(
+            loginData.password,
+            data.private_key_encrypted,
+          );
+          const cryptoKey = await importRSAPrivateKey(pem);
+          setPrivateKey(cryptoKey);
+        } else if (loginMode === "pin" && data.private_key_pin_encrypted) {
+          const pem = await decryptPrivateKeyWithPIN(pinValue, data.private_key_pin_encrypted);
+          const cryptoKey = await importRSAPrivateKey(pem);
+          setPrivateKey(cryptoKey);
+        }
+      } catch {
+      }
+
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
@@ -88,9 +111,7 @@ export default function Login() {
     try {
       const response = await fetch(`${API_URL}/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(registerData),
       });
 
@@ -99,11 +120,7 @@ export default function Login() {
         throw new Error(data.error || "Registration failed");
       }
 
-      // After successful registration, automatically log in
-      setLoginData({
-        email: registerData.email,
-        password: registerData.password,
-      });
+      setLoginData({ email: registerData.email, password: registerData.password });
       setIsLogin(true);
       setError("");
     } catch (err) {
@@ -113,9 +130,15 @@ export default function Login() {
     }
   };
 
+  const switchLoginMode = (mode: "password" | "pin") => {
+    setLoginMode(mode);
+    setError("");
+    setPinValue("");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="abrn-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
+      <div className="abrn-glass-card w-full max-w-md p-0 overflow-hidden">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <ABRNLogo className="w-20 h-20" />
@@ -139,6 +162,33 @@ export default function Login() {
 
           {isLogin ? (
             <form onSubmit={handleLogin} className="space-y-4">
+              <div className="flex rounded-lg border border-input overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => switchLoginMode("password")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors ${
+                    loginMode === "password"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  Password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchLoginMode("pin")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors ${
+                    loginMode === "pin"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Fingerprint className="w-3.5 h-3.5" />
+                  PIN
+                </button>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative">
@@ -156,35 +206,74 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={loginData.password}
-                    onChange={(e) =>
-                      setLoginData({ ...loginData, password: e.target.value })
-                    }
-                    className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
+              {loginMode === "password" ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={loginData.password}
+                      onChange={(e) =>
+                        setLoginData({ ...loginData, password: e.target.value })
+                      }
+                      className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Fingerprint className="w-4 h-4" />
+                    4-digit PIN
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="••••"
+                    value={pinValue}
+                    onChange={(e) =>
+                      setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))
+                    }
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest text-xl"
+                    required
+                    autoFocus
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    Don't have a PIN?{" "}
+                    <button
+                      type="button"
+                      onClick={() => switchLoginMode("password")}
+                      className="text-primary hover:underline"
+                    >
+                      Log in with password
+                    </button>
+                  </p>
+                </div>
+              )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={
+                  loading ||
+                  (loginMode === "pin" && pinValue.length !== 4)
+                }
+              >
                 {loading ? "Logging in..." : "Login"}
               </Button>
             </form>
@@ -340,7 +429,7 @@ export default function Login() {
             <PoweredByBadge />
           </div>
         </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

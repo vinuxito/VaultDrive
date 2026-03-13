@@ -258,6 +258,163 @@
   50% { opacity: 0.6; }
 }
 
+/* ========== ABRN Drive — abrnmx-style visual system ========== */
+
+/* Page background: warm cream gradient matching abrnmx */
+.abrn-page-bg {
+  background: linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%);
+  min-height: 100vh;
+}
+
+/* Hero section: warm radial highlight */
+.abrn-hero-bg {
+  position: relative;
+  overflow: hidden;
+}
+.abrn-hero-bg::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 600px;
+  background: radial-gradient(ellipse at center, rgba(125, 79, 80, 0.10) 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glass card — white frosted glass, abrnmx style */
+.abrn-glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(125, 79, 80, 0.07), 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.abrn-glass-card:hover {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 36px rgba(125, 79, 80, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+/* Glass navbar */
+.abrn-glass-nav {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-bottom: 1px solid rgba(125, 79, 80, 0.12) !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+}
+
+/* Eyebrow badge */
+.abrn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  background: rgba(125, 79, 80, 0.08);
+  border: 1px solid rgba(125, 79, 80, 0.22);
+  color: #7d4f50;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Gradient text — dark-slate → burgundy */
+.abrn-gradient-text {
+  background: linear-gradient(120deg, #3d4451 0%, #7d4f50 55%, #c4999b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Lighter section headings */
+.abrn-section-heading {
+  background: linear-gradient(120deg, #3d4451 0%, #7d4f50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Primary CTA button */
+.abrn-btn-primary {
+  background-color: #7d4f50 !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(125,79,80,0.30) !important;
+  transition: background-color 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease !important;
+}
+.abrn-btn-primary:hover {
+  background-color: #6b4345 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 22px rgba(125,79,80,0.38) !important;
+}
+
+/* Ghost button */
+.abrn-btn-ghost {
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(125,79,80,0.20) !important;
+  color: #3d4451 !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease !important;
+}
+.abrn-btn-ghost:hover {
+  background: rgba(255,255,255,0.95) !important;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.09) !important;
+}
+
+/* Footer */
+.abrn-footer {
+  background: linear-gradient(180deg, #f2ece9 0%, #ede5e1 100%);
+  border-top: 2px solid rgba(125, 79, 80, 0.25);
+}
+
+/* Dark mode overrides for ABRN classes */
+.dark .abrn-page-bg {
+  background: linear-gradient(180deg, #1e2330 0%, #1a1f2c 100%);
+}
+.dark .abrn-glass-card {
+  background: rgba(44, 50, 64, 0.75);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.dark .abrn-glass-card:hover {
+  background: rgba(44, 50, 64, 0.92);
+}
+.dark .abrn-glass-nav {
+  background: rgba(30, 35, 48, 0.90) !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+.dark .abrn-gradient-text {
+  background: linear-gradient(120deg, #f2f0ed 0%, #c4999b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.dark .abrn-section-heading {
+  background: linear-gradient(120deg, #e8e4df 0%, #c4999b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.dark .abrn-badge {
+  background: rgba(196, 153, 155, 0.15);
+  border-color: rgba(196, 153, 155, 0.30);
+  color: #c4999b;
+}
+.dark .abrn-btn-ghost {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.15) !important;
+  color: #f2f0ed !important;
+}
+.dark .abrn-footer {
+  background: linear-gradient(180deg, #1a1f2c 0%, #161b26 100%);
+  border-top-color: rgba(125,79,80,0.40);
+}
+
 /* Accessibility: Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -276,15 +433,17 @@
 }
 
 .elegant-overlay {
-  background: #0a0a14;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 64px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(125, 79, 80, 0.12);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
 }
 
-@media (prefers-color-scheme: dark) {
-  .elegant-overlay {
-    background: #0a0a14;
-  }
+.dark .elegant-overlay {
+  background: rgba(22, 27, 38, 0.92);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
 /* CSS Variables for theming (at bottom for Tailwind compatibility) */

@@ -2,7 +2,7 @@
 
 > Enterprise Zero-Knowledge Cloud Storage Platform (Self-Hosted)  
 > Consolidated docs (for humans + agents).  
-> Last updated: February 01, 2026
+> Last updated: March 12, 2026
 
 ## 0) Agent onboarding
 If you're an agent (or Filemón Coder), start here:
@@ -37,7 +37,7 @@ If you're an agent (or Filemón Coder), start here:
 
 <br>
 
-**ABRN Drive** is an enterprise-grade, self-hosted cloud storage platform with zero-knowledge encryption. Built for businesses that demand maximum privacy and security, featuring team collaboration, secure file sharing, integrated email support, and comprehensive audit logging.
+**ABRN Drive** is an enterprise-grade, self-hosted cloud storage platform with zero-knowledge encryption. Built for businesses that demand maximum privacy and security, featuring team collaboration, secure file sharing, a cinematic Vault Explorer UI, PIN-based authentication, and comprehensive audit logging.
 
 **Live Demo:** [https://dev-app.filemonprime.net/abrn/](https://dev-app.filemonprime.net/abrn/)
 
@@ -50,6 +50,15 @@ If you're an agent (or Filemón Coder), start here:
 - bcrypt password hashing (cost factor 10)
 - Automatic RSA-2048 key pair generation per user
 - Encrypted private key storage
+- **PIN login**: users can authenticate with either password or 4-digit PIN
+- **Set-PIN banner**: users without a PIN are prompted on first login
+
+### 🔑 4-Digit PIN System
+- Every user has an optional 4-digit PIN stored as a bcrypt hash
+- PIN replaces password for Secure Drop file decryption
+- Drop links created with a PIN-wrapped key (no plaintext key in transport)
+- `POST /api/users/pin` — set or change PIN
+- `GET /api/users/pin/status` — check if PIN is configured
 
 ### 💾 Zero-Knowledge Encryption
 - **Client-side encryption**: Files encrypted before upload with AES-256-GCM
@@ -69,21 +78,28 @@ If you're an agent (or Filemón Coder), start here:
 - **Member management**: Add/remove members, assign roles
 - **Group audit**: Track who shared what files to which groups
 
-### 📧 Integrated Email Support
-- **IMAP integration**: Connect email accounts
-- **Mailbox management**: Access inbox, sent, drafts, trash
-- **Email viewing**: Read and manage emails within the platform
-- **Account settings**: Configure multiple email accounts
+### 📧 Email Support *(code preserved, removed from active UI)*
+- IMAP integration code exists in `handle_email_accounts.go.disabled` and `handle_email_fetching.go.disabled`
+- Removed from sidebar and routing to reduce surface area; code is intact for future re-activation
 
-### 🔗 Secure Drop (NEW)
+### 🔗 Secure Drop
 - **Write-only uploads**: Upload files without authentication via token
 - **Auto-folder creation**: Owners can create upload links that create folders automatically
 - **Token-based access**: Share URLs with clients, no passwords needed for uploaders
-- **Owner password protection**: Create links with password-encrypted keys (see `docs/PASSWORD_PROTECTED_DROP.md`)
+- **PIN-protected keys**: Drop links are secured with owner's 4-digit PIN (replaces password; see `docs/PASSWORD_PROTECTED_DROP.md`)
 - **Revocable links**: Deactivate tokens immediately after use
-- **Encrypted uploads**: Client-side AES-256-GCM encryption with wrapped key
+- **Encrypted uploads**: Client-side AES-256-GCM encryption with PIN-wrapped key
 - **No user account**: Uploaders don't need to register or log in
 - **Write-only access**: Uploaders can upload but cannot read/list/download
+
+### 🗂️ Vault Explorer (Files Redesign)
+- **Split-pane layout**: 240px collapsible tree sidebar + rich file panel
+- **Tree navigation**: All Files → Starred → My Folders (per folder) → Shared with Me → Drop Links (per token, with active/used/expired badges)
+- **Origin badges**: Each file shows its source — My Upload, Drop: link, @user share, or group
+- **Inline star toggle**: Star/unstar files directly from the file row
+- **Bulk selection**: Checkbox per file → floating action bar → bulk download or bulk delete
+- **Bulk download modal**: Detects PIN vs. password need per file, sequential decrypt with per-file progress
+- **Search**: Instant client-side filename filter within the active tree node
 
 ### 📊 Audit Logging
 - Comprehensive activity tracking
@@ -231,21 +247,24 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed documentation.
 
 ### Authentication (All endpoints prefixed with `/abrn/api/`)
 - `POST /abrn/api/register` - Create account & generate RSA keys
-- `POST /abrn/api/login` - Get JWT tokens & encrypted private key
+- `POST /abrn/api/login` - Get JWT tokens; accepts `password` or `pin` field; returns `pin_set: bool`
 - `POST /abrn/api/refresh` - Refresh access token
 - `GET /abrn/api/users/me` - Get current user profile
 
+### PIN (All endpoints prefixed with `/abrn/api/`)
+- `POST /abrn/api/users/pin` - Set or update 4-digit PIN (auth required)
+- `GET /abrn/api/users/pin/status` - Returns `{ pin_set: bool }` (auth required)
+
 ### Files (All endpoints prefixed with `/abrn/api/`)
 - `POST /abrn/api/files/upload` - Upload encrypted file (multipart)
-- `GET /abrn/api/files` - List your files
-- `GET /abrn/api/files/starred` - List starred files
+- `GET /abrn/api/files` - List your files (includes `starred` field)
 - `GET /abrn/api/files/{id}/download` - Download encrypted file
 - `POST /abrn/api/files/{id}/star` - Toggle star status
 - `DELETE /abrn/api/files/{id}` - Delete file
 - `POST /abrn/api/files/{id}/share` - Share file with user
 - `GET /abrn/api/files/{id}/shares` - List file shares
 - `DELETE /abrn/api/files/{id}/revoke/{user_id}` - Revoke access
-- `GET /abrn/api/shared` - List files shared with you
+- `GET /abrn/api/files/shared` - List files shared with you
 
 ### Groups (All endpoints prefixed with `/abrn/api/`)
 - `POST /abrn/api/groups` - Create group
@@ -258,25 +277,21 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed documentation.
 - `POST /abrn/api/groups/{id}/files` - Share file to group
 - `GET /abrn/api/groups/{id}/files` - List group files
 
-### Email (All endpoints prefixed with `/abrn/api/`)
-- `GET /abrn/api/email/accounts` - List email accounts
-- `POST /abrn/api/email/accounts` - Add email account
-- `DELETE /abrn/api/email/accounts/{id}` - Remove email account
-- `GET /abrn/api/email/{account_id}/mailboxes` - List mailboxes
-- `GET /abrn/api/email/{account_id}/messages` - List messages
-- `GET /abrn/api/email/{account_id}/messages/{id}` - Get message
+### Email *(handlers disabled — code preserved as `.disabled` files)*
+- Routes removed from active routing; handlers in `handle_email_accounts.go.disabled`, `handle_email_fetching.go.disabled`, `imap_client.go.disabled`
 
-### Secure Drop (NEW) - Write-Only File Upload
-- `GET /abrn/api/drop/{token}?key={wrappedKey}` - Get token info (requires ?key= query param)
-- `POST /abrn/api/drop/{token}/upload` - Upload encrypted file via token (requires ?key= query param + password form field)
+### Secure Drop - Write-Only File Upload
+- `GET /abrn/api/drop/{token}` - Get token info
+- `POST /abrn/api/drop/{token}/upload` - Upload encrypted file via token
+- `GET /abrn/api/drop/{token}/files` - List files uploaded via a token (owner only, auth required)
 - `POST /abrn/api/drop/{token}/done` - Deactivate upload link
 - `GET /abrn/api/drop/{token}/owner-info` - Get owner's public key
-- `POST /abrn/api/drop/create` - Create upload token (auth required, requires password field)
-- `GET /abrn/api/drop/tokens` - List user's upload tokens (auth required, returns upload_url with embedded key)
+- `POST /abrn/api/drop/create` - Create upload token (auth required; uses PIN to wrap key)
+- `GET /abrn/api/drop/tokens` - List user's upload tokens (auth required)
 
-**Frontend Route:** `/drop/:token?key=` - Public upload page (no auth, requires ?key= query param)
+**Frontend Route:** `/drop/:token` - Public upload page (no auth required)
 
-**Password Protection:** See `docs/PASSWORD_PROTECTED_DROP.md` for full documentation on key wrapping and encryption.
+**PIN Protection:** Drop links are secured with the owner's 4-digit PIN. See `docs/PASSWORD_PROTECTED_DROP.md`.
 
 ## Quick Reference Guide
 
@@ -346,33 +361,51 @@ import { FileWidget } from "../components/files";
 ABRN-Drive/
 ├── main.go                          # HTTP server, routing, static file serving
 ├── handle_*.go                      # API endpoint handlers
+│   ├── handle_login.go              # PIN + password dual-auth
+│   ├── handle_user_pin.go           # Set PIN / PIN status
+│   ├── handle_drop.go               # Secure Drop (PIN-wrapped keys)
+│   ├── handle_list_files.go         # File list (includes starred field)
+│   ├── handle_file_star.go          # Star toggle
+│   ├── handle_email_*.go.disabled   # Email handlers (preserved, inactive)
+│   └── imap_client.go.disabled      # IMAP client (preserved, inactive)
 ├── middleware_*.go                  # Authentication, CORS middleware
 ├── internal/database/               # sqlc generated code
 ├── sql/
 │   ├── queries/                     # SQL queries (.sql)
 │   └── schema/                      # Database migrations
+│       ├── 023_user_pin.sql         # pin_hash, pin_set_at on users
+│       └── 024_upload_tokens_pin_wrapped_key.sql  # pin_wrapped_key on file_access_keys
 ├── vaultdrive_client/
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── vault/               # ⭐ Vault Explorer components
+│   │   │   │   ├── VaultTree.tsx    # Left sidebar tree navigation
+│   │   │   │   ├── OriginBadge.tsx  # File origin pill (My Upload / Drop / Shared / Group)
+│   │   │   │   ├── BulkActionBar.tsx       # Floating bulk selection bar
+│   │   │   │   ├── BulkDownloadModal.tsx   # Sequential bulk decrypt modal
+│   │   │   │   └── index.ts
 │   │   │   ├── files/
-│   │   │   │   ├── FileWidget.tsx   # ⭐ Reusable file component
+│   │   │   │   ├── FileWidget.tsx   # Reusable file component
 │   │   │   │   └── index.ts
 │   │   │   ├── layout/
-│   │   │   │   ├── dashboard-layout.tsx
-│   │   │   │   └── sidebar.tsx
+│   │   │   │   ├── dashboard-layout.tsx    # PIN banner for unset PIN
+│   │   │   │   └── sidebar.tsx             # Email nav item removed
+│   │   │   ├── upload/
+│   │   │   │   └── CreateUploadLinkModal.tsx  # PIN field (replaces password)
 │   │   │   ├── branding/            # ABRN logo and footer
 │   │   │   └── ui/                  # shadcn/ui components
 │   │   ├── pages/
-│   │   │   ├── files.tsx
+│   │   │   ├── files.tsx            # ⭐ Vault Explorer (split-pane redesign)
+│   │   │   ├── login.tsx            # PIN ↔ password tab toggle
+│   │   │   ├── settings.tsx         # PIN management card
 │   │   │   ├── groups.tsx
 │   │   │   ├── shared.tsx
-│   │   │   ├── email.tsx
-│   │   │   └── login.tsx
+│   │   │   └── drop-upload.tsx
 │   │   ├── utils/
-│   │   │   ├── api.ts               # API client
+│   │   │   ├── api.ts               # API client (setPIN, getPINStatus)
 │   │   │   ├── crypto.ts            # Encryption utilities
 │   │   │   └── format.ts            # Formatters
-│   │   └── App.tsx                  # Routing configuration
+│   │   └── App.tsx                  # Routing (email route removed)
 │   └── dist/                        # ⭐ Watched by auto-reload
 ├── watch-and-reload.sh              # ⭐ Auto-reload script
 └── abrndrive                        # Compiled backend binary
@@ -552,11 +585,16 @@ curl -H "Authorization: Bearer $TOKEN" \
 |---------|-------------|--------|
 | Zero-Knowledge Encryption | AES-256-GCM client-side encryption | ✅ Production |
 | File Management | Upload, download, delete encrypted files | ✅ Production |
+| Vault Explorer | Split-pane file browser with tree navigation | ✅ Production |
+| Origin Badges | Per-file source tagging (My Upload / Drop / Shared / Group) | ✅ Production |
+| Bulk Download | Multi-select, credential-aware sequential decrypt | ✅ Production |
+| Starred Files | Star toggle with instant sidebar count | ✅ Production |
+| 4-Digit PIN System | PIN login, PIN-protected Drop links | ✅ Production |
+| Secure Drop | Write-only file upload via PIN-protected tokens | ✅ Production |
 | Secure Sharing | RSA-2048 wrapped key sharing | ✅ Production |
 | Group Collaboration | Team file sharing with access control | ✅ Production |
-| Email Integration | IMAP email account management | ✅ Production |
+| Email Integration | IMAP handlers preserved, inactive | ⏸️ Disabled |
 | Auto-Reload System | Automatic backend restart on changes | ✅ Production |
-| FileWidget Component | Reusable file display UI | ✅ Production |
 | Audit Logging | Comprehensive activity tracking | ✅ Production |
 | Mobile Responsive | Adaptive UI for all screen sizes | ✅ Production |
 | Dark Mode | System-aware theme switching | ✅ Production |
@@ -584,8 +622,8 @@ This project is proprietary software developed for ABRN Asesores.
 
 ---
 
-**Last Updated:** February 3, 2026
-**Version:** Production with auto-reload system
+**Last Updated:** March 12, 2026
+**Version:** Production — Vault Explorer + PIN System
 **Built with ❤️ for enterprise security and privacy**
 
 ---

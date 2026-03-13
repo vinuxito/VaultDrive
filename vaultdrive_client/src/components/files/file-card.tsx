@@ -182,7 +182,7 @@ export function FileCard({
           <p className="text-sm text-muted-foreground">{formatFileSize(file.file_size)}</p>
         </div>
         
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#7d4f50]/15">
           <p className="text-xs text-muted-foreground">{formatDate(file.created_at)}</p>
           <div className="flex items-center gap-1">
           <TooltipProvider>

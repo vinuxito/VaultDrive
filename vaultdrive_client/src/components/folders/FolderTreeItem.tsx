@@ -38,14 +38,14 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
 
   return (
     <div
-      className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors relative"
+      className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#7d4f50]/5 transition-colors relative"
       style={{ paddingLeft: `${indentPx}px` }}
     >
       {/* Expand/collapse chevron */}
       {hasChildren ? (
         <button
           onClick={onToggleExpand}
-          className="flex-shrink-0 w-5 h-5 flex items-center justify-center hover:bg-white/10 rounded transition-colors"
+          className="flex-shrink-0 w-5 h-5 flex items-center justify-center hover:bg-[#7d4f50]/10 rounded transition-colors"
           aria-label={folder.isExpanded ? "Collapse folder" : "Expand folder"}
         >
           {folder.isExpanded ? (
@@ -81,7 +81,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
 
       {/* File count badge */}
       {folder.fileCount !== undefined && folder.fileCount > 0 && (
-        <span className="flex-shrink-0 px-2 py-0.5 text-xs rounded-full bg-white/5 text-muted-foreground">
+        <span className="flex-shrink-0 px-2 py-0.5 text-xs rounded-full bg-[#7d4f50]/8 text-muted-foreground">
           {folder.fileCount}
         </span>
       )}

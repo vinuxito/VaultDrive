@@ -36,8 +36,8 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type parameters struct {
-		RecipientEmail string `json:"recipient_email"`
-		WrappedKey     string `json:"wrapped_key"`
+		RecipientUserID string `json:"user_id"`
+		WrappedKey      string `json:"wrapped_key"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -48,8 +48,14 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if params.RecipientEmail == "" || params.WrappedKey == "" {
-		respondWithError(w, http.StatusBadRequest, "Recipient email and wrapped key are required", nil)
+	if params.RecipientUserID == "" || params.WrappedKey == "" {
+		respondWithError(w, http.StatusBadRequest, "Recipient user_id and wrapped_key are required", nil)
+		return
+	}
+
+	recipientID, err := uuid.Parse(params.RecipientUserID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid recipient user_id format", err)
 		return
 	}
 
@@ -70,7 +76,7 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get recipient user
-	recipient, err := cfg.dbQueries.GetUserByEmail(r.Context(), params.RecipientEmail)
+	recipient, err := cfg.dbQueries.GetUserByID(r.Context(), recipientID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			respondWithError(w, http.StatusNotFound, "Recipient user not found", err)
@@ -93,6 +99,11 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Could not share file (already shared?)", err)
 		return
 	}
+
+	broadcastToUser(recipient.ID, "file_shared", map[string]interface{}{
+		"file_id":   fileID.String(),
+		"sharer_id": userID.String(),
+	})
 
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"status":  "success",

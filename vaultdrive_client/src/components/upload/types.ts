@@ -17,6 +17,7 @@ export interface UploadTokenRaw {
   used?: { Bool: boolean; Valid: boolean };
   created_at?: { Time: string; Valid: boolean };
   folder_name?: string;
+  link_name?: string;
   has_password?: boolean;
 }
 
@@ -30,6 +31,7 @@ export interface UploadToken {
   used: boolean;
   created_at: string;
   folder_name?: string;
+  link_name?: string;
   has_password?: boolean;
 }
 
@@ -41,13 +43,14 @@ export function normalizeUploadToken(raw: UploadTokenRaw): UploadToken {
   return {
     id: raw.id || raw.token || "",
     token: raw.token || raw.id || "",
-    upload_url: raw.upload_url || `/abrn/drop/${raw.token || raw.id}`,
+    upload_url: raw.upload_url || `/drop/${raw.token || raw.id}`,
     expires_at: raw.expires_at?.Valid ? raw.expires_at.Time : null,
     max_files: raw.max_files?.Valid ? raw.max_files.Int32 : null,
     files_uploaded: raw.files_uploaded?.Valid ? raw.files_uploaded.Int32 : 0,
     used: raw.used?.Valid ? raw.used.Bool : false,
     created_at: raw.created_at?.Valid ? raw.created_at.Time : new Date().toISOString(),
     folder_name: raw.folder_name,
+    link_name: raw.link_name,
     has_password: raw.has_password || false,
   };
 }

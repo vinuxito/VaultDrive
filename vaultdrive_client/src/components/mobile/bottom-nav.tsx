@@ -18,7 +18,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 glass border-t border-white/10 md:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 abrn-glass-nav border-t border-[#7d4f50]/15 md:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-16">
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;

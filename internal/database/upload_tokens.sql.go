@@ -33,10 +33,12 @@ INSERT INTO upload_tokens (
     used,
     created_at,
     password_hash,
-    raw_encryption_key
+    raw_encryption_key,
+    link_name,
+    pin_wrapped_key
 )
-VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7)
-RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key
+VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7, $8, $9)
+RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key
 `
 
 type CreateUploadTokenParams struct {
@@ -47,6 +49,8 @@ type CreateUploadTokenParams struct {
 	MaxFiles         sql.NullInt32
 	PasswordHash     sql.NullString
 	RawEncryptionKey sql.NullString
+	LinkName         sql.NullString
+	PinWrappedKey    sql.NullString
 }
 
 func (q *Queries) CreateUploadToken(ctx context.Context, arg CreateUploadTokenParams) (UploadToken, error) {
@@ -58,6 +62,8 @@ func (q *Queries) CreateUploadToken(ctx context.Context, arg CreateUploadTokenPa
 		arg.MaxFiles,
 		arg.PasswordHash,
 		arg.RawEncryptionKey,
+		arg.LinkName,
+		arg.PinWrappedKey,
 	)
 	var i UploadToken
 	err := row.Scan(
@@ -72,6 +78,8 @@ func (q *Queries) CreateUploadToken(ctx context.Context, arg CreateUploadTokenPa
 		&i.CreatedAt,
 		&i.PasswordHash,
 		&i.RawEncryptionKey,
+		&i.LinkName,
+		&i.PinWrappedKey,
 	)
 	return i, err
 }
@@ -90,7 +98,7 @@ const expireToken = `-- name: ExpireToken :one
 UPDATE upload_tokens
 SET expires_at = NOW()
 WHERE id = $1
-RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key
+RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key
 `
 
 func (q *Queries) ExpireToken(ctx context.Context, id uuid.UUID) (UploadToken, error) {
@@ -108,6 +116,8 @@ func (q *Queries) ExpireToken(ctx context.Context, id uuid.UUID) (UploadToken, e
 		&i.CreatedAt,
 		&i.PasswordHash,
 		&i.RawEncryptionKey,
+		&i.LinkName,
+		&i.PinWrappedKey,
 	)
 	return i, err
 }
@@ -167,7 +177,7 @@ func (q *Queries) GetFilesByDropToken(ctx context.Context, token string) ([]GetF
 }
 
 const getUploadTokenByID = `-- name: GetUploadTokenByID :one
-SELECT id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key FROM upload_tokens
+SELECT id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key FROM upload_tokens
 WHERE id = $1
 `
 
@@ -186,12 +196,14 @@ func (q *Queries) GetUploadTokenByID(ctx context.Context, id uuid.UUID) (UploadT
 		&i.CreatedAt,
 		&i.PasswordHash,
 		&i.RawEncryptionKey,
+		&i.LinkName,
+		&i.PinWrappedKey,
 	)
 	return i, err
 }
 
 const getUploadTokenByToken = `-- name: GetUploadTokenByToken :one
-SELECT id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key FROM upload_tokens
+SELECT id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key FROM upload_tokens
 WHERE token = $1
 `
 
@@ -210,6 +222,8 @@ func (q *Queries) GetUploadTokenByToken(ctx context.Context, token string) (Uplo
 		&i.CreatedAt,
 		&i.PasswordHash,
 		&i.RawEncryptionKey,
+		&i.LinkName,
+		&i.PinWrappedKey,
 	)
 	return i, err
 }
@@ -218,7 +232,7 @@ const incrementTokenFileCount = `-- name: IncrementTokenFileCount :one
 UPDATE upload_tokens
 SET files_uploaded = files_uploaded + 1
 WHERE id = $1
-RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key
+RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key
 `
 
 func (q *Queries) IncrementTokenFileCount(ctx context.Context, id uuid.UUID) (UploadToken, error) {
@@ -236,12 +250,14 @@ func (q *Queries) IncrementTokenFileCount(ctx context.Context, id uuid.UUID) (Up
 		&i.CreatedAt,
 		&i.PasswordHash,
 		&i.RawEncryptionKey,
+		&i.LinkName,
+		&i.PinWrappedKey,
 	)
 	return i, err
 }
 
 const listUploadTokensByOwner = `-- name: ListUploadTokensByOwner :many
-SELECT id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key FROM upload_tokens
+SELECT id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key FROM upload_tokens
 WHERE owner_user_id = $1
 ORDER BY created_at DESC
 `
@@ -267,6 +283,8 @@ func (q *Queries) ListUploadTokensByOwner(ctx context.Context, ownerUserID uuid.
 			&i.CreatedAt,
 			&i.PasswordHash,
 			&i.RawEncryptionKey,
+			&i.LinkName,
+			&i.PinWrappedKey,
 		); err != nil {
 			return nil, err
 		}
@@ -285,7 +303,7 @@ const markTokenUsed = `-- name: MarkTokenUsed :one
 UPDATE upload_tokens
 SET used = TRUE
 WHERE id = $1
-RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key
+RETURNING id, token, owner_user_id, target_folder_id, expires_at, max_files, files_uploaded, used, created_at, password_hash, raw_encryption_key, link_name, pin_wrapped_key
 `
 
 func (q *Queries) MarkTokenUsed(ctx context.Context, id uuid.UUID) (UploadToken, error) {
@@ -303,6 +321,8 @@ func (q *Queries) MarkTokenUsed(ctx context.Context, id uuid.UUID) (UploadToken,
 		&i.CreatedAt,
 		&i.PasswordHash,
 		&i.RawEncryptionKey,
+		&i.LinkName,
+		&i.PinWrappedKey,
 	)
 	return i, err
 }

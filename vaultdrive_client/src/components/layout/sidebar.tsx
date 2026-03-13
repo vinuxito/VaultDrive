@@ -5,7 +5,6 @@ import {
   Settings,
   LogOut,
   Users,
-  Mail,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -33,7 +32,6 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { icon: FolderOpen, label: "Files", path: "/files" },
     { icon: Users, label: "Groups", path: "/groups" },
     { icon: Link2, label: "Shared", path: "/shared" },
-    { icon: Mail, label: "Email", path: "/email" },
   ];
 
   const handleLogout = () => {
@@ -47,7 +45,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 elegant-overlay border-r border-white/10 flex-col transition-all duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-40 elegant-overlay border-r border-[#7d4f50]/15 flex-col transition-all duration-300 ease-in-out",
         collapsed ? "w-[72px]" : "w-64",
         "hidden md:flex"
       )}
@@ -65,8 +63,8 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 key={item.label}
                 onClick={() => item.action ? item.action() : navigate(item.path)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-white/80",
-                  "hover:bg-white/10 hover:text-white",
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/70",
+                  "hover:bg-[#7d4f50]/10 hover:text-foreground",
                   isActive && "bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50",
                   "text-left",
                   collapsed && "justify-center"
@@ -85,12 +83,12 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="p-3 border-t border-white/10 shrink-0">
+      <div className="p-3 border-t border-[#7d4f50]/15 shrink-0">
       <button
           onClick={() => navigate("/settings")}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-white/80",
-            "hover:bg-white/10 hover:text-white",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/70",
+            "hover:bg-[#7d4f50]/10 hover:text-foreground",
             location.pathname === '/settings' && "bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50",
             "text-left",
             collapsed && "justify-center"

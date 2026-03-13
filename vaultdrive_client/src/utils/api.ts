@@ -134,3 +134,46 @@ export const restoreFileVersion = async (fileId: string, versionId: string, toke
   if (!response.ok) throw new Error('Failed to restore file version');
   return response.json();
 };
+
+// PIN API
+export const getPINStatus = async (token: string): Promise<{ pin_set: boolean }> => {
+  const response = await fetch(`${API_URL}/users/pin/status`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error('Failed to get PIN status');
+  return response.json();
+};
+
+export const setPIN = async (
+  pin: string,
+  token: string,
+  oldPin?: string,
+  privateKeyPinEncrypted?: string
+): Promise<{ success: boolean }> => {
+  const body: Record<string, string> = { pin };
+  if (oldPin) body.old_pin = oldPin;
+  if (privateKeyPinEncrypted) body.private_key_pin_encrypted = privateKeyPinEncrypted;
+  const response = await fetch(`${API_URL}/users/pin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to set PIN');
+  }
+  return response.json();
+};
+
+export const getUserPublicKey = async (userId: string, token: string): Promise<{ public_key: string; user_id: string }> => {
+  const response = await fetch(`${API_URL}/users/${userId}/public-key`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Failed to fetch user public key');
+  return response.json();
+};

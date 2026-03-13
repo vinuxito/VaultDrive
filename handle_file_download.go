@@ -60,9 +60,20 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 		hasAccess = true
 		wrappedKey = accessKey.WrappedKey
 	} else if err == sql.ErrNoRows {
-		// Fallback: Check if owner (for legacy files or if key is missing)
 		if dbFile.OwnerID.Valid && dbFile.OwnerID.UUID == userID {
 			hasAccess = true
+		} else {
+			groupWrappedKey, groupErr := cfg.dbQueries.GetGroupWrappedKeyForUser(r.Context(), database.GetGroupWrappedKeyForUserParams{
+				FileID: fileID,
+				UserID: userID,
+			})
+			if groupErr == nil {
+				hasAccess = true
+				wrappedKey = groupWrappedKey
+			} else if groupErr != sql.ErrNoRows {
+				respondWithError(w, http.StatusInternalServerError, "Error checking group file access", groupErr)
+				return
+			}
 		}
 	} else {
 		respondWithError(w, http.StatusInternalServerError, "Error checking file access", err)

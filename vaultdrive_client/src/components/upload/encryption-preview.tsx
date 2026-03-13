@@ -70,7 +70,7 @@ export function EncryptionPreview({
       )}
 
       {/* Trust indicators */}
-      <div className="mt-4 pt-4 border-t border-white/10">
+      <div className="mt-4 pt-4 border-t border-[#7d4f50]/15">
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Shield className="w-3 h-3 text-green-500" />
