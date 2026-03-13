@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 2026
+Last updated: March 13, 2026
 
 ## Task Documentation
 
@@ -12,6 +12,7 @@ Last updated: March 2026
 | 04 | [RSA + PIN Sharing](./04_RSA_PIN_SHARING.md) | Zero-knowledge file sharing — every file downloadable with PIN only |
 | 05 | [Bug Audit & Fixes](./05_BUG_AUDIT_AND_FIXES.md) | Full audit of the sharing implementation — 7 bugs found and fixed |
 | 06 | [Domain Migration](./06_DOMAIN_MIGRATION.md) | Move to `abrndrive.filemonprime.net` — Apache vhost, SSL cert, zero downtime |
+| 07 | [Files Explorer & Bulk Selection](./07_FILES_EXPLORER_BULK_SELECTION.md) | Current-view select all, stable folder IDs, nested explorer, bulk delete hardening |
 
 ## Feature Docs (pre-existing)
 
@@ -20,11 +21,19 @@ Last updated: March 2026
 | [PASSWORD_PROTECTED_DROP.md](./PASSWORD_PROTECTED_DROP.md) | Secure Drop key wrapping — full spec and testing guide |
 | [QUICKREF_DROP.md](./QUICKREF_DROP.md) | Secure Drop quick-reference curl commands |
 
+## Session Notes
+
+| Document | Summary |
+|----------|---------|
+| [SESSION_MEMORY_2026-03-13.md](./SESSION_MEMORY_2026-03-13.md) | Session checkpoint for the Files explorer implementation, verification, and remaining risks |
+
 ## Quick Navigation
 
 **I want to understand the encryption model →** [04_RSA_PIN_SHARING.md](./04_RSA_PIN_SHARING.md)
 
 **I want to know what files were changed →** Each task doc has a "Files Changed" table at the bottom.
+
+**I want the current Files explorer checkpoint →** [07_FILES_EXPLORER_BULK_SELECTION.md](./07_FILES_EXPLORER_BULK_SELECTION.md)
 
 **I want to reproduce a bug that was fixed →** [05_BUG_AUDIT_AND_FIXES.md](./05_BUG_AUDIT_AND_FIXES.md)
 

@@ -892,8 +892,8 @@ export default function Files() {
         );
       }
 
-      setShowBulkDeleteModal(false);
     } finally {
+      setShowBulkDeleteModal(false);
       setBulkDeleting(false);
     }
   };

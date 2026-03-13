@@ -37,7 +37,7 @@ interface MyFilesSectionProps {
   error: string;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onUpload: () => void;
-  onDownload: (fileId: string, filename: string, metadata: string, dropWrappedKey?: string) => void;
+  onDownload: (fileId: string, filename: string, metadata: string, pinWrappedKey?: string) => void;
   onDelete: (fileId: string, filename: string) => void;
   onShare: (fileId: string, filename: string) => void;
   onManageShares: (fileId: string, filename: string) => void;
