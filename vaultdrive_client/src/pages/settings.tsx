@@ -162,13 +162,13 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <Key className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-[#f2d7d8] dark:bg-[#6b4345] border border-[#d4a5a6] dark:border-[#7d4f50] rounded-lg">
+                <Key className="w-5 h-5 text-[#7d4f50] dark:text-[#c4999b] mt-0.5" />
                 <div>
-                  <p className="font-medium text-blue-900 dark:text-blue-100">
+                  <p className="font-medium text-[#6b4345] dark:text-[#f2d7d8]">
                     RSA-2048 Key Pair
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  <p className="text-sm text-[#7d4f50] dark:text-[#c4999b] mt-1">
                     Your encryption keys are secured with password-based
                     derivation (PBKDF2)
                   </p>

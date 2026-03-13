@@ -132,7 +132,7 @@ export default function Admin() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-8">
-        <Shield className="h-8 w-8 text-blue-600" />
+        <Shield className="h-8 w-8 text-[#7d4f50]" />
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
       </div>
 
@@ -176,7 +176,7 @@ export default function Admin() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {user.is_admin && (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#e2b9bb] text-[#7d4f50]">
                       Admin
                     </span>
                   )}
@@ -187,7 +187,7 @@ export default function Admin() {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     onClick={() => setEditingUser(user)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
+                    className="text-[#7d4f50] hover:text-[#6b4345] mr-4"
                     title="Edit user"
                   >
                     <Edit2 className="h-4 w-4" />
@@ -281,7 +281,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleUpdateUser}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
+                className="w-full bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center justify-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 Save Changes

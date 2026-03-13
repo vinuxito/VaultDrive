@@ -30,14 +30,22 @@ export function ElegantModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
         className={cn(
-          "elegant-modal",
+          // Burgundy gradient background
+          "bg-gradient-to-br from-[#7d4f50] to-[#6b4345]",
+          // Border and shadow
+          "border border-white/10 rounded-2xl shadow-2xl",
+          // Text colors
+          "text-white",
+          // Size variants
           sizeClasses[size],
+          // Animation
           "elegant-fade-in",
+          // Padding
           "relative p-6",
           className
         )}
@@ -45,10 +53,10 @@ export function ElegantModal({
       >
         {title && (
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <h2 className="text-xl font-semibold text-white">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-md hover:bg-accent-secondary/20 transition-colors"
+              className="p-1 rounded-md hover:bg-white/10 text-white/90 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>

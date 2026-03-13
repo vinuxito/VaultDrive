@@ -8,9 +8,10 @@ INSERT INTO upload_tokens (
     files_uploaded,
     used,
     created_at,
-    password_hash
+    password_hash,
+    raw_encryption_key
 )
-VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6)
+VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7)
 RETURNING *;
 
 -- name: GetUploadTokenByToken :one

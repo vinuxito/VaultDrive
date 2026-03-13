@@ -147,7 +147,7 @@ export function UploadLinkCard({
                     className="flex items-center justify-between p-3 rounded-lg bg-background border"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-500">
+                      <div className="w-8 h-8 rounded bg-[#7d4f50]/10 flex items-center justify-center text-[#7d4f50]">
                         📄
                       </div>
                       <div className="flex-1 min-w-0">

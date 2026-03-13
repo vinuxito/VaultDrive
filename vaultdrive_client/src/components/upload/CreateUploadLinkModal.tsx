@@ -200,18 +200,18 @@ export function CreateUploadLinkModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="elegant-overlay w-full max-w-md mx-auto rounded-xl p-6">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2 text-white">
-            <Plus className="w-5 h-5 text-sky-500" />
+            <Plus className="w-5 h-5 text-[#f2d7d8]" />
             {createdLink ? "Upload Link Created" : "Create New Upload Link"}
           </h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white hover:bg-white/10"
+            className="text-white/70 hover:text-white hover:bg-white/10"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -220,8 +220,8 @@ export function CreateUploadLinkModal({
         {createdLink ? (
           // Success view
           <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
-              <p className="text-green-400 text-sm">
+            <div className="p-4 rounded-lg bg-[#10b981]/20 border border-[#10b981]/40">
+              <p className="text-white text-sm">
                 <strong>Upload link created successfully!</strong>
                 <br />
                 Share this link with anyone - uploads are password-protected.
@@ -229,7 +229,7 @@ export function CreateUploadLinkModal({
             </div>
 
             <div>
-              <Label className="text-white text-sm flex items-center gap-1">
+              <Label className="text-white/90 text-sm flex items-center gap-1">
                 <LinkIcon className="w-4 h-4" />
                 Upload URL
               </Label>
@@ -237,11 +237,11 @@ export function CreateUploadLinkModal({
                 <Input
                   value={createdLink.url}
                   readOnly
-                  className="bg-slate-800 border-slate-700 text-white text-sm"
+                  className="bg-white/10 border-white/20 text-white text-sm"
                 />
                 <Button
                   onClick={() => copyToClipboard(createdLink.url, "url")}
-                  className="bg-sky-900 hover:bg-sky-800 text-white"
+                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                   title="Copy URL"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -249,8 +249,8 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-              <Label className="text-amber-300 text-sm flex items-center gap-1">
+            <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40">
+              <Label className="text-[#f2d7d8] text-sm flex items-center gap-1">
                 <Lock className="w-4 h-4" />
                 Owner Password
               </Label>
@@ -259,17 +259,17 @@ export function CreateUploadLinkModal({
                   value={createdLink.password}
                   readOnly
                   onFocus={(e) => e.currentTarget.select()}
-                  className="bg-slate-800 border-amber-500/40 text-amber-100 text-sm"
+                  className="bg-white/10 border-white/20 text-white text-sm"
                 />
                 <Button
                   onClick={() => copyToClipboard(createdLink.password, "password")}
-                  className="bg-amber-900/60 hover:bg-amber-800/70 text-amber-50"
+                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                   title="Copy password"
                 >
                   {copiedPassword ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
-              <p className="text-amber-300 text-xs mt-2">
+              <p className="text-[#f2d7d8] text-xs mt-2">
                 Keep this password safe! You'll need it to decrypt uploaded files.
                 The uploader doesn't need to enter anything - the encryption key is embedded in the URL.
               </p>
@@ -278,7 +278,7 @@ export function CreateUploadLinkModal({
             <div className="flex justify-end gap-3 pt-2">
               <Button
                 onClick={onClose}
-                className="bg-sky-900 hover:bg-sky-800 text-white"
+                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
               >
                 Done
               </Button>
@@ -287,12 +287,12 @@ export function CreateUploadLinkModal({
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="folder" className="text-white text-sm">
+                <Label htmlFor="folder" className="text-white/90 text-sm">
                   Target Folder
                 </Label>
             <div className="mt-1 flex gap-2">
               {fetchingFolders ? (
-                <div className="text-slate-400 text-sm">Loading folders...</div>
+                <div className="text-white/70 text-sm">Loading folders...</div>
               ) : showCreateFolder ? (
                 <div className="flex-1 flex gap-2">
                   <Input
@@ -302,7 +302,7 @@ export function CreateUploadLinkModal({
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
                     disabled={creatingFolder}
                     autoFocus
                   />
@@ -310,7 +310,7 @@ export function CreateUploadLinkModal({
                     type="button"
                     onClick={handleCreateFolder}
                     disabled={creatingFolder || !newFolderName.trim()}
-                    className="bg-sky-900 hover:bg-sky-800 text-white"
+                    className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                   >
                     {creatingFolder ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -322,7 +322,7 @@ export function CreateUploadLinkModal({
                     type="button"
                     variant="ghost"
                     onClick={() => { setShowCreateFolder(false); setNewFolderName(""); }}
-                    className="text-slate-400 hover:text-white"
+                    className="text-white/70 hover:text-white hover:bg-white/10"
                   >
                     Cancel
                   </Button>
@@ -333,7 +333,7 @@ export function CreateUploadLinkModal({
                     id="folder"
                     value={selectedFolderId}
                     onChange={(e) => setSelectedFolderId(e.target.value)}
-                    className="flex-1 bg-slate-800 border-slate-700 text-white rounded-md px-3 py-2"
+                    className="flex-1 bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:border-white/40 focus:bg-white/15"
                   >
                     {folders.length === 0 ? (
                       <option value="">-- Create a folder --</option>
@@ -349,7 +349,7 @@ export function CreateUploadLinkModal({
                     type="button"
                     variant="outline"
                     onClick={() => { setShowCreateFolder(true); setNewFolderName(""); }}
-                    className="border-slate-600 text-white hover:bg-slate-800"
+                    className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
                     title="Create new folder"
                   >
                     <FolderIcon className="w-4 h-4" />
@@ -358,21 +358,21 @@ export function CreateUploadLinkModal({
               )}
             </div>
             {folders.length === 0 && !showCreateFolder && (
-              <div className="mt-1 text-sm text-sky-400">
+              <div className="mt-1 text-sm text-[#f2d7d8]">
                 ↑ Click folder icon to create your first folder
               </div>
             )}
           </div>
 
           <div>
-            <Label htmlFor="expiresIn" className="text-white text-sm">
+            <Label htmlFor="expiresIn" className="text-white/90 text-sm">
               Link Expiration
             </Label>
             <select
               id="expiresIn"
               value={expiresIn}
               onChange={(e) => setExpiresIn(e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 text-white rounded-md px-3 py-2 mt-1"
+              className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 mt-1 focus:border-white/40 focus:bg-white/15"
             >
               <option value="0">Never</option>
               <option value="1">1 Day</option>
@@ -382,7 +382,7 @@ export function CreateUploadLinkModal({
           </div>
 
           <div>
-            <Label htmlFor="maxFiles" className="text-white text-sm">
+            <Label htmlFor="maxFiles" className="text-white/90 text-sm">
               Max Files (0 = Unlimited)
             </Label>
             <Input
@@ -391,19 +391,19 @@ export function CreateUploadLinkModal({
               min="0"
               value={maxFiles}
               onChange={(e) => setMaxFiles(parseInt(e.target.value, 10) || 0)}
-              className="bg-slate-800 border-slate-700 text-white"
+              className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
             />
           </div>
 
-          <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-            <p className="text-sm text-blue-400">
+          <div className="p-3 rounded-lg bg-white/5 border border-white/20">
+            <p className="text-sm text-white/90">
               <strong>Secure link with encryption key</strong> will be created automatically.
               Share the link - the uploader doesn't need to enter any password.
             </p>
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
               {error}
             </div>
           )}
@@ -414,14 +414,14 @@ export function CreateUploadLinkModal({
               variant="outline"
               onClick={onClose}
               disabled={loading}
-              className="border-slate-600 text-white hover:bg-slate-800"
+              className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId}
-              className="bg-sky-900 hover:bg-sky-800 text-white"
+              className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
             >
               {loading ? (
                 <>

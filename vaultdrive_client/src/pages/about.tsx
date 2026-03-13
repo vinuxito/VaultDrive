@@ -77,8 +77,8 @@ export default function About() {
         <Card className="mb-12">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-500" />
+              <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-[#7d4f50]" />
               </div>
               <CardTitle>Development Team</CardTitle>
             </div>
@@ -108,8 +108,8 @@ export default function About() {
               {/* Team Member 2 */}
               <div className="p-6 rounded-lg border bg-card">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-blue-500">AD</span>
+                  <div className="w-16 h-16 rounded-full bg-[#7d4f50]/10 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-[#7d4f50]">AD</span>
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">Arundhati Das</h3>

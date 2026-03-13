@@ -210,7 +210,7 @@ export default function AdminTests() {
           <Card className="mb-6 border-blue-500">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 animate-spin text-blue-500" />
+                <Clock className="w-5 h-5 animate-spin text-[#7d4f50]" />
                 <span className="font-medium">Running: {currentTest}</span>
               </div>
             </CardContent>

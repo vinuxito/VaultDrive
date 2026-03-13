@@ -66,7 +66,7 @@ const getFileIconColor = (filename: string) => {
       return 'bg-red-500/20 text-red-500';
     case 'doc':
     case 'docx':
-      return 'bg-blue-500/20 text-blue-500';
+      return 'bg-[#7d4f50]/20 text-[#7d4f50]';
     case 'xls':
     case 'xlsx':
       return 'bg-green-500/20 text-green-500';

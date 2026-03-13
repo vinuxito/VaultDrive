@@ -178,8 +178,8 @@ export default function SharedFiles() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-              <Share2 className="w-6 h-6 text-purple-500" />
+            <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/20 flex items-center justify-center">
+              <Share2 className="w-6 h-6 text-[#c4999b]" />
             </div>
             <div>
               <h1 className="text-3xl font-bold">Shared With Me</h1>
@@ -220,8 +220,8 @@ export default function SharedFiles() {
               </div>
             ) : sharedFiles.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-500/10 flex items-center justify-center">
-                  <Share2 className="w-8 h-8 text-purple-500" />
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/20 flex items-center justify-center">
+                  <Share2 className="w-8 h-8 text-[#c4999b]" />
                 </div>
                 <p className="text-muted-foreground font-medium">
                   No shared files yet
@@ -256,11 +256,11 @@ export default function SharedFiles() {
         </Card>
 
         {/* Info Card */}
-        <Card className="mt-6 border-purple-500/20">
+        <Card className="mt-6 border-[#7d4f50]/30">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-                <Lock className="w-5 h-5 text-purple-500" />
+              <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/20 flex items-center justify-center shrink-0">
+                <Lock className="w-5 h-5 text-[#c4999b]" />
               </div>
               <div className="space-y-1">
                 <p className="font-medium text-sm">About Shared Files</p>
@@ -316,8 +316,8 @@ export default function SharedFiles() {
                   />
                 </div>
 
-                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
-                  <p className="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-2">
+                <div className="p-3 bg-[#7d4f50]/10 border border-[#7d4f50]/30 rounded-md">
+                  <p className="text-xs text-[#7d4f50] dark:text-[#c4999b] flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>
                       This file was encrypted by the owner. You need the same
@@ -341,7 +341,7 @@ export default function SharedFiles() {
                   <Button
                     onClick={handlePasswordSubmit}
                     disabled={!decryptionPassword}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="flex-1 bg-[#7d4f50] hover:bg-[#6b4345] text-white"
                   >
                     Decrypt & Download
                   </Button>

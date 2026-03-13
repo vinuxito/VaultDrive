@@ -47,7 +47,7 @@ export default function Home() {
             </Button>
             <Button
               variant="outline"
-              className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 dark:text-blue-400"
+              className="border-blue-500 text-[#7d4f50] hover:bg-[#f2d7d8] dark:hover:bg-[#6b4345] dark:text-[#c4999b]"
               onClick={() => navigate("/login")}
             >
               Get Started
@@ -66,8 +66,8 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardContent className="pt-6">
-                <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
-                  <Shield className="w-6 h-6 text-blue-500" />
+                <div className="w-12 h-12 rounded-lg bg-[#7d4f50]/10 flex items-center justify-center mb-4">
+                  <Shield className="w-6 h-6 text-[#7d4f50]" />
                 </div>
                 <h3 className="font-semibold mb-2">Secure Authentication</h3>
                 <p className="text-sm text-muted-foreground">
@@ -152,8 +152,8 @@ export default function Home() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                    <Key className="w-5 h-5 text-blue-500" />
+                  <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/10 flex items-center justify-center flex-shrink-0">
+                    <Key className="w-5 h-5 text-[#7d4f50]" />
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">Frontend</h3>

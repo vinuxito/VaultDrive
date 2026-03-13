@@ -212,7 +212,7 @@ export default function Groups() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center text-white font-semibold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white font-semibold text-lg">
                           {group.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -279,7 +279,7 @@ export default function Groups() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-md w-full"
+              className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl p-6 max-w-md w-full text-white"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-white">Create Group</h2>
@@ -669,7 +669,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+              className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col text-white"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -762,7 +762,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                 onChange={() => {}}
                                 className="w-4 h-4 rounded border-white/20"
                               />
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center text-white font-semibold">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white font-semibold">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 text-left">
@@ -836,7 +836,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                               key={userId}
                               className="flex items-center gap-2 p-2 bg-white/5 rounded-lg"
                             >
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center text-white text-sm font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white text-sm font-semibold">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">

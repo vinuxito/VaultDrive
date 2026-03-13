@@ -3,6 +3,8 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import { hexToBytes } from "../utils/crypto";
+import ABRNLogo from "../components/branding/abrn-logo";
 
 interface TokenInfo {
   valid: boolean;
@@ -125,7 +127,7 @@ const handleUpload = async (files: File[]) => {
 
   const uploadFile = async (file: File): Promise<void> => {
     const fileName = file.name;
-    
+
     setUploadProgress(prev => {
       const updated = [...prev];
       const idx = updated.findIndex(p => p.fileName === fileName);
@@ -138,55 +140,54 @@ const handleUpload = async (files: File[]) => {
     });
 
     try {
-      // Use the password from input
-      const passwordBytes = new TextEncoder().encode(password);
-      const salt = crypto.getRandomValues(new Uint8Array(16));
+      // Get wrapped key from URL (this is what was set as "password" during initialization)
+      const urlKey = password;
+      if (!urlKey) {
+        throw new Error("No encryption key in URL");
+      }
 
-      const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        passwordBytes,
-        { name: "PBKDF2" },
-        false,
-        ["deriveKey"]
-      );
+      // Step 1: Get raw encryption key from backend
+      const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(urlKey)}`);
+      if (!keyResponse.ok) {
+        throw new Error("Failed to get encryption key");
+      }
+      const keyData = await keyResponse.json();
+      const rawEncryptionKey = keyData.encryption_key;
 
-      const aesKey = await crypto.subtle.deriveKey(
-        {
-          name: "PBKDF2",
-          salt: salt,
-          iterations: 100000,
-          hash: "SHA-256",
-        },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 },
-        true,
-        ["encrypt", "decrypt"]
-      );
-
-      const iv = crypto.getRandomValues(new Uint8Array(12));
+      // Step 2: Read file as ArrayBuffer
       const fileBuffer = await file.arrayBuffer();
 
+      // Step 3: Generate random IV
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+
+      // Step 4: Decode hex key and import as AES-256-GCM key
+      const encryptionKeyBytes = hexToBytes(rawEncryptionKey);
+      const aesKey = await crypto.subtle.importKey(
+        "raw",
+        new Uint8Array(encryptionKeyBytes),
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt"]
+      );
+
+      // Step 5: Encrypt file with AES-GCM
       const encryptedData = await crypto.subtle.encrypt(
         { name: "AES-GCM", iv },
         aesKey,
         fileBuffer
       );
 
-      const exportedKey = await crypto.subtle.exportKey("raw", aesKey);
-      const exportedKeyBytes = new Uint8Array(exportedKey);
-      const wrappedKey = btoa(String.fromCharCode(...Array.from(exportedKeyBytes)));
-
+      // Step 6: Create form data with encrypted file
       const ivBytes = new Uint8Array(iv);
-      const saltBytes = new Uint8Array(salt);
-
       const formData = new FormData();
       formData.append("file", new Blob([encryptedData]), file.name);
       formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
-      formData.append("salt", btoa(String.fromCharCode(...Array.from(saltBytes))));
+      formData.append("salt", "");  // Not needed with raw key approach
       formData.append("algorithm", "AES-256-GCM");
-      formData.append("wrapped_key", wrappedKey);
-      formData.append("password", password);
+      formData.append("wrapped_key", urlKey);  // For backend storage
+      formData.append("password", urlKey);  // For backend validation (legacy field)
 
+      // Step 7: Upload encrypted file
       const response = await fetch(`/abrn/api/drop/${token}/upload`, {
         method: "POST",
         body: formData,
@@ -238,7 +239,7 @@ const handleUpload = async (files: File[]) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+        <Loader2 className="w-12 h-12 animate-spin text-[#7d4f50]" />
       </div>
     );
   }
@@ -299,9 +300,14 @@ const handleUpload = async (files: File[]) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* ABRN Logo */}
+        <div className="flex justify-start mb-4">
+          <ABRNLogo className="h-12" alt="ABRN Asesores SC" />
+        </div>
+
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            Secure Drop
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7d4f50] to-[#c4999b]">
+            Secure Drop - ABRN Asesores SC
           </h1>
           <p className="text-muted-foreground">Upload files securely to {tokenInfo.folder_name}</p>
         </div>
@@ -330,7 +336,7 @@ const handleUpload = async (files: File[]) => {
           <CardContent className="space-y-4">
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                !uploading ? "border-slate-300 hover:border-blue-400 hover:bg-blue-50/50 dark:border-slate-700 dark:hover:border-blue-600 dark:hover:bg-blue-900/20" : "border-slate-300 bg-slate-50"
+                !uploading ? "border-slate-300 hover:border-[#7d4f50] hover:bg-[#7d4f50]/5 dark:border-slate-700 dark:hover:border-[#c4999b] dark:hover:bg-[#c4999b]/10" : "border-slate-300 bg-slate-50"
               }`}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
@@ -341,7 +347,7 @@ const handleUpload = async (files: File[]) => {
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
                       Drag & drop files here, or{" "}
-                      <label className="text-blue-600 cursor-pointer hover:underline">
+                      <label className="text-[#7d4f50] cursor-pointer hover:underline">
                         click to browse
                         <input
                           type="file"
@@ -358,17 +364,11 @@ const handleUpload = async (files: File[]) => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Loader2 className="w-12 h-12 mx-auto text-blue-600 animate-spin" />
+                  <Loader2 className="w-12 h-12 mx-auto text-[#7d4f50] animate-spin" />
                   <p className="text-sm text-muted-foreground">Uploading files...</p>
                 </div>
               )}
             </div>
-
-            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                <p className="text-sm text-blue-400">
-                  <strong>Enter the password</strong> provided by the file owner to encrypt your upload.
-                </p>
-              </div>
 
             <div className="hidden space-y-2">
               <label className="text-sm font-medium">Encryption Password</label>
@@ -395,7 +395,7 @@ const handleUpload = async (files: File[]) => {
                         <XCircle className="w-4 h-4 text-red-500" />
                       )}
                       {progress.status === "uploading" && (
-                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-[#7d4f50] animate-spin" />
                       )}
                     </div>
                     {progress.status === "error" && (
@@ -415,7 +415,17 @@ const handleUpload = async (files: File[]) => {
               Done & Deactivate
             </Button>
             <Button
-              onClick={() => navigate("/")}
+              onClick={() => {
+                // Check if user is logged in by checking for token
+                const token = localStorage.getItem("token");
+                if (token) {
+                  // User is logged in - go to files page
+                  navigate("/abrn/files");
+                } else {
+                  // User is not logged in - go to ABRN website
+                  window.location.href = "https://abrn.mx/";
+                }
+              }}
               variant="outline"
             >
               Cancel
@@ -423,10 +433,10 @@ const handleUpload = async (files: File[]) => {
           </CardFooter>
         </Card>
 
-        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <Card className="bg-[#f2d7d8] dark:bg-[#7d4f50]/10 border-[#d4a5a6] dark:border-[#7d4f50]">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#7d4f50] dark:text-[#c4999b] flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
                 <p className="font-medium">Security Notice</p>
                 <p className="text-muted-foreground">

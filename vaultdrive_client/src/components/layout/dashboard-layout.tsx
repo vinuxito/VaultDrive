@@ -62,8 +62,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-foreground flex">
-      <div className="fixed inset-0 z-[-1] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950" />
+    <div className="min-h-screen w-full bg-[#1e2330] text-foreground flex">
+      <div className="fixed inset-0 z-[-1] bg-gradient-to-br from-[#1e2330] via-[#2c3240] to-[#6b4345]" />
       
       <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} />
 
@@ -77,7 +77,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between shadow-lg shadow-black/5">
+        <header className="sticky top-0 z-30 bg-[#2c3240]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between shadow-lg shadow-black/5">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -130,7 +130,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-2xl border-white/20 shadow-xl">
+              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] backdrop-blur-2xl border-white/20 shadow-xl text-white">
                 <DropdownMenuLabel>
                   <p className="font-semibold">{user.first_name} {user.last_name}</p>
                   <p className="text-xs text-muted-foreground font-normal">{user.email}</p>

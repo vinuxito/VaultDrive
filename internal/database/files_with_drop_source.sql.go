@@ -14,7 +14,7 @@ import (
 )
 
 const getFilesWithDropSource = `-- name: GetFilesWithDropSource :many
-SELECT 
+SELECT
     f.id,
     f.filename,
     f.file_path,
@@ -25,6 +25,7 @@ SELECT
     f.encrypted_metadata,
     f.drop_source_id,
     u.token as drop_token,
+    u.password_hash as drop_wrapped_key,
     fol.name as drop_folder_name
 FROM files f
 LEFT JOIN upload_tokens u ON f.drop_source_id = u.id
@@ -44,6 +45,7 @@ type GetFilesWithDropSourceRow struct {
 	EncryptedMetadata sql.NullString
 	DropSourceID      uuid.NullUUID
 	DropToken         sql.NullString
+	DropWrappedKey    sql.NullString
 	DropFolderName    sql.NullString
 }
 
@@ -67,6 +69,7 @@ func (q *Queries) GetFilesWithDropSource(ctx context.Context, ownerID uuid.NullU
 			&i.EncryptedMetadata,
 			&i.DropSourceID,
 			&i.DropToken,
+			&i.DropWrappedKey,
 			&i.DropFolderName,
 		); err != nil {
 			return nil, err

@@ -789,6 +789,309 @@ curl -s -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload?
 
 ---
 
+## Troubleshooting
+
+### Common Decryption Errors
+
+#### OperationError: Failed to Decrypt
+
+**Error Message:**
+```
+OperationError
+Failed to unwrap encryption key
+```
+
+**Root Cause:**
+This error occurs when the password entered by the owner doesn't derive the same PBKDF2 key that was used to wrap the encryption key. The most common reason is **Unicode character encoding mismatch** with special characters.
+
+**Special Characters Problem:**
+Passwords containing characters like `´` (acute accent), `'` (apostrophe), or other non-ASCII characters can be represented by different Unicode codepoints depending on:
+- Keyboard layout (US vs International)
+- Input method (IME, compose key, etc.)
+- Operating system (macOS, Windows, Linux)
+- Browser (Chrome, Firefox, Safari)
+
+For example, the character `´` can be:
+- U+00B4 (SPACING ACUTE ACCENT)
+- U+0301 (COMBINING ACUTE ACCENT)
+- Different composed forms
+
+**Solution:**
+The frontend now applies Unicode NFC (Normalization Form Canonical Composition) to passwords before PBKDF2 key derivation. This ensures consistent byte representation regardless of how the password was entered.
+
+**Files Modified:**
+- `vaultdrive_client/src/utils/crypto.ts` - Added `.normalize('NFC')` to `deriveKeyFromPassword()` and `unwrapKey()` functions
+
+**Code Example:**
+```typescript
+// Before (could fail with special characters)
+const passwordBuffer = encoder.encode(password);
+
+// After (handles special characters consistently)
+const normalizedPassword = password.normalize('NFC');
+const passwordBuffer = encoder.encode(normalizedPassword);
+```
+
+---
+
+### Using Enhanced Console Diagnostics
+
+When downloading a drop-uploaded file fails, the browser console provides detailed diagnostic information to help identify the issue.
+
+#### Accessing Console Output
+
+1. **Open Browser DevTools:**
+   - Chrome/Edge: Press `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (macOS)
+   - Firefox: Press `F12` or `Ctrl+Shift+K` (Windows/Linux) / `Cmd+Option+K` (macOS)
+   - Safari: Enable Developer menu in Preferences → Advanced, then press `Cmd+Option+I`
+
+2. **Navigate to Console Tab**
+
+3. **Click Download on a drop-uploaded file**
+
+4. **Enter your password**
+
+#### Reading Console Output
+
+**Successful Decryption:**
+```
+=== DROP UPLOAD DECRYPTION ===
+File ID: 123e4567-e89b-12d3-a456-426614174000
+Filename: example.pdf
+✓ Wrapped key present
+Wrapped key length: 128 characters
+Password length: 16 characters
+Password bytes (first 10): [194, 180, 49, 75, 54, 50, 98, 53, 102, 66]
+Attempting to unwrap key...
+✓ SUCCESS: Key unwrapped successfully!
+Raw key length: 64
+✓ Encryption key imported for decryption
+```
+
+**Failed Decryption (Missing Wrapped Key):**
+```
+=== DROP UPLOAD DECRYPTION ===
+File ID: 123e4567-e89b-12d3-a456-426614174000
+Filename: example.pdf
+✗ CRITICAL: drop_wrapped_key is missing!
+File metadata: { ... }
+This file cannot be decrypted without the wrapped key.
+```
+
+**Cause:** Backend didn't store `drop_wrapped_key` reference in file metadata.
+
+**Solution:** Contact backend administrator - this is a server-side issue.
+
+**Failed Decryption (Wrong Password or Encoding):**
+```
+=== DROP UPLOAD DECRYPTION ===
+File ID: 123e4567-e89b-12d3-a456-426614174000
+Filename: example.pdf
+✓ Wrapped key present
+Wrapped key length: 128 characters
+Password length: 18 characters
+Password bytes (first 10): [194, 180, 49, 75, 54, 50, 98, 53, 102, 66]
+Attempting to unwrap key...
+✗ UNWRAP KEY FAILED
+Error type: DOMException
+Error message: The operation failed for an operation-specific reason
+Technical error: OperationError
+```
+
+**Possible Causes:**
+1. **Wrong password** - Not the password used when creating the drop link
+2. **Character encoding mismatch** - Special characters encoded differently (should be fixed by normalization)
+3. **Corrupted wrapped key** - Database corruption or transmission error
+
+**Solutions:**
+1. Verify you're using the exact password shown when creating the link
+2. Check if password contains special characters - try copying/pasting instead of typing
+3. If using special characters, ensure both creation and decryption happen in the same browser/system
+4. Contact administrator if wrapped key may be corrupted
+
+---
+
+### Debugging Password Encoding Issues
+
+If you suspect character encoding is causing decryption failures:
+
+#### 1. Check Password Bytes
+
+The console shows the first 10 bytes of the password encoding:
+```
+Password bytes (first 10): [194, 180, 49, 75, 54, 50, 98, 53, 102, 66]
+```
+
+**Compare bytes between creation and decryption:**
+- Create link → Check console for password bytes
+- Try to decrypt → Check console for password bytes
+- If bytes differ → Character encoding mismatch
+
+#### 2. Test with ASCII-Only Password
+
+Create a new drop link with a simple ASCII password (no special characters):
+```
+TestPassword123
+```
+
+If this works but your original password fails, the issue is character encoding.
+
+#### 3. Copy Password Exactly
+
+When creating the drop link, the success screen shows the password. Use the **copy button** to copy it to clipboard, then paste it when decrypting. This avoids keyboard input variations.
+
+---
+
+### Common Scenarios
+
+#### Scenario 1: "I created the link and can't decrypt files"
+
+**Checklist:**
+- [ ] Are you using the exact password shown when creating the link?
+- [ ] Did you copy the password or type it manually?
+- [ ] Does the password contain special characters like ´, `, ', ", etc.?
+- [ ] Check browser console for specific error message
+
+**Solution:**
+Copy the password from the link creation screen instead of typing it manually.
+
+#### Scenario 2: "Console shows 'drop_wrapped_key is missing'"
+
+**Cause:** Backend didn't store the wrapped key reference in file metadata.
+
+**Solution:** This is a server-side issue. The file cannot be decrypted without backend intervention to restore the wrapped key reference.
+
+#### Scenario 3: "Uploader can't upload files"
+
+**Error:** `Invalid password` when uploading
+
+**Cause:** The URL's `?key=` parameter doesn't match the stored wrapped key in the database.
+
+**Solution:**
+- Verify you're using the complete URL provided when creating the link
+- Check that the URL wasn't truncated when copying/pasting
+- Try regenerating the upload link
+
+---
+
+### Technical Implementation Details
+
+#### Password Normalization (Unicode NFC)
+
+**What it does:**
+Converts Unicode strings to Normalization Form Canonical Composition (NFC), ensuring characters are represented in a canonical way.
+
+**Example:**
+```typescript
+// Without normalization
+"café".length  // Could be 4 or 5 depending on encoding
+// (e + ´) vs (é)
+
+// With normalization
+"café".normalize('NFC').length  // Always 4
+// é (single codepoint U+00E9)
+```
+
+**Applied in:**
+1. `deriveKeyFromPassword()` - Before PBKDF2 key derivation
+2. `unwrapKey()` - Before calling `deriveKeyFromPassword()`
+
+**Code Location:**
+- `vaultdrive_client/src/utils/crypto.ts` lines 113-116 (deriveKeyFromPassword)
+- `vaultdrive_client/src/utils/crypto.ts` lines 192-196 (unwrapKey)
+
+#### Enhanced Error Logging
+
+**Code Location:**
+- `vaultdrive_client/src/pages/files.tsx` lines 490-551 (drop upload decryption section)
+
+**What it logs:**
+- File ID and filename
+- Wrapped key presence and length
+- Password length
+- Password bytes (first 10) for encoding verification
+- Detailed error information (type, message, stack trace)
+
+**How to use:**
+1. Open browser DevTools → Console
+2. Attempt file download
+3. Review logged information
+4. Compare with expected values
+
+---
+
+### Wrapped Key Format
+
+The wrapped key stored in `upload_tokens.password_hash` has this structure:
+
+```
+[16 bytes salt][12 bytes IV][encrypted key data]
+```
+
+**Hex encoded length:** Typically 128-160 characters
+
+**Example:**
+```
+9b0aa611632d98f3b5485a5db131129dd78262f72c03a4ac777ca2e376b063ff...
+│           │           │
+│           │           └─ Encrypted AES-256 key (variable length)
+│           └─ IV (12 bytes = 24 hex chars)
+└─ Salt (16 bytes = 32 hex chars)
+```
+
+**Validation:**
+If the wrapped key is shorter than 56 hex characters (28 bytes), it's invalid:
+```typescript
+if (data.length < 16 + 12 + 16) {
+  throw new Error("Invalid wrapped key length");
+}
+```
+
+---
+
+### Testing Decryption Locally
+
+#### Test Different Character Encodings
+
+```typescript
+// Test password with special characters
+const password1 = "´1K62b5fB0%U6f0F@´";  // Typed on keyboard
+const password2 = "´1K62b5fB0%U6f0F@´";  // Copy-pasted
+
+console.log("Password 1 bytes:", new TextEncoder().encode(password1));
+console.log("Password 2 bytes:", new TextEncoder().encode(password2));
+
+// With normalization
+const norm1 = password1.normalize('NFC');
+const norm2 = password2.normalize('NFC');
+
+console.log("Normalized 1 bytes:", new TextEncoder().encode(norm1));
+console.log("Normalized 2 bytes:", new TextEncoder().encode(norm2));
+// Should be identical
+```
+
+#### Test PBKDF2 Key Derivation
+
+```typescript
+import { deriveKeyFromPassword, generateSalt, bytesToHex } from './utils/crypto';
+
+const password = "TestPassword123";
+const salt = generateSalt();
+
+const key1 = await deriveKeyFromPassword(password, salt, 100000);
+const key2 = await deriveKeyFromPassword(password, salt, 100000);
+
+// Export and compare
+const exported1 = await crypto.subtle.exportKey('raw', key1);
+const exported2 = await crypto.subtle.exportKey('raw', key2);
+
+console.log("Key 1:", bytesToHex(new Uint8Array(exported1)));
+console.log("Key 2:", bytesToHex(new Uint8Array(exported2)));
+// Should be identical
+```
+
+---
+
 ## Future Enhancements
 
 - [ ] Password strength indicator
@@ -796,6 +1099,9 @@ curl -s -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload?
 - [ ] Time-limited access (e.g., "valid for 24 hours")
 - [ ] IP whitelisting
 - [ ] Upload notifications via email
+- [ ] Backup/recovery mechanism for lost passwords
+- [ ] Password complexity requirements enforcement
+- [ ] Multi-factor authentication for sensitive drops
 
 ---
 

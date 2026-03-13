@@ -16,8 +16,8 @@
 
 @media (prefers-color-scheme: dark) {
   .elegant-card {
-    --surface-primary: #0f172a;
-    --surface-secondary: #1e293b;
+    --surface-primary: #1e2330;
+    --surface-secondary: #2c3240;
     --text-primary: #f8fafc;
   }
 }
@@ -45,7 +45,7 @@
 
 /* ========== Elegant Button ========== */
 .elegant-button {
-  background: #6366f1;
+  background: #7d4f50;
   color: #f8fafc;
   border: none;
   border-radius: 8px;
@@ -73,7 +73,7 @@
 }
 
 .elegant-button:focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #7d4f50;
   outline-offset: 2px;
 }
 
@@ -92,14 +92,14 @@
 
 @media (prefers-color-scheme: dark) {
   .elegant-input {
-    background: #1e293b;
+    background: #2c3240;
     color: #f8fafc;
   }
 }
 
 .elegant-input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #7d4f50;
+  box-shadow: 0 0 0 3px rgba(125, 79, 80, 0.1);
 }
 
 .elegant-input:disabled {
@@ -110,20 +110,49 @@
 
 /* ========== Elegant Modal ========== */
 .elegant-modal {
-  background: #fafafa;
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  background: linear-gradient(135deg, #7d4f50 0%, #6b4345 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;
+  color: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   .elegant-modal {
-    background: #0f172a;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    background: linear-gradient(135deg, #6b4345 0%, #5a3739 100%);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
   }
+}
+
+/* Warning/Alert boxes inside modals */
+.elegant-modal-warning {
+  background: rgba(107, 67, 69, 0.3);
+  border: 1px solid rgba(212, 165, 166, 0.4);
+  border-radius: 12px;
+  padding: 0.75rem;
+  color: #f2d7d8;
+}
+
+.elegant-modal-warning-icon {
+  color: #d4a5a6;
+  flex-shrink: 0;
+}
+
+/* Cards/sections inside burgundy modals */
+.elegant-modal-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.elegant-modal-card-elevated {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Breathing animations */
@@ -136,8 +165,8 @@
 }
 
 .elegant-breathe-glow:hover {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15),
-              0 0 20px rgba(99, 102, 241, 0.08);
+  box-shadow: 0 0 0 3px rgba(125, 79, 80, 0.15),
+              0 0 20px rgba(125, 79, 80, 0.08);
 }
 
 @keyframes elegant-breathe {
@@ -159,18 +188,18 @@
 
 /* Color variants */
 .elegant-primary {
-  background: #6366f1;
+  background: #7d4f50;
   color: #fafafa;
 }
 
 .elegant-secondary {
   background: #fafafa;
-  border: 2px solid rgba(99, 102, 241, 0.2);
-  color: #6366f1;
+  border: 2px solid rgba(125, 79, 80, 0.2);
+  color: #7d4f50;
 }
 
 .elegant-accent {
-  background: #818cf8;
+  background: #c4999b;
   color: #fafafa;
 }
 
@@ -197,13 +226,13 @@
 
 .elegant-outline {
   background: transparent;
-  border: 2px solid #6366f1;
-  color: #6366f1;
+  border: 2px solid #7d4f50;
+  color: #7d4f50;
 }
 
 .elegant-ghost {
   background: transparent;
-  color: #6366f1;
+  color: #7d4f50;
 }
 
 /* Loading states */
@@ -266,8 +295,8 @@
   --text-primary: #222;
   --text-secondary: #666;
   --text-tertiary: #999;
-  --accent-primary: #6366f1;
-  --accent-secondary: #818cf8;
+  --accent-primary: #7d4f50;
+  --accent-secondary: #c4999b;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-danger: #ef4444;
@@ -278,9 +307,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --surface-primary: #0f172a;
-    --surface-secondary: #1e293b;
-    --surface-tertiary: #1e293b;
+    --surface-primary: #1e2330;
+    --surface-secondary: #2c3240;
+    --surface-tertiary: #2c3240;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-tertiary: #64748b;

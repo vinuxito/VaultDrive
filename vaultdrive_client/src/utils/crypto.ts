@@ -110,9 +110,14 @@ export async function deriveKeyFromPassword(
   salt: Uint8Array,
   iterations: number = 100000
 ): Promise<CryptoKey> {
+  // Normalize password to NFC form to handle special characters consistently
+  // This ensures that accented characters, composed characters, etc. are
+  // encoded the same way regardless of how they were entered
+  const normalizedPassword = password.normalize('NFC');
+
   // Import password as key material
   const encoder = new TextEncoder();
-  const passwordBuffer = encoder.encode(password);
+  const passwordBuffer = encoder.encode(normalizedPassword);
 
   const keyMaterial = await window.crypto.subtle.importKey(
     "raw",
@@ -160,6 +165,61 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer as ArrayBuffer;
+}
+
+// Helper: Convert hex string to bytes
+export function hexToBytes(hex: string): Uint8Array {
+  if (hex.length % 2 !== 0) {
+    throw new Error("Hex string must have even length");
+  }
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+// Helper: Convert bytes to hex string
+export function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// Unwrap encryption key using password
+// Wrapped key format: [16 bytes salt][12 bytes IV][encrypted key data]
+// This reverses the WrapKey operation from the backend
+export async function unwrapKey(password: string, wrappedKeyHex: string): Promise<string> {
+  // Normalize password to NFC form to handle special characters consistently
+  // This ensures compatibility with passwords containing accents, diacritics, etc.
+  // Note: deriveKeyFromPassword also normalizes, but we do it here too for clarity
+  const normalizedPassword = password.normalize('NFC');
+
+  // 1. Decode hex to bytes
+  const data = hexToBytes(wrappedKeyHex);
+
+  if (data.length < 16 + 12 + 16) {
+    throw new Error("Invalid wrapped key length");
+  }
+
+  // 2. Extract components (same format as backend)
+  const salt = data.slice(0, 16);
+  const iv = data.slice(16, 28);
+  const encryptedKey = data.slice(28);
+
+  // 3. Derive key from password using PBKDF2 (100k iterations, SHA-256)
+  const derivedKey = await deriveKeyFromPassword(normalizedPassword, salt, 100000);
+
+  // 4. Decrypt the encrypted key using AES-256-GCM
+  const decryptedKeyBytes = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    derivedKey,
+    encryptedKey
+  );
+
+  // 5. Convert decrypted bytes to string (the raw encryption key in hex)
+  const rawKey = new TextDecoder().decode(decryptedKeyBytes);
+  return rawKey;
 }
 
 // Helper: Create a Blob from decrypted data

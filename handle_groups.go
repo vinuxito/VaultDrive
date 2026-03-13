@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/Pranay0205/VaultDrive/internal/database"
 	"github.com/google/uuid"
@@ -60,8 +61,24 @@ func (cfg *ApiConfig) createGroupHandler(w http.ResponseWriter, r *http.Request,
 		Description: databaseToNullString(req.Description),
 	})
 	if err != nil {
+		// Check if duplicate group name for this user
+		if strings.Contains(err.Error(), "duplicate key") && strings.Contains(err.Error(), "uq_user_group_name") {
+			respondWithError(w, http.StatusConflict, "A group with this name already exists", nil)
+			return
+		}
 		respondWithError(w, http.StatusInternalServerError, "Error creating group", err)
 		return
+	}
+
+	// Automatically add the owner as a member with "owner" role
+	_, err = cfg.dbQueries.AddGroupMember(context.Background(), database.AddGroupMemberParams{
+		GroupID: group.ID,
+		UserID:  user.ID,
+		Role:    databaseToNullString("owner"),
+	})
+	if err != nil {
+		// Log error but don't fail the request - group was created successfully
+		log.Printf("Warning: Failed to add owner as member of group %s: %v", group.ID, err)
 	}
 
 	respondWithJSON(w, http.StatusCreated, map[string]interface{}{

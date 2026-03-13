@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -119,6 +120,55 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(response)
 }
 
+// handlerDropGetEncryptionKey returns the raw encryption key for uploaders
+// Authentication: Valid wrapped key in query param
+func (cfg *ApiConfig) handlerDropGetEncryptionKey(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("DEBUG: handlerDropGetEncryptionKey called - Path: %s\n", r.URL.Path)
+	// Extract token from path
+	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/drop/"), "/")
+	if len(pathParts) == 0 {
+		respondWithError(w, http.StatusBadRequest, "No token provided", nil)
+		return
+	}
+	tokenStr := pathParts[0]
+
+	// Get wrapped key from query
+	wrappedKey := r.URL.Query().Get("key")
+	if wrappedKey == "" {
+		respondWithError(w, http.StatusBadRequest, "Wrapped key required in query", nil)
+		return
+	}
+
+	// Get upload token from database
+	uploadToken, err := cfg.dbQueries.GetUploadTokenByToken(r.Context(), tokenStr)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Invalid upload token", err)
+		return
+	}
+
+	// Validate wrapped key matches stored key
+	if !uploadToken.PasswordHash.Valid || uploadToken.PasswordHash.String != wrappedKey {
+		respondWithError(w, http.StatusUnauthorized, "Invalid encryption key", nil)
+		return
+	}
+
+	// Validate token is still active
+	if uploadToken.ExpiresAt.Valid && uploadToken.ExpiresAt.Time.Before(time.Now()) {
+		respondWithError(w, http.StatusForbidden, "Upload token has expired", nil)
+		return
+	}
+
+	// Return raw encryption key
+	if !uploadToken.RawEncryptionKey.Valid {
+		respondWithError(w, http.StatusInternalServerError, "No encryption key available", nil)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"encryption_key": uploadToken.RawEncryptionKey.String,
+	})
+}
+
 func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) {
 	// Extract token from URL path - use same method as GET handler
 	// Remove /upload from end first, then extract token
@@ -222,7 +272,7 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 
 	// Validate the wrapped key by comparing with stored key
 	storedWrappedKey := uploadToken.PasswordHash.String
-	providedWrappedKey := r.FormValue("password")
+	providedWrappedKey := r.FormValue("wrapped_key")
 	if providedWrappedKey != storedWrappedKey {
 		os.Remove(filePath)
 		w.Header().Set("Content-Type", "application/json")
@@ -477,7 +527,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		json.NewEncoder(w).Encode(map[string]string{"error": "Could not generate encryption key"})
 		return
 	}
-	randomKey := string(randomKeyBytes)
+	randomKey := hex.EncodeToString(randomKeyBytes)
 
 	// Wrap the key with the password for secure storage
 	wrappedKey, err := auth.WrapKey(req.Password, randomKey)
@@ -490,15 +540,17 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 
 	// Store the wrapped key in the database
 	uploadToken, err := cfg.dbQueries.CreateUploadToken(r.Context(), database.CreateUploadTokenParams{
-		Token:          dropToken,
-		OwnerUserID:    ownerID,
-		TargetFolderID: folderID,
-		ExpiresAt:      expiresAt,
-		MaxFiles:       maxFiles,
-		PasswordHash:   sql.NullString{String: wrappedKey, Valid: true},
+		Token:            dropToken,
+		OwnerUserID:      ownerID,
+		TargetFolderID:   folderID,
+		ExpiresAt:        expiresAt,
+		MaxFiles:         maxFiles,
+		PasswordHash:     sql.NullString{String: wrappedKey, Valid: true},
+		RawEncryptionKey: sql.NullString{String: randomKey, Valid: true},
 	})
 
 	if err != nil {
+		log.Printf("Error creating upload token: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Could not create upload token"})

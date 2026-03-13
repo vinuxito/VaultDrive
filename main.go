@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync/atomic"
 
 	"github.com/Pranay0205/VaultDrive/internal/database"
@@ -52,6 +53,11 @@ func main() {
 
 	fmt.Printf("Database URL: %s...\n", dbURL[:12])
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -64,7 +70,11 @@ func main() {
 	}
 	defer db.Close()
 
-	apiConfig := ApiConfig{apiHits: atomic.Int32{}, dbQueries: database.New(db)}
+	apiConfig := ApiConfig{
+		apiHits:   atomic.Int32{},
+		dbQueries: database.New(db),
+		jwtSecret: jwtSecret,
+	}
 
 	fmt.Println("Connected to the database successfully.")
 
@@ -88,6 +98,10 @@ func main() {
 
 	mux.Handle("POST /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleCreateFolder)))
 
+	mux.Handle("PUT /api/folders/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleUpdateFolder)))
+
+	mux.Handle("DELETE /api/folders/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleDeleteFolder)))
+
 	mux.Handle("POST /api/drop/create", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateDropToken)))
 
 	mux.Handle("GET /api/drop/tokens", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListDropTokens)))
@@ -95,6 +109,7 @@ func main() {
 	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
 	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
 	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
+	mux.HandleFunc("GET /api/drop/{token}/encryption-key", apiConfig.handlerDropGetEncryptionKey)
 	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 
@@ -114,12 +129,72 @@ func main() {
 
 	mux.Handle("DELETE /api/files/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDeleteFile)))
 
+	// Groups CRUD
+	mux.Handle("GET /api/groups",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.getGroupsHandler)))
+
+	mux.Handle("POST /api/groups",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.createGroupHandler)))
+
+	mux.Handle("GET /api/groups/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.getGroupHandler)))
+
+	mux.Handle("PUT /api/groups/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.updateGroupHandler)))
+
+	mux.Handle("DELETE /api/groups/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.deleteGroupHandler)))
+
+	// Group Members
+	mux.Handle("GET /api/groups/{id}/members",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.getGroupMembersHandler)))
+
+	mux.Handle("POST /api/groups/{id}/members",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.addGroupMemberHandler)))
+
+	mux.Handle("DELETE /api/groups/{id}/members/{userId}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.removeGroupMemberHandler)))
+
+	// Group Files
+	mux.Handle("GET /api/groups/{id}/files",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.getGroupFilesHandler)))
+
+	mux.Handle("POST /api/groups/{id}/files",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.shareFileToGroupHandler)))
+
+	mux.Handle("DELETE /api/groups/{id}/files/{fileId}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.removeFileFromGroupHandler)))
+
+	// User Search (for adding members)
+	mux.Handle("GET /api/users/search",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.searchUsersHandler)))
+
 	fmt.Printf("Starting server on port %s...\n", port)
 
 	// SPA catch-all handler - must be registered AFTER API routes
 	// Handles any non-API route that doesn't match file
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
+
+		// Skip API paths - they should be handled by API routes above
+		// Check for both /api/ and /abrn/api/ patterns
+		if strings.Contains(path, "/api/") {
+			http.NotFound(w, r)
+			return
+		}
+
 		if path == "" || path == "/" {
 			path = "/index.html"
 		}

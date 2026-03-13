@@ -172,16 +172,17 @@ type Tag struct {
 }
 
 type UploadToken struct {
-	ID             uuid.UUID
-	Token          string
-	OwnerUserID    uuid.UUID
-	TargetFolderID uuid.UUID
-	ExpiresAt      sql.NullTime
-	MaxFiles       sql.NullInt32
-	FilesUploaded  sql.NullInt32
-	Used           sql.NullBool
-	CreatedAt      sql.NullTime
-	PasswordHash   sql.NullString
+	ID               uuid.UUID
+	Token            string
+	OwnerUserID      uuid.UUID
+	TargetFolderID   uuid.UUID
+	ExpiresAt        sql.NullTime
+	MaxFiles         sql.NullInt32
+	FilesUploaded    sql.NullInt32
+	Used             sql.NullBool
+	CreatedAt        sql.NullTime
+	PasswordHash     sql.NullString
+	RawEncryptionKey sql.NullString
 }
 
 type User struct {

@@ -65,9 +65,9 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 key={item.label}
                 onClick={() => item.action ? item.action() : navigate(item.path)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-slate-300",
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-white/80",
                   "hover:bg-white/10 hover:text-white",
-                  isActive && "bg-primary/20 text-primary",
+                  isActive && "bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50",
                   "text-left",
                   collapsed && "justify-center"
                 )}
@@ -89,9 +89,9 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       <button
           onClick={() => navigate("/settings")}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-slate-300",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-white/80",
             "hover:bg-white/10 hover:text-white",
-            location.pathname === '/settings' && "bg-primary/20 text-primary",
+            location.pathname === '/settings' && "bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50",
             "text-left",
             collapsed && "justify-center"
           )}

@@ -131,14 +131,14 @@ const EmailPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen bg-gradient-to-br from-[#1e2330] via-[#2c3240] to-[#6b4345]">
       <EditEmailAccountModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         account={editingAccount}
         onUpdate={handleUpdateComplete}
       />
-      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4">
+      <div className="w-64 bg-[#2c3240]/80 backdrop-blur-sm border-r border-white/10 p-4">
         <EmailAccountSettings />
         <h2 className="mt-4 text-lg font-semibold">Accounts</h2>
         {error && <p className="text-red-500">{error}</p>}
@@ -147,7 +147,11 @@ const EmailPage: React.FC = () => {
             <li key={account.id} className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedAccount(account)}
-                className={`flex-1 text-left px-4 py-2 text-sm rounded-md ${selectedAccount?.id === account.id ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                className={`flex-1 text-left px-4 py-2 text-sm rounded-md transition-colors ${
+  selectedAccount?.id === account.id
+    ? 'bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50'
+    : 'text-white/70 hover:bg-white/5 hover:text-white'
+}`}
               >
                 {account.email}
               </button>
@@ -156,7 +160,7 @@ const EmailPage: React.FC = () => {
                   e.stopPropagation();
                   handleEditAccount(account);
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"
+                className="p-2 hover:bg-white/10 rounded-md text-white/70 hover:text-white transition-colors"
                 title="Edit account"
               >
                 <Pencil className="h-4 w-4" />
@@ -193,7 +197,7 @@ const EmailPage: React.FC = () => {
             onSelectEmail={setSelectedEmail}
           />
         </div>
-        <div className="flex-1 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex-1 p-4 border-t border-white/10">
           <EmailView account={selectedAccount} mailbox={selectedMailbox} email={selectedEmail} />
         </div>
       </div>
