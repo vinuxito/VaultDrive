@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Download, Loader2, AlertCircle, Lock, Key } from "lucide-react";
 import { Button } from "../ui/button";
 import { useSessionVault } from "../../context/SessionVaultContext";
@@ -100,30 +100,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const [credential, setCredential] = useState("");
   const [showCredentialPrompt, setShowCredentialPrompt] = useState(false);
 
-  useEffect(() => {
-    if (!file) return;
-    setBlobUrl(null);
-    setTextContent(null);
-    setLoadError("");
-    setDecryptedBlob(null);
-    setCredential("");
-
-    const vaultKey = getPrivateKey();
-    if (vaultKey && file.is_owner === false && !file.pin_wrapped_key) {
-      setShowCredentialPrompt(false);
-      loadPreview("");
-    } else {
-      setShowCredentialPrompt(true);
-    }
-  }, [file]);
-
-  useEffect(() => {
-    return () => {
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
-    };
-  }, [blobUrl]);
-
-  const loadPreview = async (cred: string) => {
+  const loadPreview = useCallback(async (cred: string) => {
     if (!file) return;
     setIsLoading(true);
     setLoadError("");
@@ -146,7 +123,30 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [file, getPrivateKey]);
+
+  useEffect(() => {
+    if (!file) return;
+    setBlobUrl(null);
+    setTextContent(null);
+    setLoadError("");
+    setDecryptedBlob(null);
+    setCredential("");
+
+    const vaultKey = getPrivateKey();
+    if (vaultKey && file.is_owner === false && !file.pin_wrapped_key) {
+      setShowCredentialPrompt(false);
+      loadPreview("");
+    } else {
+      setShowCredentialPrompt(true);
+    }
+  }, [file, getPrivateKey, loadPreview]);
+
+  useEffect(() => {
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [blobUrl]);
 
   const handleCredentialSubmit = async () => {
     if (!credential) return;
