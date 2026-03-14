@@ -1365,7 +1365,7 @@ export default function Files() {
                           {formatDate(file.created_at)}
                         </div>
 
-                        <div className="hidden md:flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <div className="hidden md:flex items-center justify-end gap-0.5 shrink-0">
                           <button
                             onClick={() => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-[#7d4f50] hover:bg-[#f2d7d8]/60 transition-colors"
