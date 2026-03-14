@@ -14,6 +14,7 @@ Last updated: March 14, 2026
 | 06 | [Domain Migration](./06_DOMAIN_MIGRATION.md) | Move to `abrndrive.filemonprime.net` — Apache vhost, SSL cert, zero downtime |
 | 07 | [Files Explorer & Bulk Selection](./07_FILES_EXPLORER_BULK_SELECTION.md) | Current-view select all, stable folder IDs, nested explorer, bulk delete hardening |
 | 08 | [UX Upgrade Plan V1](./08_UPGRADE_PLAN_V1.md) | Session key cache, drop portal, link management, onboarding, quick share, dashboard |
+| 09 | [Secure Platform Hardening](./09_SECURE_PLATFORM_HARDENING.md) | Trust hardening, activity endpoint, PIN lockout, drop flow verification, and follow-up fixes |
 
 ## Feature Docs (pre-existing)
 
@@ -29,6 +30,7 @@ Last updated: March 14, 2026
 | [SESSION_MEMORY_2026-03-13.md](./SESSION_MEMORY_2026-03-13.md) | Session checkpoint for the Files explorer implementation, verification, and remaining risks |
 | [SESSION_MEMORY_2026-03-14.md](./SESSION_MEMORY_2026-03-14.md) | Bug fix: Share and "Create share link" buttons invisible due to opacity-0 hover-only CSS in Vault Explorer |
 | [SESSION_MEMORY_2026-03-14-upgrade.md](./SESSION_MEMORY_2026-03-14-upgrade.md) | UX Upgrade Plan V1 — session key cache, drop portal, onboarding, quick share, dashboard |
+| [SESSION_MEMORY_2026-03-14-secure-platform-v3.md](./SESSION_MEMORY_2026-03-14-secure-platform-v3.md) | Verification, debugging, and hardening session for the secure-platform-v3 branch |
 
 ## Quick Navigation
 
