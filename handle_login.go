@@ -17,17 +17,17 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type response struct {
-		Username                   string `json:"username"`
-		Email                      string `json:"email"`
-		FirstName                  string `json:"first_name"`
-		LastName                   string `json:"last_name"`
-		Token                      string `json:"token"`
-		RefreshToken               string `json:"refresh_token"`
-		PublicKey                  string `json:"public_key"`
-		PrivateKeyEncrypted        string `json:"private_key_encrypted"`
-		PrivateKeyPinEncrypted     string `json:"private_key_pin_encrypted,omitempty"`
-		IsAdmin                    bool   `json:"is_admin"`
-		PinSet                     bool   `json:"pin_set"`
+		Username               string `json:"username"`
+		Email                  string `json:"email"`
+		FirstName              string `json:"first_name"`
+		LastName               string `json:"last_name"`
+		Token                  string `json:"token"`
+		RefreshToken           string `json:"refresh_token"`
+		PublicKey              string `json:"public_key"`
+		PrivateKeyEncrypted    string `json:"private_key_encrypted"`
+		PrivateKeyPinEncrypted string `json:"private_key_pin_encrypted,omitempty"`
+		IsAdmin                bool   `json:"is_admin"`
+		PinSet                 bool   `json:"pin_set"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -49,8 +49,24 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 			respondWithError(w, http.StatusUnauthorized, "PIN not configured. Please log in with your password.", nil)
 			return
 		}
+		if isPINLocked(user) {
+			respondWithError(w, http.StatusTooManyRequests, pinLockedMessage(user), nil)
+			return
+		}
 		if err := auth.CheckPasswordHash(params.Pin, user.PinHash.String); err != nil {
-			respondWithError(w, http.StatusUnauthorized, "Incorrect PIN", err)
+			message, lockErr := cfg.registerFailedPINAttempt(r.Context(), user)
+			if lockErr != nil {
+				respondWithError(w, http.StatusInternalServerError, "Could not validate PIN", lockErr)
+				return
+			}
+			if message == "" {
+				message = "Incorrect PIN"
+			}
+			respondWithError(w, http.StatusUnauthorized, message, err)
+			return
+		}
+		if err := cfg.resetPINLockout(r.Context(), user.ID); err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Could not reset PIN lockout state", err)
 			return
 		}
 	} else {
@@ -95,16 +111,16 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, response{
-		Username:                   user.Username,
-		Email:                      user.Email,
-		FirstName:                  user.FirstName,
-		LastName:                   user.LastName,
-		Token:                      accessToken,
-		RefreshToken:               refreshToken,
-		PublicKey:                  user.PublicKey,
-		PrivateKeyEncrypted:        user.PrivateKeyEncrypted,
-		PrivateKeyPinEncrypted:     privateKeyPinEncrypted,
-		IsAdmin:                    isAdmin,
-		PinSet:                     pinSet,
+		Username:               user.Username,
+		Email:                  user.Email,
+		FirstName:              user.FirstName,
+		LastName:               user.LastName,
+		Token:                  accessToken,
+		RefreshToken:           refreshToken,
+		PublicKey:              user.PublicKey,
+		PrivateKeyEncrypted:    user.PrivateKeyEncrypted,
+		PrivateKeyPinEncrypted: privateKeyPinEncrypted,
+		IsAdmin:                isAdmin,
+		PinSet:                 pinSet,
 	})
 }

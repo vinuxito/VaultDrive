@@ -13,9 +13,9 @@ import (
 
 func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, user database.User) {
 	var req struct {
-		PIN                     string `json:"pin"`
-		OldPIN                  string `json:"old_pin"`
-		PrivateKeyPinEncrypted  string `json:"private_key_pin_encrypted"`
+		PIN                    string `json:"pin"`
+		OldPIN                 string `json:"old_pin"`
+		PrivateKeyPinEncrypted string `json:"private_key_pin_encrypted"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
@@ -27,9 +27,14 @@ func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	existing, err := cfg.dbQueries.GetUserPINStatus(r.Context(), user.ID)
+	existing, err := cfg.dbQueries.GetUserByID(r.Context(), user.ID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to check PIN status", err)
+		return
+	}
+
+	if isPINLocked(existing) {
+		respondWithError(w, http.StatusTooManyRequests, pinLockedMessage(existing), nil)
 		return
 	}
 
@@ -39,9 +44,22 @@ func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, 
 			return
 		}
 		if err := auth.CheckPasswordHash(req.OldPIN, existing.PinHash.String); err != nil {
-			respondWithError(w, http.StatusUnauthorized, "Incorrect current PIN", nil)
+			message, lockErr := cfg.registerFailedPINAttempt(r.Context(), existing)
+			if lockErr != nil {
+				respondWithError(w, http.StatusInternalServerError, "Failed to validate current PIN", lockErr)
+				return
+			}
+			if message == "" {
+				message = "Incorrect current PIN"
+			}
+			respondWithError(w, http.StatusUnauthorized, message, nil)
 			return
 		}
+	}
+
+	if err := cfg.resetPINLockout(r.Context(), user.ID); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to reset PIN lockout state", err)
+		return
 	}
 
 	pinHash, err := auth.HashPassword(req.PIN)
@@ -62,7 +80,7 @@ func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, 
 
 	if req.PrivateKeyPinEncrypted != "" {
 		if err := cfg.dbQueries.SetPrivateKeyPinEncrypted(r.Context(), database.SetPrivateKeyPinEncryptedParams{
-			ID:                    user.ID,
+			ID:                     user.ID,
 			PrivateKeyPinEncrypted: sql.NullString{String: req.PrivateKeyPinEncrypted, Valid: true},
 		}); err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Failed to save PIN-encrypted private key", err)
