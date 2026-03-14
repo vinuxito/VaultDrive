@@ -212,7 +212,7 @@ export function CreateUploadLinkModal({
               <p className="text-white text-sm">
                 <strong>Upload link created successfully!</strong>
                 <br />
-                Share this URL with your client. They can upload files without logging in.
+                Share this URL with your client. They can upload files without logging in, and the secure key after `#` stays in their browser when they open it.
               </p>
             </div>
 
@@ -371,10 +371,10 @@ export function CreateUploadLinkModal({
                 onChange={(e) => setExpiresIn(e.target.value)}
                 className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 mt-1 focus:border-white/40 focus:bg-white/15"
               >
-                <option value="0">Never</option>
-                <option value="1">1 Day</option>
                 <option value="7">7 Days</option>
+                <option value="1">1 Day</option>
                 <option value="30">30 Days</option>
+                <option value="0">Never</option>
               </select>
             </div>
 

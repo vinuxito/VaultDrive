@@ -4,6 +4,7 @@ import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle,
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
+import { API_URL } from "../utils/api";
 import ABRNLogo from "../components/branding/abrn-logo";
 
 interface TokenInfo {
@@ -11,6 +12,7 @@ interface TokenInfo {
   folder_name: string;
   link_name?: string;
   description?: string;
+  owner_display_name?: string;
   files_limit: number | null;
   uploaded: number | null;
   expires_at: string | null;
@@ -40,17 +42,19 @@ export default function DropUpload() {
   const [password, setPassword] = useState("");
   const [clientMessage, setClientMessage] = useState("");
   const [delivered, setDelivered] = useState(false);
+  const [deliveredAt, setDeliveredAt] = useState("");
+  const [receiptCode, setReceiptCode] = useState("");
 
   useEffect(() => {
     initializeDropLink();
   }, [token]);
 
   const initializeDropLink = async () => {
-    const urlKey = searchParams.get("key");
+    const fragmentParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const urlKey = fragmentParams.get("key") || searchParams.get("key");
     
     try {
-      const apiUrl = urlKey ? `/abrn/api/drop/${token}?key=${encodeURIComponent(urlKey)}` : `/abrn/api/drop/${token}`;
-      const response = await fetch(apiUrl);
+      const response = await fetch(`${API_URL}/drop/${token}`);
       
       if (response.status === 404 || response.status === 403) {
         const data = await response.json();
@@ -77,7 +81,7 @@ export default function DropUpload() {
         setPassword(urlKey);
       }
     } catch (err) {
-      setError("Unable to validate upload link");
+      setError("We couldn't validate this secure upload link. Ask us to send you a fresh link.");
     } finally {
       setLoading(false);
     }
@@ -141,7 +145,7 @@ export default function DropUpload() {
 
   const handleUpload = async (files: File[], isFolder: boolean = false) => {
     if (!password) {
-      setError("Please enter the encryption key");
+      setError("This link is missing its secure upload key. Ask us to resend the full link.");
       return;
     }
 
@@ -156,12 +160,14 @@ export default function DropUpload() {
       bytesTotal: f.size,
     })));
 
-    await Promise.allSettled(
+	  await Promise.allSettled(
       files.map(f => uploadFile(f, isFolder))
     );
 
     setUploading(false);
     setDelivered(true);
+    setDeliveredAt(new Date().toISOString());
+    setReceiptCode(crypto.randomUUID().split("-")[0].toUpperCase());
     await initializeDropLink();
   };
 
@@ -255,10 +261,16 @@ export default function DropUpload() {
               throw new Error("No encryption key");
             }
             
-            const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(urlKey)}`);
-            if (!keyResponse.ok) {
-              throw new Error("Failed to get encryption key");
-            }
+				const keyResponse = await fetch(`${API_URL}/drop/${token}/encryption-key`, {
+				  method: "POST",
+				  headers: {
+				    "Content-Type": "application/json",
+				  },
+				  body: JSON.stringify({ wrapped_key: urlKey }),
+				});
+             if (!keyResponse.ok) {
+               throw new Error("Failed to get encryption key");
+             }
             const keyData = await keyResponse.json();
             const rawEncryptionKey = keyData.encryption_key;
             
@@ -283,16 +295,15 @@ export default function DropUpload() {
             const formData = new FormData();
             const blobName = relativePath ? fileName : "files[]";
             formData.append(blobName, new Blob([encryptedData]), relativePath || fileName);
-            formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
-            formData.append("salt", "");
-            formData.append("algorithm", "AES-256-GCM");
-            formData.append("wrapped_key", urlKey);
-            formData.append("password", urlKey);
-            if (clientMessage) {
-              formData.append("client_message", clientMessage);
-            }
+             formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
+             formData.append("salt", "");
+             formData.append("algorithm", "AES-256-GCM");
+             formData.append("wrapped_key", urlKey);
+             if (clientMessage) {
+               formData.append("client_message", clientMessage);
+             }
 
-            xhr.open("POST", `/abrn/api/drop/${token}/upload`);
+             xhr.open("POST", `${API_URL}/drop/${token}/upload`);
             xhr.send(formData);
           } catch (err) {
             setUploadProgress(prev => {
@@ -366,12 +377,20 @@ export default function DropUpload() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-slate-800">Files delivered securely</h1>
             <p className="text-slate-500">
-              {completedCount} file{completedCount > 1 ? "s" : ""} encrypted and delivered to {tokenInfo.link_name || tokenInfo.folder_name}.
+              {completedCount} file{completedCount > 1 ? "s" : ""} sent securely to {tokenInfo.owner_display_name || tokenInfo.link_name || tokenInfo.folder_name}.
             </p>
           </div>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/8 text-[#7d4f50] text-sm font-medium">
             <Lock className="w-3.5 h-3.5" />
-            AES-256-GCM encrypted · Zero-knowledge storage
+            Encrypted in your browser before upload
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-4 text-left shadow-sm">
+            <p className="text-sm font-semibold text-slate-800">Upload receipt</p>
+            <div className="mt-2 space-y-1 text-sm text-slate-600">
+              <p><span className="font-medium text-slate-700">Recipient:</span> {tokenInfo.owner_display_name || tokenInfo.link_name || tokenInfo.folder_name}</p>
+              <p><span className="font-medium text-slate-700">Delivered:</span> {deliveredAt ? new Date(deliveredAt).toLocaleString() : new Date().toLocaleString()}</p>
+              <p><span className="font-medium text-slate-700">Reference:</span> {receiptCode}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -390,8 +409,14 @@ export default function DropUpload() {
             Secure File Delivery
           </h1>
           <p className="text-muted-foreground">
-            {tokenInfo.link_name ? `${tokenInfo.link_name}` : tokenInfo.folder_name}
+            {tokenInfo.owner_display_name
+              ? `You're sending files securely to ${tokenInfo.owner_display_name}`
+              : tokenInfo.link_name || tokenInfo.folder_name}
           </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900">
+          Your files are encrypted in your browser before they are uploaded.
         </div>
 
         {tokenInfo.description && (
@@ -481,11 +506,11 @@ export default function DropUpload() {
             ) : (
               <div className="space-y-2">
                 <Loader2 className="w-12 h-12 mx-auto text-[#7d4f50] animate-spin" />
-                <p className="text-sm text-muted-foreground text-center">
-                  {totalCount > 0 ? `Uploading ${totalCount} file${totalCount > 1 ? 's' : ''}...` : 'Uploading...'}
-                </p>
-              </div>
-            )}
+                    <p className="text-sm text-muted-foreground text-center">
+                      {totalCount > 0 ? `Encrypting and uploading ${totalCount} file${totalCount > 1 ? 's' : ''}...` : 'Preparing secure upload...'}
+                    </p>
+                  </div>
+                )}
 
             {uploadProgress.length > 0 && (
               <div className="space-y-3">
@@ -576,8 +601,8 @@ export default function DropUpload() {
               <div className="space-y-1 text-sm">
                 <p className="font-medium">Security Notice</p>
                 <p className="text-muted-foreground">
-                  Files uploaded here will be encrypted client-side and stored securely.
-                  The file owner will need the encryption key to decrypt files.
+                  Files uploaded here are encrypted in your browser and stored securely.
+                  Only the intended recipient can unlock them later.
                 </p>
               </div>
             </div>
