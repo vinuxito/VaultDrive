@@ -11,6 +11,9 @@ function EventIcon({ eventType }: { eventType: string }) {
   if (eventType === "file_shared") {
     return <Share2 className="w-4 h-4 text-blue-500 shrink-0" />;
   }
+  if (eventType === "file_received") {
+    return <Share2 className="w-4 h-4 text-violet-500 shrink-0" />;
+  }
   if (eventType === "drop_upload") {
     return <Upload className="w-4 h-4 text-emerald-500 shrink-0" />;
   }
@@ -19,6 +22,7 @@ function EventIcon({ eventType }: { eventType: string }) {
 
 function eventLabel(eventType: string): string {
   if (eventType === "file_shared") return "File shared";
+  if (eventType === "file_received") return "File received";
   if (eventType === "drop_upload") return "New file received via drop link";
   return eventType;
 }

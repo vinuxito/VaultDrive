@@ -105,6 +105,19 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 		"sharer_id": userID.String(),
 	})
 
+	cfg.logActivity(r.Context(), userID, "file_shared", map[string]interface{}{
+		"file_id":         fileID.String(),
+		"filename":        dbFile.Filename,
+		"recipient_id":    recipient.ID.String(),
+		"recipient_name":  displayNameForUser(recipient),
+		"recipient_email": recipient.Email,
+	})
+	cfg.logActivity(r.Context(), recipient.ID, "file_received", map[string]interface{}{
+		"file_id":   fileID.String(),
+		"filename":  dbFile.Filename,
+		"sharer_id": userID.String(),
+	})
+
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"status":  "success",
 		"message": "File shared successfully",
