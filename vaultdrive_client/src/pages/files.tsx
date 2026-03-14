@@ -26,6 +26,8 @@ import {
   ChevronRight,
   Menu,
   Link2,
+  Zap,
+  CheckCircle2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/api";
@@ -56,6 +58,7 @@ import type { TreeNode, DropTokenInfo, BulkDownloadFile, FileOrigin } from "../c
 import type { Folder } from "../components/files/FolderBreadcrumb";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { FilePreviewModal } from "../components/vault/FilePreviewModal";
+import { UploadLinksSection } from "../components/upload";
 
 interface FileData {
   id: string;
@@ -199,6 +202,7 @@ export default function Files() {
   const [uploading, setUploading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [selectedNode, setSelectedNode] = useState<TreeNode>({ type: "all" });
   const [searchQuery, setSearchQuery] = useState("");
@@ -550,6 +554,33 @@ export default function Files() {
     }
   };
 
+  const handleQuickShare = async (fileId: string) => {
+    const authToken = localStorage.getItem("token");
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    try {
+      const res = await fetch(`${API_URL}/files/${fileId}/share-link`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ expires_at: expiresAt }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to create share link");
+      }
+      const data = await res.json();
+      const basename = window.location.hostname === "abrndrive.filemonprime.net" ? "" : "/abrn";
+      const shareUrl = `${window.location.origin}${basename}/share/${data.token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setSuccessMessage("Share link copied to clipboard! (expires in 7 days)");
+      setTimeout(() => setSuccessMessage(""), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create share link");
+    }
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -690,7 +721,10 @@ export default function Files() {
       const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
       let encryptionKey: CryptoKey;
 
-      if (isDropUpload && file.pin_wrapped_key) {
+      const cachedFileKey = sessionVault.getFileKey(file.id);
+      if (cachedFileKey) {
+        encryptionKey = cachedFileKey;
+      } else if (isDropUpload && file.pin_wrapped_key) {
         const rawKey = await unwrapKey(credential, file.pin_wrapped_key);
         const keyBytes = hexToBytes(rawKey);
         encryptionKey = await crypto.subtle.importKey(
@@ -700,6 +734,7 @@ export default function Files() {
           false,
           ["decrypt"]
         );
+        sessionVault.setFileKey(file.id, encryptionKey);
       } else if (wrappedKeyB64 && file.is_owner === false) {
         const sessionKey = sessionVault.getPrivateKey();
         let rsaPrivateKey: CryptoKey;
@@ -714,11 +749,14 @@ export default function Files() {
           }
           const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted);
           rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+          sessionVault.setPrivateKey(rsaPrivateKey);
         }
         encryptionKey = await unwrapKeyWithRSA(rsaPrivateKey, wrappedKeyB64);
+        sessionVault.setFileKey(file.id, encryptionKey);
       } else {
         const salt = new Uint8Array(base64ToArrayBuffer(metadataObj.salt!));
         encryptionKey = await deriveKeyFromPassword(credential, salt, 100000);
+        sessionVault.setFileKey(file.id, encryptionKey);
       }
 
       const encryptedBlob = await response.blob();
@@ -751,6 +789,21 @@ export default function Files() {
     pin_wrapped_key?: string,
     is_owner?: boolean
   ) => {
+    const cachedFileKey = sessionVault.getFileKey(fileId);
+    if (cachedFileKey) {
+      setDownloading(true);
+      setError("");
+      try {
+        const result = await downloadFileWithCredential(
+          { id: fileId, filename, metadata, pin_wrapped_key, is_owner },
+          ""
+        );
+        if (!result.success) setError(result.error ?? "Download failed");
+      } finally {
+        setDownloading(false);
+      }
+      return;
+    }
     if (is_owner === false && !pin_wrapped_key) {
       const sessionKey = sessionVault.getPrivateKey();
       if (sessionKey) {
@@ -1095,6 +1148,7 @@ export default function Files() {
       case "shared": return "Shared with Me";
       case "folder": return selectedNode.folderName;
       case "drop-link": return selectedNode.linkName;
+      case "manage-drops": return "Drop Links";
     }
   })();
 
@@ -1192,6 +1246,12 @@ export default function Files() {
           </aside>
 
           <main className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            {selectedNode.type === "manage-drops" ? (
+              <div className="flex-1 overflow-auto p-6">
+                <UploadLinksSection />
+              </div>
+            ) : (
+            <>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60 bg-white shrink-0">
               <div className="flex items-center gap-2">
                 <button
@@ -1278,6 +1338,13 @@ export default function Files() {
               <div className="mx-6 mt-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 shrink-0">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="mx-6 mt-4 flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 shrink-0">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                {successMessage}
               </div>
             )}
 
@@ -1396,6 +1463,16 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              onClick={() => handleQuickShare(file.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                              title="Quick Share (7-day link, copied to clipboard)"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {file.is_owner !== false && (
+                            <button
                               onClick={() => toggleStar(file.id)}
                               className={`p-1.5 rounded-lg transition-colors ${
                                 file.starred
@@ -1466,21 +1543,29 @@ export default function Files() {
                                 </button>
                               )}
                               {file.is_owner !== false && (
-                                <button
-                                  onClick={() => { handleCreateShareLink(file); setOpenActionMenu(null); }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                                >
-                                  <Link2 className="w-3.5 h-3.5" /> Create share link
-                                </button>
-                              )}
-                              {file.is_owner !== false && (
-                                <button
-                                  onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" /> Delete
-                                </button>
-                              )}
+                                 <button
+                                   onClick={() => { handleCreateShareLink(file); setOpenActionMenu(null); }}
+                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                 >
+                                   <Link2 className="w-3.5 h-3.5" /> Create share link
+                                 </button>
+                               )}
+                               {file.is_owner !== false && (
+                                 <button
+                                   onClick={() => { handleQuickShare(file.id); setOpenActionMenu(null); }}
+                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-700 hover:bg-violet-50"
+                                 >
+                                   <Zap className="w-3.5 h-3.5" /> Quick Share
+                                 </button>
+                               )}
+                               {file.is_owner !== false && (
+                                 <button
+                                   onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
+                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                 >
+                                   <Trash2 className="w-3.5 h-3.5" /> Delete
+                                 </button>
+                               )}
                             </div>
                           )}
                         </div>
@@ -1490,6 +1575,8 @@ export default function Files() {
                 </div>
               )}
             </div>
+            </>
+            )}
           </main>
         </div>
       </div>

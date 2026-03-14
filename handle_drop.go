@@ -112,6 +112,7 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 		"valid":       true,
 		"folder_name": folder.Name,
 		"link_name":   uploadToken.LinkName.String,
+		"description": uploadToken.Description.String,
 		"files_limit": filesLimit,
 		"uploaded":    uploaded,
 		"expires_at":  expiresAt,
@@ -251,6 +252,8 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		json.NewEncoder(w).Encode(map[string]string{"error": "No files provided"})
 		return
 	}
+
+	clientMessage := r.FormValue("client_message")
 
 	// Validate password by trying to unwrap
 	providedPassword := r.FormValue("password")
@@ -435,11 +438,18 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		})
 	}
 
-	// Update token file count
 	if createdFiles > 0 {
 		_, err = cfg.dbQueries.IncrementTokenFileCount(r.Context(), uploadToken.ID)
 		if err != nil {
 			log.Printf("Failed to update token file count: %v", err)
+		}
+		if clientMessage != "" {
+			if err := cfg.dbQueries.SaveDropClientMessage(r.Context(), database.SaveDropClientMessageParams{
+				Token:         tokenStr,
+				ClientMessage: sql.NullString{String: clientMessage, Valid: true},
+			}); err != nil {
+				log.Printf("Failed to save client message: %v", err)
+			}
 		}
 	}
 
@@ -554,6 +564,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		MaxFiles       int    `json:"max_files"`
 		Pin            string `json:"pin"`
 		LinkName       string `json:"link_name"`
+		Description    string `json:"description"`
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&req)
@@ -691,6 +702,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		RawEncryptionKey: sql.NullString{String: randomKey, Valid: true},
 		LinkName:         sql.NullString{String: req.LinkName, Valid: req.LinkName != ""},
 		PinWrappedKey:    sql.NullString{String: pinWrappedKey, Valid: true},
+		Description:      sql.NullString{String: req.Description, Valid: req.Description != ""},
 	})
 
 	if err != nil {

@@ -203,6 +203,8 @@ type UploadToken struct {
 	RawEncryptionKey sql.NullString
 	LinkName         sql.NullString
 	PinWrappedKey    sql.NullString
+	Description      sql.NullString
+	ClientMessage    sql.NullString
 }
 
 type User struct {

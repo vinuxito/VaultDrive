@@ -5,6 +5,7 @@ import {
   Settings,
   LogOut,
   Users,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -28,6 +29,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   };
 
   const navItems = [
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Home, label: "Home", path: "/", action: handleHomeClick },
     { icon: FolderOpen, label: "Files", path: "/files" },
     { icon: Users, label: "Groups", path: "/groups" },

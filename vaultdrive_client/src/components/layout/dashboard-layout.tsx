@@ -24,6 +24,7 @@ import type { ActivityEvent } from "../../hooks";
 import { ActivityFeedPanel } from "./ActivityFeedPanel";
 import { Toast } from "./Toast";
 import type { ToastMessage } from "./Toast";
+import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -48,6 +49,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const dismissPinBanner = () => {
     sessionStorage.setItem("pin_banner_dismissed", "true");
+    setPinBannerDismissed(true);
+  };
+
+  const [showOnboarding, setShowOnboarding] = useState(
+    () =>
+      user.pin_set === false &&
+      sessionStorage.getItem("onboarding_shown") !== "true"
+  );
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
     setPinBannerDismissed(true);
   };
 
@@ -109,6 +121,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex">
       <div className="fixed inset-0 z-[-1]" style={{background: "linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%)"}} />
+
+      {showOnboarding && (
+        <OnboardingWizard onComplete={handleOnboardingComplete} />
+      )}
       
       <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} />
 

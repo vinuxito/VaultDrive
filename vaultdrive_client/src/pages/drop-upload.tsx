@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon } from "lucide-react";
+import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
@@ -10,6 +10,7 @@ interface TokenInfo {
   valid: boolean;
   folder_name: string;
   link_name?: string;
+  description?: string;
   files_limit: number | null;
   uploaded: number | null;
   expires_at: string | null;
@@ -37,6 +38,8 @@ export default function DropUpload() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [password, setPassword] = useState("");
+  const [clientMessage, setClientMessage] = useState("");
+  const [delivered, setDelivered] = useState(false);
 
   useEffect(() => {
     initializeDropLink();
@@ -156,8 +159,9 @@ export default function DropUpload() {
     await Promise.allSettled(
       files.map(f => uploadFile(f, isFolder))
     );
-    
+
     setUploading(false);
+    setDelivered(true);
     await initializeDropLink();
   };
 
@@ -284,7 +288,10 @@ export default function DropUpload() {
             formData.append("algorithm", "AES-256-GCM");
             formData.append("wrapped_key", urlKey);
             formData.append("password", urlKey);
-            
+            if (clientMessage) {
+              formData.append("client_message", clientMessage);
+            }
+
             xhr.open("POST", `/abrn/api/drop/${token}/upload`);
             xhr.send(formData);
           } catch (err) {
@@ -348,6 +355,29 @@ export default function DropUpload() {
   const completedCount = uploadProgress.filter(p => p.status === "success").length;
   const totalCount = uploadProgress.length;
 
+  if (delivered && completedCount > 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f2ece9] flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <ABRNLogo className="h-14 mx-auto" alt="ABRN Asesores SC" />
+          <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center mx-auto">
+            <ShieldCheck className="w-12 h-12 text-emerald-500" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-slate-800">Files delivered securely</h1>
+            <p className="text-slate-500">
+              {completedCount} file{completedCount > 1 ? "s" : ""} encrypted and delivered to {tokenInfo.link_name || tokenInfo.folder_name}.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/8 text-[#7d4f50] text-sm font-medium">
+            <Lock className="w-3.5 h-3.5" />
+            AES-256-GCM encrypted · Zero-knowledge storage
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="abrn-page-bg p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -357,10 +387,19 @@ export default function DropUpload() {
 
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7d4f50] to-[#c4999b]">
-            Secure Drop - ABRN Asesores SC
+            Secure File Delivery
           </h1>
-          <p className="text-muted-foreground">Upload files securely to {tokenInfo.link_name ? `${tokenInfo.link_name} Workspace` : tokenInfo.folder_name}</p>
+          <p className="text-muted-foreground">
+            {tokenInfo.link_name ? `${tokenInfo.link_name}` : tokenInfo.folder_name}
+          </p>
         </div>
+
+        {tokenInfo.description && (
+          <div className="flex gap-3 px-4 py-3 rounded-xl bg-[#f2d7d8]/60 border border-[#d4a5a6]/40">
+            <AlertCircle className="w-4 h-4 text-[#7d4f50] shrink-0 mt-0.5" />
+            <p className="text-sm text-[#6b4345]">{tokenInfo.description}</p>
+          </div>
+        )}
 
         <Card>
           <CardHeader>
@@ -493,13 +532,31 @@ export default function DropUpload() {
                 ))}
               </div>
             )}
+            {!uploading && (
+              <div className="space-y-1.5">
+                <label htmlFor="client-message" className="text-sm font-medium text-slate-700">
+                  Add a note for the recipient <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="client-message"
+                  value={clientMessage}
+                  onChange={(e) => setClientMessage(e.target.value.slice(0, 500))}
+                  placeholder="e.g. Here are the files you requested. Let me know if you need anything else."
+                  rows={2}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:border-[#7d4f50]/40 focus:bg-white focus:outline-none resize-none transition-all"
+                />
+                {clientMessage.length > 0 && (
+                  <p className="text-xs text-slate-400 text-right">{clientMessage.length}/500</p>
+                )}
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => {
-                const token = localStorage.getItem("token");
-                if (token) {
-                  navigate("/abrn/files");
+                const authToken = localStorage.getItem("token");
+                if (authToken) {
+                  navigate("/files");
                 } else {
                   window.location.href = "https://abrn.mx/";
                 }

@@ -11,9 +11,10 @@ INSERT INTO upload_tokens (
     password_hash,
     raw_encryption_key,
     link_name,
-    pin_wrapped_key
+    pin_wrapped_key,
+    description
 )
-VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7, $8, $9)
+VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7, $8, $9, $10)
 RETURNING *;
 
 -- name: GetUploadTokenByToken :one
@@ -50,6 +51,11 @@ ORDER BY created_at DESC;
 -- name: GetUploadTokenByID :one
 SELECT * FROM upload_tokens
 WHERE id = $1;
+
+-- name: SaveDropClientMessage :exec
+UPDATE upload_tokens
+SET client_message = $2
+WHERE token = $1;
 
 -- name: ClearDropSourceFromFiles :exec
 UPDATE files SET drop_source_id = NULL WHERE drop_source_id = $1;

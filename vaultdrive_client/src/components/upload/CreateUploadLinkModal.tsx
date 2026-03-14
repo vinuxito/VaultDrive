@@ -35,6 +35,7 @@ export function CreateUploadLinkModal({
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [linkName, setLinkName] = useState("");
+  const [description, setDescription] = useState("");
   const [createdLink, setCreatedLink] = useState<{ url: string } | null>(null);
 
   useEffect(() => {
@@ -139,7 +140,8 @@ export function CreateUploadLinkModal({
           expires_at: expiresAt,
           max_files: maxFiles,
           pin: pinInput,
-          link_name: linkName
+          link_name: linkName,
+          description: description
         })
       });
 
@@ -264,6 +266,20 @@ export function CreateUploadLinkModal({
                 value={linkName}
                 onChange={(e) => setLinkName(e.target.value)}
                 className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description" className="text-white/90 text-sm">
+                Instructions for client (optional)
+              </Label>
+              <textarea
+                id="description"
+                placeholder="e.g. Please upload your Q1 financial statements here."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className="mt-1 w-full rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 focus:outline-none px-3 py-2 text-sm resize-none"
               />
             </div>
 

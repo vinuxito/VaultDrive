@@ -16,7 +16,8 @@ export type TreeNode =
   | { type: "starred" }
   | { type: "shared" }
   | { type: "folder"; folderId: string; folderName: string }
-  | { type: "drop-link"; token: string; tokenId: string; linkName: string };
+  | { type: "drop-link"; token: string; tokenId: string; linkName: string }
+  | { type: "manage-drops" };
 
 export interface DropTokenInfo {
   id: string;
@@ -240,6 +241,18 @@ export function VaultTree({
         label="Drop Links"
         open={linksOpen}
         onToggle={() => setLinksOpen((open) => !open)}
+        action={
+          <button
+            onClick={() => onSelect({ type: "manage-drops" })}
+            className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
+              isSameNode(selected, { type: "manage-drops" })
+                ? "bg-[#7d4f50]/15 text-[#7d4f50] font-medium"
+                : "text-slate-400 hover:text-[#7d4f50] hover:bg-[#7d4f50]/8"
+            }`}
+          >
+            Manage
+          </button>
+        }
       />
 
       {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-400 px-7 py-1">No drop links</p>}
