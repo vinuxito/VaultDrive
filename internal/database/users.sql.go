@@ -26,7 +26,7 @@ INSERT INTO users (
   updated_at
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until
 `
 
 type CreateUserParams struct {
@@ -69,6 +69,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PinHash,
 		&i.PinSetAt,
 		&i.PrivateKeyPinEncrypted,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
 	)
 	return i, err
 }
@@ -94,7 +96,7 @@ func (q *Queries) DeleteUserAsAdmin(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until FROM users
 ORDER BY created_at DESC
 `
 
@@ -123,6 +125,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.PinHash,
 			&i.PinSetAt,
 			&i.PrivateKeyPinEncrypted,
+			&i.PinFailedAttempts,
+			&i.PinLockedUntil,
 		); err != nil {
 			return nil, err
 		}
@@ -138,7 +142,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until FROM users
 WHERE email = $1
 `
 
@@ -160,12 +164,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PinHash,
 		&i.PinSetAt,
 		&i.PrivateKeyPinEncrypted,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until FROM users
 WHERE id = $1
 `
 
@@ -187,12 +193,14 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PinHash,
 		&i.PinSetAt,
 		&i.PrivateKeyPinEncrypted,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until FROM users
 WHERE username = $1
 `
 
@@ -214,6 +222,8 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.PinHash,
 		&i.PinSetAt,
 		&i.PrivateKeyPinEncrypted,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
 	)
 	return i, err
 }
@@ -250,6 +260,62 @@ func (q *Queries) GetUserPublicKeyByID(ctx context.Context, id uuid.UUID) (GetUs
 	var i GetUserPublicKeyByIDRow
 	err := row.Scan(&i.ID, &i.PublicKey)
 	return i, err
+}
+
+const registerFailedPINAttempt = `-- name: RegisterFailedPINAttempt :one
+UPDATE users
+SET
+  pin_failed_attempts = pin_failed_attempts + 1,
+  pin_locked_until = CASE
+    WHEN pin_failed_attempts + 1 >= $2 THEN $3
+    ELSE pin_locked_until
+  END,
+  updated_at = $4
+WHERE id = $1
+RETURNING pin_failed_attempts, pin_locked_until
+`
+
+type RegisterFailedPINAttemptParams struct {
+	ID                uuid.UUID
+	PinFailedAttempts int32
+	PinLockedUntil    sql.NullTime
+	UpdatedAt         time.Time
+}
+
+type RegisterFailedPINAttemptRow struct {
+	PinFailedAttempts int32
+	PinLockedUntil    sql.NullTime
+}
+
+func (q *Queries) RegisterFailedPINAttempt(ctx context.Context, arg RegisterFailedPINAttemptParams) (RegisterFailedPINAttemptRow, error) {
+	row := q.db.QueryRowContext(ctx, registerFailedPINAttempt,
+		arg.ID,
+		arg.PinFailedAttempts,
+		arg.PinLockedUntil,
+		arg.UpdatedAt,
+	)
+	var i RegisterFailedPINAttemptRow
+	err := row.Scan(&i.PinFailedAttempts, &i.PinLockedUntil)
+	return i, err
+}
+
+const resetPINLockout = `-- name: ResetPINLockout :exec
+UPDATE users
+SET
+  pin_failed_attempts = 0,
+  pin_locked_until = NULL,
+  updated_at = $2
+WHERE id = $1
+`
+
+type ResetPINLockoutParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ResetPINLockout(ctx context.Context, arg ResetPINLockoutParams) error {
+	_, err := q.db.ExecContext(ctx, resetPINLockout, arg.ID, arg.UpdatedAt)
+	return err
 }
 
 const searchUsers = `-- name: SearchUsers :many
@@ -352,7 +418,7 @@ SET
   email = $4,
   updated_at = $5
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until
 `
 
 type UpdateUserParams struct {
@@ -387,6 +453,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.PinHash,
 		&i.PinSetAt,
 		&i.PrivateKeyPinEncrypted,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
 	)
 	return i, err
 }
@@ -400,7 +468,7 @@ SET
   username = $5,
   updated_at = $6
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until
 `
 
 type UpdateUserAsAdminParams struct {
@@ -437,6 +505,8 @@ func (q *Queries) UpdateUserAsAdmin(ctx context.Context, arg UpdateUserAsAdminPa
 		&i.PinHash,
 		&i.PinSetAt,
 		&i.PrivateKeyPinEncrypted,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
 	)
 	return i, err
 }

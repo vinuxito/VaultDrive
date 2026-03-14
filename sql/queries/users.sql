@@ -71,6 +71,26 @@ UPDATE users
 SET pin_hash = $2, pin_set_at = $3
 WHERE id = $1;
 
+-- name: RegisterFailedPINAttempt :one
+UPDATE users
+SET
+  pin_failed_attempts = pin_failed_attempts + 1,
+  pin_locked_until = CASE
+    WHEN pin_failed_attempts + 1 >= $2 THEN $3
+    ELSE pin_locked_until
+  END,
+  updated_at = $4
+WHERE id = $1
+RETURNING pin_failed_attempts, pin_locked_until;
+
+-- name: ResetPINLockout :exec
+UPDATE users
+SET
+  pin_failed_attempts = 0,
+  pin_locked_until = NULL,
+  updated_at = $2
+WHERE id = $1;
+
 -- name: GetUserPINStatus :one
 SELECT pin_hash, pin_set_at FROM users
 WHERE id = $1;

@@ -222,4 +222,6 @@ type User struct {
 	PinHash                sql.NullString
 	PinSetAt               sql.NullTime
 	PrivateKeyPinEncrypted sql.NullString
+	PinFailedAttempts      int32
+	PinLockedUntil         sql.NullTime
 }
