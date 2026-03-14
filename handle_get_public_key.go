@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/Pranay0205/VaultDrive/internal/database"
 	"github.com/google/uuid"
 )
 
-func (cfg *ApiConfig) handlerGetPublicKey(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) handlerGetPublicKey(w http.ResponseWriter, r *http.Request, _ database.User) {
 	email := r.URL.Query().Get("email")
 	if email == "" {
 		respondWithError(w, http.StatusBadRequest, "Email is required", nil)
@@ -30,7 +31,7 @@ func (cfg *ApiConfig) handlerGetPublicKey(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (cfg *ApiConfig) handlerGetPublicKeyByID(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) handlerGetPublicKeyByID(w http.ResponseWriter, r *http.Request, _ database.User) {
 	userIDStr := r.PathValue("userId")
 	if userIDStr == "" {
 		respondWithError(w, http.StatusBadRequest, "userId is required", nil)

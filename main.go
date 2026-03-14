@@ -32,18 +32,59 @@ func (cfg *ApiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 
 func middlewareCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		if origin != "" && isAllowedOrigin(r, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
 
 		if r.Method == "OPTIONS" {
+			if origin != "" && !isAllowedOrigin(r, origin) {
+				http.Error(w, "Origin not allowed", http.StatusForbidden)
+				return
+			}
 			w.WriteHeader(http.StatusOK)
 			return
 		}
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func requestOrigin(r *http.Request) string {
+	scheme := "http"
+	if forwardedProto := strings.TrimSpace(r.Header.Get("X-Forwarded-Proto")); forwardedProto != "" {
+		scheme = forwardedProto
+	} else if r.TLS != nil {
+		scheme = "https"
+	}
+	return fmt.Sprintf("%s://%s", scheme, r.Host)
+}
+
+func isAllowedOrigin(r *http.Request, origin string) bool {
+	if origin == "" {
+		return true
+	}
+
+	if origin == requestOrigin(r) {
+		return true
+	}
+
+	configuredOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if configuredOrigins == "" {
+		return origin == "http://localhost:5173" || origin == "http://127.0.0.1:5173"
+	}
+
+	for _, allowedOrigin := range strings.Split(configuredOrigins, ",") {
+		if strings.TrimSpace(allowedOrigin) == origin {
+			return true
+		}
+	}
+
+	return false
 }
 
 func main() {
@@ -89,13 +130,13 @@ func main() {
 
 	mux.Handle("POST /api/login", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin)))
 
-	mux.Handle("GET /api/user-by-username", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByUsernameHandler)))
+	mux.Handle("GET /api/user-by-username", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.getUserByUsernameHandler)))
 
-	mux.Handle("GET /api/user-by-email", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByEmailHandler)))
+	mux.Handle("GET /api/user-by-email", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.getUserByEmailHandler)))
 
-	mux.Handle("GET /api/user/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKey)))
+	mux.Handle("GET /api/user/public-key", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handlerGetPublicKey)))
 
-	mux.Handle("GET /api/users/{userId}/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKeyByID)))
+	mux.Handle("GET /api/users/{userId}/public-key", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handlerGetPublicKeyByID)))
 
 	mux.Handle("GET /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleListFolders)))
 
@@ -112,7 +153,7 @@ func main() {
 	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
 	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
 	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
-	mux.HandleFunc("GET /api/drop/{token}/encryption-key", apiConfig.handlerDropGetEncryptionKey)
+	mux.HandleFunc("POST /api/drop/{token}/encryption-key", apiConfig.handlerDropGetEncryptionKey)
 	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 
@@ -204,6 +245,10 @@ func main() {
 	mux.Handle("DELETE /api/share-links/{linkId}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerRevokePublicShareLink)))
+
+	mux.Handle("GET /api/activity",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetActivity)))
 
 	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
 
