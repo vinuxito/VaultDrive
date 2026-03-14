@@ -3,7 +3,6 @@ import {
   Shield,
   Lock,
   Database,
-  Github,
   FileUp,
   Key,
   Share2,
@@ -33,20 +32,11 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Enterprise-grade secure cloud storage with zero-knowledge encryption.
-              Built with cutting-edge technology for maximum privacy and security.
+              A calmer way to exchange sensitive files with your team, partners, and clients.
+              Share securely, collect documents safely, and keep every handoff clear.
             </p>
 
             <div className="flex gap-3 justify-center pt-4 flex-wrap">
-              <Button
-                className="gap-2 abrn-btn-ghost"
-                onClick={() =>
-                  window.open("https://github.com/Pranay0205/VaultDrive", "_blank")
-                }
-              >
-                <Github className="w-4 h-4" />
-                View on GitHub
-              </Button>
               <Button
                 className="gap-2 abrn-btn-primary"
                 onClick={() => navigate("/login")}
@@ -72,7 +62,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold mb-2">Secure Authentication</h3>
               <p className="text-sm text-muted-foreground">
-                JWT-based auth with bcrypt password hashing and refresh token rotation
+                Calm access with password or PIN, backed by strong account and key protection.
               </p>
             </div>
 
@@ -82,7 +72,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold mb-2">File Management</h3>
               <p className="text-sm text-muted-foreground">
-                Upload, download, and manage files with complete CRUD operations
+                Keep working files, client deliveries, and incoming dropoffs organized in one place.
               </p>
             </div>
 
@@ -92,7 +82,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold mb-2">Client-Side Encryption</h3>
               <p className="text-sm text-muted-foreground">
-                AES-256-GCM encryption with password-based key derivation (PBKDF2)
+                Sensitive files are encrypted before upload so storage stays blind to their contents.
               </p>
             </div>
 
@@ -102,7 +92,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold mb-2">Secure File Sharing</h3>
               <p className="text-sm text-muted-foreground">
-                Share encrypted files with other users using public key cryptography
+                Deliver files safely, request documents back, and control access with clear boundaries.
               </p>
             </div>
           </div>
@@ -165,17 +155,18 @@ export default function Home() {
             </h2>
             <div className="space-y-3 text-sm text-muted-foreground">
               <p>
-                ABRN Drive is an enterprise-grade zero-knowledge encrypted cloud storage platform
-                designed for businesses that demand maximum privacy and security.
+                ABRN Drive is designed as a secure file workspace for real client operations,
+                not just storage. It helps teams deliver, collect, review, and protect sensitive files
+                without pushing people into messy side channels.
               </p>
               <p>
-                Built with modern technologies including Go, React 19, PostgreSQL, and industry-standard
-                encryption protocols (RSA-2048, AES-256-GCM), ensuring your data remains private.
+                The goal is simple: make secure file handling feel trustworthy and straightforward,
+                whether you are sharing documents with a partner or receiving files from a client.
               </p>
               <p className="pt-2">
                 <strong className="text-foreground">Key Features:</strong>{" "}
-                Zero-knowledge encryption, secure file sharing, team collaboration,
-                integrated email support, and comprehensive audit logging.
+                secure sharing, secure client dropoffs, controlled collaboration,
+                and operational visibility that reduces stress instead of adding more steps.
               </p>
             </div>
           </div>
