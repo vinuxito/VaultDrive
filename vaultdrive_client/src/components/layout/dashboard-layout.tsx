@@ -1,7 +1,7 @@
 
 
 import { useState, type ReactNode, useEffect } from "react";
-import { Menu, Search, Bell, Command, Fingerprint, X } from "lucide-react";
+import { Menu, Search, Bell, Command } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
@@ -25,6 +25,7 @@ import { ActivityFeedPanel } from "./ActivityFeedPanel";
 import { Toast } from "./Toast";
 import type { ToastMessage } from "./Toast";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
+import { requiresPinSetup } from "../../utils/pin-trust";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -42,25 +43,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const [pinBannerDismissed, setPinBannerDismissed] = useState(
-    () => sessionStorage.getItem("pin_banner_dismissed") === "true"
-  );
-  const showPinBanner = user.pin_set === false && !pinBannerDismissed;
-
-  const dismissPinBanner = () => {
-    sessionStorage.setItem("pin_banner_dismissed", "true");
-    setPinBannerDismissed(true);
-  };
-
-  const [showOnboarding, setShowOnboarding] = useState(
-    () =>
-      user.pin_set === false &&
-      sessionStorage.getItem("onboarding_shown") !== "true"
-  );
+  const showOnboarding = requiresPinSetup(user);
 
   const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    setPinBannerDismissed(true);
+    window.dispatchEvent(new Event("auth-change"));
   };
 
   useEffect(() => {
@@ -122,9 +108,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen w-full bg-background text-foreground flex">
       <div className="fixed inset-0 z-[-1]" style={{background: "linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%)"}} />
 
-      {showOnboarding && (
-        <OnboardingWizard onComplete={handleOnboardingComplete} />
-      )}
+        {showOnboarding && (
+          <OnboardingWizard onComplete={handleOnboardingComplete} />
+        )}
       
       <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} />
 
@@ -141,6 +127,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <header className="sticky top-0 z-30 abrn-glass-nav px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-[#7d4f50]/5">
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors hidden md:block"
               aria-label="Toggle sidebar"
@@ -148,6 +135,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Menu className="w-5 h-5" />
             </button>
             <button
+              type="button"
               onClick={() => setShowMobileMenu(true)}
               className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors md:hidden"
               aria-label="Open menu"
@@ -156,6 +144,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </button>
             
             <button 
+              type="button"
               onClick={() => setShowCommandPalette(true)}
               className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-[#7d4f50]/5 transition-colors"
             >
@@ -169,6 +158,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           <div className="flex items-center gap-3">
             <button 
+              type="button"
               onClick={() => setShowCommandPalette(true)}
               className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors sm:hidden" aria-label="Search"
             >
@@ -176,6 +166,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </button>
 
             <button
+              type="button"
               onClick={() => { setActivityFeedOpen(true); setUnreadCount(0); }}
               className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors relative"
               aria-label="Notifications"
@@ -190,7 +181,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2">
+                <button type="button" className="flex items-center gap-2">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={user.avatar_url} />
                   <AvatarFallback className="bg-primary/20 text-primary font-semibold">
@@ -219,28 +210,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </DropdownMenu>
           </div>
         </header>
-
-        {showPinBanner && (
-          <div className="flex items-center gap-3 px-4 sm:px-6 py-2.5 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
-            <Fingerprint className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-            <span className="flex-1">
-              Set a 4-digit PIN to enable PIN login.{" "}
-              <button
-                onClick={() => navigate("/settings")}
-                className="font-medium underline underline-offset-2 hover:no-underline"
-              >
-                Go to Settings
-              </button>
-            </span>
-            <button
-              onClick={dismissPinBanner}
-              className="p-0.5 rounded hover:bg-amber-200/60 dark:hover:bg-amber-800/60 transition-colors"
-              aria-label="Dismiss"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
         <div className="flex-1 overflow-auto p-4 sm:p-6">
           {children}
