@@ -31,6 +31,7 @@ Last updated: March 14, 2026
 | [SESSION_MEMORY_2026-03-14.md](./SESSION_MEMORY_2026-03-14.md) | Bug fix: Share and "Create share link" buttons invisible due to opacity-0 hover-only CSS in Vault Explorer |
 | [SESSION_MEMORY_2026-03-14-upgrade.md](./SESSION_MEMORY_2026-03-14-upgrade.md) | UX Upgrade Plan V1 — session key cache, drop portal, onboarding, quick share, dashboard |
 | [SESSION_MEMORY_2026-03-14-phase2.md](./SESSION_MEMORY_2026-03-14-phase2.md) | Phase 2 security hardening — ZK seal, fragment keys, auth gates, activity feed, access panel |
+| [SESSION_MEMORY_2026-03-14-cleanup.md](./SESSION_MEMORY_2026-03-14-cleanup.md) | Cleanup: PIN lockout, migration 029, ESLint pass, sqlc sync, build verification |
 
 ## Quick Navigation
 

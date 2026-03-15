@@ -130,24 +130,21 @@ Added `db *sql.DB` to `ApiConfig` struct. Several new handlers use raw SQL for n
 
 ---
 
-## Known Deferred Items
+## Deferred Items — All Completed
 
-### Migration 029 — DROP COLUMN raw_encryption_key
+### Migration 029 — DROP COLUMN raw_encryption_key ✅
 
-Not yet run. Requires `sqlc generate` because the generated queries use explicit column names. Old drop tokens still reference this column for backward-compat URL display. Once old links expire (or are manually deleted), this is safe to run:
+**Completed in follow-up session (d60cb33).**
+- 7 unused legacy test tokens (0 files each) expired before running
+- `ALTER TABLE upload_tokens DROP COLUMN raw_encryption_key` executed
+- sqlc regenerated, handle_drop.go cleaned, legacy URL format check removed
+- Column fully gone from DB and all generated code
 
-```bash
-# 1. Run migration
-goose -dir sql/schema postgres "$DB_URL" up  # after adding 029 back to schema
-# 2. Regenerate sqlc
-sqlc generate
-# 3. Rebuild
-go build -o abrndrive .
-```
+### PIN rate limiting on handlerSetUserPIN ✅
 
-### PIN rate limiting on handlerSetUserPIN
-
-Currently only `handlerCreateDropToken` has PIN lockout. The `POST /api/users/pin` endpoint does not. Should also protect PIN changes.
+**Completed in follow-up session (d60cb33).**
+- `handlerSetUserPIN` now checks lockout before old PIN validation
+- Same pattern as `handlerCreateDropToken`
 
 ---
 
