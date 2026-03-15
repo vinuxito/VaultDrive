@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon, Lock, ShieldCheck } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon, Lock, ShieldCheck, Building2, Copy } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
@@ -15,6 +15,8 @@ interface TokenInfo {
   uploaded: number | null;
   expires_at: string | null;
   has_password: boolean;
+  owner_display_name?: string;
+  owner_organization?: string;
   error?: string;
 }
 
@@ -27,33 +29,41 @@ interface UploadProgress {
   error?: string;
 }
 
+function readKeyFromUrl(): string {
+  const hash = window.location.hash;
+  if (hash.includes("key=")) {
+    return hash.replace(/^#key=/, "").replace(/.*key=/, "");
+  }
+  const params = new URLSearchParams(window.location.search);
+  return params.get("key") || "";
+}
+
+function isLegacyKey(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return !!params.get("key") && !window.location.hash.includes("key=");
+}
+
 export default function DropUpload() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
-  const [password, setPassword] = useState("");
+  const [encryptionKey, setEncryptionKey] = useState("");
   const [clientMessage, setClientMessage] = useState("");
   const [delivered, setDelivered] = useState(false);
+  const [deliveryRef, setDeliveryRef] = useState("");
+  const [receiptCopied, setReceiptCopied] = useState(false);
 
-  useEffect(() => {
-    initializeDropLink();
-  }, [token]);
-
-  const initializeDropLink = async () => {
-    const urlKey = searchParams.get("key");
-    
+  const initializeDropLink = useCallback(async () => {
     try {
-      const apiUrl = urlKey ? `/abrn/api/drop/${token}?key=${encodeURIComponent(urlKey)}` : `/abrn/api/drop/${token}`;
-      const response = await fetch(apiUrl);
+      const response = await fetch(`/abrn/api/drop/${token}`);
       
       if (response.status === 404 || response.status === 403) {
-        const data = await response.json();
+        const data = await response.json() as { error?: string };
         setError(data.error || "Invalid or expired upload link");
         setLoading(false);
         return;
@@ -73,15 +83,20 @@ export default function DropUpload() {
 
       setTokenInfo(data);
       
-      if (urlKey) {
-        setPassword(urlKey);
+      const key = readKeyFromUrl();
+      if (key) {
+        setEncryptionKey(key);
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Unable to validate upload link");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    void initializeDropLink();
+  }, [initializeDropLink]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -140,8 +155,8 @@ export default function DropUpload() {
   };
 
   const handleUpload = async (files: File[], isFolder: boolean = false) => {
-    if (!password) {
-      setError("Please enter the encryption key");
+    if (!encryptionKey) {
+      setError("Encryption key not found in URL. Please use the full link provided to you.");
       return;
     }
 
@@ -162,7 +177,8 @@ export default function DropUpload() {
 
     setUploading(false);
     setDelivered(true);
-    await initializeDropLink();
+    setDeliveryRef(token?.slice(0, 8) ?? "");
+    void initializeDropLink();
   };
 
   const uploadFile = async (file: File, isFolder: boolean): Promise<void> => {
@@ -250,18 +266,19 @@ export default function DropUpload() {
       setTimeout(() => {
         (async () => {
           try {
-            const urlKey = password;
-            if (!urlKey) {
-              throw new Error("No encryption key");
+            let rawEncryptionKey: string;
+
+            if (isLegacyKey()) {
+              const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(encryptionKey)}`);
+              if (!keyResponse.ok) {
+                throw new Error("Failed to get encryption key");
+              }
+              const keyData = await keyResponse.json() as { encryption_key: string };
+              rawEncryptionKey = keyData.encryption_key;
+            } else {
+              rawEncryptionKey = encryptionKey;
             }
-            
-            const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(urlKey)}`);
-            if (!keyResponse.ok) {
-              throw new Error("Failed to get encryption key");
-            }
-            const keyData = await keyResponse.json();
-            const rawEncryptionKey = keyData.encryption_key;
-            
+
             const fileBuffer = await file.arrayBuffer();
             const iv = crypto.getRandomValues(new Uint8Array(12));
             const encryptionKeyBytes = hexToBytes(rawEncryptionKey);
@@ -286,8 +303,8 @@ export default function DropUpload() {
             formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
             formData.append("salt", "");
             formData.append("algorithm", "AES-256-GCM");
-            formData.append("wrapped_key", urlKey);
-            formData.append("password", urlKey);
+            formData.append("wrapped_key", encryptionKey);
+            formData.append("password", encryptionKey);
             if (clientMessage) {
               formData.append("client_message", clientMessage);
             }
@@ -356,6 +373,14 @@ export default function DropUpload() {
   const totalCount = uploadProgress.length;
 
   if (delivered && completedCount > 0) {
+    const receiptLines = [
+      `✓ Delivered securely`,
+      `To: ${tokenInfo.owner_display_name || ""}${tokenInfo.owner_organization ? ` · ${tokenInfo.owner_organization}` : ""}`,
+      `Files: ${completedCount} file${completedCount > 1 ? "s" : ""}`,
+      `Time: ${new Date().toLocaleString()}`,
+      deliveryRef ? `Reference: ${deliveryRef}` : "",
+    ].filter(Boolean).join("\n");
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f2ece9] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
@@ -366,9 +391,38 @@ export default function DropUpload() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-slate-800">Files delivered securely</h1>
             <p className="text-slate-500">
-              {completedCount} file{completedCount > 1 ? "s" : ""} encrypted and delivered to {tokenInfo.link_name || tokenInfo.folder_name}.
+              {completedCount} file{completedCount > 1 ? "s" : ""} encrypted and delivered
+              {tokenInfo.link_name ? ` to ${tokenInfo.link_name}` : ""}.
             </p>
           </div>
+
+          <div className="text-left bg-white/80 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
+            {tokenInfo.owner_display_name && (
+              <p className="font-medium text-slate-700">
+                {tokenInfo.owner_display_name}
+                {tokenInfo.owner_organization && (
+                  <span className="text-slate-400 font-normal"> · {tokenInfo.owner_organization}</span>
+                )}
+              </p>
+            )}
+            <p className="text-slate-600">{completedCount} file{completedCount > 1 ? "s" : ""} received</p>
+            <p className="text-slate-400 text-xs">{new Date().toLocaleString()}</p>
+            {deliveryRef && <p className="text-slate-400 text-xs">Ref: {deliveryRef}</p>}
+          </div>
+
+          <button
+            type="button"
+            onClick={async () => {
+              await navigator.clipboard.writeText(receiptLines);
+              setReceiptCopied(true);
+              setTimeout(() => setReceiptCopied(false), 2000);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            {receiptCopied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            {receiptCopied ? "Copied!" : "Copy receipt"}
+          </button>
+
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/8 text-[#7d4f50] text-sm font-medium">
             <Lock className="w-3.5 h-3.5" />
             AES-256-GCM encrypted · Zero-knowledge storage
@@ -384,6 +438,21 @@ export default function DropUpload() {
         <div className="flex justify-start mb-4">
           <ABRNLogo className="h-12" alt="ABRN Asesores SC" />
         </div>
+
+        {(tokenInfo.owner_display_name || tokenInfo.owner_organization) && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-slate-200/60">
+            <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="text-sm">
+              <span className="font-medium text-slate-700">
+                {tokenInfo.owner_display_name ? `Sending to ${tokenInfo.owner_display_name}` : "Secure File Delivery"}
+              </span>
+              {tokenInfo.owner_organization && (
+                <span className="text-slate-400"> · {tokenInfo.owner_organization}</span>
+              )}
+            </div>
+            <Lock className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />
+          </div>
+        )}
 
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7d4f50] to-[#c4999b]">
@@ -456,8 +525,9 @@ export default function DropUpload() {
                   </label>
                 </div>
 
-                <div
-                  className="border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer border-[#7d4f50]/30 hover:border-[#7d4f50] hover:bg-gradient-to-br hover:from-[#7d4f50]/5 hover:to-[#c4999b]/5"
+                <label
+                  htmlFor="file-input"
+                  className="block border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer border-[#7d4f50]/30 hover:border-[#7d4f50] hover:bg-gradient-to-br hover:from-[#7d4f50]/5 hover:to-[#c4999b]/5"
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
                 >
@@ -476,7 +546,7 @@ export default function DropUpload() {
                       <span>Max upload size: 2GB per file</span>
                     </div>
                   </div>
-                </div>
+                </label>
               </div>
             ) : (
               <div className="space-y-2">
@@ -495,8 +565,8 @@ export default function DropUpload() {
                     {completedCount}/{totalCount} completed
                   </span>
                 </div>
-                {uploadProgress.map((progress, idx) => (
-                  <div key={idx} className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                {uploadProgress.map((progress) => (
+                  <div key={progress.fileName} className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="truncate flex-1 mr-2" title={progress.fileName}>
                         {progress.fileName}
@@ -572,12 +642,11 @@ export default function DropUpload() {
         <Card className="bg-[#f2d7d8] dark:bg-[#7d4f50]/10 border-[#d4a5a6] dark:border-[#7d4f50]">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-[#7d4f50] dark:text-[#c4999b] flex-shrink-0 mt-0.5" />
+              <Lock className="w-5 h-5 text-[#7d4f50] dark:text-[#c4999b] flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
-                <p className="font-medium">Security Notice</p>
+                <p className="font-medium">End-to-end encrypted</p>
                 <p className="text-muted-foreground">
-                  Files uploaded here will be encrypted client-side and stored securely.
-                  The file owner will need the encryption key to decrypt files.
+                  Your files are encrypted in your browser before being sent. Nobody except the intended recipient can read them.
                 </p>
               </div>
             </div>

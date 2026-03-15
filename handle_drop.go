@@ -43,24 +43,6 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Validate key if token has password
-	key := r.URL.Query().Get("key")
-	if uploadToken.PasswordHash.Valid && uploadToken.PasswordHash.String != "" {
-		if key == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Encryption key required"})
-			return
-		}
-		// Validate by comparing wrapped keys (they should match if same key was used)
-		if key != uploadToken.PasswordHash.String {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid encryption key"})
-			return
-		}
-	}
-
 	if uploadToken.Used.Valid && uploadToken.Used.Bool {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
@@ -92,7 +74,23 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Build response with proper value extraction
+	owner, err := cfg.dbQueries.GetUserByID(r.Context(), uploadToken.OwnerUserID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Error getting owner info"})
+		return
+	}
+
+	ownerDisplayName := strings.TrimSpace(owner.FirstName + " " + owner.LastName)
+	if ownerDisplayName == "" {
+		ownerDisplayName = owner.Username
+	}
+	ownerOrg := ""
+	cfg.db.QueryRowContext(r.Context(),
+		"SELECT COALESCE(organization_name, '') FROM users WHERE id = $1", uploadToken.OwnerUserID,
+	).Scan(&ownerOrg)
+
 	filesLimit := ""
 	if uploadToken.MaxFiles.Valid {
 		filesLimit = fmt.Sprintf("%d", uploadToken.MaxFiles.Int32)
@@ -109,13 +107,15 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 	}
 
 	response := map[string]interface{}{
-		"valid":       true,
-		"folder_name": folder.Name,
-		"link_name":   uploadToken.LinkName.String,
-		"description": uploadToken.Description.String,
-		"files_limit": filesLimit,
-		"uploaded":    uploaded,
-		"expires_at":  expiresAt,
+		"valid":              true,
+		"folder_name":        folder.Name,
+		"link_name":          uploadToken.LinkName.String,
+		"description":        uploadToken.Description.String,
+		"files_limit":        filesLimit,
+		"uploaded":           uploaded,
+		"expires_at":         expiresAt,
+		"owner_display_name": ownerDisplayName,
+		"owner_organization": ownerOrg,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -123,54 +123,6 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(response)
 }
 
-// handlerDropGetEncryptionKey returns the raw encryption key for uploaders
-// Authentication: Valid wrapped key in query param
-func (cfg *ApiConfig) handlerDropGetEncryptionKey(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("DEBUG: handlerDropGetEncryptionKey called - Path: %s\n", r.URL.Path)
-	// Extract token from path
-	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/drop/"), "/")
-	if len(pathParts) == 0 {
-		respondWithError(w, http.StatusBadRequest, "No token provided", nil)
-		return
-	}
-	tokenStr := pathParts[0]
-
-	// Get wrapped key from query
-	wrappedKey := r.URL.Query().Get("key")
-	if wrappedKey == "" {
-		respondWithError(w, http.StatusBadRequest, "Wrapped key required in query", nil)
-		return
-	}
-
-	// Get upload token from database
-	uploadToken, err := cfg.dbQueries.GetUploadTokenByToken(r.Context(), tokenStr)
-	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Invalid upload token", err)
-		return
-	}
-
-	// Validate wrapped key matches stored key
-	if !uploadToken.PasswordHash.Valid || uploadToken.PasswordHash.String != wrappedKey {
-		respondWithError(w, http.StatusUnauthorized, "Invalid encryption key", nil)
-		return
-	}
-
-	// Validate token is still active
-	if uploadToken.ExpiresAt.Valid && uploadToken.ExpiresAt.Time.Before(time.Now()) {
-		respondWithError(w, http.StatusForbidden, "Upload token has expired", nil)
-		return
-	}
-
-	// Return raw encryption key
-	if !uploadToken.RawEncryptionKey.Valid {
-		respondWithError(w, http.StatusInternalServerError, "No encryption key available", nil)
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"encryption_key": uploadToken.RawEncryptionKey.String,
-	})
-}
 
 func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) {
 	// Extract token from URL path - use same method as GET handler
@@ -264,10 +216,9 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Validate wrapped key by comparing with stored key
 	storedWrappedKey := uploadToken.PasswordHash.String
 	providedWrappedKey := r.FormValue("wrapped_key")
-	if providedWrappedKey != storedWrappedKey {
+	if storedWrappedKey != "" && providedWrappedKey != storedWrappedKey {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid encryption key"})
@@ -443,6 +394,16 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			log.Printf("Failed to update token file count: %v", err)
 		}
+		cfg.db.ExecContext(r.Context(),
+			"UPDATE upload_tokens SET last_used_at = NOW() WHERE id = $1", uploadToken.ID)
+
+		sealAfter := false
+		cfg.db.QueryRowContext(r.Context(),
+			"SELECT COALESCE(seal_after_upload, false) FROM upload_tokens WHERE id = $1", uploadToken.ID,
+		).Scan(&sealAfter)
+		if sealAfter {
+			cfg.dbQueries.ExpireToken(r.Context(), uploadToken.ID)
+		}
 		if clientMessage != "" {
 			if err := cfg.dbQueries.SaveDropClientMessage(r.Context(), database.SaveDropClientMessageParams{
 				Token:         tokenStr,
@@ -559,12 +520,13 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 	}
 
 	var req struct {
-		TargetFolderID string `json:"target_folder_id"`
-		ExpiresAt      string `json:"expires_at"`
-		MaxFiles       int    `json:"max_files"`
-		Pin            string `json:"pin"`
-		LinkName       string `json:"link_name"`
-		Description    string `json:"description"`
+		TargetFolderID   string `json:"target_folder_id"`
+		ExpiresAt        string `json:"expires_at"`
+		MaxFiles         int    `json:"max_files"`
+		Pin              string `json:"pin"`
+		LinkName         string `json:"link_name"`
+		Description      string `json:"description"`
+		SealAfterUpload  bool   `json:"seal_after_upload"`
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&req)
@@ -650,12 +612,37 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		json.NewEncoder(w).Encode(map[string]string{"error": "Set your 4-digit PIN in Settings before creating drop links"})
 		return
 	}
+
+	var lockedUntil *time.Time
+	var failedAttempts int
+	cfg.db.QueryRowContext(r.Context(),
+		"SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1", ownerID,
+	).Scan(&failedAttempts, &lockedUntil)
+	if lockedUntil != nil && lockedUntil.After(time.Now()) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusTooManyRequests)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Too many incorrect PIN attempts. Try again after " + lockedUntil.UTC().Format(time.RFC3339)})
+		return
+	}
+
 	if err := auth.CheckPasswordHash(req.Pin, owner.PinHash.String); err != nil {
+		newAttempts := failedAttempts + 1
+		if newAttempts >= 5 {
+			cfg.db.ExecContext(r.Context(),
+				"UPDATE users SET pin_failed_attempts = $1, pin_locked_until = NOW() + INTERVAL '15 minutes' WHERE id = $2",
+				newAttempts, ownerID)
+		} else {
+			cfg.db.ExecContext(r.Context(),
+				"UPDATE users SET pin_failed_attempts = $1 WHERE id = $2",
+				newAttempts, ownerID)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect PIN"})
 		return
 	}
+	cfg.db.ExecContext(r.Context(),
+		"UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1", ownerID)
 
 	randomKeyBytes := make([]byte, 32)
 	_, err = rand.Read(randomKeyBytes)
@@ -666,23 +653,6 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	randomKey := hex.EncodeToString(randomKeyBytes)
-
-	internalPasswordBytes := make([]byte, 32)
-	if _, err = rand.Read(internalPasswordBytes); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not generate internal password"})
-		return
-	}
-	internalPassword := hex.EncodeToString(internalPasswordBytes)
-
-	wrappedKey, err := auth.WrapKey(internalPassword, randomKey)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not wrap encryption key"})
-		return
-	}
 
 	pinWrappedKey, err := auth.WrapKey(req.Pin, randomKey)
 	if err != nil {
@@ -698,8 +668,8 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		TargetFolderID:   folderID,
 		ExpiresAt:        expiresAt,
 		MaxFiles:         maxFiles,
-		PasswordHash:     sql.NullString{String: wrappedKey, Valid: true},
-		RawEncryptionKey: sql.NullString{String: randomKey, Valid: true},
+		PasswordHash:     sql.NullString{Valid: false},
+		RawEncryptionKey: sql.NullString{Valid: false},
 		LinkName:         sql.NullString{String: req.LinkName, Valid: req.LinkName != ""},
 		PinWrappedKey:    sql.NullString{String: pinWrappedKey, Valid: true},
 		Description:      sql.NullString{String: req.Description, Valid: req.Description != ""},
@@ -713,17 +683,23 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	uploadURL := fmt.Sprintf("/abrn/drop/%s?key=%s", dropToken, wrappedKey)
+	if req.SealAfterUpload {
+		cfg.db.ExecContext(r.Context(),
+			"UPDATE upload_tokens SET seal_after_upload = TRUE WHERE id = $1", uploadToken.ID)
+	}
+
+	uploadURL := fmt.Sprintf("/abrn/drop/%s#key=%s", dropToken, randomKey)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id":               uploadToken.ID,
-		"token":            dropToken,
-		"target_folder_id": uploadToken.TargetFolderID,
-		"expires_at":       uploadToken.ExpiresAt,
-		"max_files":        uploadToken.MaxFiles,
-		"upload_url":       uploadURL,
-		"pin_protected":    true,
+		"id":                uploadToken.ID,
+		"token":             dropToken,
+		"target_folder_id":  uploadToken.TargetFolderID,
+		"expires_at":        uploadToken.ExpiresAt,
+		"max_files":         uploadToken.MaxFiles,
+		"upload_url":        uploadURL,
+		"pin_protected":     true,
+		"seal_after_upload": req.SealAfterUpload,
 	})
 }
 
@@ -770,7 +746,7 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 	response := []TokenResponse{}
 	for _, t := range tokens {
 		uploadURL := fmt.Sprintf("/abrn/drop/%s", t.Token)
-		if t.PasswordHash.Valid && t.PasswordHash.String != "" {
+		if t.RawEncryptionKey.Valid && t.RawEncryptionKey.String != "" {
 			uploadURL = fmt.Sprintf("/abrn/drop/%s?key=%s", t.Token, t.PasswordHash.String)
 		}
 

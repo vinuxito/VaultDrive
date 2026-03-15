@@ -14,6 +14,8 @@ import {
   UserPlus,
   Shield,
   Activity,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 
 interface StatCard {
@@ -31,6 +33,13 @@ interface ActivityItem {
   description?: string;
   created_at: string;
   timestamp?: string;
+}
+
+interface SecurityPosture {
+  status: string;
+  attention_count: number;
+  expiring_tokens: { id: string; link_name: string; expires_at: string }[];
+  stale_links: { id: string; token: string; created_at: string }[];
 }
 
 function getGreeting(): string {
@@ -90,6 +99,7 @@ export default function Dashboard() {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityUnavailable, setActivityUnavailable] = useState(false);
+  const [posture, setPosture] = useState<SecurityPosture | null>(null);
 
   useEffect(() => {
     const authToken = localStorage.getItem("token");
@@ -135,6 +145,11 @@ export default function Dashboard() {
       })
       .catch(() => setActivityUnavailable(true))
       .finally(() => setActivityLoading(false));
+
+    fetch(`${API_URL}/security-posture`, { headers })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: SecurityPosture | null) => { if (data) setPosture(data); })
+      .catch(() => undefined);
   }, [navigate]);
 
   const statCards: StatCard[] = [
@@ -211,7 +226,7 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {statsLoading
-              ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+              ? ["s1","s2","s3","s4"].map((k) => <SkeletonCard key={k} />)
               : statCards.map((card) => (
                   <div
                     key={card.label}
@@ -238,6 +253,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {quickActions.map((action) => (
               <button
+                type="button"
                 key={action.label}
                 onClick={action.onClick}
                 className={`${action.color} rounded-xl px-5 py-4 text-left transition-all duration-200 active:scale-95 cursor-pointer`}
@@ -257,8 +273,8 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm overflow-hidden">
             {activityLoading ? (
               <div className="divide-y divide-slate-100">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-4 animate-pulse">
+                {["a1","a2","a3"].map((k) => (
+                  <div key={k} className="flex items-center gap-3 px-5 py-4 animate-pulse">
                     <div className="w-8 h-8 rounded-lg bg-slate-200 shrink-0" />
                     <div className="flex-1 space-y-1.5">
                       <div className="h-3 bg-slate-200 rounded w-3/4" />
@@ -308,6 +324,46 @@ export default function Dashboard() {
             )}
           </div>
         </section>
+
+        {posture && (
+          <section>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+              Security Posture
+            </h2>
+            <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm p-5">
+              {posture.attention_count === 0 ? (
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Everything looks healthy</p>
+                    <p className="text-xs text-slate-400 mt-0.5">No active links expiring soon, no stale shares</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <p className="text-sm font-medium text-slate-700">{posture.attention_count} item{posture.attention_count > 1 ? "s" : ""} need attention</p>
+                  </div>
+                  {posture.expiring_tokens.map((t) => (
+                    <div key={t.id} className="flex items-start gap-2 pl-6">
+                      <p className="text-xs text-amber-700">
+                        Drop link <strong>{t.link_name || t.id.slice(0, 8)}</strong> expires {formatRelativeTime(t.expires_at)}
+                      </p>
+                    </div>
+                  ))}
+                  {posture.stale_links.map((l) => (
+                    <div key={l.id} className="flex items-start gap-2 pl-6">
+                      <p className="text-xs text-slate-500">
+                        Share link {l.token.slice(0, 8)}… was created {formatRelativeTime(l.created_at)} and has never been accessed
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </div>
     </DashboardLayout>
   );

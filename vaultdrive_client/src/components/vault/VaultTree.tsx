@@ -25,6 +25,7 @@ export interface DropTokenInfo {
   link_name?: string;
   expires_at?: { Time: string; Valid: boolean };
   used?: { Bool: boolean; Valid: boolean };
+  files_uploaded?: { Int32: number; Valid: boolean };
 }
 
 interface VaultTreeProps {
@@ -49,6 +50,13 @@ function isDropExpired(token: DropTokenInfo): boolean {
 
 function isDropUsed(token: DropTokenInfo): boolean {
   return token.used?.Bool === true;
+}
+
+function isDropExpiringSoon(token: DropTokenInfo): boolean {
+  if (!token.expires_at?.Valid) return false;
+  const exp = new Date(token.expires_at.Time);
+  const in48h = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  return exp > new Date() && exp < in48h;
 }
 
 function nodeKey(node: TreeNode): string {
@@ -78,6 +86,7 @@ interface TreeItemProps {
 function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: TreeItemProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`
         w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors
@@ -115,7 +124,7 @@ interface SectionHeaderProps {
 function SectionHeader({ label, open, onToggle, action }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 group">
-      <button onClick={onToggle} className="flex-1 flex items-center gap-1.5 text-left">
+      <button type="button" onClick={onToggle} className="flex-1 flex items-center gap-1.5 text-left">
         <span className="text-slate-400 group-hover:text-slate-600 transition-colors">
           {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </span>
@@ -189,6 +198,7 @@ export function VaultTree({
         action={
           onCreateFolder ? (
             <button
+              type="button"
               onClick={(event) => {
                 event.stopPropagation();
                 onCreateFolder();
@@ -243,6 +253,7 @@ export function VaultTree({
         onToggle={() => setLinksOpen((open) => !open)}
         action={
           <button
+            type="button"
             onClick={() => onSelect({ type: "manage-drops" })}
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-drops" })
@@ -261,8 +272,23 @@ export function VaultTree({
         sortedDropTokens.map((token) => {
           const expired = isDropExpired(token);
           const used = isDropUsed(token);
+          const expiringSoon = !expired && !used && isDropExpiringSoon(token);
           const inactive = expired || used;
           const label = getDropLabel(token);
+
+          const badge = inactive ? (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-400 shrink-0">
+              {used ? "sealed" : "expired"}
+            </span>
+          ) : expiringSoon ? (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 shrink-0">
+              expiring
+            </span>
+          ) : (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 shrink-0">
+              active
+            </span>
+          );
 
           return (
             <TreeItem
@@ -284,17 +310,7 @@ export function VaultTree({
                   linkName: label,
                 })
               }
-              badge={
-                inactive ? (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">
-                    {used ? "used" : "expired"}
-                  </span>
-                ) : (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 shrink-0">
-                    active
-                  </span>
-                )
-              }
+              badge={badge}
             />
           );
         })}

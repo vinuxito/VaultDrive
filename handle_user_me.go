@@ -38,15 +38,20 @@ func (cfg *ApiConfig) getUserMeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return user info (without sensitive data)
+	orgName := ""
+	cfg.db.QueryRowContext(r.Context(),
+		"SELECT COALESCE(organization_name, '') FROM users WHERE id = $1", userID,
+	).Scan(&orgName)
+
 	response := map[string]interface{}{
-		"id":         user.ID,
-		"first_name": user.FirstName,
-		"last_name":  user.LastName,
-		"username":   user.Username,
-		"email":      user.Email,
-		"created_at": user.CreatedAt,
-		"updated_at": user.UpdatedAt,
+		"id":                user.ID,
+		"first_name":        user.FirstName,
+		"last_name":         user.LastName,
+		"username":          user.Username,
+		"email":             user.Email,
+		"created_at":        user.CreatedAt,
+		"updated_at":        user.UpdatedAt,
+		"organization_name": orgName,
 	}
 
 	respondWithJSON(w, http.StatusOK, response)

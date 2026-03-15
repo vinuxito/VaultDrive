@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint } from "lucide-react";
+import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint, AlertTriangle } from "lucide-react";
 import { API_URL } from "../../utils/api";
 
 interface Folder {
@@ -37,14 +37,9 @@ export function CreateUploadLinkModal({
   const [linkName, setLinkName] = useState("");
   const [description, setDescription] = useState("");
   const [createdLink, setCreatedLink] = useState<{ url: string } | null>(null);
+  const [sealAfterUpload, setSealAfterUpload] = useState(false);
 
-  useEffect(() => {
-    if (open) {
-      fetchFolders();
-    }
-  }, [open]);
-
-  const fetchFolders = async () => {
+  const fetchFolders = useCallback(async () => {
     setFetchingFolders(true);
     setError("");
 
@@ -72,7 +67,13 @@ export function CreateUploadLinkModal({
     } finally {
       setFetchingFolders(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      void fetchFolders();
+    }
+  }, [open, fetchFolders]);
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
@@ -141,7 +142,8 @@ export function CreateUploadLinkModal({
           max_files: maxFiles,
           pin: pinInput,
           link_name: linkName,
-          description: description
+          description: description,
+          seal_after_upload: sealAfterUpload,
         })
       });
 
@@ -235,6 +237,13 @@ export function CreateUploadLinkModal({
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-amber-500/20 border border-amber-400/40">
+              <p className="text-amber-200 text-xs flex items-start gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                Copy and save this URL now. The encryption key in the link will not be shown again.
+              </p>
             </div>
 
             <div className="p-3 rounded-lg bg-white/10 border border-white/20">
@@ -390,6 +399,22 @@ export function CreateUploadLinkModal({
                 onChange={(e) => setMaxFiles(parseInt(e.target.value, 10) || 0)}
                 className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
               />
+            </div>
+
+            <div className="flex items-center gap-3 py-1">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={sealAfterUpload}
+                onClick={() => setSealAfterUpload((v) => !v)}
+                className={`relative w-10 h-6 rounded-full transition-colors focus:outline-none ${sealAfterUpload ? "bg-amber-500" : "bg-white/20"}`}
+              >
+                <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${sealAfterUpload ? "translate-x-4" : ""}`} />
+              </button>
+              <div>
+                <p className="text-white/90 text-sm font-medium">Seal after first upload</p>
+                <p className="text-white/50 text-xs">Link closes automatically after one use</p>
+              </div>
             </div>
 
             <div>

@@ -46,6 +46,7 @@ import {
 } from "../utils/crypto";
 import ShareModal from "../components/share-modal";
 import { CreateShareLinkModal } from "../components/vault/CreateShareLinkModal";
+import { AccessPanel } from "../components/vault/AccessPanel";
 import FolderModal from "../components/folders/FolderModal";
 import DeleteFolderModal from "../components/folders/DeleteFolderModal";
 import {
@@ -229,6 +230,8 @@ export default function Files() {
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [fileToShare, setFileToShare] = useState<{ id: string; filename: string; metadata?: string; pin_wrapped_key?: string } | null>(null);
+
+  const [accessPanelFile, setAccessPanelFile] = useState<{ id: string; filename: string } | null>(null);
 
   const [showManageSharesModal, setShowManageSharesModal] = useState(false);
   const [fileToManage, setFileToManage] = useState<{ id: string; filename: string } | null>(null);
@@ -1500,6 +1503,17 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
+                              onClick={() => setAccessPanelFile({ id: file.id, filename: file.filename })}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-[#7d4f50] hover:bg-[#f2d7d8]/40 transition-colors"
+                              title="Who can access this file?"
+                            >
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </button>
+                          )}
+
+                          {file.is_owner !== false && (
+                            <button
                               onClick={() => handleManageSharesClick(file.id, file.filename)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                               title="Manage shares"
@@ -1935,6 +1949,14 @@ export default function Files() {
           isOpen={showShareLinkModal}
           onClose={() => { setShowShareLinkModal(false); setFileForShareLink(null); }}
           file={fileForShareLink}
+        />
+      )}
+
+      {accessPanelFile && (
+        <AccessPanel
+          fileId={accessPanelFile.id}
+          filename={accessPanelFile.filename}
+          onClose={() => setAccessPanelFile(null)}
         />
       )}
     </>

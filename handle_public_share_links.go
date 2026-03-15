@@ -81,6 +81,8 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 			return
 		}
 		expiresAt = sql.NullTime{Time: t, Valid: true}
+	} else {
+		expiresAt = sql.NullTime{Time: time.Now().Add(7 * 24 * time.Hour), Valid: true}
 	}
 
 	tokenBytes := make([]byte, 32)
@@ -142,6 +144,10 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 		return
 	}
 	defer file.Close()
+
+	cfg.db.ExecContext(r.Context(),
+		"UPDATE public_share_links SET access_count = access_count + 1, last_accessed_at = NOW() WHERE token = $1",
+		token)
 
 	w.Header().Set("X-File-Name", dbFile.Filename)
 	w.Header().Set("Content-Type", "application/octet-stream")

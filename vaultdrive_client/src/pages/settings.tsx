@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  Building2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../components/theme-provider";
@@ -39,6 +40,18 @@ export default function Settings() {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
+  const [orgName, setOrgName] = useState<string>("");
+  const [orgSaving, setOrgSaving] = useState(false);
+  const [orgSaved, setOrgSaved] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("/abrn/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.ok ? r.json() : null)
+      .then((u) => { if (u?.organization_name) setOrgName(u.organization_name as string); })
+      .catch(() => undefined);
+  }, []);
 
   const [pinSet, setPinSet] = useState<boolean | null>(null);
   const [showPinForm, setShowPinForm] = useState(false);
@@ -118,6 +131,24 @@ export default function Settings() {
       }
     } finally {
       setPinLoading(false);
+    }
+  };
+
+  const saveOrgName = async () => {
+    setOrgSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      await fetch("/abrn/api/users/organization", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ organization_name: orgName }),
+      });
+      setOrgSaved(true);
+      setTimeout(() => setOrgSaved(false), 2000);
+    } catch (_err) {
+      undefined;
+    } finally {
+      setOrgSaving(false);
     }
   };
 
@@ -217,6 +248,36 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Organization
+            </CardTitle>
+            <CardDescription>Shown to clients on your Secure Drop portal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3 max-w-sm">
+              <input
+                type="text"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                placeholder="e.g. ABRN Asesores SC"
+                className="flex-1 px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+                onKeyDown={(e) => { if (e.key === "Enter") void saveOrgName(); }}
+              />
+              <Button
+                onClick={() => void saveOrgName()}
+                disabled={orgSaving}
+                variant="outline"
+                className="shrink-0"
+              >
+                {orgSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : orgSaved ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : "Save"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Secure Drop PIN */}
         <Card>
           <CardHeader>
@@ -293,7 +354,6 @@ export default function Settings() {
                     onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     placeholder="••••"
                     className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-center tracking-widest text-xl"
-                    autoFocus
                     onKeyDown={(e) => { if (e.key === "Enter") handlePinSubmit(); }}
                   />
                   <p className="text-xs text-muted-foreground">Enter exactly 4 digits</p>

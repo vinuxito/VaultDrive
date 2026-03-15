@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
 import { UploadCloud, RefreshCw, Plus } from "lucide-react";
 import { UploadLinkCard } from "./UploadLinkCard";
@@ -15,7 +15,7 @@ export function UploadLinksSection() {
   const [expandedToken, setExpandedToken] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const fetchTokens = async () => {
+  const fetchTokens = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/drop/tokens`, {
@@ -38,11 +38,11 @@ export function UploadLinksSection() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchTokens();
-  }, []);
+    void fetchTokens();
+  }, [fetchTokens]);
 
   const handleRefresh = () => {
     setRefreshing(true);

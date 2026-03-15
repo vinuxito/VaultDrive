@@ -19,6 +19,7 @@ import (
 type ApiConfig struct {
 	apiHits   atomic.Int32
 	dbQueries *database.Queries
+	db        *sql.DB
 	jwtSecret string
 }
 
@@ -31,8 +32,25 @@ func (cfg *ApiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 }
 
 func middlewareCORS(next http.Handler) http.Handler {
+	allowed := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if allowed == "" {
+		allowed = "https://dev-app.filemonprime.net,https://abrndrive.filemonprime.net,http://localhost:5173,http://localhost:8082"
+	}
+	origins := strings.Split(allowed, ",")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		allowOrigin := ""
+		for _, o := range origins {
+			if strings.TrimSpace(o) == origin {
+				allowOrigin = origin
+				break
+			}
+		}
+		if allowOrigin == "" && origin == "" {
+			allowOrigin = origins[0]
+		}
+		w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
@@ -74,6 +92,7 @@ func main() {
 	apiConfig := ApiConfig{
 		apiHits:   atomic.Int32{},
 		dbQueries: database.New(db),
+		db:        db,
 		jwtSecret: jwtSecret,
 	}
 
@@ -89,9 +108,13 @@ func main() {
 
 	mux.Handle("POST /api/login", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin)))
 
-	mux.Handle("GET /api/user-by-username", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByUsernameHandler)))
+	mux.Handle("GET /api/user-by-username",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.getUserByUsernameHandler)))
 
-	mux.Handle("GET /api/user-by-email", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserByEmailHandler)))
+	mux.Handle("GET /api/user-by-email",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.getUserByEmailHandler)))
 
 	mux.Handle("GET /api/user/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKey)))
 
@@ -112,7 +135,6 @@ func main() {
 	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
 	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
 	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
-	mux.HandleFunc("GET /api/drop/{token}/encryption-key", apiConfig.handlerDropGetEncryptionKey)
 	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 
@@ -191,6 +213,13 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerGetPINStatus)))
 
+	mux.Handle("GET /api/users/me",
+		apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.getUserMeHandler)))
+
+	mux.Handle("PUT /api/users/organization",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerUpdateOrganization)))
+
 	mux.Handle("POST /api/files/{fileId}/share-link",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerCreatePublicShareLink)))
@@ -204,6 +233,22 @@ func main() {
 	mux.Handle("DELETE /api/share-links/{linkId}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerRevokePublicShareLink)))
+
+	mux.Handle("GET /api/activity",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetActivity)))
+
+	mux.Handle("GET /api/security-posture",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetSecurityPosture)))
+
+	mux.Handle("GET /api/files/{id}/access-summary",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetFileAccessSummary)))
+
+	mux.Handle("DELETE /api/files/{id}/revoke-external",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerRevokeAllExternalAccess)))
 
 	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
 
