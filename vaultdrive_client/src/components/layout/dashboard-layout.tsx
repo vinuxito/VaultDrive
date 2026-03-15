@@ -43,11 +43,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const showOnboarding = requiresPinSetup(user);
+  const [showOnboarding, setShowOnboarding] = useState(() => requiresPinSetup(user));
 
   const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
     window.dispatchEvent(new Event("auth-change"));
   };
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const latestUser = JSON.parse(localStorage.getItem("user") || "{}");
+      if (requiresPinSetup(latestUser)) {
+        setShowOnboarding(true);
+      }
+    };
+
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

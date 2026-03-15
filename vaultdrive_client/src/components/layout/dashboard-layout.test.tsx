@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -37,7 +38,25 @@ vi.mock("./Toast", () => ({
 }));
 
 vi.mock("../onboarding/OnboardingWizard", () => ({
-  OnboardingWizard: () => <div>PIN setup wizard</div>,
+  OnboardingWizard: ({ onComplete }: { onComplete: () => void }) => (
+    <button
+      type="button"
+      onClick={() => {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            pin_set: true,
+            first_name: "Ada",
+            last_name: "Lovelace",
+            email: "ada@example.com",
+          }),
+        );
+        onComplete();
+      }}
+    >
+      PIN setup wizard
+    </button>
+  ),
 }));
 
 describe("DashboardLayout", () => {
@@ -67,5 +86,20 @@ describe("DashboardLayout", () => {
     );
 
     expect(screen.getByText("PIN setup wizard")).toBeInTheDocument();
+  });
+
+  it("keeps onboarding active until completion and then dismisses it", async () => {
+    render(
+      <MemoryRouter>
+        <DashboardLayout>
+          <div>Vault content</div>
+        </DashboardLayout>
+      </MemoryRouter>,
+    );
+
+    const finishButtons = screen.getAllByRole("button", { name: "PIN setup wizard" });
+    await userEvent.click(finishButtons[0]);
+
+    expect(screen.queryByText("PIN setup wizard")).not.toBeInTheDocument();
   });
 });
