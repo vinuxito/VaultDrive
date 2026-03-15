@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -26,6 +26,7 @@ import {
 import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
 import { useSessionVault } from "../context/SessionVaultContext";
+import { restorePrivateKeyFromSessionPin } from "../utils/shared-session";
 
 interface SharedFile {
   id: string;
@@ -36,9 +37,21 @@ interface SharedFile {
   encrypted_metadata: string;
 }
 
+function shouldFallbackToPinPrompt(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return true;
+  }
+
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.message.includes("Decryption failed") || error.message.includes("OperationError");
+}
+
 export default function SharedFiles() {
   const navigate = useNavigate();
-  const { getPrivateKey } = useSessionVault();
+  const { getPrivateKey, getCredential, setCredential, setPrivateKey } = useSessionVault();
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,16 +64,7 @@ export default function SharedFiles() {
     metadata: string;
   } | null>(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-    fetchSharedFiles();
-  }, [navigate]);
-
-  const fetchSharedFiles = async () => {
+  const fetchSharedFiles = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -79,7 +83,16 @@ export default function SharedFiles() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    void fetchSharedFiles();
+  }, [fetchSharedFiles, navigate]);
 
   const handleDownload = async (fileId: string, filename: string, metadata: string) => {
     const sessionKey = getPrivateKey();
@@ -88,9 +101,39 @@ export default function SharedFiles() {
       try {
         await performDownloadWithKey(fileId, filename, metadata, sessionKey);
         return;
-      } catch {
+      } catch (err) {
+        if (!shouldFallbackToPinPrompt(err)) {
+          setError(err instanceof Error ? err.message : "Failed to download shared file.");
+          return;
+        }
       }
     }
+
+    const stored = localStorage.getItem("user");
+    const userObj = stored ? JSON.parse(stored) : null;
+    const restoredKey = await restorePrivateKeyFromSessionPin({
+      credential: getCredential(),
+      privateKeyPinEncrypted: userObj?.private_key_pin_encrypted ?? null,
+    });
+    if (restoredKey) {
+      setPrivateKey(restoredKey);
+      setError("");
+      try {
+        await performDownloadWithKey(fileId, filename, metadata, restoredKey);
+        return;
+      } catch (err) {
+        if (!shouldFallbackToPinPrompt(err)) {
+          setError(err instanceof Error ? err.message : "Failed to download shared file.");
+          return;
+        }
+      }
+    }
+
+    if (!userObj?.private_key_pin_encrypted) {
+      setError("Your PIN is not fully enrolled for shared files yet. Open Settings and set your PIN again with your account password to finish enabling shared-file decryption.");
+      return;
+    }
+
     setPendingDownload({ fileId, filename, metadata });
     setShowPinModal(true);
   };
@@ -130,7 +173,7 @@ export default function SharedFiles() {
   };
 
   const performDownload = async (pin: string) => {
-    if (!pendingDownload) return;
+    if (!pendingDownload) return false;
     setError("");
 
     try {
@@ -140,7 +183,7 @@ export default function SharedFiles() {
       });
 
       if (!response.ok) {
-        if (response.status === 401) { navigate("/login"); return; }
+        if (response.status === 401) { navigate("/login"); return false; }
         throw new Error("Failed to download file");
       }
 
@@ -159,6 +202,9 @@ export default function SharedFiles() {
 
       const privateKeyPem = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted);
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+      setPrivateKey(rsaPrivateKey);
+      setCredential(pin, "pin");
+
       const aesKey = await unwrapKeyWithRSA(rsaPrivateKey, wrappedKeyB64);
 
       const metaStr = response.headers.get("X-File-Metadata") || pendingDownload.metadata;
@@ -181,8 +227,10 @@ export default function SharedFiles() {
       document.body.removeChild(a);
 
       setPendingDownload(null);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to decrypt. Check your PIN.");
+      return false;
     }
   };
 
@@ -293,11 +341,12 @@ export default function SharedFiles() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
+                  <label htmlFor="shared-file-pin" className="text-sm font-medium flex items-center gap-2">
                     <Key className="w-4 h-4" />
                     Your PIN
                   </label>
                   <input
+                    id="shared-file-pin"
                     type="password"
                     inputMode="numeric"
                     maxLength={4}
@@ -305,7 +354,6 @@ export default function SharedFiles() {
                     onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
                     placeholder="4-digit PIN"
                     className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
-                    autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
                     }}
@@ -344,7 +392,9 @@ export default function SharedFiles() {
     if (pinValue.length !== 4) return;
     const pin = pinValue;
     setPinValue("");
-    await performDownload(pin);
-    setShowPinModal(false);
+    const success = await performDownload(pin);
+    if (success) {
+      setShowPinModal(false);
+    }
   }
 }
