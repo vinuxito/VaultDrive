@@ -151,13 +151,15 @@ type PluginsManifest struct {
 }
 
 type PublicShareLink struct {
-	ID        uuid.UUID
-	FileID    uuid.UUID
-	OwnerID   uuid.UUID
-	Token     string
-	ExpiresAt sql.NullTime
-	IsActive  bool
-	CreatedAt time.Time
+	ID             uuid.UUID
+	FileID         uuid.UUID
+	OwnerID        uuid.UUID
+	Token          string
+	ExpiresAt      sql.NullTime
+	IsActive       bool
+	CreatedAt      time.Time
+	AccessCount    int32
+	LastAccessedAt sql.NullTime
 }
 
 type RefreshToken struct {
@@ -190,21 +192,22 @@ type Tag struct {
 }
 
 type UploadToken struct {
-	ID               uuid.UUID
-	Token            string
-	OwnerUserID      uuid.UUID
-	TargetFolderID   uuid.UUID
-	ExpiresAt        sql.NullTime
-	MaxFiles         sql.NullInt32
-	FilesUploaded    sql.NullInt32
-	Used             sql.NullBool
-	CreatedAt        sql.NullTime
-	PasswordHash     sql.NullString
-	RawEncryptionKey sql.NullString
-	LinkName         sql.NullString
-	PinWrappedKey    sql.NullString
-	Description      sql.NullString
-	ClientMessage    sql.NullString
+	ID              uuid.UUID
+	Token           string
+	OwnerUserID     uuid.UUID
+	TargetFolderID  uuid.UUID
+	ExpiresAt       sql.NullTime
+	MaxFiles        sql.NullInt32
+	FilesUploaded   sql.NullInt32
+	Used            sql.NullBool
+	CreatedAt       sql.NullTime
+	PasswordHash    sql.NullString
+	LinkName        sql.NullString
+	PinWrappedKey   sql.NullString
+	Description     sql.NullString
+	ClientMessage   sql.NullString
+	SealAfterUpload bool
+	LastUsedAt      sql.NullTime
 }
 
 type User struct {
@@ -222,4 +225,7 @@ type User struct {
 	PinHash                sql.NullString
 	PinSetAt               sql.NullTime
 	PrivateKeyPinEncrypted sql.NullString
+	PinFailedAttempts      int32
+	PinLockedUntil         sql.NullTime
+	OrganizationName       sql.NullString
 }

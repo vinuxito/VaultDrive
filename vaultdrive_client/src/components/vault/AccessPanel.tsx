@@ -50,8 +50,8 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
         headers: { Authorization: `Bearer ${t2}` },
       });
       if (r.ok) setData(await r.json() as AccessSummary);
-    } catch (_err) {
-      undefined;
+    } catch {
+      void 0;
     } finally {
       setRevoking(false);
     }

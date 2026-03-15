@@ -87,7 +87,7 @@ export default function DropUpload() {
       if (key) {
         setEncryptionKey(key);
       }
-    } catch (_err) {
+    } catch {
       setError("Unable to validate upload link");
     } finally {
       setLoading(false);
@@ -122,19 +122,19 @@ export default function DropUpload() {
     }
   };
 
-  const processEntry = (entry: any, files: File[], path: string = "") => {
+  const processEntry = (entry: FileSystemEntry, files: File[], path: string = "") => {
     if (entry.isFile) {
-      entry.file((file: File) => {
+      (entry as FileSystemFileEntry).file((file: File) => {
         if (path) {
-          (file as any).webkitRelativePath = path + "/" + file.name;
+          Object.defineProperty(file, "webkitRelativePath", { value: path + "/" + file.name });
         }
         files.push(file);
       });
     } else if (entry.isDirectory) {
-      const dirReader = entry.createReader();
-      dirReader.readEntries(async (entries: any[]) => {
-        for (const entry of entries) {
-          processEntry(entry, files, path ? `${path}/${entry.name}` : entry.name);
+      const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+      dirReader.readEntries(async (entries: FileSystemEntry[]) => {
+        for (const subEntry of entries) {
+          processEntry(subEntry, files, path ? `${path}/${subEntry.name}` : subEntry.name);
         }
       });
     }
@@ -183,7 +183,7 @@ export default function DropUpload() {
 
   const uploadFile = async (file: File, isFolder: boolean): Promise<void> => {
     const fileName = file.name;
-    const relativePath = isFolder && (file as any).webkitRelativePath || "";
+    const relativePath = (isFolder && (file as File & { webkitRelativePath?: string }).webkitRelativePath) || "";
     
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -514,7 +514,11 @@ export default function DropUpload() {
                   <label htmlFor="folder-input" className="group relative">
                     <input
                       id="folder-input"
-                      {...({ type: "file", webkitdirectory: "", directory: "", multiple: true, className: "sr-only", onChange: handleFolderChange } as any)}
+                      type="file"
+                      multiple
+                      className="sr-only"
+                      onChange={handleFolderChange}
+                      {...{ webkitdirectory: "", directory: "" } as Record<string, string>}
                     />
                     <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 cursor-pointer">
                       <FolderOpen className="w-8 h-8 mx-auto mb-3 text-slate-600 dark:text-slate-400 group-hover:text-[#7d4f50] transition-colors duration-300" />

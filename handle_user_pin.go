@@ -38,10 +38,34 @@ func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, 
 			respondWithError(w, http.StatusBadRequest, "old_pin required to change existing PIN", nil)
 			return
 		}
+
+		var lockedUntil *time.Time
+		var failedAttempts int
+		cfg.db.QueryRowContext(r.Context(),
+			"SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1", user.ID,
+		).Scan(&failedAttempts, &lockedUntil)
+		if lockedUntil != nil && lockedUntil.After(time.Now()) {
+			respondWithError(w, http.StatusTooManyRequests,
+				"Too many incorrect PIN attempts. Try again after "+lockedUntil.UTC().Format(time.RFC3339), nil)
+			return
+		}
+
 		if err := auth.CheckPasswordHash(req.OldPIN, existing.PinHash.String); err != nil {
+			newAttempts := failedAttempts + 1
+			if newAttempts >= 5 {
+				cfg.db.ExecContext(r.Context(),
+					"UPDATE users SET pin_failed_attempts = $1, pin_locked_until = NOW() + INTERVAL '15 minutes' WHERE id = $2",
+					newAttempts, user.ID)
+			} else {
+				cfg.db.ExecContext(r.Context(),
+					"UPDATE users SET pin_failed_attempts = $1 WHERE id = $2",
+					newAttempts, user.ID)
+			}
 			respondWithError(w, http.StatusUnauthorized, "Incorrect current PIN", nil)
 			return
 		}
+		cfg.db.ExecContext(r.Context(),
+			"UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1", user.ID)
 	}
 
 	pinHash, err := auth.HashPassword(req.PIN)

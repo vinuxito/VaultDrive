@@ -668,9 +668,8 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		TargetFolderID:   folderID,
 		ExpiresAt:        expiresAt,
 		MaxFiles:         maxFiles,
-		PasswordHash:     sql.NullString{Valid: false},
-		RawEncryptionKey: sql.NullString{Valid: false},
-		LinkName:         sql.NullString{String: req.LinkName, Valid: req.LinkName != ""},
+		PasswordHash: sql.NullString{Valid: false},
+		LinkName:     sql.NullString{String: req.LinkName, Valid: req.LinkName != ""},
 		PinWrappedKey:    sql.NullString{String: pinWrappedKey, Valid: true},
 		Description:      sql.NullString{String: req.Description, Valid: req.Description != ""},
 	})
@@ -746,9 +745,6 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 	response := []TokenResponse{}
 	for _, t := range tokens {
 		uploadURL := fmt.Sprintf("/abrn/drop/%s", t.Token)
-		if t.RawEncryptionKey.Valid && t.RawEncryptionKey.String != "" {
-			uploadURL = fmt.Sprintf("/abrn/drop/%s?key=%s", t.Token, t.PasswordHash.String)
-		}
 
 		response = append(response, TokenResponse{
 			ID:             t.ID.String(),

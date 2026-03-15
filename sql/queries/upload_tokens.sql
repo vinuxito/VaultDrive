@@ -9,12 +9,11 @@ INSERT INTO upload_tokens (
     used,
     created_at,
     password_hash,
-    raw_encryption_key,
     link_name,
     pin_wrapped_key,
     description
 )
-VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, 0, FALSE, NOW(), $6, $7, $8, $9)
 RETURNING *;
 
 -- name: GetUploadTokenByToken :one

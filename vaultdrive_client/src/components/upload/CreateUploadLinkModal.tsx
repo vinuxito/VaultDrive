@@ -153,7 +153,7 @@ export function CreateUploadLinkModal({
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.error || errorMessage;
-        } catch (_) {
+        } catch {
           if (errorText.includes("Unauthorized")) {
             errorMessage = "Please log in again";
           } else if (errorText.includes("Folder")) {

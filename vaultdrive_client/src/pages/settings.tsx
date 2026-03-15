@@ -145,8 +145,8 @@ export default function Settings() {
       });
       setOrgSaved(true);
       setTimeout(() => setOrgSaved(false), 2000);
-    } catch (_err) {
-      undefined;
+    } catch {
+      void 0;
     } finally {
       setOrgSaving(false);
     }
