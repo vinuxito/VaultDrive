@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ChevronDown,
   FolderPlus,
+  Inbox,
 } from "lucide-react";
 import type { Folder as FolderType } from "../files/FolderBreadcrumb";
 import { FolderTree } from "../folders/FolderTree";
@@ -17,7 +18,8 @@ export type TreeNode =
   | { type: "shared" }
   | { type: "folder"; folderId: string; folderName: string }
   | { type: "drop-link"; token: string; tokenId: string; linkName: string }
-  | { type: "manage-drops" };
+  | { type: "manage-drops" }
+  | { type: "manage-requests" };
 
 export interface DropTokenInfo {
   id: string;
@@ -314,6 +316,34 @@ export function VaultTree({
             />
           );
         })}
+
+      <div className="my-2 mx-3 border-t border-slate-200" />
+
+      <SectionHeader
+        label="File Requests"
+        open={true}
+        onToggle={() => undefined}
+        action={
+          <button
+            type="button"
+            onClick={() => onSelect({ type: "manage-requests" })}
+            className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
+              isSameNode(selected, { type: "manage-requests" })
+                ? "bg-[#7d4f50]/15 text-[#7d4f50] font-medium"
+                : "text-slate-400 hover:text-[#7d4f50] hover:bg-[#7d4f50]/8"
+            }`}
+          >
+            Manage
+          </button>
+        }
+      />
+      <TreeItem
+        icon={<Inbox className="w-4 h-4" />}
+        label="Manage Requests"
+        active={isSameNode(selected, { type: "manage-requests" })}
+        onClick={() => onSelect({ type: "manage-requests" })}
+        depth={1}
+      />
     </nav>
   );
 }

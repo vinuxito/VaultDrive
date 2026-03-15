@@ -12,6 +12,7 @@ import Admin from "./pages/admin";
 import AdminTests from "./pages/admin-tests";
 import DropUpload from "./pages/drop-upload";
 import PublicSharePage from "./pages/PublicSharePage";
+import FileRequestPage from "./pages/FileRequestPage";
 import Dashboard from "./pages/dashboard";
 import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
@@ -29,6 +30,7 @@ function App() {
           <Route path="/about" element={<Navbar><About /></Navbar>} />
           <Route path="/drop/:token" element={<DropUpload />} />
           <Route path="/share/:token" element={<PublicSharePage />} />
+          <Route path="/request/:token" element={<FileRequestPage />} />
           {/* Authenticated pages - ProtectedRoute handles auth check + DashboardLayout */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

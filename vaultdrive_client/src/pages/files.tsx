@@ -60,6 +60,7 @@ import type { Folder } from "../components/files/FolderBreadcrumb";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { FilePreviewModal } from "../components/vault/FilePreviewModal";
 import { UploadLinksSection } from "../components/upload";
+import { FileRequestsSection } from "../components/vault/FileRequestsSection";
 
 interface FileData {
   id: string;
@@ -1152,6 +1153,7 @@ export default function Files() {
       case "folder": return selectedNode.folderName;
       case "drop-link": return selectedNode.linkName;
       case "manage-drops": return "Drop Links";
+      case "manage-requests": return "File Requests";
     }
   })();
 
@@ -1252,6 +1254,10 @@ export default function Files() {
             {selectedNode.type === "manage-drops" ? (
               <div className="flex-1 overflow-auto p-6">
                 <UploadLinksSection />
+              </div>
+            ) : selectedNode.type === "manage-requests" ? (
+              <div className="flex-1 overflow-auto p-6">
+                <FileRequestsSection />
               </div>
             ) : (
             <>

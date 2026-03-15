@@ -106,6 +106,57 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 	respondWithJSON(w, http.StatusCreated, dbShareLinkToResponse(link))
 }
 
+func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token")
+	if token == "" {
+		respondWithError(w, http.StatusBadRequest, "Token is required", nil)
+		return
+	}
+
+	link, err := cfg.dbQueries.GetPublicShareLinkByToken(r.Context(), token)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Share link not found or inactive", nil)
+		return
+	}
+
+	if link.ExpiresAt.Valid && link.ExpiresAt.Time.Before(time.Now()) {
+		respondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"is_expired": true,
+			"expires_at": link.ExpiresAt.Time.UTC().Format(time.RFC3339),
+		})
+		return
+	}
+
+	dbFile, err := cfg.dbQueries.GetFileByID(r.Context(), link.FileID)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "File not found", nil)
+		return
+	}
+
+	ownerDisplayName := ""
+	ownerOrg := ""
+	cfg.db.QueryRowContext(r.Context(),
+		`SELECT COALESCE(first_name||' '||last_name,''), COALESCE(organization_name,'') FROM users WHERE id = $1`,
+		link.OwnerID,
+	).Scan(&ownerDisplayName, &ownerOrg)
+
+	var expiresAt *string
+	if link.ExpiresAt.Valid {
+		s := link.ExpiresAt.Time.UTC().Format(time.RFC3339)
+		expiresAt = &s
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"filename":            dbFile.Filename,
+		"file_size":           dbFile.FileSize,
+		"expires_at":          expiresAt,
+		"is_expired":          false,
+		"owner_display_name":  ownerDisplayName,
+		"owner_organization":  ownerOrg,
+		"access_count":        link.AccessCount,
+	})
+}
+
 func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *http.Request) {
 	token := r.PathValue("token")
 	if token == "" {

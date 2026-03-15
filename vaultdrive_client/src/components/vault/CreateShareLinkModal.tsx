@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Link2, Loader2, CheckCircle2, AlertCircle, Copy, Key } from "lucide-react";
+import { X, Link2, Loader2, CheckCircle2, AlertCircle, Copy, Key, Calendar } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -31,6 +31,38 @@ export interface CreateShareLinkModalProps {
 
 type Step = "credential" | "generating" | "done" | "error";
 
+const EXPIRY_PRESETS = [
+  { label: "1 day", value: 1 },
+  { label: "3 days", value: 3 },
+  { label: "7 days", value: 7 },
+  { label: "30 days", value: 30 },
+] as const;
+
+type ExpiryPreset = (typeof EXPIRY_PRESETS)[number]["value"];
+type ExpiryOption = ExpiryPreset | "custom";
+
+function computeExpiresAt(option: ExpiryOption, customDate: string): string {
+  if (option === "custom") {
+    if (customDate) {
+      return new Date(customDate + "T12:00:00").toISOString();
+    }
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString();
+  }
+  const d = new Date();
+  d.setDate(d.getDate() + option);
+  return d.toISOString();
+}
+
+function formatExpiryDisplay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function CreateShareLinkModal({
   isOpen,
   onClose,
@@ -42,6 +74,11 @@ export function CreateShareLinkModal({
   const [shareUrl, setShareUrl] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [copied, setCopied] = useState(false);
+  const [expiryDays, setExpiryDays] = useState<ExpiryOption>(7);
+  const [customDate, setCustomDate] = useState<string>("");
+  const [expiryDisplay, setExpiryDisplay] = useState<string>("");
+
+  const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
   async function handleGenerate() {
     if (!credential) return;
@@ -73,6 +110,9 @@ export function CreateShareLinkModal({
       const rawKey = await crypto.subtle.exportKey("raw", aesKey);
       const b64Key = arrayBufferToBase64(rawKey);
 
+      const expiresAtISO = computeExpiresAt(expiryDays, customDate);
+      const displayDate = formatExpiryDisplay(expiresAtISO);
+
       const authToken = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/${file.id}/share-link`, {
         method: "POST",
@@ -80,7 +120,7 @@ export function CreateShareLinkModal({
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ expires_at: expiresAtISO }),
       });
 
       if (!response.ok) {
@@ -91,8 +131,9 @@ export function CreateShareLinkModal({
       }
 
       const data = (await response.json()) as { token: string };
-      const url = `https://abrndrive.filemonprime.net/share/${data.token}#${b64Key}`;
+      const url = `${window.location.origin}/abrn/share/${data.token}#${b64Key}`;
       setShareUrl(url);
+      setExpiryDisplay(displayDate);
       setStep("done");
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Failed to generate share link");
@@ -113,6 +154,9 @@ export function CreateShareLinkModal({
     setShareUrl("");
     setErrorMsg("");
     setCopied(false);
+    setExpiryDays(7);
+    setCustomDate("");
+    setExpiryDisplay("");
     onClose();
   }
 
@@ -143,6 +187,49 @@ export function CreateShareLinkModal({
         <CardContent className="space-y-4 py-4">
           {step === "credential" && (
             <>
+              <div className="space-y-2">
+                <p className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Link Expiry
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {EXPIRY_PRESETS.map(({ label, value }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setExpiryDays(value)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                        expiryDays === value
+                          ? "bg-white text-[#6b4345]"
+                          : "bg-white/10 text-white/80 hover:bg-white/20"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setExpiryDays("custom")}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                      expiryDays === "custom"
+                        ? "bg-white text-[#6b4345]"
+                        : "bg-white/10 text-white/80 hover:bg-white/20"
+                    }`}
+                  >
+                    Custom
+                  </button>
+                </div>
+                {expiryDays === "custom" && (
+                  <input
+                    type="date"
+                    value={customDate}
+                    min={todayISO}
+                    onChange={(e) => setCustomDate(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
+                  />
+                )}
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                   <Key className="w-3.5 h-3.5" />
@@ -185,7 +272,10 @@ export function CreateShareLinkModal({
                 </Button>
                 <Button
                   onClick={() => void handleGenerate()}
-                  disabled={isDropFile ? credential.length !== 4 : credential.length === 0}
+                  disabled={
+                    (isDropFile ? credential.length !== 4 : credential.length === 0) ||
+                    (expiryDays === "custom" && customDate === "")
+                  }
                   className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                 >
                   Generate Link
@@ -207,6 +297,15 @@ export function CreateShareLinkModal({
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                 <p className="text-sm font-medium text-white">Share link created!</p>
               </div>
+              {expiryDisplay && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
+                  <Calendar className="w-3.5 h-3.5 text-[#f2d7d8] shrink-0" />
+                  <p className="text-xs text-white/80">
+                    Link expires:{" "}
+                    <span className="font-medium text-white">{expiryDisplay}</span>
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label className="text-xs text-white/60">
                   Share URL (decryption key embedded after #)

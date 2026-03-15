@@ -224,6 +224,7 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerCreatePublicShareLink)))
 
+	mux.HandleFunc("GET /api/share/{token}/info", apiConfig.handlerGetPublicShareLinkInfo)
 	mux.HandleFunc("GET /api/share/{token}", apiConfig.handlerGetPublicShareLinkFile)
 
 	mux.Handle("GET /api/files/{fileId}/share-links",
@@ -233,6 +234,18 @@ func main() {
 	mux.Handle("DELETE /api/share-links/{linkId}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerRevokePublicShareLink)))
+
+	mux.Handle("POST /api/file-requests",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerCreateFileRequest)))
+	mux.Handle("GET /api/file-requests",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListFileRequests)))
+	mux.Handle("DELETE /api/file-requests/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerRevokeFileRequest)))
+	mux.HandleFunc("GET /api/file-requests/{token}/info", apiConfig.handlerGetFileRequestInfo)
+	mux.HandleFunc("POST /api/file-requests/{token}/upload", apiConfig.handlerFileRequestUpload)
 
 	mux.Handle("GET /api/activity",
 		apiConfig.middlewareMetricsInc(
