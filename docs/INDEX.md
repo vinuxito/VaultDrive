@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 15, 2026 (evening)
+Last updated: March 15, 2026 (late evening)
 
 ## Task Documentation
 
@@ -17,6 +17,7 @@ Last updated: March 15, 2026 (evening)
 | 09 | [Security Hardening Phase 2](./09_SECURITY_HARDENING_PHASE2.md) | Zero-knowledge sealing, URL fragment keys, API auth gates, activity feed, access panel |
 | 10 | [Public Share + File Requests](./10_PUBLIC_SHARE_AND_FILE_REQUESTS.md) | Info-first share page, expiry picker, inbound file request system end-to-end |
 | 11 | [Trust UX, API v1, Agent Keys](./11_TRUST_API_AGENT_KEYS.md) | Trust rail, security timeline, versioned API, scoped agent API keys, audit log |
+| 12 | [One-PIN Trust Flow](./12_ONE_PIN_TRUST_FLOW.md) | Enforced one-PIN owner workflow, onboarding completion, session trust reuse, and E2E verification |
 
 ## Feature Docs (pre-existing)
 
@@ -37,6 +38,7 @@ Last updated: March 15, 2026 (evening)
 | [SESSION_MEMORY_2026-03-15.md](./SESSION_MEMORY_2026-03-15.md) | Public share UX, expiry picker, inbound file requests full build, lint cleanup |
 | [SESSION_MEMORY_2026-03-15-trust-api-agents.md](./SESSION_MEMORY_2026-03-15-trust-api-agents.md) | Trust UX, API v1, scoped agent keys, ciphertext-first control plane |
 | [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md) | One PIN, zero friction — session credential cache across all vault operations |
+| [SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md](./SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md) | Verification pass, onboarding lifecycle fix, and end-to-end one-PIN owner-flow proof |
 
 ## Quick Navigation
 
@@ -61,3 +63,5 @@ Last updated: March 15, 2026 (evening)
 **I want to understand the agent key scopes →** [11_TRUST_API_AGENT_KEYS.md#phase-3--agent-api-keys](./11_TRUST_API_AGENT_KEYS.md#phase-3--agent-api-keys)
 
 **I want to understand the credential cache / one-PIN flow →** [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md)
+
+**I want the final one-PIN implementation + verification story →** [12_ONE_PIN_TRUST_FLOW.md](./12_ONE_PIN_TRUST_FLOW.md)

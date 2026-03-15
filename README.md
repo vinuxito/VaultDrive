@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 15, 2026 (evening — credential cache)**
+> **Last updated: March 15, 2026 (late evening — one-PIN trust flow verified end-to-end)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -47,7 +47,8 @@ This section reflects the actual state. Sections below are historical documentat
 | Agent API Keys | ✅ | Scoped, hashed, revocable, last-used visible, settings UI |
 | API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
-| Session credential cache | ✅ | PIN cached at login → zero prompts for upload/download/share/preview |
+| One-PIN trust flow | ✅ | PIN setup enforced, onboarding binds RSA private key, Secure Drop and shared downloads reuse session trust |
+| Session credential cache | ✅ | PIN cached in-memory and reused for upload/download/share/preview/create-link flows |
 | PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
@@ -83,20 +84,50 @@ Agent download:        Agent receives raw ciphertext + X-Wrapped-Key (RSA-wrappe
                        Decryption still requires owner's PIN-encrypted RSA private key — agents cannot decrypt
 
 Session credential:    Login PIN cached in React ref (in-memory only, never persisted)
-                       Upload/download/share/preview auto-use cached PIN — zero repeated prompts
-                       Legacy password files: prompt once → cached for rest of session
-                       Cache cleared on logout, page refresh, or SessionVaultProvider unmount
+                        Upload/download/share/preview auto-use cached PIN — zero repeated prompts
+                        Secure Drop creation and shared-download trust recovery also reuse the cached PIN
+                        Legacy password files: prompt once → cached for rest of session
+                        Cache cleared on logout, page refresh, or SessionVaultProvider unmount
 ```
+
+### One-PIN Owner Flow (Verified)
+
+ABRN Drive now treats the user's PIN as the product-wide owner trust key, not as a per-link or per-action secret.
+
+Verified local owner flow on `http://localhost:8082/abrn/`:
+
+1. Register a fresh account
+2. Log in with password
+3. Open `/files`
+4. Get blocked into onboarding until PIN setup is complete
+5. Set PIN with the account password so `private_key_pin_encrypted` is created immediately
+6. Create the first folder inside onboarding
+7. Finish onboarding and enter the vault normally
+8. Open Drop Links management
+9. Open the upload-link modal
+10. Reuse the cached PIN automatically without a repeated PIN prompt
+
+This is the current owner trust model:
+- **one PIN per user**
+- **one trusted session flow**
+- **no normal per-action credential friction**
+
+File requests remain intentionally separate: the uploader still chooses a passphrase for the content they send.
 
 ### Recent Session Work (Commits)
 
 ```
-(pending commit)  feat: session credential cache — one PIN, zero friction across all vault operations
-(pending commit)  feat: trust UX, API v1, agent API keys, ciphertext-first control plane
+34f890a           feat: restore shared downloads from session trust
+c62d802           feat: reuse session pin for secure drop links
+8aa9c9b           feat: require pin setup in the dashboard shell
+69c89bf           feat: finish pin enrollment during onboarding
+22ca580           feat: add pin enrollment helper
+31a23c5           feat: add cached pin trust helper
+19c517b           chore: add frontend trust-flow test infrastructure
+ea003c6           feat: trust UX, API v1, agent API keys, ciphertext-first control plane
 fb97d62           fix: share/drop/request URLs broken on production — basename mismatch
 1de364f           chore: lint fixes, session docs, verbose README
 e8033a4           feat: public share UX overhaul + inbound file requests system
-fd7e62a           chore: sync sqlc-generated files, untrack binary, session docs
 ```
 
 ---
@@ -106,7 +137,7 @@ fd7e62a           chore: sync sqlc-generated files, untrack binary, session docs
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-15-pin-credential-cache.md` for the latest session context.
+2. Check `docs/SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
@@ -251,11 +282,14 @@ Response envelope:
 - Automatic RSA-2048 key pair generation per user
 - Encrypted private key storage
 - **PIN login**: users can authenticate with either password or 4-digit PIN
-- **Set-PIN banner**: users without a PIN are prompted on first login
+- **PIN-gated owner flow**: users without a PIN are held in onboarding before normal vault use
 
 ### 🔑 4-Digit PIN System
-- Every user has an optional 4-digit PIN stored as a bcrypt hash
-- PIN replaces password for Secure Drop file decryption
+- Every user has a 4-digit PIN stored as a bcrypt hash when configured
+- PIN is the app-wide owner trust key across login, vault work, Secure Drop creation, and shared-download recovery
+- Onboarding and Settings both bind the RSA private key into `private_key_pin_encrypted`
+- Shared flows reuse the cached session PIN before falling back to manual prompt
+- Secure Drop creation reuses the cached session PIN instead of asking again during normal owner use
 - Drop links created with a PIN-wrapped key (no plaintext key in transport)
 - `POST /api/users/pin` — set or change PIN
 - `GET /api/users/pin/status` — check if PIN is configured
