@@ -34,10 +34,12 @@ import {
   decryptPrivateKeyWithPassword,
   encryptPrivateKeyWithPIN,
 } from "../utils/crypto";
+import { useSessionVault } from "../context/SessionVaultContext";
 
 export default function Settings() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { setCredential } = useSessionVault();
   const [userData] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
@@ -115,6 +117,7 @@ export default function Settings() {
 
       await setPIN(pinInput, token, pinSet ? oldPinInput : undefined, privateKeyPinEncrypted);
       setPinSet(true);
+      setCredential(pinInput, "pin");
       setPinSuccess(pinSet ? "PIN changed successfully." : "PIN set successfully.");
       setShowPinForm(false);
       setPinInput("");

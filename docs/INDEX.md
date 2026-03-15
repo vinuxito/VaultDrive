@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 15, 2026
+Last updated: March 15, 2026 (evening)
 
 ## Task Documentation
 
@@ -36,6 +36,7 @@ Last updated: March 15, 2026
 | [SESSION_MEMORY_2026-03-14-cleanup.md](./SESSION_MEMORY_2026-03-14-cleanup.md) | Cleanup: PIN lockout, migration 029, ESLint pass, sqlc sync, build verification |
 | [SESSION_MEMORY_2026-03-15.md](./SESSION_MEMORY_2026-03-15.md) | Public share UX, expiry picker, inbound file requests full build, lint cleanup |
 | [SESSION_MEMORY_2026-03-15-trust-api-agents.md](./SESSION_MEMORY_2026-03-15-trust-api-agents.md) | Trust UX, API v1, scoped agent keys, ciphertext-first control plane |
+| [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md) | One PIN, zero friction — session credential cache across all vault operations |
 
 ## Quick Navigation
 
@@ -58,3 +59,5 @@ Last updated: March 15, 2026
 **I want to use the external API or create an agent key →** [11_TRUST_API_AGENT_KEYS.md](./11_TRUST_API_AGENT_KEYS.md)
 
 **I want to understand the agent key scopes →** [11_TRUST_API_AGENT_KEYS.md#phase-3--agent-api-keys](./11_TRUST_API_AGENT_KEYS.md#phase-3--agent-api-keys)
+
+**I want to understand the credential cache / one-PIN flow →** [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md)

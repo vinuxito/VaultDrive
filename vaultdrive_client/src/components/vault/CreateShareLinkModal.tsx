@@ -16,6 +16,7 @@ import {
   base64ToArrayBuffer,
   arrayBufferToBase64,
 } from "../../utils/crypto";
+import { useSessionVault } from "../../context/SessionVaultContext";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -69,6 +70,9 @@ export function CreateShareLinkModal({
   file,
 }: CreateShareLinkModalProps) {
   const isDropFile = !!file.pin_wrapped_key;
+  const { getCredential } = useSessionVault();
+  const cached = getCredential();
+  const hasCachedCred = cached && ((isDropFile && cached.type === "pin") || (!isDropFile && cached.type === "password"));
   const [credential, setCredential] = useState("");
   const [step, setStep] = useState<Step>("credential");
   const [shareUrl, setShareUrl] = useState("");
@@ -81,7 +85,8 @@ export function CreateShareLinkModal({
   const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
   async function handleGenerate() {
-    if (!credential) return;
+    const cred = hasCachedCred ? cached!.value : credential;
+    if (!cred) return;
     setStep("generating");
     setErrorMsg("");
 
@@ -89,7 +94,7 @@ export function CreateShareLinkModal({
       let aesKey: CryptoKey;
 
       if (isDropFile && file.pin_wrapped_key) {
-        const rawHex = await unwrapKey(credential, file.pin_wrapped_key);
+        const rawHex = await unwrapKey(cred, file.pin_wrapped_key);
         const keyBytes = hexToBytes(rawHex);
         aesKey = await crypto.subtle.importKey(
           "raw",
@@ -104,7 +109,7 @@ export function CreateShareLinkModal({
           throw new Error("File has no salt — cannot derive key. This may be a drop file.");
         }
         const salt = new Uint8Array(base64ToArrayBuffer(meta.salt));
-        aesKey = await deriveKeyFromPassword(credential, salt, 100000);
+        aesKey = await deriveKeyFromPassword(cred, salt, 100000);
       }
 
       const rawKey = await crypto.subtle.exportKey("raw", aesKey);
@@ -231,6 +236,7 @@ export function CreateShareLinkModal({
                 )}
               </div>
 
+              {!hasCachedCred && (
               <div className="space-y-1.5">
                 <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                   <Key className="w-3.5 h-3.5" />
@@ -263,6 +269,7 @@ export function CreateShareLinkModal({
                   }}
                 />
               </div>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -274,7 +281,7 @@ export function CreateShareLinkModal({
                 <Button
                   onClick={() => void handleGenerate()}
                     disabled={
-                     (isDropFile ? credential.length !== 4 : credential.length === 0) ||
+                     (!hasCachedCred && (isDropFile ? credential.length !== 4 : credential.length === 0)) ||
                      (expiryDays === "custom" && customDate === "")
                    }
                   className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"

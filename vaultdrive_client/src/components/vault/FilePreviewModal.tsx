@@ -94,7 +94,7 @@ function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
-  const { getPrivateKey } = useSessionVault();
+  const { getPrivateKey, getCredential } = useSessionVault();
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -142,9 +142,16 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       setShowCredentialPrompt(false);
       loadPreview("");
     } else {
-      setShowCredentialPrompt(true);
+      const cached = getCredential();
+      const credType = getCredentialType(file);
+      if (cached && ((credType !== "password" && cached.type === "pin") || (credType === "password" && cached.type === "password"))) {
+        setShowCredentialPrompt(false);
+        loadPreview(cached.value);
+      } else {
+        setShowCredentialPrompt(true);
+      }
     }
-  }, [file, getPrivateKey, loadPreview]);
+  }, [file, getPrivateKey, getCredential, loadPreview]);
 
   useEffect(() => {
     return () => {

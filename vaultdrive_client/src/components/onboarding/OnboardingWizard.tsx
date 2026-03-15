@@ -14,6 +14,7 @@ import {
   Bot,
 } from "lucide-react";
 import { API_URL } from "../../utils/api";
+import { useSessionVault } from "../../context/SessionVaultContext";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
@@ -22,6 +23,7 @@ interface OnboardingWizardProps {
 type Step = 1 | 2 | 3 | 4;
 
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
+  const { setCredential } = useSessionVault();
   const [step, setStep] = useState<Step>(1);
 
   const [pin, setPin] = useState("");
@@ -65,6 +67,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const user = JSON.parse(raw);
         localStorage.setItem("user", JSON.stringify({ ...user, pin_set: true }));
       }
+      setCredential(pin, "pin");
       setStep(3);
     } catch (err) {
       setPinError(err instanceof Error ? err.message : "Failed to set PIN");

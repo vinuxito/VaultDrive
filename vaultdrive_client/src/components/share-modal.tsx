@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useSessionVault } from "../context/SessionVaultContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -72,6 +73,10 @@ export default function ShareModal({
   const [passwordInput, setPasswordInput] = useState("");
   const credentialMode = pinWrappedKey ? "pin" : "password";
 
+  const { getCredential } = useSessionVault();
+  const cachedCred = getCredential();
+  const hasCachedCred = cachedCred !== null && cachedCred.type === credentialMode;
+
   const fetchGroups = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -143,7 +148,10 @@ export default function ShareModal({
 
     try {
       const token = localStorage.getItem("token") || "";
-      const credential = credentialMode === "pin" ? pinInput : passwordInput;
+      const cached = getCredential();
+      const credential = (cached && cached.type === credentialMode)
+        ? cached.value
+        : (credentialMode === "pin" ? pinInput : passwordInput);
       if (!credential) {
           setError("Enter the credential needed to authorize sharing.");
         setSharing(false);
@@ -367,46 +375,53 @@ export default function ShareModal({
                   </Button>
                 </div>
 
-                <div className="p-4 bg-white/5 rounded-lg space-y-3">
-                  <p className="text-sm font-medium text-white flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
-                    Your credential to authorize sharing
-                  </p>
+                {hasCachedCred ? (
+                  <div className="p-3 bg-white/5 rounded-lg flex items-center gap-2 text-sm text-white/70">
+                    <Lock className="w-4 h-4 text-green-400 shrink-0" />
+                    <span>Credential cached — sharing will proceed automatically.</span>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-white/5 rounded-lg space-y-3">
+                    <p className="text-sm font-medium text-white flex items-center gap-2">
+                      <Lock className="w-4 h-4" />
+                      Your credential to authorize sharing
+                    </p>
 
-                  {credentialMode === "pin" ? (
-                    <div>
-                      <label htmlFor="share-pin" className="block text-xs text-white/70 mb-1">Your PIN</label>
-                      <Input
-                        id="share-pin"
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={4}
-                        placeholder="4-digit PIN"
-                        value={pinInput}
-                        onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
-                        className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
-                      />
-                      <p className="text-xs text-white/50 mt-1">
-                        Used to authorize this share without asking for a separate file password
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <label htmlFor="share-credential" className="block text-xs text-white/70 mb-1">File credential</label>
-                      <Input
-                        id="share-credential"
-                        type="password"
-                        placeholder="Credential used for this file"
-                        value={passwordInput}
-                        onChange={(e) => setPasswordInput(e.target.value)}
-                        className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
-                      />
-                      <p className="text-xs text-white/50 mt-1">
-                         Used to derive the file key and wrap it with the recipient's RSA public key
-                      </p>
-                    </div>
-                  )}
-                </div>
+                    {credentialMode === "pin" ? (
+                      <div>
+                        <label htmlFor="share-pin" className="block text-xs text-white/70 mb-1">Your PIN</label>
+                        <Input
+                          id="share-pin"
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={4}
+                          placeholder="4-digit PIN"
+                          value={pinInput}
+                          onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
+                          className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                        />
+                        <p className="text-xs text-white/50 mt-1">
+                          Used to authorize this share without asking for a separate file password
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <label htmlFor="share-credential" className="block text-xs text-white/70 mb-1">File credential</label>
+                        <Input
+                          id="share-credential"
+                          type="password"
+                          placeholder="Credential used for this file"
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                          className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                        />
+                        <p className="text-xs text-white/50 mt-1">
+                           Used to derive the file key and wrap it with the recipient's RSA public key
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -421,7 +436,7 @@ export default function ShareModal({
               </Button>
               <Button
                 onClick={handleShare}
-                 disabled={!recipient || sharing || (credentialMode === "pin" ? !pinInput : !passwordInput)}
+                 disabled={!recipient || sharing || (!hasCachedCred && (credentialMode === "pin" ? !pinInput : !passwordInput))}
                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                >
                 {sharing ? (

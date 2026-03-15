@@ -603,8 +603,13 @@ export default function Files() {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile) { setError("Please select a file to upload"); return; }
+    const cached = sessionVault.getCredential();
+    if (cached && ((ownerUsesPin && cached.type === "pin") || (!ownerUsesPin && cached.type === "password"))) {
+      await performUpload(cached.value);
+      return;
+    }
     setPasswordAction("upload");
     setShowPasswordModal(true);
   };
@@ -837,6 +842,22 @@ export default function Files() {
         }
         return;
       }
+    }
+    const cached = sessionVault.getCredential();
+    const scheme = getFileCredentialScheme({ pin_wrapped_key, metadata, is_owner });
+    if (cached && ((scheme !== "password" && cached.type === "pin") || (scheme === "password" && cached.type === "password"))) {
+      setDownloading(true);
+      setError("");
+      try {
+        const result = await downloadFileWithCredential(
+          { id: fileId, filename, metadata, pin_wrapped_key, is_owner },
+          cached.value,
+        );
+        if (!result.success) setError(result.error ?? "Download failed");
+      } finally {
+        setDownloading(false);
+      }
+      return;
     }
     setPendingDownload({ fileId, filename, metadata, pin_wrapped_key, is_owner });
     setPasswordAction("download");
@@ -1149,6 +1170,7 @@ export default function Files() {
     } else if (passwordAction === "download") {
       success = await performDownload(password);
     } else if (passwordAction === "drop-upload") {
+      sessionVault.setCredential(password, ownerUsesPin ? "pin" : "password");
       setShowPasswordModal(false);
       setEncryptionPassword("");
       setPasswordAction(null);
@@ -1156,6 +1178,12 @@ export default function Files() {
       return;
     }
     if (success) {
+      if (passwordAction === "upload") {
+        sessionVault.setCredential(password, ownerUsesPin ? "pin" : "password");
+      } else if (passwordAction === "download" && pendingDownload) {
+        const scheme = getFileCredentialScheme(pendingDownload);
+        sessionVault.setCredential(password, scheme === "password" ? "password" : "pin");
+      }
       setShowPasswordModal(false);
       setEncryptionPassword("");
       setPasswordAction(null);

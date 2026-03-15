@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSessionVault } from "../../context/SessionVaultContext";
 import { CheckCircle2, AlertCircle, Loader2, X, Key, Download } from "lucide-react";
 import { Button } from "../ui/button";
 import {
@@ -36,8 +37,18 @@ export function BulkDownloadModal({
   const needsPin = files.some((f) => f.pin_wrapped_key);
   const needsPassword = files.some((f) => !f.pin_wrapped_key);
 
+  const { getCredential } = useSessionVault();
+
   const [pinCredential, setPinCredential] = useState("");
   const [passwordCredential, setPasswordCredential] = useState("");
+
+  useEffect(() => {
+    const cached = getCredential();
+    if (!cached) return;
+    if (cached.type === "pin" && needsPin) setPinCredential(cached.value);
+    if (cached.type === "password" && needsPassword) setPasswordCredential(cached.value);
+  }, [getCredential, needsPin, needsPassword]);
+
   const [fileStatuses, setFileStatuses] = useState<Record<string, FileStatus>>({});
   const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
   const [running, setRunning] = useState(false);
@@ -100,6 +111,8 @@ export function BulkDownloadModal({
           <CardDescription className="text-white/70">
             {done
               ? "All downloads processed."
+              : credentialsReady
+              ? "Credentials ready — click Start to decrypt and download."
               : "Enter credentials, then click Start to decrypt and download."}
           </CardDescription>
         </CardHeader>
@@ -107,7 +120,7 @@ export function BulkDownloadModal({
         <CardContent className="flex-1 overflow-y-auto space-y-4 py-4">
           {!done && !running && (
             <div className="space-y-3">
-              {needsPin && (
+              {needsPin && pinCredential.length < 4 && (
                 <div className="space-y-1.5">
                   <label htmlFor="bulk-download-pin" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                     <Key className="w-3.5 h-3.5" />
@@ -129,7 +142,7 @@ export function BulkDownloadModal({
                 </div>
               )}
 
-              {needsPassword && (
+              {needsPassword && passwordCredential.length === 0 && (
                 <div className="space-y-1.5">
                   <label htmlFor="bulk-download-password" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                     <Key className="w-3.5 h-3.5" />

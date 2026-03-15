@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 15, 2026**
+> **Last updated: March 15, 2026 (evening — credential cache)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -30,7 +30,7 @@ This section reflects the actual state. Sections below are historical documentat
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Encrypted file vault | ✅ | AES-256-GCM, PIN-based, session key cache |
+| Encrypted file vault | ✅ | AES-256-GCM, PIN-based, session key cache, credential auto-use |
 | File preview (inline) | ✅ | Images, PDF, audio, video, text |
 | Public share links | ✅ | Info-first UX, expiry picker, 7-day default, fragment-key ZK |
 | Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs |
@@ -47,6 +47,7 @@ This section reflects the actual state. Sections below are historical documentat
 | Agent API Keys | ✅ | Scoped, hashed, revocable, last-used visible, settings UI |
 | API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
+| Session credential cache | ✅ | PIN cached at login → zero prompts for upload/download/share/preview |
 | PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
@@ -80,11 +81,17 @@ File request:          client passphrase → PBKDF2(salt) → AES-256-GCM → st
 
 Agent download:        Agent receives raw ciphertext + X-Wrapped-Key (RSA-wrapped AES key)
                        Decryption still requires owner's PIN-encrypted RSA private key — agents cannot decrypt
+
+Session credential:    Login PIN cached in React ref (in-memory only, never persisted)
+                       Upload/download/share/preview auto-use cached PIN — zero repeated prompts
+                       Legacy password files: prompt once → cached for rest of session
+                       Cache cleared on logout, page refresh, or SessionVaultProvider unmount
 ```
 
 ### Recent Session Work (Commits)
 
 ```
+(pending commit)  feat: session credential cache — one PIN, zero friction across all vault operations
 (pending commit)  feat: trust UX, API v1, agent API keys, ciphertext-first control plane
 fb97d62           fix: share/drop/request URLs broken on production — basename mismatch
 1de364f           chore: lint fixes, session docs, verbose README
@@ -99,7 +106,7 @@ fd7e62a           chore: sync sqlc-generated files, untrack binary, session docs
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-15-trust-api-agents.md` for the latest session context.
+2. Check `docs/SESSION_MEMORY_2026-03-15-pin-credential-cache.md` for the latest session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.

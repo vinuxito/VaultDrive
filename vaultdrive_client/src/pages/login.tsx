@@ -19,7 +19,7 @@ import {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setPrivateKey } = useSessionVault();
+  const { setPrivateKey, setCredential } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
   const [loginMode, setLoginMode] = useState<"password" | "pin">("password");
   const [showPassword, setShowPassword] = useState(false);
@@ -87,10 +87,12 @@ export default function Login() {
           );
           const cryptoKey = await importRSAPrivateKey(pem);
           setPrivateKey(cryptoKey);
+          setCredential(loginData.password, "password");
         } else if (loginMode === "pin" && data.private_key_pin_encrypted) {
           const pem = await decryptPrivateKeyWithPIN(pinValue, data.private_key_pin_encrypted);
           const cryptoKey = await importRSAPrivateKey(pem);
           setPrivateKey(cryptoKey);
+          setCredential(pinValue, "pin");
         }
       } catch {
       }
