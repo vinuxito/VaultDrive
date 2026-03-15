@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
+import { createPinProtectedPrivateKey } from "../../utils/pin-enrollment";
+import { mergeUserPinState } from "../../utils/pin-trust";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
@@ -31,6 +33,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [showPin, setShowPin] = useState(false);
   const [pinError, setPinError] = useState("");
   const [settingPin, setSettingPin] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
 
   const [folderName, setFolderName] = useState("");
   const [folderError, setFolderError] = useState("");
@@ -48,29 +51,51 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       setPinError("PINs do not match.");
       return;
     }
+    if (!passwordInput) {
+      setPinError("Enter your account password to finish PIN setup.");
+      return;
+    }
     setSettingPin(true);
     try {
+      const stored = localStorage.getItem("user");
+      const user = stored ? JSON.parse(stored) : null;
+      const privateKeyPinEncrypted = await createPinProtectedPrivateKey({
+        privateKeyEncrypted: user?.private_key_encrypted ?? null,
+        password: passwordInput,
+        pin,
+      });
+
       const res = await fetch(`${API_URL}/users/pin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify({
+          pin,
+          private_key_pin_encrypted: privateKeyPinEncrypted,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to set PIN");
       }
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        const user = JSON.parse(raw);
-        localStorage.setItem("user", JSON.stringify({ ...user, pin_set: true }));
+      if (stored) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(mergeUserPinState(user, privateKeyPinEncrypted)),
+        );
       }
       setCredential(pin, "pin");
+      setPasswordInput("");
       setStep(3);
     } catch (err) {
-      setPinError(err instanceof Error ? err.message : "Failed to set PIN");
+      const message = err instanceof Error ? err.message : "Failed to set PIN";
+      if (message.includes("Decryption failed") || message.includes("decrypt")) {
+        setPinError("Incorrect password — enter your account login password.");
+      } else {
+        setPinError(message);
+      }
     } finally {
       setSettingPin(false);
     }
@@ -109,7 +134,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   };
 
   const handleComplete = () => {
-    sessionStorage.setItem("onboarding_shown", "true");
     onComplete();
   };
 
@@ -220,7 +244,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   Set your PIN
                 </h2>
                 <p className="text-sm text-white/50 max-w-xs mx-auto">
-                  A 4-digit PIN secures your vault and enables quick login.
+                  A 4-digit PIN secures your vault, future shares, Secure Drop, and quick login.
                 </p>
               </div>
 
@@ -265,6 +289,23 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <Label className="text-white/70 text-xs font-medium uppercase tracking-wider">
+                    Account Password
+                  </Label>
+                  <Input
+                    type="password"
+                    placeholder="Enter your login password"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 h-12"
+                  />
+                  <p className="text-xs text-white/40 leading-relaxed">
+                    We use this once to re-wrap your private key so your one PIN works everywhere in ABRN Drive.
+                  </p>
+                </div>
+
                 {pinError && (
                   <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
                     {pinError}
@@ -275,7 +316,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <Button
                 className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={handleSetPin}
-                disabled={settingPin || pin.length !== 4 || confirmPin.length !== 4}
+                disabled={settingPin || pin.length !== 4 || confirmPin.length !== 4 || passwordInput.length === 0}
               >
                 {settingPin ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

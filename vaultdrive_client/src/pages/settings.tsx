@@ -30,11 +30,9 @@ import { useTheme } from "../components/theme-provider";
 import { getPINStatus, setPIN } from "../utils/api";
 import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection";
 import { AuditLogSection } from "../components/settings/AuditLogSection";
-import {
-  decryptPrivateKeyWithPassword,
-  encryptPrivateKeyWithPIN,
-} from "../utils/crypto";
 import { useSessionVault } from "../context/SessionVaultContext";
+import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
+import { mergeUserPinState } from "../utils/pin-trust";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -88,6 +86,10 @@ export default function Settings() {
       setPinError("Enter your current PIN to change it.");
       return;
     }
+    if (pinSet && oldPinInput.length !== 4) {
+      setPinError("Current PIN must be exactly 4 digits.");
+      return;
+    }
     if (!passwordInput) {
       setPinError("Enter your account password to protect your PIN.");
       return;
@@ -100,19 +102,17 @@ export default function Settings() {
       const privateKeyEncrypted: string | null = userObj?.private_key_encrypted ?? null;
 
       let privateKeyPinEncrypted: string | undefined;
-      if (privateKeyEncrypted) {
-        // private_key_encrypted is the RSA private key PEM encrypted with the user's
-        // login password using AES-256-GCM + PBKDF2 (same format as file keys).
-        // We must decrypt it with the password first to get the plaintext PEM,
-        // then re-encrypt it with the PIN so later PIN-based decryption works.
-        const privateKeyPem = await decryptPrivateKeyWithPassword(
-          passwordInput,
+      try {
+        privateKeyPinEncrypted = await createPinProtectedPrivateKey({
           privateKeyEncrypted,
-        );
-        privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pinInput, privateKeyPem);
-        if (userObj) {
-          userObj.private_key_pin_encrypted = privateKeyPinEncrypted;
+          password: passwordInput,
+          pin: pinInput,
+        });
+      } catch (err) {
+        if (err instanceof Error && (err.message.includes("Decryption failed") || err.message.includes("decrypt"))) {
+          throw new Error("Incorrect password — enter your account login password.");
         }
+        throw err;
       }
 
       await setPIN(pinInput, token, pinSet ? oldPinInput : undefined, privateKeyPinEncrypted);
@@ -124,16 +124,14 @@ export default function Settings() {
       setOldPinInput("");
       setPasswordInput("");
       if (stored && userObj) {
-        localStorage.setItem("user", JSON.stringify({ ...userObj, pin_set: true }));
+        localStorage.setItem(
+          "user",
+          JSON.stringify(mergeUserPinState(userObj, privateKeyPinEncrypted)),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save PIN.";
-      // Provide a clearer message if password decryption fails
-      if (msg.includes("Decryption failed") || msg.includes("decrypt")) {
-        setPinError("Incorrect password — enter your account login password.");
-      } else {
-        setPinError(msg);
-      }
+      setPinError(msg);
     } finally {
       setPinLoading(false);
     }
@@ -369,7 +367,6 @@ export default function Settings() {
                     {pinError}
                   </p>
                 )}
-                <div className="flex gap-2">
                 <div className="space-y-1">
                   <Label>Account Password</Label>
                   <input
@@ -381,7 +378,8 @@ export default function Settings() {
                   />
                   <p className="text-xs text-muted-foreground">Needed to bind your PIN to your encryption key</p>
                 </div>
-              <Button
+                <div className="flex gap-2">
+                  <Button
                   variant="outline"
                   onClick={() => { setShowPinForm(false); setPinInput(""); setOldPinInput(""); setPasswordInput(""); setPinError(""); }}
                   disabled={pinLoading}
