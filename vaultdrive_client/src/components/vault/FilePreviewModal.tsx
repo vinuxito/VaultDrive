@@ -192,11 +192,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         return <iframe src={blobUrl} className="w-full h-[75vh] rounded" title={file.filename} />;
       }
       if (["mp3", "m4a", "wav", "ogg", "flac"].includes(ext)) {
-        return <audio controls src={blobUrl} className="w-full mt-4" />;
+        return <audio controls src={blobUrl} className="w-full mt-4"><track kind="captions" /></audio>;
       }
       if (["mp4", "webm", "mov"].includes(ext)) {
         return (
-          <video controls src={blobUrl} className="w-full max-h-[70vh] rounded" />
+          <video controls src={blobUrl} className="w-full max-h-[70vh] rounded"><track kind="captions" /></video>
         );
       }
     }
@@ -235,6 +235,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               Download
             </Button>
             <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
             >
@@ -254,11 +255,12 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-white/60 flex items-center gap-1.5">
+                  <label htmlFor="preview-credential" className="text-xs text-white/60 flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5" />
                     {credType === "password" ? "Password" : "PIN"}
                   </label>
                   <input
+                    id="preview-credential"
                     type="password"
                     inputMode={credType !== "password" ? "numeric" : undefined}
                     maxLength={credType !== "password" ? 4 : undefined}
@@ -270,7 +272,6 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                     )}
                     placeholder={credType !== "password" ? "••••" : "Enter password"}
                     className={`w-full px-3 py-2 border rounded-lg bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none${credType !== "password" ? " text-center tracking-widest text-xl" : ""}`}
-                    autoFocus
                     onKeyDown={(e) => { if (e.key === "Enter" && credential) handleCredentialSubmit(); }}
                   />
                 </div>

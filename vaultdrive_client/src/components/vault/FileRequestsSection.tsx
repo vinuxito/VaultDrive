@@ -253,8 +253,8 @@ export function FileRequestsSection() {
       if (response.ok) {
         void fetchRequests();
       }
-    } catch (err) {
-      console.error("Error revoking request:", err);
+    } catch {
+      void 0;
     }
   };
 

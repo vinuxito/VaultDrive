@@ -15,6 +15,7 @@ Last updated: March 14, 2026
 | 07 | [Files Explorer & Bulk Selection](./07_FILES_EXPLORER_BULK_SELECTION.md) | Current-view select all, stable folder IDs, nested explorer, bulk delete hardening |
 | 08 | [UX Upgrade Plan V1](./08_UPGRADE_PLAN_V1.md) | Session key cache, drop portal, link management, onboarding, quick share, dashboard |
 | 09 | [Security Hardening Phase 2](./09_SECURITY_HARDENING_PHASE2.md) | Zero-knowledge sealing, URL fragment keys, API auth gates, activity feed, access panel |
+| 10 | [Public Share + File Requests](./10_PUBLIC_SHARE_AND_FILE_REQUESTS.md) | Info-first share page, expiry picker, inbound file request system end-to-end |
 
 ## Feature Docs (pre-existing)
 
@@ -32,6 +33,7 @@ Last updated: March 14, 2026
 | [SESSION_MEMORY_2026-03-14-upgrade.md](./SESSION_MEMORY_2026-03-14-upgrade.md) | UX Upgrade Plan V1 — session key cache, drop portal, onboarding, quick share, dashboard |
 | [SESSION_MEMORY_2026-03-14-phase2.md](./SESSION_MEMORY_2026-03-14-phase2.md) | Phase 2 security hardening — ZK seal, fragment keys, auth gates, activity feed, access panel |
 | [SESSION_MEMORY_2026-03-14-cleanup.md](./SESSION_MEMORY_2026-03-14-cleanup.md) | Cleanup: PIN lockout, migration 029, ESLint pass, sqlc sync, build verification |
+| [SESSION_MEMORY_2026-03-15.md](./SESSION_MEMORY_2026-03-15.md) | Public share UX, expiry picker, inbound file requests full build, lint cleanup |
 
 ## Quick Navigation
 
@@ -40,6 +42,8 @@ Last updated: March 14, 2026
 **I want to know what files were changed →** Each task doc has a "Files Changed" table at the bottom.
 
 **I want the current security posture →** [09_SECURITY_HARDENING_PHASE2.md](./09_SECURITY_HARDENING_PHASE2.md)
+
+**I want to understand how public sharing works →** [10_PUBLIC_SHARE_AND_FILE_REQUESTS.md](./10_PUBLIC_SHARE_AND_FILE_REQUESTS.md)
 
 **I want the current Files explorer checkpoint →** [07_FILES_EXPLORER_BULK_SELECTION.md](./07_FILES_EXPLORER_BULK_SELECTION.md)
 

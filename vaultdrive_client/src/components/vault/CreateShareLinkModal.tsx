@@ -172,6 +172,7 @@ export function CreateShareLinkModal({
               Create Share Link
             </CardTitle>
             <button
+              type="button"
               onClick={handleClose}
               className="text-white/50 hover:text-white/80 transition-colors"
               aria-label="Close"
@@ -231,7 +232,7 @@ export function CreateShareLinkModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                   <Key className="w-3.5 h-3.5" />
                   {isDropFile ? "4-digit PIN" : "Encryption Password"}
                 </label>
@@ -241,6 +242,7 @@ export function CreateShareLinkModal({
                     : "Enter your password to derive the file key for embedding in the share link"}
                 </p>
                 <input
+                  id="csl-credential"
                   type="password"
                   inputMode={isDropFile ? "numeric" : undefined}
                   maxLength={isDropFile ? 4 : undefined}
@@ -256,7 +258,6 @@ export function CreateShareLinkModal({
                   className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none${
                     isDropFile ? " text-center tracking-widest text-xl" : ""
                   }`}
-                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && credential) void handleGenerate();
                   }}
@@ -307,10 +308,11 @@ export function CreateShareLinkModal({
                 </div>
               )}
               <div className="space-y-1.5">
-                <label className="text-xs text-white/60">
+                <label htmlFor="csl-share-url" className="text-xs text-white/60">
                   Share URL (decryption key embedded after #)
                 </label>
                 <textarea
+                  id="csl-share-url"
                   readOnly
                   value={shareUrl}
                   rows={4}

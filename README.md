@@ -1,24 +1,95 @@
 # ABRN Drive
 
-> Enterprise Zero-Knowledge Cloud Storage Platform (Self-Hosted)  
-> Consolidated docs (for humans + agents).  
-> Last updated: March 12, 2026
+> Secure, zero-knowledge encrypted file platform for partners and clients.  
+> End-to-end encrypted file storage, sharing, and collection — all crypto in the browser.  
+> **Last updated: March 15, 2026**
 
-## 0) Agent onboarding
-If you're an agent (or Filemón Coder), start here:
+ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server never sees plaintext or decryption keys. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access.
 
-1. Read this file top-to-bottom once.
-2. Then read `AGENT_MASTER.md` for server runbooks and operational rules.
-3. Never run destructive commands (delete/drop/reinstall) without explicit approval.
-4. Prefer the **smallest safe change**, verify, then proceed (Next Brick loop).
+Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · PostgreSQL · Apache
 
 ---
 
-## 1) Documentation map
+## What It Does
 
-- **README.md** (this file): product, architecture, dev workflow, API map, feature plan, roadmap.
-- **AGENT_MASTER.md**: server + deployment + ops runbooks (systemd, Apache proxy, logs, backups, troubleshooting).
-- **docs/PASSWORD_PROTECTED_DROP.md**: Password-protected Secure Drop implementation guide (key wrapping, encryption flow, API usage).
+**Store** — AES-256-GCM encrypted file vault with PIN-based access.  
+**Share** — Time-limited public links with key in URL fragment (never touches the server).  
+**Collect** — Secure Drop portal + File Requests system for receiving encrypted files from clients.  
+**Preview** — Decrypt and preview images, PDFs, audio, video, text inline.  
+**Collaborate** — Share with users and groups with zero-knowledge RSA key exchange.
+
+---
+
+## Current State (March 15, 2026)
+
+This section reflects the actual deployed state. Sections below this are historical documentation that may be outdated.
+
+### What's Live
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Encrypted file vault | ✅ | AES-256-GCM, PIN-based, session key cache |
+| File preview (inline) | ✅ | Images, PDF, audio, video, text |
+| Public share links | ✅ | Info-first UX, expiry picker, 7-day default |
+| Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs |
+| File Requests | ✅ | PBKDF2+passphrase encryption, full management UI |
+| Dashboard | ✅ | Stats, activity feed, security posture panel |
+| File access visibility | ✅ | Who-can-see panel, one-click external revoke |
+| User sharing (RSA) | ✅ | Zero-knowledge key exchange between users |
+| Group sharing | ✅ | Teams, member management |
+| Activity log | ✅ | All events tracked, dashboard feed |
+| PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
+| Auth-gated user lookup | ✅ | No unauthenticated enumeration |
+| CORS hardened | ✅ | Explicit origin allowlist |
+| Zero-knowledge drop uploads | ✅ | Raw key never stored, key in URL fragment |
+| Email module | ⛔ | Removed from UI (code preserved) |
+
+### DB Migration Version: 33
+
+All 33 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`.
+
+### Encryption Chain Summary
+
+```
+Regular file upload:  passphrase → PBKDF2(100k) → AES-256-GCM → stored ciphertext
+Drop file:            owner PIN → PBKDF2 → WrapKey → pin_wrapped_key in DB
+                      client → randomKey from URL fragment → AES-256-GCM → stored ciphertext
+Public share:         owner PIN → unwraps randomKey → raw AES key in URL #fragment → recipient decrypts
+File request:         client passphrase → PBKDF2(salt) → AES-256-GCM → stored ciphertext
+                      owner decrypts with same passphrase + stored salt (out-of-band passphrase delivery)
+```
+
+### Recent Session Work (Commits)
+
+```
+e8033a4  feat: public share UX overhaul + inbound file requests system
+fd7e62a  chore: sync sqlc-generated files, untrack binary, session docs
+d60cb33  fix: PIN lockout, drop raw_encryption_key column, ESLint
+4f958ae  feat: Phase 2 security — ZK seal, fragment keys, auth gates, activity
+a4a0dc5  feat: UX Upgrade Phase 1 — session cache, drop portal, onboarding
+```
+
+---
+
+## Agent Onboarding
+
+If you're an agent, start here:
+
+1. Read `docs/INDEX.md` for the full documentation map.
+2. Check `docs/SESSION_MEMORY_2026-03-15.md` for the latest session context.
+3. Never run destructive DB commands without explicit approval.
+4. All sensitive config is in `.env` (not in git). Never commit it.
+
+---
+
+## Documentation Map
+
+- `README.md` — this file: product overview, current state, architecture, API map
+- `docs/INDEX.md` — full documentation index with task and session history
+- `docs/09_SECURITY_HARDENING_PHASE2.md` — security hardening reference
+- `docs/10_PUBLIC_SHARE_AND_FILE_REQUESTS.md` — public share + file requests
+- `plans/abrn-drive-phase2-execution-plan.md` — Phase 2 execution plan (reference)
+- `AGENT_MASTER.md` — server runbooks (systemd, Apache, logs)
 
 ---
 
@@ -39,11 +110,9 @@ If you're an agent (or Filemón Coder), start here:
 
 **ABRN Drive** is an enterprise-grade, self-hosted cloud storage platform with zero-knowledge encryption. Built for businesses that demand maximum privacy and security, featuring team collaboration, secure file sharing, a cinematic Vault Explorer UI, PIN-based authentication, and comprehensive audit logging.
 
-**Live Demo:** [https://dev-app.filemonprime.net/abrn/](https://dev-app.filemonprime.net/abrn/)
+**Live:** [https://abrndrive.filemonprime.net](https://abrndrive.filemonprime.net)
 
-**Test User:** filemon@abrn.mx / 986532
-
-## Features
+## Features (Current)
 
 ### 🔐 Secure Authentication
 - JWT-based authentication with refresh token rotation
@@ -78,24 +147,46 @@ If you're an agent (or Filemón Coder), start here:
 - **Member management**: Add/remove members, assign roles
 - **Group audit**: Track who shared what files to which groups
 
-### 📧 Email Support *(code preserved, removed from active UI)*
-- IMAP integration code exists in `handle_email_accounts.go.disabled` and `handle_email_fetching.go.disabled`
-- Removed from sidebar and routing to reduce surface area; code is intact for future re-activation
+### 📧 Email Module *(removed from UI, code preserved)*
+- IMAP integration code preserved in disabled handlers
+- Removed from sidebar and routing; code intact for future re-activation
 
-### 🔗 Secure Drop
-- **Write-only uploads**: Upload files without authentication via token
-- **Auto-folder creation**: Owners can create upload links that create folders automatically
+### 🔗 Secure Drop Portal
+- **Write-only uploads**: Upload files without an account via token
 - **Token-based access**: Share URLs with clients, no passwords needed for uploaders
-- **PIN-protected keys**: Drop links are secured with owner's 4-digit PIN (replaces password; see `docs/PASSWORD_PROTECTED_DROP.md`)
-- **Revocable links**: Deactivate tokens immediately after use
-- **Encrypted uploads**: Client-side AES-256-GCM encryption with PIN-wrapped key
-- **No user account**: Uploaders don't need to register or log in
-- **Write-only access**: Uploaders can upload but cannot read/list/download
+- **PIN-protected keys**: Drop links secured with owner's 4-digit PIN (`pin_wrapped_key` in DB)
+- **Fragment URL keys**: Encryption key in URL fragment (`#key=`) — never logged, never reaches server
+- **Owner identity**: Drop page shows owner name and organization
+- **Upload receipt**: Client receives timestamp, reference, file count after upload
+- **Seal after upload**: Optional auto-deactivation after first use
+- **Status badges**: Active / Expiring / Sealed in vault tree
+- **Revocable links**: Deactivate tokens immediately
+- **Zero raw key storage**: `raw_encryption_key` column removed (migration 029)
 
-### 🗂️ Vault Explorer (Files Redesign)
+### 📨 File Requests (NEW)
+- **Request-based collection**: Create a link asking someone to send you specific files
+- **Passphrase encryption**: Client sets a download passphrase; files encrypted PBKDF2+AES-256-GCM
+- **Owner access**: Files land in owner's vault; decrypted with the shared passphrase
+- **Management UI**: List, copy URL, revoke requests in the vault sidebar
+- **Public-facing page**: Request page shows owner identity + description
+- **Activity tracking**: Each upload creates an activity log entry
+- **No account needed**: Requester doesn't need to register
+
+### 🌐 Public File Sharing (Improved)
+- **Info-first UX**: Share page shows filename, size, expiry, owner identity before downloading
+- **Explicit download button**: No auto-download on page open (was broken on mobile)
+- **Expiry picker**: 1 day / 3 days / 7 days (default) / 30 days / custom date
+- **Key in fragment**: AES key in URL fragment — never transmitted to server
+- **Access tracking**: `access_count` and `last_accessed_at` updated on each download
+- **Revocable**: Owner can revoke any active link via the file access panel
+
+### 🗂️ Vault Explorer
 - **Split-pane layout**: 240px collapsible tree sidebar + rich file panel
-- **Tree navigation**: All Files → Starred → My Folders (per folder) → Shared with Me → Drop Links (per token, with active/used/expired badges)
-- **Origin badges**: Each file shows its source — My Upload, Drop: link, @user share, or group
+- **Tree navigation**: All Files → Starred → My Folders → Shared with Me → Drop Links → File Requests
+- **Status badges**: Drop links show Active (green) / Expiring (amber) / Sealed (grey) states
+- **Origin badges**: Each file shows its source — My Upload, Drop, @user share, group
+- **Inline preview**: Images, PDF, audio, video, text decrypted and rendered in-place
+- **File access panel**: Per-file "Who can see this?" with revoke-all button
 - **Inline star toggle**: Star/unstar files directly from the file row
 - **Bulk selection**: Checkbox per file → floating action bar → bulk download or bulk delete
 - **Bulk download modal**: Detects PIN vs. password need per file, sequential decrypt with per-file progress
