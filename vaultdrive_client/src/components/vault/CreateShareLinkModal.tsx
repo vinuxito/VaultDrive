@@ -8,7 +8,7 @@ import {
   CardTitle,
   CardDescription,
 } from "../ui/card";
-import { API_URL } from "../../utils/api";
+import { API_URL, BASE_PATH } from "../../utils/api";
 import {
   deriveKeyFromPassword,
   unwrapKey,
@@ -131,7 +131,7 @@ export function CreateShareLinkModal({
       }
 
       const data = (await response.json()) as { token: string };
-      const url = `${window.location.origin}/abrn/share/${data.token}#${b64Key}`;
+      const url = `${window.location.origin}${BASE_PATH}/share/${data.token}#${b64Key}`;
       setShareUrl(url);
       setExpiryDisplay(displayDate);
       setStep("done");

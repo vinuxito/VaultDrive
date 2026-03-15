@@ -30,7 +30,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { API_URL } from "../utils/api";
+import { API_URL, BASE_PATH } from "../utils/api";
 import {
   generateSalt,
   deriveKeyFromPassword,
@@ -575,8 +575,7 @@ export default function Files() {
         throw new Error(data.error || "Failed to create share link");
       }
       const data = await res.json();
-      const basename = window.location.hostname === "abrndrive.filemonprime.net" ? "" : "/abrn";
-      const shareUrl = `${window.location.origin}${basename}/share/${data.token}`;
+      const shareUrl = `${window.location.origin}${BASE_PATH}/share/${data.token}`;
       await navigator.clipboard.writeText(shareUrl);
       setSuccessMessage("Share link copied to clipboard! (expires in 7 days)");
       setTimeout(() => setSuccessMessage(""), 5000);

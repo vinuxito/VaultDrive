@@ -12,7 +12,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { API_URL } from "../../utils/api";
+import { API_URL, BASE_PATH } from "../../utils/api";
 
 interface FileRequest {
   id: string;
@@ -235,7 +235,7 @@ export function FileRequestsSection() {
   };
 
   const handleCopyUrl = async (req: FileRequest) => {
-    const url = `${window.location.origin}/abrn/request/${req.token}`;
+    const url = `${window.location.origin}${BASE_PATH}/request/${req.token}`;
     await navigator.clipboard.writeText(url);
     setCopiedId(req.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -337,7 +337,7 @@ export function FileRequestsSection() {
         <div className="space-y-3">
           {requests.map((req) => {
             const status = getStatus(req);
-            const requestUrl = `${window.location.origin}/abrn/request/${req.token}`;
+            const requestUrl = `${window.location.origin}${BASE_PATH}/request/${req.token}`;
 
             return (
               <div

@@ -1,6 +1,7 @@
 import { Copy, ExternalLink, X, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { UploadTokenWithFiles } from "./types";
+import { BASE_PATH } from "../../utils/api";
 
 interface UploadLinkCardProps {
   token: UploadTokenWithFiles;
@@ -21,7 +22,7 @@ export function UploadLinkCard({
 }: UploadLinkCardProps) {
   const uploadUrl = token.upload_url?.startsWith('http')
     ? token.upload_url
-    : `${window.location.origin}${token.upload_url || `/abrn/drop/${token.token}`}`;
+    : `${window.location.origin}${token.upload_url || `${BASE_PATH}/drop/${token.token}`}`;
 
   const copyUrl = () => {
     navigator.clipboard.writeText(uploadUrl);

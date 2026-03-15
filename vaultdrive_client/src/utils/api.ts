@@ -1,5 +1,7 @@
 export const API_URL = import.meta.env.VITE_API_URL || "/abrn/api";
 
+export const BASE_PATH = window.location.hostname === "abrndrive.filemonprime.net" ? "" : "/abrn";
+
 // Email Accounts API
 export interface EmailAccountPayload {
   email: string;
