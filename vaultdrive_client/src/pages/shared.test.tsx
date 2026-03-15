@@ -55,7 +55,11 @@ vi.mock("../utils/crypto", async () => {
 
 describe("SharedFiles", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:shared-test");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
     localStorage.clear();
     localStorage.setItem("token", "session-token");
     localStorage.setItem(
