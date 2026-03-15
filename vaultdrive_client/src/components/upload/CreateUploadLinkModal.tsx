@@ -4,6 +4,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint, AlertTriangle } from "lucide-react";
 import { API_URL } from "../../utils/api";
+import { useSessionVault } from "../../context/SessionVaultContext";
+import { getCachedPinValue } from "../../utils/pin-trust";
 
 interface Folder {
   id: string;
@@ -14,7 +16,7 @@ interface Folder {
 interface CreateUploadLinkModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => void | Promise<void>;
 }
 
 export function CreateUploadLinkModal({
@@ -22,7 +24,7 @@ export function CreateUploadLinkModal({
   onClose,
   onSuccess
 }: CreateUploadLinkModalProps) {
-  void onSuccess;
+  const { getCredential, setCredential } = useSessionVault();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState("");
   const [expiresIn, setExpiresIn] = useState("7");
@@ -38,6 +40,8 @@ export function CreateUploadLinkModal({
   const [description, setDescription] = useState("");
   const [createdLink, setCreatedLink] = useState<{ url: string } | null>(null);
   const [sealAfterUpload, setSealAfterUpload] = useState(false);
+  const cachedPin = getCachedPinValue(getCredential());
+  const activePin = cachedPin ?? pinInput;
 
   const fetchFolders = useCallback(async () => {
     setFetchingFolders(true);
@@ -114,7 +118,7 @@ export function CreateUploadLinkModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!/^\d{4}$/.test(pinInput)) {
+    if (!/^\d{4}$/.test(activePin)) {
       setError("PIN must be exactly 4 digits.");
       return;
     }
@@ -140,7 +144,7 @@ export function CreateUploadLinkModal({
           target_folder_id: selectedFolderId,
           expires_at: expiresAt,
           max_files: maxFiles,
-          pin: pinInput,
+          pin: activePin,
           link_name: linkName,
           description: description,
           seal_after_upload: sealAfterUpload,
@@ -168,7 +172,9 @@ export function CreateUploadLinkModal({
       }
 
       const data = await response.json();
+      setCredential(activePin, "pin");
       setCreatedLink({ url: data.upload_url });
+      await onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create upload link");
     } finally {
@@ -417,26 +423,35 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="pin" className="text-white/90 text-sm flex items-center gap-1">
-                <Fingerprint className="w-4 h-4" />
-                Your 4-digit PIN
-              </Label>
-              <input
-                id="pin"
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                placeholder="••••"
-                className="mt-1 w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 text-center tracking-widest text-xl"
-              />
-              <p className="text-white/60 text-xs mt-1">
-                Files will be encrypted so only you can decrypt them with this PIN.
-                Set your PIN in Settings if you haven't yet.
-              </p>
-            </div>
+            {cachedPin ? (
+              <div className="p-3 rounded-lg bg-white/10 border border-white/20">
+                <p className="text-white/90 text-sm flex items-center gap-2">
+                  <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                  Your vault PIN is already trusted for this session. This link will use the same app-wide PIN automatically.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="pin" className="text-white/90 text-sm flex items-center gap-1">
+                  <Fingerprint className="w-4 h-4" />
+                  Your 4-digit PIN
+                </Label>
+                <input
+                  id="pin"
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="••••"
+                  className="mt-1 w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 text-center tracking-widest text-xl"
+                />
+                <p className="text-white/60 text-xs mt-1">
+                  Files will be encrypted so only you can decrypt them with this PIN.
+                  Set your PIN in Settings if you haven't yet.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
@@ -456,7 +471,7 @@ export function CreateUploadLinkModal({
               </Button>
               <Button
                 type="submit"
-                disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId || pinInput.length !== 4}
+                disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId || activePin.length !== 4}
                 className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
               >
                 {loading ? (
