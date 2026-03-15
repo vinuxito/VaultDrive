@@ -45,7 +45,7 @@ export function OriginBadge({ origin, size = "sm" }: OriginBadgeProps) {
   switch (origin.type) {
     case "my-upload":
       icon = <Upload className={iconSize} />;
-      label = "My Upload";
+      label = "Vault";
       break;
     case "drop":
       icon = <Link2 className={iconSize} />;

@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 15, 2026 (late evening — one-PIN trust flow verified end-to-end)**
+> **Last updated: March 15, 2026 (night — trust UX hardened across all surfaces; bundle split)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -36,10 +36,10 @@ This section reflects the actual state. Sections below are historical documentat
 | Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs |
 | File Requests | ✅ | PBKDF2+passphrase encryption, full management UI |
 | Dashboard | ✅ | Stats, activity feed, security posture panel |
-| Trust Rail | ✅ | Per-file protection state, visibility, origin, latest event |
-| File Security Timeline | ✅ | Readable per-file trust event history |
-| Access Visibility Panel | ✅ | Owner / direct / group / link / drop hierarchy with state pills |
-| Privacy Explainer | ✅ | Plain-language onboarding + settings card |
+| Trust Rail | ✅ | Protection & Access rail — 3-col grid (Encryption, Source, Last Event), skeleton loader, access point count |
+| File Security Timeline | ✅ | Security History — event-type icon badges, relative timestamps, reassuring empty state |
+| Access Visibility Panel | ✅ | Owner anchor always shown, 2-step inline revoke, state pills per entry type |
+| Privacy Explainer | ✅ | "Privacy & Trust" card — plain-language, dot-marked lists, trust claim badges in Security card |
 | User sharing (RSA) | ✅ | Zero-knowledge key exchange between users |
 | Group sharing | ✅ | Teams, member management |
 | Activity log | ✅ | All events tracked, dashboard feed |
@@ -117,16 +117,15 @@ File requests remain intentionally separate: the uploader still chooses a passph
 ### Recent Session Work (Commits)
 
 ```
+[pending]         feat: trust UX hardening — 3-iteration polish pass, bundle splitting
+0ada09a           docs: record verified one-pin trust flow state
+7225d28           test: stabilize frontend browser-flow tests
+427d522           fix: keep onboarding active until completion
 34f890a           feat: restore shared downloads from session trust
 c62d802           feat: reuse session pin for secure drop links
 8aa9c9b           feat: require pin setup in the dashboard shell
 69c89bf           feat: finish pin enrollment during onboarding
-22ca580           feat: add pin enrollment helper
-31a23c5           feat: add cached pin trust helper
-19c517b           chore: add frontend trust-flow test infrastructure
 ea003c6           feat: trust UX, API v1, agent API keys, ciphertext-first control plane
-fb97d62           fix: share/drop/request URLs broken on production — basename mismatch
-1de364f           chore: lint fixes, session docs, verbose README
 e8033a4           feat: public share UX overhaul + inbound file requests system
 ```
 
@@ -137,7 +136,7 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-15-trust-ux-hardening.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
@@ -248,6 +247,8 @@ Response envelope:
 
 - `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
+- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening pass: what changed and why (latest)
+- `docs/12_ONE_PIN_TRUST_FLOW.md` — one-PIN trust model design and E2E verification
 - `docs/11_TRUST_API_AGENT_KEYS.md` — trust UX, API v1, agent keys deep-dive
 - `docs/09_SECURITY_HARDENING_PHASE2.md` — zero-knowledge sealing reference
 - `docs/10_PUBLIC_SHARE_AND_FILE_REQUESTS.md` — public share + file requests
@@ -359,11 +360,12 @@ Response envelope:
 
 ### 🛡️ Trust UX
 
-- **Trust Rail**: Persistent per-file rail showing protection state, visibility summary, origin (vault upload vs secure drop), and latest activity event
-- **File Security Timeline**: Readable event history per file — upload, share, link create/access/revoke, group share, drop intake
-- **Access Hierarchy**: Clear state pills (active / revoked / expired) for every access entry type: owner, direct users, groups, share links, Secure Drop
-- **Privacy Explainer**: Plain-language onboarding and settings card explaining what the server can and cannot see
-- **First-run trust step**: Onboarding starts with a calm trust briefing before PIN setup
+- **Trust Rail**: "Protection & Access" rail — 3-column grid (Encryption / Source / Last Event), animated skeleton loader, active access point count, state pill
+- **File Security Timeline**: "Security History" — event-type icon badges (Upload/Share/Revoke/Link/Drop/View), relative timestamps ("3 days ago"), reassuring empty state
+- **Access Visibility Panel**: Owner anchor ("You — Full access, always") always at top. 2-step inline revoke confirmation. State pills per entry: active / revoked / expired
+- **Privacy & Trust**: Settings card with plain-language lists, dot markers, trust claim badges for encryption and key exchange
+- **First-run trust step**: "Your files, your control" — positive-framing privacy briefing before PIN setup, plus 3-item ready checklist on completion
+- **Trust Receipts**: Calm, factual confirmation moments after share link creation, Secure Drop link creation — no anxiety language, revoke-path always communicated
 
 ### 🤖 Agent API Keys
 
@@ -372,9 +374,9 @@ Response envelope:
 - **Scope enforcement**: Every request checked before the handler runs. Scope denial is logged.
 - **Scope escalation prevention**: Agent keys cannot create child keys with broader scopes than their own.
 - **Full visibility**: Last-used timestamp, IP, user-agent, and usage count visible to the key owner
-- **Instant revocation**: Keys can be revoked at any time from the Settings page
+- **Instant revocation**: Keys can be revoked at any time from Settings — with 2-step inline confirmation (no browser dialogs)
 - **Audit trail**: Key creation, use, denial, expiry, and revocation all recorded
-- **Management UI**: Create, view, and revoke keys from Settings → Agent API keys
+- **Grouped scope UI**: Scope selection grouped into 6 categories (Files, Folders, Sharing, File Requests, Audit & Trust, API Keys) with descriptions and human-readable labels
 
 ### 🌐 API v1 — External Control Plane
 

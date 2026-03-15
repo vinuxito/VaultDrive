@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 15, 2026 (late evening)
+Last updated: March 15, 2026 (night — trust UX hardening)
 
 ## Task Documentation
 
@@ -18,6 +18,7 @@ Last updated: March 15, 2026 (late evening)
 | 10 | [Public Share + File Requests](./10_PUBLIC_SHARE_AND_FILE_REQUESTS.md) | Info-first share page, expiry picker, inbound file request system end-to-end |
 | 11 | [Trust UX, API v1, Agent Keys](./11_TRUST_API_AGENT_KEYS.md) | Trust rail, security timeline, versioned API, scoped agent API keys, audit log |
 | 12 | [One-PIN Trust Flow](./12_ONE_PIN_TRUST_FLOW.md) | Enforced one-PIN owner workflow, onboarding completion, session trust reuse, and E2E verification |
+| 13 | [Trust UX Hardening](./13_TRUST_UX_HARDENING.md) | 3-iteration UI/UX hardening: Trust Rail, Security Timeline, AccessPanel, Agent Key scopes, Onboarding, bundle splitting |
 
 ## Feature Docs (pre-existing)
 
@@ -39,6 +40,7 @@ Last updated: March 15, 2026 (late evening)
 | [SESSION_MEMORY_2026-03-15-trust-api-agents.md](./SESSION_MEMORY_2026-03-15-trust-api-agents.md) | Trust UX, API v1, scoped agent keys, ciphertext-first control plane |
 | [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md) | One PIN, zero friction — session credential cache across all vault operations |
 | [SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md](./SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md) | Verification pass, onboarding lifecycle fix, and end-to-end one-PIN owner-flow proof |
+| [SESSION_MEMORY_2026-03-15-trust-ux-hardening.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening.md) | 3-iteration trust UX hardening — TrustRail, Timeline, AccessPanel, AgentKeys, Onboarding, bundle splitting |
 
 ## Quick Navigation
 
@@ -65,3 +67,7 @@ Last updated: March 15, 2026 (late evening)
 **I want to understand the credential cache / one-PIN flow →** [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md)
 
 **I want the final one-PIN implementation + verification story →** [12_ONE_PIN_TRUST_FLOW.md](./12_ONE_PIN_TRUST_FLOW.md)
+
+**I want the trust UX hardening summary →** [13_TRUST_UX_HARDENING.md](./13_TRUST_UX_HARDENING.md)
+
+**I want the latest session context →** [SESSION_MEMORY_2026-03-15-trust-ux-hardening.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening.md)

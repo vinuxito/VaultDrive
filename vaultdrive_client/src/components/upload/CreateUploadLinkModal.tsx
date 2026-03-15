@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint, AlertTriangle } from "lucide-react";
+import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint, CheckCircle2 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { getCachedPinValue } from "../../utils/pin-trust";
@@ -216,12 +216,12 @@ export function CreateUploadLinkModal({
 
         {createdLink ? (
           <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-[#10b981]/20 border border-[#10b981]/40">
-              <p className="text-white text-sm">
-                <strong>Upload link created successfully.</strong>
-                <br />
-                Share this URL with your client. You stay in control: the link can expire, be sealed after use, or be revoked later.
-              </p>
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-500/15 border border-emerald-400/25">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-white font-semibold text-sm">Secure Drop link ready</p>
+                <p className="text-white/70 text-xs mt-0.5">Share this URL with your client. The link can expire, be sealed after use, or be revoked from your vault at any time.</p>
+              </div>
             </div>
 
             <div>
@@ -245,15 +245,14 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-amber-500/20 border border-amber-400/40">
-              <p className="text-amber-200 text-xs flex items-start gap-2">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                Copy and save this URL now. The encryption key in the link will not be shown again, which keeps the trust boundary clean.
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+              <p className="text-white/60 text-xs">
+                Save this link. The encryption key in the URL fragment is shown once — it never reaches the server.
               </p>
             </div>
 
-            <div className="p-3 rounded-lg bg-white/10 border border-white/20">
-              <p className="text-white/90 text-sm flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-white/8 border border-white/15">
+              <p className="text-white/80 text-sm flex items-center gap-2">
                 <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
                 Use your <strong>4-digit PIN</strong> to decrypt files uploaded via this link.
               </p>

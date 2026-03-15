@@ -200,28 +200,28 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <Lock className="w-7 h-7 text-[#f2d7d8]" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                  Calm by design
+                  Your files, your control
                 </h2>
                 <p className="text-sm text-white/50 max-w-md mx-auto leading-relaxed">
-                  ABRN Drive encrypts files before upload, lets you see who can access them, and keeps risky access revocable.
+                  Files are encrypted in your browser before they leave your device. The server only ever sees locked data.
                 </p>
               </div>
 
-              <div className="space-y-3 text-sm text-white/80">
+              <div className="space-y-3 text-sm">
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="font-medium text-white">What the server can do</p>
-                  <p className="mt-1 text-white/60">Store ciphertext, create links and requests, show access history, and let you revoke external reach quickly.</p>
+                  <p className="font-medium text-white">What stays private</p>
+                  <p className="mt-1 text-white/60">Your file contents. Even with full database access, files cannot be read without your PIN.</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="font-medium text-white">What the server cannot do</p>
-                  <p className="mt-1 text-white/60">It does not quietly become a plaintext superuser for your protected files.</p>
+                  <p className="font-medium text-white">What you control</p>
+                  <p className="mt-1 text-white/60">Who can access each file, when links expire, and the ability to revoke any external access immediately.</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                   <p className="font-medium text-white flex items-center gap-2">
                     <Bot className="w-4 h-4 text-[#f2d7d8]" />
-                    External agents stay scoped
+                    Agents work within bounds
                   </p>
-                  <p className="mt-1 text-white/60">Agent keys can automate control-plane work without silently dissolving the trust boundary.</p>
+                  <p className="mt-1 text-white/60">AI systems and automation get scoped credentials. They can work with your encrypted data, but cannot read your files.</p>
                 </div>
               </div>
 
@@ -398,32 +398,33 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                  You're ready!
+                  Vault is ready
                 </h2>
                 <p className="text-sm text-white/50 max-w-sm mx-auto leading-relaxed">
-                  Your vault is active. Share the button below to get files from
-                  clients.
+                  Your PIN is set, your encryption key is protected, and your vault is active.
                 </p>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 space-y-3">
-                <p className="text-xs text-white/40 uppercase tracking-wider font-medium">
-                  Client Upload Link
-                </p>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#7d4f50]/20 border border-[#7d4f50]/30 rounded-lg text-[#f2d7d8] text-sm font-medium">
-                  <FolderPlus className="w-4 h-4" />
-                  Send me files
+              <div className="text-left space-y-2">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <p className="text-sm text-white/70">PIN protects your vault and all secure links</p>
                 </div>
-                <p className="text-xs text-white/30">
-                  Go to Files → Drop Links to create and share your upload link
-                </p>
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <p className="text-sm text-white/70">Receive files from clients via Secure Drop links</p>
+                </div>
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <p className="text-sm text-white/70">Full access control — share, expire, revoke anytime</p>
+                </div>
               </div>
 
               <Button
                 className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={handleComplete}
               >
-                Go to Vault <ArrowRight className="w-4 h-4" />
+                Open Vault <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           )}

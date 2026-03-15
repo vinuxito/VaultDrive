@@ -26,23 +26,56 @@ interface Envelope<T> {
   data: T;
 }
 
-const scopeGroups = [
-  "files:list",
-  "files:read_metadata",
-  "files:upload_ciphertext",
-  "files:download_ciphertext",
-  "folders:read",
-  "folders:write",
-  "shares:create",
-  "shares:list",
-  "shares:revoke",
-  "requests:create",
-  "requests:list",
-  "requests:revoke",
-  "activity:read",
-  "trust:read",
-  "api_keys:read",
-  "api_keys:write",
+const scopeLabels: Record<string, string> = {
+  "files:list": "List files",
+  "files:read_metadata": "Read file metadata",
+  "files:upload_ciphertext": "Upload encrypted files",
+  "files:download_ciphertext": "Download encrypted files",
+  "folders:read": "List folders",
+  "folders:write": "Create & manage folders",
+  "shares:create": "Create share links",
+  "shares:list": "List share links",
+  "shares:revoke": "Revoke share links",
+  "requests:create": "Create file requests",
+  "requests:list": "List file requests",
+  "requests:revoke": "Revoke file requests",
+  "activity:read": "Read activity log",
+  "trust:read": "Read trust & security data",
+  "api_keys:read": "List agent keys",
+  "api_keys:write": "Create & revoke agent keys",
+};
+
+const scopeCategories = [
+  {
+    label: "Files",
+    description: "Read and move encrypted file data",
+    scopes: ["files:list", "files:read_metadata", "files:upload_ciphertext", "files:download_ciphertext"],
+  },
+  {
+    label: "Folders",
+    description: "Navigate and organize the vault",
+    scopes: ["folders:read", "folders:write"],
+  },
+  {
+    label: "Sharing",
+    description: "Manage public share links",
+    scopes: ["shares:create", "shares:list", "shares:revoke"],
+  },
+  {
+    label: "File Requests",
+    description: "Manage inbound collection links",
+    scopes: ["requests:create", "requests:list", "requests:revoke"],
+  },
+  {
+    label: "Audit & Trust",
+    description: "Read activity and security history",
+    scopes: ["activity:read", "trust:read"],
+  },
+  {
+    label: "API Keys",
+    description: "Manage scoped agent credentials",
+    scopes: ["api_keys:read", "api_keys:write"],
+  },
 ];
 
 function CreateKeyModal({
@@ -114,10 +147,10 @@ function CreateKeyModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-[#f8f4f1] to-white">
+      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-[#f8f4f1] to-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7d4f50] text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7d4f50] text-white shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div>
@@ -128,14 +161,14 @@ function CreateKeyModal({
         </div>
 
         {created ? (
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-4 overflow-y-auto">
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
               <div className="flex items-center gap-2 text-emerald-700 font-medium">
                 <ShieldCheck className="w-4 h-4" />
-                Agent key created with controlled scope
+                Agent key created — save it now
               </div>
               <p className="mt-2 text-sm text-emerald-700/90">
-                Save this key now. ABRN Drive will only show the visible prefix after you close this receipt.
+                This is the only time ABRN Drive will show the full key. After you close this window, only the visible prefix remains.
               </p>
             </div>
 
@@ -176,7 +209,7 @@ function CreateKeyModal({
             </div>
           </div>
         ) : (
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-5 overflow-y-auto">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="agent-key-name" className="text-sm font-medium text-slate-700">Key name</label>
@@ -205,33 +238,48 @@ function CreateKeyModal({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="agent-key-notes" className="text-sm font-medium text-slate-700">Notes</label>
+              <label htmlFor="agent-key-notes" className="text-sm font-medium text-slate-700">Purpose</label>
               <textarea
                 id="agent-key-notes"
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                placeholder="Why this agent exists and what it should be allowed to do"
+                placeholder="What this agent does and why it needs access"
                 rows={2}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#7d4f50] focus:outline-none"
               />
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-              <p className="text-sm font-medium text-slate-800">Scopes</p>
-              <p className="mt-1 text-sm text-slate-500">Start narrow. These keys never carry decryption authority.</p>
-              <div className="mt-4 grid gap-2 md:grid-cols-2">
-                {scopeGroups.map((scope) => (
-                  <label key={scope} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={selectedScopes.includes(scope)}
-                      onChange={() => toggleScope(scope)}
-                      className="h-4 w-4 accent-[#7d4f50]"
-                    />
-                    {scope}
-                  </label>
-                ))}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 space-y-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Permissions</p>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  Start narrow. These keys never carry decryption authority over your files.
+                </p>
               </div>
+              {scopeCategories.map((category) => (
+                <div key={category.label} className="space-y-1.5">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-[0.1em]">{category.label}</p>
+                    <p className="text-xs text-slate-400">{category.description}</p>
+                  </div>
+                  <div className="grid gap-1.5 md:grid-cols-2">
+                    {category.scopes.map((scope) => (
+                      <label
+                        key={scope}
+                        className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedScopes.includes(scope)}
+                          onChange={() => toggleScope(scope)}
+                          className="h-4 w-4 accent-[#7d4f50] shrink-0"
+                        />
+                        <span className="flex-1">{scopeLabels[scope] ?? scope}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -258,6 +306,8 @@ export function AgentApiKeysSection() {
   const [keys, setKeys] = useState<AgentKeyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   const fetchKeys = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -273,14 +323,19 @@ export function AgentApiKeysSection() {
     void fetchKeys();
   }, [fetchKeys]);
 
-  const revokeKey = async (key: AgentKeyRecord) => {
-    if (!window.confirm(`Revoke ${key.name}? The agent will stop working immediately.`)) return;
-    const token = localStorage.getItem("token");
-    await fetch(`${API_URL}/v1/agent-keys/${key.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    void fetchKeys();
+  const revokeKey = async (keyId: string) => {
+    setRevokingId(keyId);
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(`${API_URL}/v1/agent-keys/${keyId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      void fetchKeys();
+    } finally {
+      setRevokingId(null);
+      setConfirmRevokeId(null);
+    }
   };
 
   return (
@@ -295,7 +350,7 @@ export function AgentApiKeysSection() {
             Scoped credentials for external systems, automation, and AI agents. Ciphertext-first by default.
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white">
+        <Button onClick={() => setShowCreateModal(true)} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white shrink-0">
           <KeyRound className="w-4 h-4 mr-2" />
           New key
         </Button>
@@ -310,7 +365,7 @@ export function AgentApiKeysSection() {
 
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">
-          Loading agent keys...
+          Loading agent keys…
         </div>
       ) : keys.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
@@ -324,25 +379,60 @@ export function AgentApiKeysSection() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-slate-900">{key.name}</p>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${key.status === "active" ? "bg-emerald-100 text-emerald-700" : key.status === "revoked" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                        key.status === "active"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : key.status === "revoked"
+                          ? "bg-rose-100 text-rose-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
                       {key.status}
                     </span>
                     <code className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{key.key_prefix}</code>
                   </div>
                   <p className="mt-1 text-sm text-slate-500">Created {new Date(key.created_at).toLocaleString()}</p>
                 </div>
+
                 {key.status === "active" && (
-                  <Button variant="outline" onClick={() => void revokeKey(key)} className="text-rose-700 border-rose-200 hover:bg-rose-50">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Revoke
-                  </Button>
+                  confirmRevokeId === key.id ? (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setConfirmRevokeId(null)}
+                        className="text-slate-600 border-slate-200"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void revokeKey(key.id)}
+                        disabled={revokingId === key.id}
+                        className="text-rose-700 border-rose-200 hover:bg-rose-50"
+                      >
+                        {revokingId === key.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm revoke"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => setConfirmRevokeId(key.id)}
+                      className="text-rose-700 border-rose-200 hover:bg-rose-50 shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Revoke
+                    </Button>
+                  )
                 )}
               </div>
 
               <div className="flex flex-wrap gap-2">
                 {key.scopes.map((scope) => (
                   <span key={scope} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600">
-                    {scope}
+                    {scopeLabels[scope] ?? scope}
                   </span>
                 ))}
               </div>
@@ -350,7 +440,9 @@ export function AgentApiKeysSection() {
               <div className="grid gap-3 md:grid-cols-3 text-sm text-slate-600">
                 <div className="rounded-xl bg-slate-50 px-3 py-3 border border-slate-200">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Last used</p>
-                  <p className="mt-1 text-slate-900 font-medium">{key.last_used_at ? new Date(key.last_used_at).toLocaleString() : "Never used"}</p>
+                  <p className="mt-1 text-slate-900 font-medium">
+                    {key.last_used_at ? new Date(key.last_used_at).toLocaleString() : "Never used"}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3 py-3 border border-slate-200">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Last seen from</p>
@@ -363,7 +455,7 @@ export function AgentApiKeysSection() {
               </div>
 
               {key.last_used_user_agent && (
-                <p className="text-xs text-slate-500">User agent: {key.last_used_user_agent}</p>
+                <p className="text-xs text-slate-400 truncate">Last agent: {key.last_used_user_agent}</p>
               )}
             </div>
           ))}

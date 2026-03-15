@@ -11,7 +11,9 @@ import { Switch } from "../components/ui/switch";
 import { Button } from "../components/ui/button";
 import {
   Shield,
+  ShieldCheck,
   User,
+  Users,
   Mail,
   Calendar,
   HardDrive,
@@ -281,15 +283,14 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Secure Drop PIN */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Fingerprint className="w-5 h-5" />
-              Secure Drop PIN
+              Your Vault PIN
             </CardTitle>
             <CardDescription>
-              4-digit PIN used to decrypt files uploaded via your Secure Drop links
+              A single 4-digit PIN used across your vault, shares, Secure Drop, and quick login
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -304,7 +305,7 @@ export default function Settings() {
                 <div>
                   <p className="font-medium text-green-900 dark:text-green-100">PIN is set</p>
                   <p className="text-sm text-green-700 dark:text-green-300 mt-0.5">
-                    Your Secure Drop links are protected. Use your 4-digit PIN to decrypt received files.
+                    Your vault is protected. This PIN is used for uploads, downloads, shares, and Secure Drop links.
                   </p>
                 </div>
               </div>
@@ -314,7 +315,7 @@ export default function Settings() {
                 <div>
                   <p className="font-medium text-amber-900 dark:text-amber-100">No PIN set yet</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
-                    Set a PIN before creating Secure Drop links. You'll need it to decrypt uploaded files.
+                    Set a PIN to unlock your vault. You'll need it for all uploads, downloads, shares, and Secure Drop links.
                   </p>
                 </div>
               </div>
@@ -434,26 +435,21 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Security Features</Label>
-                <ul className="text-sm space-y-2 ml-4">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    JWT-based authentication with refresh tokens
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    Bcrypt password hashing
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    Secure file sharing with public key cryptography
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    Server never sees unencrypted files
-                  </li>
-                </ul>
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">Server never decrypts</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">All operations happen in your browser</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 py-2.5">
+                  <Users className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">Sharing uses key exchange</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">RSA wrapping, revocable anytime</p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -463,41 +459,41 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Privacy explainer
+              Privacy & Trust
             </CardTitle>
             <CardDescription>
-              Plain-language answers about what ABRN Drive can and cannot see
+              What ABRN Drive sees, what it protects, and what you control
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-              <p className="font-medium text-slate-900">What ABRN Drive protects</p>
+              <p className="font-medium text-slate-900">How your files are protected</p>
               <p className="mt-1">
-                Your files are encrypted before upload. The server stores ciphertext, metadata needed for delivery, and audit records about what happened.
+                Files are encrypted in your browser before upload. The server stores only the locked version, the delivery metadata, and a record of access events.
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
-                <p className="font-medium text-emerald-900">The server can see</p>
-                <ul className="mt-2 space-y-1 text-emerald-800">
-                  <li>Who owns a file</li>
-                  <li>When links, requests, or agent keys were created</li>
-                  <li>Whether access was shared, revoked, or expired</li>
+                <p className="font-medium text-emerald-900 mb-2">The server tracks</p>
+                <ul className="space-y-1.5 text-emerald-800">
+                  <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-emerald-500 shrink-0" />File ownership and folder structure</li>
+                  <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-emerald-500 shrink-0" />When links and requests were created or revoked</li>
+                  <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-emerald-500 shrink-0" />Agent key activity and scope denials</li>
                 </ul>
               </div>
               <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4">
-                <p className="font-medium text-sky-900">The server cannot see</p>
-                <ul className="mt-2 space-y-1 text-sky-800">
-                  <li>The plaintext contents of your protected files</li>
-                  <li>The decryption key hidden after a public link fragment</li>
-                  <li>Your PIN-derived unlock material for normal vault use</li>
+                <p className="font-medium text-sky-900 mb-2">The server cannot see</p>
+                <ul className="space-y-1.5 text-sky-800">
+                  <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-sky-500 shrink-0" />Your file contents — only encrypted bytes</li>
+                  <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-sky-500 shrink-0" />The decryption key in public share link fragments</li>
+                  <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-sky-500 shrink-0" />Your PIN or the vault unlock material it derives</li>
                 </ul>
               </div>
             </div>
             <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-4">
-              <p className="font-medium text-slate-900">Sharing, revocation, and outside agents</p>
+              <p className="font-medium text-slate-900">Sharing and agent delegation</p>
               <p className="mt-1">
-                ABRN Drive lets you create links, requests, and agent keys that you can review and revoke. Agent API keys are scoped for metadata, ciphertext movement, and control-plane actions. They do not quietly turn the server into a plaintext superuser.
+                Every link, request, and agent key you create is reviewable and revocable. Agent keys carry explicit scopes for metadata and ciphertext operations — they cannot silently read your files.
               </p>
             </div>
           </CardContent>

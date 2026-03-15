@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Download, Loader2, AlertCircle, Lock, Key } from "lucide-react";
+import { X, Download, Loader2, AlertCircle, Lock, Key, ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
 import { Button } from "../ui/button";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { API_URL } from "../../utils/api";
@@ -98,6 +98,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [trustExpanded, setTrustExpanded] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [decryptedBlob, setDecryptedBlob] = useState<Blob | null>(null);
@@ -257,9 +258,27 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
         <div className="flex-1 overflow-auto p-5 min-h-0">
           {file.is_owner !== false && (
-            <div className="space-y-4 mb-5">
-              <TrustRail fileId={file.id} />
-              <FileSecurityTimeline fileId={file.id} />
+            <div className="mb-5">
+              <button
+                type="button"
+                onClick={() => setTrustExpanded((prev) => !prev)}
+                className="flex items-center gap-1.5 w-full text-left text-white/45 hover:text-white/70 transition-colors mb-2 group"
+              >
+                {trustExpanded
+                  ? <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                  : <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                }
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="text-xs font-medium uppercase tracking-[0.15em]">
+                  Protection & History
+                </span>
+              </button>
+              {trustExpanded && (
+                <div className="space-y-3">
+                  <TrustRail fileId={file.id} />
+                  <FileSecurityTimeline fileId={file.id} />
+                </div>
+              )}
             </div>
           )}
 

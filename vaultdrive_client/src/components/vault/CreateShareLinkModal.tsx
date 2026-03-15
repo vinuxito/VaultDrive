@@ -301,9 +301,12 @@ export function CreateShareLinkModal({
 
           {step === "done" && (
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 bg-white/5 border border-emerald-400/20 rounded-xl">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <p className="text-sm font-medium text-white">Share link created with revocable access</p>
+                <div>
+                  <p className="text-sm font-semibold text-white">Link created — revocable anytime</p>
+                  <p className="text-xs text-white/60 mt-0.5">Access control stays with you</p>
+                </div>
               </div>
               {expiryDisplay && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
@@ -327,9 +330,9 @@ export function CreateShareLinkModal({
                   onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                 />
               </div>
-              <div className="p-2.5 bg-amber-500/10 border border-amber-400/20 rounded-md">
-                <p className="text-xs text-amber-200">
-                  Anyone with this link can decrypt and download the file until you revoke it or it expires. The key after # never reaches the server.
+              <div className="p-2.5 bg-white/5 border border-white/10 rounded-md">
+                <p className="text-xs text-white/60">
+                  Share this link with the recipient. The decryption key travels in the link — the server never sees it. Revoke anytime from the file's access panel.
                 </p>
               </div>
               <div className="flex gap-2">
