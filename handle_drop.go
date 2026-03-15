@@ -412,6 +412,10 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 				log.Printf("Failed to save client message: %v", err)
 			}
 		}
+		cfg.insertAudit(r.Context(), uploadToken.OwnerUserID, "secure_drop.uploaded", "upload_token", &uploadToken.ID, map[string]interface{}{
+			"uploaded_count": createdFiles,
+			"token":          tokenStr,
+		}, r)
 	}
 
 	respondWithJSON(w, http.StatusCreated, map[string]interface{}{
@@ -453,6 +457,13 @@ func (cfg *ApiConfig) handlerDropDone(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Error expiring token"})
 		return
 	}
+	cfg.insertActivity(r.Context(), uploadToken.OwnerUserID, "secure_drop_revoked", map[string]interface{}{
+		"upload_token_id": uploadToken.ID.String(),
+		"token":           tokenStr,
+	})
+	cfg.insertAudit(r.Context(), uploadToken.OwnerUserID, "secure_drop.revoked", "upload_token", &uploadToken.ID, map[string]interface{}{
+		"token": tokenStr,
+	}, r)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -686,6 +697,13 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		cfg.db.ExecContext(r.Context(),
 			"UPDATE upload_tokens SET seal_after_upload = TRUE WHERE id = $1", uploadToken.ID)
 	}
+	cfg.insertActivity(r.Context(), ownerID, "secure_drop_created", map[string]interface{}{
+		"upload_token_id": uploadToken.ID.String(),
+		"link_name":       req.LinkName,
+	})
+	cfg.insertAudit(r.Context(), ownerID, "secure_drop.created", "upload_token", &uploadToken.ID, map[string]interface{}{
+		"link_name": req.LinkName,
+	}, r)
 
 	uploadURL := fmt.Sprintf("/abrn/drop/%s#key=%s", dropToken, randomKey)
 	w.Header().Set("Content-Type", "application/json")

@@ -107,6 +107,13 @@ func (cfg *ApiConfig) handlerCreateFileRequest(w http.ResponseWriter, r *http.Re
 		respondWithError(w, http.StatusInternalServerError, "Could not create file request", err)
 		return
 	}
+	cfg.insertActivity(r.Context(), user.ID, "file_request_created", map[string]interface{}{
+		"file_request_id": req.ID.String(),
+		"token":           req.Token,
+	})
+	cfg.insertAudit(r.Context(), user.ID, "file_request.created", "file_request", &req.ID, map[string]interface{}{
+		"token": req.Token,
+	}, r)
 
 	respondWithJSON(w, http.StatusCreated, dbFileRequestToResponse(req))
 }
@@ -144,6 +151,10 @@ func (cfg *ApiConfig) handlerRevokeFileRequest(w http.ResponseWriter, r *http.Re
 		respondWithError(w, http.StatusInternalServerError, "Could not revoke file request", err)
 		return
 	}
+	cfg.insertActivity(r.Context(), user.ID, "file_request_revoked", map[string]interface{}{
+		"file_request_id": id.String(),
+	})
+	cfg.insertAudit(r.Context(), user.ID, "file_request.revoked", "file_request", &id, nil, r)
 	respondWithJSON(w, http.StatusOK, map[string]bool{"success": true})
 }
 
@@ -335,6 +346,10 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 					Valid: true,
 				},
 			})
+			cfg.insertAudit(r.Context(), req.OwnerID, "file_request.uploaded", "file", &createdFile.ID, map[string]interface{}{
+				"file_request_id": req.ID.String(),
+				"filename":        originalName,
+			}, r)
 
 			results = append(results, uploadResult{FileID: createdFile.ID.String(), Filename: originalName})
 		}
@@ -345,5 +360,4 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 		"count":    len(results),
 	})
 }
-
 

@@ -21,6 +21,26 @@ type ActivityLog struct {
 	CreatedAt time.Time
 }
 
+type AgentApiKey struct {
+	ID                  uuid.UUID
+	UserID              uuid.UUID
+	Name                string
+	KeyPrefix           string
+	KeyHash             string
+	ScopesJson          json.RawMessage
+	Status              string
+	CreatedAt           time.Time
+	LastUsedAt          sql.NullTime
+	ExpiresAt           sql.NullTime
+	RevokedAt           sql.NullTime
+	CreatedByIp         sql.NullString
+	LastUsedIp          sql.NullString
+	LastUsedUserAgent   sql.NullString
+	Notes               sql.NullString
+	UsageCount          int32
+	LastSeenContextJson json.RawMessage
+}
+
 type AuditLog struct {
 	ID           uuid.UUID
 	UserID       uuid.NullUUID

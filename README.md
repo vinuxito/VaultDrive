@@ -1,10 +1,10 @@
 # ABRN Drive
 
-> Secure, zero-knowledge encrypted file platform for partners and clients.  
-> End-to-end encrypted file storage, sharing, and collection — all crypto in the browser.  
+> Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
+> All encryption in the browser. All access visible and revocable. All agent operations scoped.
 > **Last updated: March 15, 2026**
 
-ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server never sees plaintext or decryption keys. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access.
+ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
 Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · PostgreSQL · Apache
 
@@ -12,17 +12,19 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ## What It Does
 
-**Store** — AES-256-GCM encrypted file vault with PIN-based access.  
-**Share** — Time-limited public links with key in URL fragment (never touches the server).  
-**Collect** — Secure Drop portal + File Requests system for receiving encrypted files from clients.  
-**Preview** — Decrypt and preview images, PDFs, audio, video, text inline.  
-**Collaborate** — Share with users and groups with zero-knowledge RSA key exchange.
+**Store** — AES-256-GCM encrypted file vault. PIN-based access, session key cache, inline preview.
+**Share** — Time-limited public links with AES key in URL fragment (never reaches the server). Expiry picker, access tracking, instant revoke.
+**Collect** — Secure Drop portal + File Requests system for receiving encrypted files from clients without accounts.
+**Collaborate** — Share files with users and groups via zero-knowledge RSA key exchange.
+**Control** — Stable versioned API (`/api/v1/`) for full programmatic control of all resources.
+**Delegate** — Per-user Agent API Keys with granular scopes, last-used tracking, and full revocability for AI agents and external systems.
+**Audit** — Complete audit trail for key lifecycle, access changes, and agent operations.
 
 ---
 
 ## Current State (March 15, 2026)
 
-This section reflects the actual deployed state. Sections below this are historical documentation that may be outdated.
+This section reflects the actual state. Sections below are historical documentation.
 
 ### What's Live
 
@@ -30,65 +32,187 @@ This section reflects the actual deployed state. Sections below this are histori
 |---------|--------|-------|
 | Encrypted file vault | ✅ | AES-256-GCM, PIN-based, session key cache |
 | File preview (inline) | ✅ | Images, PDF, audio, video, text |
-| Public share links | ✅ | Info-first UX, expiry picker, 7-day default |
+| Public share links | ✅ | Info-first UX, expiry picker, 7-day default, fragment-key ZK |
 | Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs |
 | File Requests | ✅ | PBKDF2+passphrase encryption, full management UI |
 | Dashboard | ✅ | Stats, activity feed, security posture panel |
-| File access visibility | ✅ | Who-can-see panel, one-click external revoke |
+| Trust Rail | ✅ | Per-file protection state, visibility, origin, latest event |
+| File Security Timeline | ✅ | Readable per-file trust event history |
+| Access Visibility Panel | ✅ | Owner / direct / group / link / drop hierarchy with state pills |
+| Privacy Explainer | ✅ | Plain-language onboarding + settings card |
 | User sharing (RSA) | ✅ | Zero-knowledge key exchange between users |
 | Group sharing | ✅ | Teams, member management |
 | Activity log | ✅ | All events tracked, dashboard feed |
+| Audit log | ✅ | Agent key lifecycle, access changes, sensitive file operations |
+| Agent API Keys | ✅ | Scoped, hashed, revocable, last-used visible, settings UI |
+| API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
+| Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
 | PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
 | Zero-knowledge drop uploads | ✅ | Raw key never stored, key in URL fragment |
 | Email module | ⛔ | Removed from UI (code preserved) |
+| Delegated decrypt | 🔜 | Deferred — requires explicit key-wrapping design |
 
-### DB Migration Version: 33
+### DB Migration Version: 34
 
-All 33 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`.
+All 34 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`, `agent_api_keys`.
+
+Run after pulling:
+```bash
+goose -dir sql/schema postgres "$DATABASE_URL" up
+```
 
 ### Encryption Chain Summary
 
 ```
-Regular file upload:  passphrase → PBKDF2(100k) → AES-256-GCM → stored ciphertext
-Drop file:            owner PIN → PBKDF2 → WrapKey → pin_wrapped_key in DB
-                      client → randomKey from URL fragment → AES-256-GCM → stored ciphertext
-Public share:         owner PIN → unwraps randomKey → raw AES key in URL #fragment → recipient decrypts
-File request:         client passphrase → PBKDF2(salt) → AES-256-GCM → stored ciphertext
-                      owner decrypts with same passphrase + stored salt (out-of-band passphrase delivery)
+Regular vault upload:  owner credential (PIN or password) → PBKDF2(100k) → AES-256-GCM → stored ciphertext
+                       credential_scheme stored in file metadata for future credential detection
+
+Drop file:             owner PIN → PBKDF2 → WrapKey → pin_wrapped_key in DB
+                       client → randomKey from URL fragment → AES-256-GCM → stored ciphertext
+
+Public share:          owner PIN → unwraps file key → raw AES key in URL #fragment → recipient decrypts
+                       Key in fragment never reaches server (even in server logs)
+
+File request:          client passphrase → PBKDF2(salt) → AES-256-GCM → stored ciphertext
+                       Owner decrypts with same passphrase + stored salt (out-of-band delivery)
+
+Agent download:        Agent receives raw ciphertext + X-Wrapped-Key (RSA-wrapped AES key)
+                       Decryption still requires owner's PIN-encrypted RSA private key — agents cannot decrypt
 ```
 
 ### Recent Session Work (Commits)
 
 ```
-e8033a4  feat: public share UX overhaul + inbound file requests system
-fd7e62a  chore: sync sqlc-generated files, untrack binary, session docs
-d60cb33  fix: PIN lockout, drop raw_encryption_key column, ESLint
-4f958ae  feat: Phase 2 security — ZK seal, fragment keys, auth gates, activity
-a4a0dc5  feat: UX Upgrade Phase 1 — session cache, drop portal, onboarding
+(pending commit)  feat: trust UX, API v1, agent API keys, ciphertext-first control plane
+fb97d62           fix: share/drop/request URLs broken on production — basename mismatch
+1de364f           chore: lint fixes, session docs, verbose README
+e8033a4           feat: public share UX overhaul + inbound file requests system
+fd7e62a           chore: sync sqlc-generated files, untrack binary, session docs
 ```
 
 ---
 
 ## Agent Onboarding
 
-If you're an agent, start here:
+If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-15.md` for the latest session context.
+2. Check `docs/SESSION_MEMORY_2026-03-15-trust-api-agents.md` for the latest session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
+5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
+
+---
+
+## API v1 — External Control Plane
+
+All v1 endpoints accept `Authorization: Bearer <jwt_or_agent_key>`.
+
+Response envelope:
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "request_id": "uuid",
+    "pagination": { "count": 20, "limit": 20, "offset": 0 }
+  }
+}
+```
+
+### File Endpoints
+
+| Method | Path | Required Scope | Description |
+|--------|------|----------------|-------------|
+| `GET` | `/api/v1/files` | `files:list` | List files. Optional `?q=` search filter |
+| `GET` | `/api/v1/files/{id}` | `files:read_metadata` | Single file metadata |
+| `POST` | `/api/v1/files/upload` | `files:upload_ciphertext` | Upload encrypted file (multipart) |
+| `GET` | `/api/v1/files/{id}/download` | `files:download_ciphertext` | Ciphertext bytes + `X-Wrapped-Key` + `X-File-Metadata` headers |
+| `GET` | `/api/v1/files/{id}/trust` | `trust:read` | Trust summary (protection, visibility, origin, latest event) |
+| `GET` | `/api/v1/files/{id}/timeline` | `trust:read` | Security event timeline (newest first) |
+| `GET` | `/api/v1/files/{id}/access-summary` | `trust:read` | Access entries with state |
+| `DELETE` | `/api/v1/files/{id}/revoke-external` | `shares:revoke` | Revoke all external access (fails closed) |
+
+### Share Link Endpoints
+
+| Method | Path | Required Scope | Description |
+|--------|------|----------------|-------------|
+| `GET` | `/api/v1/files/{fileId}/share-links` | `shares:list` | List share links for a file |
+| `POST` | `/api/v1/files/{fileId}/share-link` | `shares:create` | Create share link |
+| `DELETE` | `/api/v1/share-links/{linkId}` | `shares:revoke` | Revoke link |
+
+### File Request Endpoints
+
+| Method | Path | Required Scope | Description |
+|--------|------|----------------|-------------|
+| `GET` | `/api/v1/file-requests` | `requests:list` | List file requests |
+| `POST` | `/api/v1/file-requests` | `requests:create` | Create file request |
+| `DELETE` | `/api/v1/file-requests/{id}` | `requests:revoke` | Revoke file request |
+
+### Folder Endpoints
+
+| Method | Path | Required Scope | Description |
+|--------|------|----------------|-------------|
+| `GET` | `/api/v1/folders` | `folders:read` | List folders |
+| `POST` | `/api/v1/folders` | `folders:write` | Create folder |
+| `PUT` | `/api/v1/folders/{id}` | `folders:write` | Update folder |
+| `DELETE` | `/api/v1/folders/{id}` | `folders:write` | Delete folder |
+
+### Activity and Audit Endpoints
+
+| Method | Path | Required Scope | Description |
+|--------|------|----------------|-------------|
+| `GET` | `/api/v1/activity` | `activity:read` | Activity feed |
+| `GET` | `/api/v1/audit` | `activity:read` | Audit log. Filters: `?resource_type=`, `?resource_id=`, `?limit=`, `?offset=` |
+
+### Agent Key Endpoints
+
+| Method | Path | Required Scope | Description |
+|--------|------|----------------|-------------|
+| `GET` | `/api/v1/agent-keys` | `api_keys:read` | List keys (prefix, scopes, usage, last used) |
+| `POST` | `/api/v1/agent-keys` | `api_keys:write` | Create key. Body: `{name, scopes, expires_at, notes}`. Returns raw key once |
+| `DELETE` | `/api/v1/agent-keys/{id}` | `api_keys:write` | Revoke key |
+| `GET` | `/api/v1/auth/introspect` | (none) | Returns `{auth_type, user_id, scopes, key_id}` |
+
+### Agent Key Scopes
+
+| Scope | What It Allows |
+|-------|---------------|
+| `files:list` | List file metadata |
+| `files:read_metadata` | Read single file metadata |
+| `files:upload_ciphertext` | Upload encrypted ciphertext |
+| `files:download_ciphertext` | Download ciphertext (no decrypt authority) |
+| `folders:read` | List folders |
+| `folders:write` | Create / update / delete folders |
+| `shares:create` | Create public share links |
+| `shares:list` | List share links |
+| `shares:revoke` | Revoke links / revoke all external access |
+| `requests:create` | Create file requests |
+| `requests:list` | List file requests |
+| `requests:revoke` | Revoke file requests |
+| `activity:read` | Read activity log and audit log |
+| `trust:read` | Read trust summary and security timeline |
+| `api_keys:read` | List agent keys |
+| `api_keys:write` | Create / revoke agent keys (scope subset enforced) |
+
+**Key safety guarantees:**
+- Raw keys returned once at creation, never stored.
+- Keys are stored as SHA-256 hash + visible prefix only.
+- Agent keys cannot create child keys with broader scopes than their own.
+- All key use, denial, and revocation is audited.
+- `files:download_ciphertext` returns ciphertext only — decryption requires the owner's PIN-encrypted RSA private key which lives in the browser.
 
 ---
 
 ## Documentation Map
 
-- `README.md` — this file: product overview, current state, architecture, API map
+- `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
-- `docs/09_SECURITY_HARDENING_PHASE2.md` — security hardening reference
+- `docs/11_TRUST_API_AGENT_KEYS.md` — trust UX, API v1, agent keys deep-dive
+- `docs/09_SECURITY_HARDENING_PHASE2.md` — zero-knowledge sealing reference
 - `docs/10_PUBLIC_SHARE_AND_FILE_REQUESTS.md` — public share + file requests
-- `plans/abrn-drive-phase2-execution-plan.md` — Phase 2 execution plan (reference)
 - `AGENT_MASTER.md` — server runbooks (systemd, Apache, logs)
 
 ---
@@ -192,11 +316,42 @@ If you're an agent, start here:
 - **Bulk download modal**: Detects PIN vs. password need per file, sequential decrypt with per-file progress
 - **Search**: Instant client-side filename filter within the active tree node
 
+### 🛡️ Trust UX
+
+- **Trust Rail**: Persistent per-file rail showing protection state, visibility summary, origin (vault upload vs secure drop), and latest activity event
+- **File Security Timeline**: Readable event history per file — upload, share, link create/access/revoke, group share, drop intake
+- **Access Hierarchy**: Clear state pills (active / revoked / expired) for every access entry type: owner, direct users, groups, share links, Secure Drop
+- **Privacy Explainer**: Plain-language onboarding and settings card explaining what the server can and cannot see
+- **First-run trust step**: Onboarding starts with a calm trust briefing before PIN setup
+
+### 🤖 Agent API Keys
+
+- **Scoped credentials**: External AI agents and systems connect with per-user API keys carrying explicit scopes
+- **Hashed storage**: Raw key returned once at creation. Only SHA-256 hash + visible prefix stored. Not recoverable.
+- **Scope enforcement**: Every request checked before the handler runs. Scope denial is logged.
+- **Scope escalation prevention**: Agent keys cannot create child keys with broader scopes than their own.
+- **Full visibility**: Last-used timestamp, IP, user-agent, and usage count visible to the key owner
+- **Instant revocation**: Keys can be revoked at any time from the Settings page
+- **Audit trail**: Key creation, use, denial, expiry, and revocation all recorded
+- **Management UI**: Create, view, and revoke keys from Settings → Agent API keys
+
+### 🌐 API v1 — External Control Plane
+
+- **Versioned routes**: All stable endpoints under `/api/v1/...`
+- **Normalized envelope**: Every response has `success`, `data`, `error`, `meta.request_id`, optional pagination
+- **24 endpoints**: Files, folders, share links, file requests, activity, audit, agent keys, auth introspect
+- **Dual auth**: JWT (browser sessions) or agent API key — same handlers, same trust model
+- **Ciphertext-first**: Agents get ciphertext + RSA-wrapped key. Plaintext authority stays with the user's browser-held private key.
+
 ### 📊 Audit Logging
-- Comprehensive activity tracking
-- File access logs
-- Share event tracking
-- User action history
+
+- Comprehensive activity tracking in `activity_log`
+- Structured audit trail in `audit_logs` with resource type, resource ID, action, metadata, IP
+- File operations: upload, share, revoke, delete
+- Agent operations: key created, used, denied, revoked, expired
+- Share operations: link created/revoked, request created/revoked, drop created/revoked
+- Audit log visible to owner in Settings → Audit log (paginated, filterable by resource)
+- Audit events accessible via `/api/v1/audit` for programmatic consumption
 
 ### 🎨 Modern UI/UX
 - **React 19** with TypeScript

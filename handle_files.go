@@ -71,10 +71,15 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Extract encryption metadata
+	credentialScheme := r.FormValue("credential_scheme")
+	if credentialScheme == "" {
+		credentialScheme = "password"
+	}
 	metadata := map[string]string{
-		"iv":        r.FormValue("iv"),
-		"salt":      r.FormValue("salt"),
-		"algorithm": r.FormValue("algorithm"),
+		"iv":                r.FormValue("iv"),
+		"salt":              r.FormValue("salt"),
+		"algorithm":         r.FormValue("algorithm"),
+		"credential_scheme": credentialScheme,
 	}
 
 	wrappedKey := r.FormValue("wrapped_key")
@@ -124,6 +129,15 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusInternalServerError, "Could not save file access key", err)
 		return
 	}
+	cfg.insertActivity(r.Context(), ownerID, "file_upload", map[string]interface{}{
+		"file_id":   dbfile.ID.String(),
+		"filename":  dbfile.Filename,
+		"file_size": dbfile.FileSize,
+	})
+	cfg.insertAudit(r.Context(), ownerID, "file.uploaded", "file", &dbfile.ID, map[string]interface{}{
+		"filename":  dbfile.Filename,
+		"file_size": dbfile.FileSize,
+	}, r)
 
 	respondWithJSON(w, http.StatusCreated, map[string]interface{}{
 		"file_name":  dbfile.Filename,

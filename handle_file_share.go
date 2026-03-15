@@ -99,6 +99,15 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Could not share file (already shared?)", err)
 		return
 	}
+	cfg.insertActivity(r.Context(), userID, "file_shared", map[string]interface{}{
+		"file_id":      fileID.String(),
+		"filename":     dbFile.Filename,
+		"recipient_id": recipient.ID.String(),
+	})
+	cfg.insertAudit(r.Context(), userID, "file.shared", "file", &fileID, map[string]interface{}{
+		"filename":     dbFile.Filename,
+		"recipient_id": recipient.ID.String(),
+	}, r)
 
 	broadcastToUser(recipient.ID, "file_shared", map[string]interface{}{
 		"file_id":   fileID.String(),

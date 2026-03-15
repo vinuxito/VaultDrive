@@ -121,12 +121,24 @@ func main() {
 	mux.Handle("GET /api/users/{userId}/public-key", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerGetPublicKeyByID)))
 
 	mux.Handle("GET /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleListFolders)))
+	mux.Handle("GET /api/v1/folders",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:read")(apiConfig.handlerV1ListFolders)))
 
 	mux.Handle("POST /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleCreateFolder)))
+	mux.Handle("POST /api/v1/folders",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1CreateFolder)))
 
 	mux.Handle("PUT /api/folders/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleUpdateFolder)))
+	mux.Handle("PUT /api/v1/folders/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1UpdateFolder)))
 
 	mux.Handle("DELETE /api/folders/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleDeleteFolder)))
+	mux.Handle("DELETE /api/v1/folders/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1DeleteFolder)))
 
 	mux.Handle("POST /api/drop/create", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateDropToken)))
 
@@ -139,8 +151,14 @@ func main() {
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 
 	mux.Handle("POST /api/files/upload", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateFiles)))
+	mux.Handle("POST /api/v1/files/upload",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("files:upload_ciphertext")(apiConfig.handlerV1CreateFile)))
 
 	mux.Handle("GET /api/files/{id}/download", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDownloadFile)))
+	mux.Handle("GET /api/v1/files/{id}/download",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("files:download_ciphertext")(apiConfig.handlerV1DownloadFile)))
 
 	mux.Handle("POST /api/files/{id}/share", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerShareFile)))
 
@@ -149,6 +167,12 @@ func main() {
 	mux.Handle("DELETE /api/files/{id}/revoke/{user_id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerRevokeFileAccess)))
 
 	mux.Handle("GET /api/files", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFiles)))
+	mux.Handle("GET /api/v1/files",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("files:list")(apiConfig.handlerV1ListFiles)))
+	mux.Handle("GET /api/v1/files/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("files:read_metadata")(apiConfig.handlerV1GetFileMetadata)))
 
 	mux.Handle("GET /api/files/shared", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListSharedFiles)))
 
@@ -250,6 +274,9 @@ func main() {
 	mux.Handle("GET /api/activity",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerGetActivity)))
+	mux.Handle("GET /api/v1/activity",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("activity:read")(apiConfig.handlerGetActivity)))
 
 	mux.Handle("GET /api/security-posture",
 		apiConfig.middlewareMetricsInc(
@@ -258,10 +285,58 @@ func main() {
 	mux.Handle("GET /api/files/{id}/access-summary",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerGetFileAccessSummary)))
+	mux.Handle("GET /api/v1/files/{id}/access-summary",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("trust:read")(apiConfig.handlerGetFileAccessSummary)))
+	mux.Handle("GET /api/v1/files/{id}/trust",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("trust:read")(apiConfig.handlerGetFileTrustSummary)))
+	mux.Handle("GET /api/v1/files/{id}/timeline",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("trust:read")(apiConfig.handlerGetFileSecurityTimeline)))
 
 	mux.Handle("DELETE /api/files/{id}/revoke-external",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerRevokeAllExternalAccess)))
+	mux.Handle("DELETE /api/v1/files/{id}/revoke-external",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:revoke")(apiConfig.handlerRevokeAllExternalAccess)))
+
+	mux.Handle("GET /api/v1/files/{fileId}/share-links",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:list")(apiConfig.handlerListPublicShareLinks)))
+	mux.Handle("POST /api/v1/files/{fileId}/share-link",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:create")(apiConfig.handlerCreatePublicShareLink)))
+	mux.Handle("DELETE /api/v1/share-links/{linkId}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:revoke")(apiConfig.handlerRevokePublicShareLink)))
+
+	mux.Handle("GET /api/v1/file-requests",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("requests:list")(apiConfig.handlerListFileRequests)))
+	mux.Handle("POST /api/v1/file-requests",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("requests:create")(apiConfig.handlerCreateFileRequest)))
+	mux.Handle("DELETE /api/v1/file-requests/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("requests:revoke")(apiConfig.handlerRevokeFileRequest)))
+
+	mux.Handle("GET /api/v1/agent-keys",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("api_keys:read")(apiConfig.handlerListAgentAPIKeys)))
+	mux.Handle("POST /api/v1/agent-keys",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("api_keys:write")(apiConfig.handlerCreateAgentAPIKey)))
+	mux.Handle("DELETE /api/v1/agent-keys/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("api_keys:write")(apiConfig.handlerRevokeAgentAPIKey)))
+	mux.Handle("GET /api/v1/auth/introspect",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor()(apiConfig.handlerAgentAuthIntrospect)))
+	mux.Handle("GET /api/v1/audit",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("activity:read")(apiConfig.handlerGetAuditLogs)))
 
 	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
 

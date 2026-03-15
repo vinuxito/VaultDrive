@@ -234,30 +234,30 @@ export function CreateShareLinkModal({
               <div className="space-y-1.5">
                 <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                   <Key className="w-3.5 h-3.5" />
-                  {isDropFile ? "4-digit PIN" : "Encryption Password"}
+                  {isDropFile ? "4-digit PIN" : "File credential"}
                 </label>
                 <p className="text-xs text-white/50">
                   {isDropFile
-                    ? "Enter your PIN to decrypt the file key for embedding in the share link"
-                    : "Enter your password to derive the file key for embedding in the share link"}
+                    ? "Enter your PIN to prepare this file for secure sharing"
+                    : "Enter the credential originally used for this file so the key can be embedded in the share link"}
                 </p>
                 <input
                   id="csl-credential"
                   type="password"
-                  inputMode={isDropFile ? "numeric" : undefined}
-                  maxLength={isDropFile ? 4 : undefined}
+                    inputMode={isDropFile ? "numeric" : undefined}
+                    maxLength={isDropFile ? 4 : undefined}
                   value={credential}
                   onChange={(e) =>
                     setCredential(
-                      isDropFile
-                        ? e.target.value.replace(/\D/g, "").slice(0, 4)
-                        : e.target.value
+                        isDropFile
+                          ? e.target.value.replace(/\D/g, "").slice(0, 4)
+                          : e.target.value
                     )
                   }
-                  placeholder={isDropFile ? "••••" : "Enter password"}
-                  className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none${
-                    isDropFile ? " text-center tracking-widest text-xl" : ""
-                  }`}
+                    placeholder={isDropFile ? "••••" : "Enter credential"}
+                    className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none${
+                      isDropFile ? " text-center tracking-widest text-xl" : ""
+                    }`}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && credential) void handleGenerate();
                   }}
@@ -273,10 +273,10 @@ export function CreateShareLinkModal({
                 </Button>
                 <Button
                   onClick={() => void handleGenerate()}
-                  disabled={
-                    (isDropFile ? credential.length !== 4 : credential.length === 0) ||
-                    (expiryDays === "custom" && customDate === "")
-                  }
+                    disabled={
+                     (isDropFile ? credential.length !== 4 : credential.length === 0) ||
+                     (expiryDays === "custom" && customDate === "")
+                   }
                   className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                 >
                   Generate Link
@@ -296,7 +296,7 @@ export function CreateShareLinkModal({
             <>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <p className="text-sm font-medium text-white">Share link created!</p>
+                <p className="text-sm font-medium text-white">Share link created with revocable access</p>
               </div>
               {expiryDisplay && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
@@ -322,7 +322,7 @@ export function CreateShareLinkModal({
               </div>
               <div className="p-2.5 bg-amber-500/10 border border-amber-400/20 rounded-md">
                 <p className="text-xs text-amber-200">
-                  ⚠️ Anyone with this link can decrypt and download the file. The key after # is never sent to the server.
+                  Anyone with this link can decrypt and download the file until you revoke it or it expires. The key after # never reaches the server.
                 </p>
               </div>
               <div className="flex gap-2">

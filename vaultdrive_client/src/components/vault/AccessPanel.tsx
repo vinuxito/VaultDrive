@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { ShieldCheck, Users, Link2, X, Trash2, Loader2 } from "lucide-react";
+import { ShieldCheck, Users, Link2, X, Trash2, Loader2, Inbox } from "lucide-react";
 import { API_URL } from "../../utils/api";
 
 interface AccessEntry {
   kind: string;
   label: string;
   since: string;
+  state: string;
   expires_at?: string;
   access_count?: number;
 }
@@ -60,7 +61,14 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
   const iconFor = (kind: string) => {
     if (kind === "share_link") return <Link2 className="w-3.5 h-3.5" />;
     if (kind === "group") return <Users className="w-3.5 h-3.5" />;
+    if (kind === "secure_drop") return <Inbox className="w-3.5 h-3.5" />;
     return <ShieldCheck className="w-3.5 h-3.5" />;
+  };
+
+  const stateClasses = (state: string) => {
+    if (state === "expired") return "bg-amber-100 text-amber-700";
+    if (state === "revoked") return "bg-rose-100 text-rose-700";
+    return "bg-emerald-100 text-emerald-700";
   };
 
   const hasExternal = data && data.entries.length > 0;
@@ -102,10 +110,16 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     {iconFor(entry.kind)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 dark:text-slate-200">{entry.label}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm text-slate-700 dark:text-slate-200">{entry.label}</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${stateClasses(entry.state)}`}>
+                        {entry.state}
+                      </span>
+                    </div>
                     <p className="text-xs text-slate-400 mt-0.5">
                       Since {new Date(entry.since).toLocaleDateString()}
                       {entry.expires_at && ` · expires ${new Date(entry.expires_at).toLocaleDateString()}`}
+                      {typeof entry.access_count === "number" && ` · opened ${entry.access_count} time(s)`}
                     </p>
                   </div>
                 </div>

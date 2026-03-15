@@ -102,6 +102,16 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusInternalServerError, "Could not create share link", err)
 		return
 	}
+	cfg.insertActivity(r.Context(), user.ID, "public_share_link_created", map[string]interface{}{
+		"file_id":     fileID.String(),
+		"filename":    dbFile.Filename,
+		"share_link_id": link.ID.String(),
+		"expires_at":  expiresAt,
+	})
+	cfg.insertAudit(r.Context(), user.ID, "public_share_link.created", "public_share_link", &link.ID, map[string]interface{}{
+		"file_id":  fileID.String(),
+		"filename": dbFile.Filename,
+	}, r)
 
 	respondWithJSON(w, http.StatusCreated, dbShareLinkToResponse(link))
 }
@@ -259,6 +269,10 @@ func (cfg *ApiConfig) handlerRevokePublicShareLink(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusInternalServerError, "Error revoking share link", err)
 		return
 	}
+	cfg.insertActivity(r.Context(), user.ID, "public_share_link_revoked", map[string]interface{}{
+		"share_link_id": linkID.String(),
+	})
+	cfg.insertAudit(r.Context(), user.ID, "public_share_link.revoked", "public_share_link", &linkID, nil, r)
 
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"status":  "success",

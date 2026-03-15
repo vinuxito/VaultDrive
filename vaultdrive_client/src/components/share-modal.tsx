@@ -72,11 +72,7 @@ export default function ShareModal({
   const [passwordInput, setPasswordInput] = useState("");
   const credentialMode = pinWrappedKey ? "pin" : "password";
 
-  useEffect(() => {
-    if (isOpen && tab === "groups") fetchGroups();
-  }, [isOpen, tab]);
-
-  async function fetchGroups() {
+  const fetchGroups = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/groups`, {
@@ -87,7 +83,11 @@ export default function ShareModal({
     } catch {
       setError("Failed to load groups");
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && tab === "groups") void fetchGroups();
+  }, [fetchGroups, isOpen, tab]);
 
   const searchUsers = useCallback(async () => {
     setLoading(true);
@@ -145,7 +145,7 @@ export default function ShareModal({
       const token = localStorage.getItem("token") || "";
       const credential = credentialMode === "pin" ? pinInput : passwordInput;
       if (!credential) {
-        setError("Enter your PIN or password to wrap the key.");
+          setError("Enter the credential needed to authorize sharing.");
         setSharing(false);
         return;
       }
@@ -243,7 +243,7 @@ export default function ShareModal({
               <h2 className="text-xl font-semibold text-white">Share File</h2>
               <p className="text-sm text-white/70">{fileName}</p>
             </div>
-            <button onClick={handleClose} className="text-white/70 hover:text-white transition-colors">
+            <button type="button" onClick={handleClose} className="text-white/70 hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -258,6 +258,7 @@ export default function ShareModal({
           <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-6">
             {(["users", "groups"] as const).map((t) => (
               <button
+                type="button"
                 key={t}
                 onClick={() => {
                   setTab(t);
@@ -280,10 +281,11 @@ export default function ShareModal({
           <div className="space-y-4">
             {!recipient && (
               <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">
+                <label htmlFor="share-search" className="block text-sm font-medium text-white/90 mb-2">
                   {tab === "users" ? "Search users by username" : "Select a group"}
                 </label>
                 <Input
+                  id="share-search"
                   placeholder={tab === "users" ? "Type at least 2 characters..." : "Search groups..."}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -298,6 +300,7 @@ export default function ShareModal({
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {searchResults.map((u) => (
                   <button
+                    type="button"
                     key={u.id}
                     onClick={() => setRecipient(u)}
                     className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-colors"
@@ -322,6 +325,7 @@ export default function ShareModal({
                   .filter((g) => !search || g.name.toLowerCase().includes(search.toLowerCase()))
                   .map((g) => (
                     <button
+                      type="button"
                       key={g.id}
                       onClick={() => setRecipient(g)}
                       className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-colors"
@@ -369,10 +373,11 @@ export default function ShareModal({
                     Your credential to authorize sharing
                   </p>
 
-                  {pinWrappedKey ? (
+                  {credentialMode === "pin" ? (
                     <div>
-                      <label className="block text-xs text-white/70 mb-1">Your PIN</label>
+                      <label htmlFor="share-pin" className="block text-xs text-white/70 mb-1">Your PIN</label>
                       <Input
+                        id="share-pin"
                         type="password"
                         inputMode="numeric"
                         maxLength={4}
@@ -382,15 +387,16 @@ export default function ShareModal({
                         className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                       />
                       <p className="text-xs text-white/50 mt-1">
-                        Used to decrypt this drop file and re-wrap it for the recipient
+                        Used to authorize this share without asking for a separate file password
                       </p>
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-xs text-white/70 mb-1">File encryption password</label>
+                      <label htmlFor="share-credential" className="block text-xs text-white/70 mb-1">File credential</label>
                       <Input
+                        id="share-credential"
                         type="password"
-                        placeholder="Password used when uploading"
+                        placeholder="Credential used for this file"
                         value={passwordInput}
                         onChange={(e) => setPasswordInput(e.target.value)}
                         className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
@@ -415,9 +421,9 @@ export default function ShareModal({
               </Button>
               <Button
                 onClick={handleShare}
-                disabled={!recipient || sharing || (pinWrappedKey ? !pinInput : !passwordInput)}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
-              >
+                 disabled={!recipient || sharing || (credentialMode === "pin" ? !pinInput : !passwordInput)}
+                 className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+               >
                 {sharing ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />

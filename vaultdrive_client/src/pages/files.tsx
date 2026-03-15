@@ -126,6 +126,18 @@ function formatDate(dateString: string): string {
   });
 }
 
+function getFileCredentialScheme(file: { pin_wrapped_key?: string | null; metadata?: string; is_owner?: boolean }): "drop-pin" | "pin" | "password" {
+  if (file.pin_wrapped_key) return "drop-pin";
+  if (!file.is_owner) return "pin";
+  if (!file.metadata) return "password";
+  try {
+    const meta = JSON.parse(file.metadata) as { credential_scheme?: string };
+    return meta.credential_scheme === "pin" ? "pin" : "password";
+  } catch {
+    return "password";
+  }
+}
+
 function fileOriginFromData(file: FileData): FileOrigin {
   if (file.drop_token && file.drop_folder_name) {
     return { type: "drop", linkName: file.drop_folder_name };
@@ -611,6 +623,7 @@ export default function Files() {
       formData.append("salt", arrayBufferToBase64(salt));
       formData.append("algorithm", "AES-256-GCM");
       formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
+      formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/upload`, {
         method: "POST",
@@ -657,6 +670,7 @@ export default function Files() {
       formData.append("salt", arrayBufferToBase64(salt));
       formData.append("algorithm", "AES-256-GCM");
       formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
+      formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/upload`, {
         method: "POST",
@@ -933,7 +947,9 @@ export default function Files() {
         setMyFiles((prev) => prev.filter((file) => !deletedIds.has(file.id)));
         setSelectedFileIds((prev) => {
           const next = new Set(prev);
-          succeededIds.forEach((id) => next.delete(id));
+          succeededIds.forEach((id) => {
+            next.delete(id);
+          });
           return next;
         });
       }
@@ -1121,6 +1137,8 @@ export default function Files() {
   };
 
   const isSharedView = selectedNode.type === "shared";
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const ownerUsesPin = Boolean(currentUser.pin_set);
 
   async function handlePasswordSubmit() {
     if (!encryptionPassword) return;
@@ -1186,11 +1204,12 @@ export default function Files() {
                 placeholder="Search all files…"
                 className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#7d4f50]/40 focus:outline-none transition-all"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -1198,6 +1217,7 @@ export default function Files() {
             <div className="flex items-center gap-1 flex-wrap">
               {(Object.keys(TYPE_FILTER_LABELS) as FileTypeFilter[]).map((type) => (
                 <button
+                  type="button"
                   key={type}
                   onClick={() => setTypeFilter(type)}
                   className={`text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap ${
@@ -1215,9 +1235,11 @@ export default function Files() {
 
         <div className="flex flex-1 overflow-hidden">
           {sidebarOpen && (
-            <div
+            <button
+              type="button"
               className="fixed inset-0 z-40 bg-black/30 md:hidden"
               onClick={() => setSidebarOpen(false)}
+              aria-label="Close vault sidebar"
             />
           )}
 
@@ -1263,6 +1285,7 @@ export default function Files() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60 bg-white shrink-0">
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setSidebarOpen(true)}
                   className="md:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors mr-1"
                 >
@@ -1282,6 +1305,7 @@ export default function Files() {
                 <div className="flex items-center gap-1">
                   {(["name", "date", "size"] as const).map((field) => (
                     <button
+                      type="button"
                       key={field}
                       onClick={() => handleSort(field)}
                       className={`text-xs px-2 py-1 rounded-md border transition-colors ${
@@ -1334,6 +1358,7 @@ export default function Files() {
                   {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Encrypt & Upload"}
                 </Button>
                 <button
+                  type="button"
                   onClick={() => setSelectedFile(null)}
                   className="text-[#7d4f50]/60 hover:text-[#7d4f50] transition-colors"
                 >
@@ -1418,15 +1443,16 @@ export default function Files() {
                           className="w-4 h-4 rounded border-slate-300 accent-[#7d4f50] shrink-0 cursor-pointer"
                         />
 
-                        <div
-                          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer text-left"
                           onClick={() => setPreviewFile(file)}
                         >
                           <File className="w-4 h-4 text-slate-400 shrink-0" />
                           <span className="text-sm font-medium text-slate-800 truncate hover:text-[#7d4f50] transition-colors">
                             {file.filename}
                           </span>
-                        </div>
+                        </button>
 
                         <div className="w-28 hidden sm:block shrink-0">
                           <OriginBadge origin={origin} />
@@ -1442,6 +1468,7 @@ export default function Files() {
 
                         <div className="hidden md:flex items-center justify-end gap-0.5 shrink-0">
                           <button
+                            type="button"
                             onClick={() => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-[#7d4f50] hover:bg-[#f2d7d8]/60 transition-colors"
                             title="Download"
@@ -1451,6 +1478,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
                               onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                               title="Share"
@@ -1461,6 +1489,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
                               onClick={() => handleCreateShareLink(file)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                               title="Create share link"
@@ -1471,6 +1500,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
                               onClick={() => handleQuickShare(file.id)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
                               title="Quick Share (7-day link, copied to clipboard)"
@@ -1481,6 +1511,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
                               onClick={() => toggleStar(file.id)}
                               className={`p-1.5 rounded-lg transition-colors ${
                                 file.starred
@@ -1498,6 +1529,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
                               onClick={() => handleDeleteClick(file.id, file.filename)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                               title="Delete"
@@ -1519,6 +1551,7 @@ export default function Files() {
 
                           {file.is_owner !== false && (
                             <button
+                              type="button"
                               onClick={() => handleManageSharesClick(file.id, file.filename)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                               title="Manage shares"
@@ -1530,6 +1563,7 @@ export default function Files() {
 
                         <div className="relative shrink-0 md:hidden">
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               setOpenActionMenu(openActionMenu === file.id ? null : file.id);
@@ -1542,12 +1576,14 @@ export default function Files() {
                           {openActionMenu === file.id && (
                             <div className="absolute right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1 min-w-[160px]">
                               <button
+                                type="button"
                                 onClick={() => { handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner); setOpenActionMenu(null); }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                               >
                                 <Download className="w-3.5 h-3.5" /> Download
                               </button>
                               <button
+                                type="button"
                                 onClick={() => { setPreviewFile(file); setOpenActionMenu(null); }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                               >
@@ -1555,6 +1591,7 @@ export default function Files() {
                               </button>
                               {file.is_owner !== false && (
                                 <button
+                                  type="button"
                                   onClick={() => { handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined); setOpenActionMenu(null); }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                 >
@@ -1563,23 +1600,26 @@ export default function Files() {
                               )}
                               {file.is_owner !== false && (
                                  <button
-                                   onClick={() => { handleCreateShareLink(file); setOpenActionMenu(null); }}
+                                    type="button"
+                                    onClick={() => { handleCreateShareLink(file); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                  >
                                    <Link2 className="w-3.5 h-3.5" /> Create share link
                                  </button>
                                )}
                                {file.is_owner !== false && (
-                                 <button
-                                   onClick={() => { handleQuickShare(file.id); setOpenActionMenu(null); }}
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleQuickShare(file.id); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-700 hover:bg-violet-50"
                                  >
                                    <Zap className="w-3.5 h-3.5" /> Quick Share
                                  </button>
                                )}
                                {file.is_owner !== false && (
-                                 <button
-                                   onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                                  >
                                    <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -1612,7 +1652,7 @@ export default function Files() {
         <div className="fixed bottom-6 right-6 z-40 w-72 bg-[#2a1f1f] border border-white/10 rounded-xl shadow-2xl p-3 space-y-2">
           <div className="flex justify-between items-center text-white/70 text-xs font-medium px-1">
             <span>Uploads</span>
-            <button onClick={() => setUploadTray([])} className="hover:text-white">✕</button>
+            <button type="button" onClick={() => setUploadTray([])} className="hover:text-white">✕</button>
           </div>
           {uploadTray.map((item) => (
             <div key={item.id} className="flex items-center gap-2">
@@ -1661,24 +1701,28 @@ export default function Files() {
         />
       )}
 
-      {showPasswordModal && (
+      {showPasswordModal && (() => {
+        const credScheme = pendingDownload ? getFileCredentialScheme(pendingDownload) : "password";
+        const isUpload = passwordAction === "upload" || passwordAction === "drop-upload";
+        const usePin = isUpload ? ownerUsesPin : credScheme !== "password";
+        return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
             <CardHeader className="border-b border-white/10">
               <CardTitle className="flex items-center gap-2 text-white">
                 <Lock className="w-5 h-5 text-[#f2d7d8]" />
-                {passwordAction === "upload" || passwordAction === "drop-upload"
-                  ? "Encrypt File"
-                  : (pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false)
-                  ? "Enter Your PIN"
-                  : "Decrypt File"}
+                {isUpload
+                  ? (ownerUsesPin ? "Use Your PIN" : "Encrypt File")
+                  : usePin ? "Enter Your PIN" : "Decrypt File"}
               </CardTitle>
               <CardDescription className="text-white/70">
-                {passwordAction === "upload" || passwordAction === "drop-upload"
-                  ? "Enter a password to encrypt your file. Remember this password to decrypt it later."
-                  : (pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false)
+                {isUpload
+                  ? ownerUsesPin
+                    ? "Your PIN is used for all new vault uploads."
+                    : "Enter a password to encrypt your file."
+                  : usePin
                   ? "Enter your 4-digit PIN to decrypt this file."
-                  : "Enter the password you used to encrypt this file."}
+                  : "Enter the credential originally used to encrypt this file."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1689,23 +1733,23 @@ export default function Files() {
                 </div>
               )}
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2 text-white/90">
+                <label htmlFor="vault-credential" className="text-sm font-medium flex items-center gap-2 text-white/90">
                   <Key className="w-4 h-4" />
-                  {(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? "4-digit PIN" : "Encryption Password"}
+                  {usePin ? "4-digit PIN" : "File Credential"}
                 </label>
                 <input
+                  id="vault-credential"
                   type="password"
-                  inputMode={(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? "numeric" : undefined}
-                  maxLength={(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? 4 : undefined}
+                  inputMode={usePin ? "numeric" : undefined}
+                  maxLength={usePin ? 4 : undefined}
                   value={encryptionPassword}
                   onChange={(e) => setEncryptionPassword(
-                    (pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false)
+                    usePin
                       ? e.target.value.replace(/\D/g, "").slice(0, 4)
                       : e.target.value
                   )}
-                  placeholder={(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? "••••" : "Enter password"}
-                  className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${(pendingDownload?.pin_wrapped_key || pendingDownload?.is_owner === false) ? " text-center tracking-widest text-xl" : ""}`}
-                  autoFocus
+                  placeholder={usePin ? "••••" : "Enter credential"}
+                  className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${usePin ? " text-center tracking-widest text-xl" : ""}`}
                   onKeyDown={(e) => { if (e.key === "Enter" && encryptionPassword) handlePasswordSubmit(); }}
                 />
               </div>
@@ -1730,9 +1774,9 @@ export default function Files() {
                   {uploading || downloading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {passwordAction === "upload" || passwordAction === "drop-upload" ? "Encrypting…" : "Decrypting…"}
+                      {isUpload ? "Encrypting…" : "Decrypting…"}
                     </>
-                  ) : passwordAction === "upload" || passwordAction === "drop-upload" ? (
+                  ) : isUpload ? (
                     "Encrypt & Upload"
                   ) : (
                     "Decrypt & Download"
@@ -1742,7 +1786,8 @@ export default function Files() {
             </CardContent>
           </Card>
         </div>
-      )}
+        );
+      })()}
 
       <ShareModal
         isOpen={showShareModal}

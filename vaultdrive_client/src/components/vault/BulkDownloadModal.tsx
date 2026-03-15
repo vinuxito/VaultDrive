@@ -88,6 +88,7 @@ export function BulkDownloadModal({
             </CardTitle>
             {!running && (
               <button
+                type="button"
                 onClick={onClose}
                 className="text-white/50 hover:text-white/80 transition-colors"
                 aria-label="Close"
@@ -108,12 +109,13 @@ export function BulkDownloadModal({
             <div className="space-y-3">
               {needsPin && (
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                  <label htmlFor="bulk-download-pin" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                     <Key className="w-3.5 h-3.5" />
                     4-digit PIN
-                    <span className="text-xs text-white/50">(for Drop files)</span>
+                    <span className="text-xs text-white/50">(used across your vault)</span>
                   </label>
                   <input
+                    id="bulk-download-pin"
                     type="password"
                     inputMode="numeric"
                     maxLength={4}
@@ -123,19 +125,19 @@ export function BulkDownloadModal({
                     }
                     placeholder="••••"
                     className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 text-center tracking-widest text-xl"
-                    autoFocus
                   />
                 </div>
               )}
 
               {needsPassword && (
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                  <label htmlFor="bulk-download-password" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                     <Key className="w-3.5 h-3.5" />
-                    Encryption Password
-                    <span className="text-xs text-white/50">(for your files)</span>
+                    File credential
+                    <span className="text-xs text-white/50">(only for older non-PIN files)</span>
                   </label>
                   <input
+                    id="bulk-download-password"
                     type="password"
                     value={passwordCredential}
                     onChange={(e) => setPasswordCredential(e.target.value)}

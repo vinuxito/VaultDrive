@@ -3,6 +3,8 @@ import { X, Download, Loader2, AlertCircle, Lock, Key } from "lucide-react";
 import { Button } from "../ui/button";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { API_URL } from "../../utils/api";
+import { TrustRail } from "./TrustRail";
+import { FileSecurityTimeline } from "./FileSecurityTimeline";
 import {
   unwrapKey,
   hexToBytes,
@@ -84,8 +86,10 @@ async function fetchAndDecryptBlob(
 }
 
 function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   if (file.pin_wrapped_key) return "drop-pin";
   if (file.is_owner === false) return "pin";
+  if (currentUser.pin_set) return "pin";
   return "password";
 }
 
@@ -245,19 +249,26 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         </div>
 
         <div className="flex-1 overflow-auto p-5 min-h-0">
+          {file.is_owner !== false && (
+            <div className="space-y-4 mb-5">
+              <TrustRail fileId={file.id} />
+              <FileSecurityTimeline fileId={file.id} />
+            </div>
+          )}
+
           {showCredentialPrompt && (
             <div className="flex items-center justify-center min-h-[200px]">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 w-full max-w-sm space-y-4">
                 <div className="flex items-center gap-2 text-white">
                   <Lock className="w-5 h-5 text-[#f2d7d8]" />
                   <span className="font-medium">
-                    {credType === "password" ? "Enter encryption password" : "Enter your 4-digit PIN"}
+                    {credType === "password" ? "Enter your file credential" : "Enter your 4-digit PIN"}
                   </span>
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="preview-credential" className="text-xs text-white/60 flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5" />
-                    {credType === "password" ? "Password" : "PIN"}
+                    {credType === "password" ? "Credential" : "PIN"}
                   </label>
                   <input
                     id="preview-credential"
@@ -270,7 +281,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                         ? e.target.value.replace(/\D/g, "").slice(0, 4)
                         : e.target.value
                     )}
-                    placeholder={credType !== "password" ? "••••" : "Enter password"}
+                    placeholder={credType !== "password" ? "••••" : "Enter credential"}
                     className={`w-full px-3 py-2 border rounded-lg bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none${credType !== "password" ? " text-center tracking-widest text-xl" : ""}`}
                     onKeyDown={(e) => { if (e.key === "Enter" && credential) handleCredentialSubmit(); }}
                   />

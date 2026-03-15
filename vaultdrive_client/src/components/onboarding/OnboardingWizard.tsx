@@ -10,6 +10,8 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Lock,
+  Bot,
 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 
@@ -17,7 +19,7 @@ interface OnboardingWizardProps {
   onComplete: () => void;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [step, setStep] = useState<Step>(1);
@@ -63,7 +65,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const user = JSON.parse(raw);
         localStorage.setItem("user", JSON.stringify({ ...user, pin_set: true }));
       }
-      setStep(2);
+      setStep(3);
     } catch (err) {
       setPinError(err instanceof Error ? err.message : "Failed to set PIN");
     } finally {
@@ -91,7 +93,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to create folder");
       }
-      setStep(3);
+      setStep(4);
     } catch (err) {
       setFolderError(err instanceof Error ? err.message : "Failed to create folder");
     } finally {
@@ -100,7 +102,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   };
 
   const handleSkipFolder = () => {
-    setStep(3);
+    setStep(4);
   };
 
   const handleComplete = () => {
@@ -109,9 +111,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   };
 
   const steps = [
-    { num: 1, label: "Set PIN", icon: Shield },
-    { num: 2, label: "Create Folder", icon: FolderPlus },
-    { num: 3, label: "Ready!", icon: CheckCircle2 },
+    { num: 1, label: "Privacy", icon: Lock },
+    { num: 2, label: "Set PIN", icon: Shield },
+    { num: 3, label: "Create Folder", icon: FolderPlus },
+    { num: 4, label: "Ready!", icon: CheckCircle2 },
   ];
 
   return (
@@ -164,6 +167,47 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
         <div className="px-8 pb-8">
           {step === 1 && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7d4f50]/20 border border-[#7d4f50]/30 mb-2">
+                  <Lock className="w-7 h-7 text-[#f2d7d8]" />
+                </div>
+                <h2 className="text-2xl font-bold text-white tracking-tight">
+                  Calm by design
+                </h2>
+                <p className="text-sm text-white/50 max-w-md mx-auto leading-relaxed">
+                  ABRN Drive encrypts files before upload, lets you see who can access them, and keeps risky access revocable.
+                </p>
+              </div>
+
+              <div className="space-y-3 text-sm text-white/80">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="font-medium text-white">What the server can do</p>
+                  <p className="mt-1 text-white/60">Store ciphertext, create links and requests, show access history, and let you revoke external reach quickly.</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="font-medium text-white">What the server cannot do</p>
+                  <p className="mt-1 text-white/60">It does not quietly become a plaintext superuser for your protected files.</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="font-medium text-white flex items-center gap-2">
+                    <Bot className="w-4 h-4 text-[#f2d7d8]" />
+                    External agents stay scoped
+                  </p>
+                  <p className="mt-1 text-white/60">Agent keys can automate control-plane work without silently dissolving the trust boundary.</p>
+                </div>
+              </div>
+
+              <Button
+                className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
+                onClick={() => setStep(2)}
+              >
+                Continue <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {step === 2 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7d4f50]/20 border border-[#7d4f50]/30 mb-2">
@@ -241,7 +285,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7d4f50]/20 border border-[#7d4f50]/30 mb-2">
@@ -303,7 +347,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-6 text-center">
               <div className="space-y-2">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 mb-2">

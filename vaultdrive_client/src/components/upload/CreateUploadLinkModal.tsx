@@ -212,9 +212,9 @@ export function CreateUploadLinkModal({
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-[#10b981]/20 border border-[#10b981]/40">
               <p className="text-white text-sm">
-                <strong>Upload link created successfully!</strong>
+                <strong>Upload link created successfully.</strong>
                 <br />
-                Share this URL with your client. They can upload files without logging in.
+                Share this URL with your client. You stay in control: the link can expire, be sealed after use, or be revoked later.
               </p>
             </div>
 
@@ -242,7 +242,7 @@ export function CreateUploadLinkModal({
             <div className="p-3 rounded-lg bg-amber-500/20 border border-amber-400/40">
               <p className="text-amber-200 text-xs flex items-start gap-2">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                Copy and save this URL now. The encryption key in the link will not be shown again.
+                Copy and save this URL now. The encryption key in the link will not be shown again, which keeps the trust boundary clean.
               </p>
             </div>
 

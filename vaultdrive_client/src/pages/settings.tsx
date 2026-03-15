@@ -28,6 +28,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../components/theme-provider";
 import { getPINStatus, setPIN } from "../utils/api";
+import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection";
+import { AuditLogSection } from "../components/settings/AuditLogSection";
 import {
   decryptPrivateKeyWithPassword,
   encryptPrivateKeyWithPIN,
@@ -455,6 +457,54 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              Privacy explainer
+            </CardTitle>
+            <CardDescription>
+              Plain-language answers about what ABRN Drive can and cannot see
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-slate-600">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+              <p className="font-medium text-slate-900">What ABRN Drive protects</p>
+              <p className="mt-1">
+                Your files are encrypted before upload. The server stores ciphertext, metadata needed for delivery, and audit records about what happened.
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
+                <p className="font-medium text-emerald-900">The server can see</p>
+                <ul className="mt-2 space-y-1 text-emerald-800">
+                  <li>Who owns a file</li>
+                  <li>When links, requests, or agent keys were created</li>
+                  <li>Whether access was shared, revoked, or expired</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4">
+                <p className="font-medium text-sky-900">The server cannot see</p>
+                <ul className="mt-2 space-y-1 text-sky-800">
+                  <li>The plaintext contents of your protected files</li>
+                  <li>The decryption key hidden after a public link fragment</li>
+                  <li>Your PIN-derived unlock material for normal vault use</li>
+                </ul>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-4">
+              <p className="font-medium text-slate-900">Sharing, revocation, and outside agents</p>
+              <p className="mt-1">
+                ABRN Drive lets you create links, requests, and agent keys that you can review and revoke. Agent API keys are scoped for metadata, ciphertext movement, and control-plane actions. They do not quietly turn the server into a plaintext superuser.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <AgentApiKeysSection />
+
+        <AuditLogSection />
 
         {/* Storage Info (Placeholder) */}
         <Card>
