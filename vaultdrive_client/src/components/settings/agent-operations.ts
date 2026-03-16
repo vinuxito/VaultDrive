@@ -13,6 +13,21 @@ export interface AgentOperationGroup {
   entries: AgentOperationEntry[];
 }
 
+export interface AgentOperationSummary {
+  activeKeys: number;
+  activeAgents: number;
+  latestEvent: string;
+  attention: string;
+}
+
+const actionLabels: Record<string, string> = {
+  "agent_api_key.created": "Key created",
+  "agent_api_key.revoked": "Key revoked",
+  "agent_api_key.used": "Request served",
+  "agent_api_key.expired": "Key expired",
+  "agent_api_key.scope_denied": "Scope denied",
+};
+
 function readAgentName(entry: AgentOperationEntry): string {
   const meta = entry.metadata;
   if (!meta) return "Agent";
@@ -71,4 +86,17 @@ export function explainAgentOperation(entry: AgentOperationEntry): string {
   }
 
   return "Review the event metadata for the exact trust decision";
+}
+
+export function summarizeAgentOperations(entries: AgentOperationEntry[], activeKeys: number): AgentOperationSummary {
+  const groups = groupAgentOperations(entries);
+  const latestEntry = [...entries].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+  const denialCount = entries.filter((entry) => entry.action === "agent_api_key.scope_denied").length;
+
+  return {
+    activeKeys,
+    activeAgents: groups.length,
+    latestEvent: latestEntry ? actionLabels[latestEntry.action] ?? latestEntry.action : "No activity yet",
+    attention: denialCount > 0 ? `${denialCount} denial${denialCount === 1 ? "" : "s"} to review` : "No denials in view",
+  };
 }

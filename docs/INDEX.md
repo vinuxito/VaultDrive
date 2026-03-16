@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 16, 2026 (trust proof harness implemented, verified end-to-end, docs and README refreshed)
+Last updated: March 16, 2026 (live observable control plane completed, verified end-to-end, docs and README refreshed)
 
 ## Task Documentation
 
@@ -48,6 +48,7 @@ Last updated: March 16, 2026 (trust proof harness implemented, verified end-to-e
 | [SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md](./SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md) | Current-code inspection, build + browser verification, docs refresh, README truth update, commit preparation |
 | [SESSION_MEMORY_2026-03-16-visual-refinement-verification.md](./SESSION_MEMORY_2026-03-16-visual-refinement-verification.md) | Final verification pass, Oracle follow-up polish fixes, docs refresh, and commit-safe checkpoint |
 | [SESSION_MEMORY_2026-03-16-trust-proof-harness.md](./SESSION_MEMORY_2026-03-16-trust-proof-harness.md) | Playwright trust-proof harness, CI workflow, Secure Drop path fix, negative boundary proof, and final verification state |
+| [SESSION_MEMORY_2026-03-16-live-observable-control-plane.md](./SESSION_MEMORY_2026-03-16-live-observable-control-plane.md) | 7-pass refinement turning the control plane into a live operator surface with receipts, Filemon execution, grouped timelines, trust explanations, and a calmer shell |
 
 ## Quick Navigation
 
@@ -77,4 +78,4 @@ Last updated: March 16, 2026 (trust proof harness implemented, verified end-to-e
 
 **I want the trust UX hardening summary →** [13_TRUST_UX_HARDENING.md](./13_TRUST_UX_HARDENING.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-16-trust-proof-harness.md](./SESSION_MEMORY_2026-03-16-trust-proof-harness.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-03-16-live-observable-control-plane.md](./SESSION_MEMORY_2026-03-16-live-observable-control-plane.md)

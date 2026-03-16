@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 16, 2026 (trust proof harness implemented and verified end-to-end; docs and README aligned to the current app state)**
+> **Last updated: March 16, 2026 (live observable control plane implemented and verified end-to-end; docs and README aligned to the current app state)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -28,11 +28,11 @@ This section reflects the actual state. Sections below are historical documentat
 
 ### Verification Snapshot
 
-- Frontend tests: `17/17` PASS
+- Frontend tests: `21/21` PASS
 - Frontend build: PASS
 - Backend tests: PASS
 - Backend build: PASS
-- Playwright trust proof suite: PASS (`4/4`)
+- Playwright trust proof suite: PASS (`14/14`)
 - Self-hosted current-code browser verification on `http://127.0.0.1:8090/abrn/`: PASS
   - fresh signup
   - password login
@@ -63,6 +63,14 @@ This section reflects the actual state. Sections below are historical documentat
 - Delegated-power surfaces now emphasize scope, last-used visibility, and instant revoke rather than feeling like raw settings.
 - Public sender pages now explain privacy boundaries more clearly, including who can decrypt and what the server does and does not see.
 
+### Current Operator Surface State
+
+- Settings now opens with a live control-plane summary showing the latest event, active keys, active agents, and the current attention state.
+- Agent operations render as a grouped real-time timeline instead of a static table, so success, denial, revoke, and expiry read like active system motion.
+- Owner receipts for upload routes, share links, and file requests now expose the exact API call that just ran.
+- Filemon can run a real scoped call from the UI using a pasted raw key and show the executed path, auth type, scopes, and returned payload.
+- Advanced reference surfaces stay collapsed until requested so the operator story stays readable first and the docs stay available second.
+
 ### Current Proof Automation State
 
 - The repo now contains a committed Playwright trust-proof harness under `vaultdrive_client/e2e/`.
@@ -72,6 +80,9 @@ This section reflects the actual state. Sections below are historical documentat
   - Secure Drop sender flow
   - Secure Drop missing-key boundary
   - File Request sender flow
+  - live agent execution stream
+  - Filemon operator console
+  - trust explanation for denied scopes
 - CI now has a dedicated trust-proof workflow that provisions Postgres, runs migrations, runs unit/backend tests, and then runs the Playwright suite with artifact uploads.
 
 ### What's Live
@@ -94,6 +105,9 @@ This section reflects the actual state. Sections below are historical documentat
 | Activity log | ✅ | All events tracked, dashboard feed |
 | Audit log | ✅ | Agent key lifecycle, access changes, sensitive file operations |
 | Agent API Keys | ✅ | Scoped, hashed, revocable, delegated-power framing, last-used visible, create/revoke receipts |
+| Agent operations live stream | ✅ | Real-time grouped timeline with allow/deny/revoke explanations |
+| UI API receipts | ✅ | Upload/share/request receipts show the exact API call that just ran |
+| Filemon operator console | ✅ | Real scoped call runner with auth context, scopes, and returned payload |
 | API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
 | Trust proof harness | ✅ | Playwright suite proves owner and public sender trust flows against the self-hosted current app |

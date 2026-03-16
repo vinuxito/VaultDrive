@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   explainAgentOperation,
   groupAgentOperations,
+  summarizeAgentOperations,
   type AgentOperationEntry,
 } from "./agent-operations";
 
@@ -43,5 +44,14 @@ describe("groupAgentOperations", () => {
   it("explains why an operation was allowed or denied", () => {
     expect(explainAgentOperation(entries[0]!)).toContain("Allowed by files:list");
     expect(explainAgentOperation(entries[1]!)).toContain("Blocked: missing files:list");
+  });
+
+  it("summarizes the latest agent state for the operator header", () => {
+    expect(summarizeAgentOperations(entries, 3)).toMatchObject({
+      activeKeys: 3,
+      latestEvent: "Key revoked",
+      attention: "1 denial to review",
+      activeAgents: 2,
+    });
   });
 });

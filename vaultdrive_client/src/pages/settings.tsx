@@ -36,6 +36,7 @@ import { ApiSimulationSection } from "../components/settings/ApiSimulationSectio
 import { PipelineExamplesSection } from "../components/settings/PipelineExamplesSection";
 import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { CollapsibleSection } from "../components/settings/CollapsibleSection";
+import { ControlPlaneStatusSection } from "../components/settings/ControlPlaneStatusSection";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
 import { mergeUserPinState } from "../utils/pin-trust";
@@ -538,30 +539,7 @@ export default function Settings() {
 
         <AgentApiKeysSection />
 
-        <Card className="rounded-[1.8rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfb_0%,#f6efea_100%)] shadow-[0_20px_45px_rgba(125,79,80,0.08)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.94)_0%,rgba(15,23,42,0.9)_100%)]">
-          <CardHeader>
-            <CardTitle>Control plane at a glance</CardTitle>
-            <CardDescription>Read the live system in under two minutes.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-              <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Live activity</p>
-              <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">Agent operations stream in real time.</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-              <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Visible intent</p>
-              <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">Upload, share, and request receipts name the exact API call.</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-              <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Filemon operator</p>
-              <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">A pasted raw key can run real scoped calls and show the payload.</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-              <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Trust logic</p>
-              <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">Every timeline card explains why access was allowed, denied, or revoked.</p>
-            </div>
-          </CardContent>
-        </Card>
+        <ControlPlaneStatusSection />
 
         <AgentOperationsSection />
 
