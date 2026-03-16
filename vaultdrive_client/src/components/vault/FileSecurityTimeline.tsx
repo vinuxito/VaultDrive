@@ -78,7 +78,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           <div className="w-6 h-6 rounded-full bg-emerald-500/20 ring-1 ring-emerald-400/20 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
           </div>
-          <p className="text-sm text-white/50">No external access has occurred yet</p>
+          <p className="text-sm text-white/50">No external access has occurred yet — only you have this file</p>
         </div>
       ) : (
         <div className="space-y-0">
@@ -91,7 +91,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
                   {getEventIcon(event.event_type)}
                 </div>
                 {idx < events.length - 1 && (
-                  <span className="mt-1 w-px h-4 bg-white/8 shrink-0" />
+                  <span className="mt-1 w-px h-4 bg-white/15 shrink-0" />
                 )}
               </div>
               <div className={`${idx < events.length - 1 ? "pb-4" : "pb-1"} flex-1`}>

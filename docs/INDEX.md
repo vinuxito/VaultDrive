@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 15, 2026 (night — trust UX hardening)
+Last updated: March 15, 2026 (night — trust UX hardening pass 2)
 
 ## Task Documentation
 
@@ -41,6 +41,7 @@ Last updated: March 15, 2026 (night — trust UX hardening)
 | [SESSION_MEMORY_2026-03-15-pin-credential-cache.md](./SESSION_MEMORY_2026-03-15-pin-credential-cache.md) | One PIN, zero friction — session credential cache across all vault operations |
 | [SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md](./SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md) | Verification pass, onboarding lifecycle fix, and end-to-end one-PIN owner-flow proof |
 | [SESSION_MEMORY_2026-03-15-trust-ux-hardening.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening.md) | 3-iteration trust UX hardening — TrustRail, Timeline, AccessPanel, AgentKeys, Onboarding, bundle splitting |
+| [SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md) | 3-iteration trust UX polish pass 2 — file row calm, shimmer skeletons, relative timestamps, onboarding icons, empty states |
 
 ## Quick Navigation
 
@@ -70,4 +71,4 @@ Last updated: March 15, 2026 (night — trust UX hardening)
 
 **I want the trust UX hardening summary →** [13_TRUST_UX_HARDENING.md](./13_TRUST_UX_HARDENING.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-15-trust-ux-hardening.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md)

@@ -1397,34 +1397,44 @@ export default function Files() {
             )}
 
             {error && (
-              <div className="mx-6 mt-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 shrink-0">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {error}
+              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm shrink-0">
+                <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                </div>
+                <span className="text-red-800">{error}</span>
               </div>
             )}
 
             {successMessage && (
-              <div className="mx-6 mt-4 flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 shrink-0">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                {successMessage}
+              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm shrink-0">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                </div>
+                <span className="text-emerald-800 font-medium">{successMessage}</span>
               </div>
             )}
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {loading && (
-                <div className="flex items-center justify-center py-16 text-slate-400">
-                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                  Loading files…
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <Loader2 className="w-6 h-6 animate-spin mb-3" />
+                  <p className="text-sm">Loading your vault…</p>
                 </div>
               )}
 
               {!loading && visibleFiles.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                  <File className="w-10 h-10 mb-3 opacity-30" />
-                  <p className="text-sm">No files here yet</p>
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                    <Lock className="w-6 h-6 text-slate-300" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">
+                    {selectedNode.type === "starred" ? "No starred files" :
+                     selectedNode.type === "shared" ? "Nothing shared with you yet" :
+                     "No files here yet"}
+                  </p>
                   {selectedNode.type === "all" && !isSharedView && (
-                    <p className="text-xs mt-1 text-slate-400">
-                      Upload a file to get started
+                    <p className="text-xs mt-1.5 text-slate-400 max-w-xs text-center">
+                      Upload a file to start your encrypted vault. Files are locked in your browser before they leave your device.
                     </p>
                   )}
                 </div>
@@ -1496,6 +1506,7 @@ export default function Files() {
                         </div>
 
                         <div className="hidden md:flex items-center justify-end gap-1 shrink-0">
+                          {/* Primary actions — always visible */}
                           <button
                             type="button"
                             onClick={() => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner)}
@@ -1508,33 +1519,11 @@ export default function Files() {
                           {file.is_owner !== false && (
                             <button
                               type="button"
-                              onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-                              title="Share"
-                            >
-                              <Share2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {file.is_owner !== false && (
-                            <button
-                              type="button"
                               onClick={() => handleCreateShareLink(file)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                               title="Create share link"
                             >
                               <Link2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {file.is_owner !== false && (
-                            <button
-                              type="button"
-                              onClick={() => handleQuickShare(file.id)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
-                              title="Quick Share (7-day link, copied to clipboard)"
-                            >
-                              <Zap className="w-3.5 h-3.5" />
                             </button>
                           )}
 
@@ -1559,17 +1548,6 @@ export default function Files() {
                           {file.is_owner !== false && (
                             <button
                               type="button"
-                              onClick={() => handleDeleteClick(file.id, file.filename)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {file.is_owner !== false && (
-                            <button
-                              type="button"
                               onClick={() => setAccessPanelFile({ id: file.id, filename: file.filename })}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-[#7d4f50] hover:bg-[#f2d7d8]/40 transition-colors"
                               title="Who can access this file?"
@@ -1578,16 +1556,52 @@ export default function Files() {
                             </button>
                           )}
 
-                          {file.is_owner !== false && (
-                            <button
-                              type="button"
-                              onClick={() => handleManageSharesClick(file.id, file.filename)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-                              title="Manage shares"
-                            >
-                              <MoreHorizontal className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          {/* Secondary actions — revealed on row hover */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                            {file.is_owner !== false && (
+                              <button
+                                type="button"
+                                onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                title="Share with user"
+                              >
+                                <Share2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {file.is_owner !== false && (
+                              <button
+                                type="button"
+                                onClick={() => handleQuickShare(file.id)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                                title="Quick Share (7-day link, copied to clipboard)"
+                              >
+                                <Zap className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {file.is_owner !== false && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteClick(file.id, file.filename)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {file.is_owner !== false && (
+                              <button
+                                type="button"
+                                onClick={() => handleManageSharesClick(file.id, file.filename)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                title="Manage shares"
+                              >
+                                <MoreHorizontal className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         <div className="relative shrink-0 md:hidden">
@@ -1643,6 +1657,15 @@ export default function Files() {
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-700 hover:bg-violet-50"
                                  >
                                    <Zap className="w-3.5 h-3.5" /> Quick Share
+                                 </button>
+                               )}
+                               {file.is_owner !== false && (
+                                  <button
+                                    type="button"
+                                    onClick={() => { setAccessPanelFile({ id: file.id, filename: file.filename }); setOpenActionMenu(null); }}
+                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                 >
+                                   <Shield className="w-3.5 h-3.5" /> Access control
                                  </button>
                                )}
                                {file.is_owner !== false && (

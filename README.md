@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 15, 2026 (night — trust UX hardened across all surfaces; bundle split)**
+> **Last updated: March 15, 2026 (night — trust UX hardened across all surfaces; 2 full polish passes; bundle split)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -36,10 +36,10 @@ This section reflects the actual state. Sections below are historical documentat
 | Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs |
 | File Requests | ✅ | PBKDF2+passphrase encryption, full management UI |
 | Dashboard | ✅ | Stats, activity feed, security posture panel |
-| Trust Rail | ✅ | Protection & Access rail — 3-col grid (Encryption, Source, Last Event), skeleton loader, access point count |
-| File Security Timeline | ✅ | Security History — event-type icon badges, relative timestamps, reassuring empty state |
-| Access Visibility Panel | ✅ | Owner anchor always shown, 2-step inline revoke, state pills per entry type |
-| Privacy Explainer | ✅ | "Privacy & Trust" card — plain-language, dot-marked lists, trust claim badges in Security card |
+| Trust Rail | ✅ | Protection & Access rail — 3-col grid (Encryption, Source, Last Event), shimmer skeleton loader, dynamic access point emphasis |
+| File Security Timeline | ✅ | Security History — event-type icon badges, relative timestamps, visible connectors, reassuring empty state ("only you have this file") |
+| Access Visibility Panel | ✅ | Owner anchor always shown, 2-step inline revoke, relative timestamps, state pills per entry type |
+| Privacy Explainer | ✅ | "Privacy & Trust" card — plain-language, relaxed reading rhythm, trust claim badges in Security card |
 | User sharing (RSA) | ✅ | Zero-knowledge key exchange between users |
 | Group sharing | ✅ | Teams, member management |
 | Activity log | ✅ | All events tracked, dashboard feed |
@@ -47,7 +47,7 @@ This section reflects the actual state. Sections below are historical documentat
 | Agent API Keys | ✅ | Scoped, hashed, revocable, last-used visible, settings UI |
 | API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
-| One-PIN trust flow | ✅ | PIN setup enforced, onboarding binds RSA private key, Secure Drop and shared downloads reuse session trust |
+| One-PIN trust flow | ✅ | PIN setup enforced, onboarding binds RSA private key with Lock/Eye/Bot privacy briefing, Secure Drop and shared downloads reuse session trust |
 | Session credential cache | ✅ | PIN cached in-memory and reused for upload/download/share/preview/create-link flows |
 | PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
@@ -117,7 +117,8 @@ File requests remain intentionally separate: the uploader still chooses a passph
 ### Recent Session Work (Commits)
 
 ```
-[pending]         feat: trust UX hardening — 3-iteration polish pass, bundle splitting
+[pending]         feat: trust UX polish pass 2 — file row calm, shimmer skeletons, relative timestamps, empty states
+91ca320           feat: trust UX hardening — 3-iteration polish pass across all trust surfaces
 0ada09a           docs: record verified one-pin trust flow state
 7225d28           test: stabilize frontend browser-flow tests
 427d522           fix: keep onboarding active until completion
@@ -136,7 +137,7 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-15-trust-ux-hardening.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
@@ -247,7 +248,7 @@ Response envelope:
 
 - `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
-- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening pass: what changed and why (latest)
+- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening: 2 full passes, what changed and why (latest)
 - `docs/12_ONE_PIN_TRUST_FLOW.md` — one-PIN trust model design and E2E verification
 - `docs/11_TRUST_API_AGENT_KEYS.md` — trust UX, API v1, agent keys deep-dive
 - `docs/09_SECURITY_HARDENING_PHASE2.md` — zero-knowledge sealing reference
@@ -352,7 +353,7 @@ Response envelope:
 - **Status badges**: Drop links show Active (green) / Expiring (amber) / Sealed (grey) states
 - **Origin badges**: Each file shows its source — My Upload, Drop, @user share, group
 - **Inline preview**: Images, PDF, audio, video, text decrypted and rendered in-place
-- **File access panel**: Per-file "Who can see this?" with revoke-all button
+- **File access panel**: Per-file "Who can see this?" with revoke-all button, accessible from both desktop row and mobile dropdown menu
 - **Inline star toggle**: Star/unstar files directly from the file row
 - **Bulk selection**: Checkbox per file → floating action bar → bulk download or bulk delete
 - **Bulk download modal**: Detects PIN vs. password need per file, sequential decrypt with per-file progress
@@ -360,12 +361,13 @@ Response envelope:
 
 ### 🛡️ Trust UX
 
-- **Trust Rail**: "Protection & Access" rail — 3-column grid (Encryption / Source / Last Event), animated skeleton loader, active access point count, state pill
-- **File Security Timeline**: "Security History" — event-type icon badges (Upload/Share/Revoke/Link/Drop/View), relative timestamps ("3 days ago"), reassuring empty state
-- **Access Visibility Panel**: Owner anchor ("You — Full access, always") always at top. 2-step inline revoke confirmation. State pills per entry: active / revoked / expired
-- **Privacy & Trust**: Settings card with plain-language lists, dot markers, trust claim badges for encryption and key exchange
-- **First-run trust step**: "Your files, your control" — positive-framing privacy briefing before PIN setup, plus 3-item ready checklist on completion
+- **Trust Rail**: "Protection & Access" rail — 3-column grid (Encryption / Source / Last Event), gradient shimmer skeleton loader, dynamic access point emphasis, state pill
+- **File Security Timeline**: "Security History" — event-type icon badges (Upload/Share/Revoke/Link/Drop/View), relative timestamps ("3 days ago"), visible connector lines, owner-reassuring empty state
+- **Access Visibility Panel**: Owner anchor ("You — Full access, always") always at top. 2-step inline revoke confirmation. Relative timestamps. State pills per entry: active / revoked / expired
+- **Privacy & Trust**: Settings card with plain-language text, relaxed reading rhythm, trust claim badges for encryption and key exchange
+- **First-run trust step**: "Your files, your control" — Lock/Eye/Bot icon-anchored privacy briefing before PIN setup, plus 3-item ready checklist on completion
 - **Trust Receipts**: Calm, factual confirmation moments after share link creation, Secure Drop link creation — no anxiety language, revoke-path always communicated
+- **Calm file interactions**: Primary file actions always visible; secondary actions (share, delete, manage) revealed on hover to reduce visual noise while keeping full functionality
 
 ### 🤖 Agent API Keys
 
@@ -911,8 +913,8 @@ This project is proprietary software developed for ABRN Asesores.
 
 ---
 
-**Last Updated:** March 12, 2026
-**Version:** Production — Vault Explorer + PIN System
+**Last Updated:** March 15, 2026
+**Version:** Production — Vault Explorer + PIN System + Trust UX Hardened (2 passes)
 **Built with ❤️ for enterprise security and privacy**
 
 ---

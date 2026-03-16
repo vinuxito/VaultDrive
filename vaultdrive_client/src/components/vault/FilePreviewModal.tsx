@@ -262,11 +262,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               <button
                 type="button"
                 onClick={() => setTrustExpanded((prev) => !prev)}
-                className="flex items-center gap-1.5 w-full text-left text-white/45 hover:text-white/70 transition-colors mb-2 group"
+                className="flex items-center gap-1.5 w-full text-left text-white/45 hover:text-white/65 transition-colors mb-2 group rounded-lg px-2 py-1.5 -mx-2 hover:bg-white/[0.03]"
               >
                 {trustExpanded
-                  ? <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-                  : <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                  ? <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" />
+                  : <ChevronRight className="w-3.5 h-3.5 shrink-0 transition-transform" />
                 }
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="text-xs font-medium uppercase tracking-[0.15em]">

@@ -2,6 +2,20 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, ShieldOff, Users, Link2, X, Loader2, Inbox } from "lucide-react";
 import { API_URL } from "../../utils/api";
 
+function relativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffMins < 2) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
+}
+
 interface AccessEntry {
   kind: string;
   label: string;
@@ -97,7 +111,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-2">
+        <div className="px-5 py-4 space-y-2.5">
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40">
             <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -136,7 +150,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Since {new Date(entry.since).toLocaleDateString()}
+                    {relativeTime(entry.since)}
                     {entry.expires_at && ` · expires ${new Date(entry.expires_at).toLocaleDateString()}`}
                     {typeof entry.access_count === "number" && ` · opened ${entry.access_count}×`}
                   </p>

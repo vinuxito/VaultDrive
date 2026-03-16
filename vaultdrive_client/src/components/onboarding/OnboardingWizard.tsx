@@ -209,11 +209,17 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
               <div className="space-y-3 text-sm">
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="font-medium text-white">What stays private</p>
+                  <p className="font-medium text-white flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-[#f2d7d8]" />
+                    What stays private
+                  </p>
                   <p className="mt-1 text-white/60">Your file contents. Even with full database access, files cannot be read without your PIN.</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="font-medium text-white">What you control</p>
+                  <p className="font-medium text-white flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-[#f2d7d8]" />
+                    What you control
+                  </p>
                   <p className="mt-1 text-white/60">Who can access each file, when links expire, and the ability to revoke any external access immediately.</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">

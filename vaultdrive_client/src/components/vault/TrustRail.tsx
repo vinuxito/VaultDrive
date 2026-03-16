@@ -61,14 +61,16 @@ export function TrustRail({ fileId }: TrustRailProps) {
 
   if (!summary) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 animate-pulse space-y-3">
+      <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="h-3 w-36 bg-white/10 rounded" />
-          <div className="h-5 w-20 bg-white/10 rounded-full" />
+          <div className="h-3 w-36 bg-white/10 rounded animate-pulse" />
+          <div className="h-5 w-20 bg-white/10 rounded-full animate-pulse" />
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-white/5 rounded-xl" />
+            <div key={i} className="h-16 rounded-xl overflow-hidden relative bg-white/5">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent animate-shine" />
+            </div>
           ))}
         </div>
       </div>
@@ -107,7 +109,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
             Source
           </div>
           <p className="mt-2 text-white/90 leading-snug text-sm">{originLabel(summary.origin)}</p>
-          <p className="mt-1 text-xs text-white/35">
+          <p className={`mt-1 text-xs ${activeCount === 0 ? "text-white/35" : "text-white/55 font-medium"}`}>
             {activeCount === 0
               ? "No external access active"
               : `${activeCount} active access point${activeCount !== 1 ? "s" : ""}`}

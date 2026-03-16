@@ -141,5 +141,56 @@ No backend files were changed.
 
 1. Route-level lazy loading (`React.lazy()`) would further reduce initial bundle — deferred
 2. Shared-download two-user E2E browser test — coverage exists at unit level, full browser proof still pending
-3. Mobile file row: "Who can access" (AccessPanel) is desktop-only via row button; mobile uses MoreHorizontal which opens "Manage shares" (slightly different surface)
+3. ~~Mobile file row: "Who can access" (AccessPanel) is desktop-only via row button~~ — **Fixed in Pass 2**: Shield "Access control" action added to mobile dropdown menu
 4. FilePreviewModal trust section defaults to collapsed — consider auto-expand on first view of a new file if desired
+
+---
+
+## Pass 2 — Visual Calm & Premium Polish (same day, later session)
+
+**Starting commit:** `91ca320` (feat: trust UX hardening — 3-iteration polish pass)
+
+Second 3-iteration loop focusing on the feel and rhythm of the trust surfaces.
+
+### Key Changes
+
+**File row calm (files.tsx):**
+- Desktop: 8 simultaneously-visible action buttons split into primary (4 always visible) + secondary (4 revealed on row hover via `opacity-0 group-hover:opacity-100`)
+- Primary: Download, Create share link, Star, Shield (access control)
+- Secondary: Share with user, Quick Share, Delete, Manage shares
+- Mobile: Shield "Access control" action added to dropdown menu (was missing)
+
+**Trust surface polish:**
+- TrustRail skeleton: flat `animate-pulse` replaced with gradient shimmer animation
+- Timeline connector lines: `bg-white/8` → `bg-white/15` for visibility
+- AccessPanel: raw dates replaced with `relativeTime()` (relative timestamps like "3 days ago")
+- AccessPanel entry spacing: `space-y-2` → `space-y-2.5` for breathing room
+- FilePreviewModal trust toggle: hover background + rounded hit area added
+
+**Onboarding icon consistency:**
+- All 3 privacy briefing cards now have icons: Lock ("What stays private"), Eye ("What you control"), Bot ("Agents work within bounds")
+
+**Empty state + notification quality:**
+- Vault empty state redesigned: Lock icon in container, contextual per-view messages, trust-first copy
+- Success messages: icon-in-circle pattern (emerald circle + CheckCircle2)
+- Error messages: matching icon-in-circle pattern (red circle + AlertCircle)
+- Loading state: vertical centered "Loading your vault..." matching empty state proportions
+
+**Dead UI removal:**
+- Removed empty Storage placeholder card from settings (no content, broken feel)
+- Removed unused HardDrive Lucide import (bundle size reduced)
+
+**Readability:**
+- Privacy & Trust card body text: `leading-relaxed` + increased spacing for reading rhythm
+
+### Additional Files Changed (Pass 2 only)
+
+| File | Change Type |
+|------|------------|
+| `pages/files.tsx` | File row calm, mobile parity, empty/loading/error/success states |
+| `components/vault/TrustRail.tsx` | Shimmer skeleton, access count emphasis |
+| `components/vault/FileSecurityTimeline.tsx` | Connector visibility, empty state |
+| `components/vault/AccessPanel.tsx` | Relative time, spacing |
+| `components/vault/FilePreviewModal.tsx` | Trust toggle hover feedback |
+| `components/onboarding/OnboardingWizard.tsx` | Privacy card icons |
+| `pages/settings.tsx` | Storage card removal, readability |

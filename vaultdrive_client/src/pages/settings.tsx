@@ -16,7 +16,6 @@ import {
   Users,
   Mail,
   Calendar,
-  HardDrive,
   Lock,
   Key,
   Sun,
@@ -468,7 +467,7 @@ export default function Settings() {
           <CardContent className="space-y-4 text-sm text-slate-600">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
               <p className="font-medium text-slate-900">How your files are protected</p>
-              <p className="mt-1">
+              <p className="mt-1.5 leading-relaxed">
                 Files are encrypted in your browser before upload. The server stores only the locked version, the delivery metadata, and a record of access events.
               </p>
             </div>
@@ -492,7 +491,7 @@ export default function Settings() {
             </div>
             <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-4">
               <p className="font-medium text-slate-900">Sharing and agent delegation</p>
-              <p className="mt-1">
+              <p className="mt-1.5 leading-relaxed">
                 Every link, request, and agent key you create is reviewable and revocable. Agent keys carry explicit scopes for metadata and ciphertext operations — they cannot silently read your files.
               </p>
             </div>
@@ -502,30 +501,6 @@ export default function Settings() {
         <AgentApiKeysSection />
 
         <AuditLogSection />
-
-        {/* Storage Info (Placeholder) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HardDrive className="w-5 h-5" />
-              Storage
-            </CardTitle>
-            <CardDescription>Your file storage information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Storage Used</span>
-                  <span className="font-medium">View Files page for details</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Upload encrypted files to start using your secure vault
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
     </div>
   );
 }
