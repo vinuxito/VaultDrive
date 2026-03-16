@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 15, 2026 (night — trust UX hardening pass 2)
+Last updated: March 16, 2026 (verification + docs refresh after trust UX hardening pass 3)
 
 ## Task Documentation
 
@@ -18,7 +18,7 @@ Last updated: March 15, 2026 (night — trust UX hardening pass 2)
 | 10 | [Public Share + File Requests](./10_PUBLIC_SHARE_AND_FILE_REQUESTS.md) | Info-first share page, expiry picker, inbound file request system end-to-end |
 | 11 | [Trust UX, API v1, Agent Keys](./11_TRUST_API_AGENT_KEYS.md) | Trust rail, security timeline, versioned API, scoped agent API keys, audit log |
 | 12 | [One-PIN Trust Flow](./12_ONE_PIN_TRUST_FLOW.md) | Enforced one-PIN owner workflow, onboarding completion, session trust reuse, and E2E verification |
-| 13 | [Trust UX Hardening](./13_TRUST_UX_HARDENING.md) | 3-iteration UI/UX hardening: Trust Rail, Security Timeline, AccessPanel, Agent Key scopes, Onboarding, bundle splitting |
+| 13 | [Trust UX Hardening](./13_TRUST_UX_HARDENING.md) | Passes 1-3: trust surfaces, delegated-power receipts, sender trust boundaries, verification, Secure Drop truth alignment |
 
 ## Feature Docs (pre-existing)
 
@@ -42,6 +42,8 @@ Last updated: March 15, 2026 (night — trust UX hardening pass 2)
 | [SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md](./SESSION_MEMORY_2026-03-15-one-pin-trust-flow-verification.md) | Verification pass, onboarding lifecycle fix, and end-to-end one-PIN owner-flow proof |
 | [SESSION_MEMORY_2026-03-15-trust-ux-hardening.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening.md) | 3-iteration trust UX hardening — TrustRail, Timeline, AccessPanel, AgentKeys, Onboarding, bundle splitting |
 | [SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md) | 3-iteration trust UX polish pass 2 — file row calm, shimmer skeletons, relative timestamps, onboarding icons, empty states |
+| [SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass3.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass3.md) | Pass 3 — trust receipts, delegated-power clarity, Secure Drop boundary fix, final verification snapshot |
+| [SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md](./SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md) | Current-code inspection, build + browser verification, docs refresh, README truth update, commit preparation |
 
 ## Quick Navigation
 
@@ -71,4 +73,4 @@ Last updated: March 15, 2026 (night — trust UX hardening pass 2)
 
 **I want the trust UX hardening summary →** [13_TRUST_UX_HARDENING.md](./13_TRUST_UX_HARDENING.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md](./SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md)

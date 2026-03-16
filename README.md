@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 15, 2026 (night — trust UX hardened across all surfaces; 2 full polish passes; bundle split)**
+> **Last updated: March 16, 2026 (trust UX hardening pass 3 verified locally; docs refreshed; Secure Drop upload boundary aligned with current claims)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -22,9 +22,23 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (March 15, 2026)
+## Current State (March 16, 2026)
 
 This section reflects the actual state. Sections below are historical documentation.
+
+### Verification Snapshot
+
+- Frontend tests: `17/17` PASS
+- Frontend build: PASS
+- Backend tests: PASS
+- Backend build: PASS
+- Local browser smoke on `http://localhost:8082/abrn/`: PASS
+  - fresh signup
+  - password login
+  - onboarding privacy step
+  - PIN setup
+  - vault open
+  - settings trust surfaces rendered
 
 ### What's Live
 
@@ -33,18 +47,18 @@ This section reflects the actual state. Sections below are historical documentat
 | Encrypted file vault | ✅ | AES-256-GCM, PIN-based, session key cache, credential auto-use |
 | File preview (inline) | ✅ | Images, PDF, audio, video, text |
 | Public share links | ✅ | Info-first UX, expiry picker, 7-day default, fragment-key ZK |
-| Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs |
+| Secure Drop portal | ✅ | Owner identity, upload receipt, seal-after-upload, fragment URLs, app-wide PIN trust reuse |
 | File Requests | ✅ | PBKDF2+passphrase encryption, full management UI |
 | Dashboard | ✅ | Stats, activity feed, security posture panel |
-| Trust Rail | ✅ | Protection & Access rail — 3-col grid (Encryption, Source, Last Event), shimmer skeleton loader, dynamic access point emphasis |
-| File Security Timeline | ✅ | Security History — event-type icon badges, relative timestamps, visible connectors, reassuring empty state ("only you have this file") |
-| Access Visibility Panel | ✅ | Owner anchor always shown, 2-step inline revoke, relative timestamps, state pills per entry type |
-| Privacy Explainer | ✅ | "Privacy & Trust" card — plain-language, relaxed reading rhythm, trust claim badges in Security card |
+| Trust Rail | ✅ | Protection & Access rail — calmer reassurance summary, shimmer skeleton loader, clear temporary-unavailable state |
+| File Security Timeline | ✅ | Security History — event icons, relative + absolute timestamps, reassuring empty state, clear unavailable state |
+| Access Visibility Panel | ✅ | Owner anchor, surfaced access summary, 2-step revoke, relative timestamps, revoke receipt |
+| Privacy Explainer | ✅ | "Privacy & Trust" card — plain-language, consequence-first wording, stronger hierarchy |
 | User sharing (RSA) | ✅ | Zero-knowledge key exchange between users |
 | Group sharing | ✅ | Teams, member management |
 | Activity log | ✅ | All events tracked, dashboard feed |
 | Audit log | ✅ | Agent key lifecycle, access changes, sensitive file operations |
-| Agent API Keys | ✅ | Scoped, hashed, revocable, last-used visible, settings UI |
+| Agent API Keys | ✅ | Scoped, hashed, revocable, delegated-power framing, last-used visible, create/revoke receipts |
 | API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
 | One-PIN trust flow | ✅ | PIN setup enforced, onboarding binds RSA private key with Lock/Eye/Bot privacy briefing, Secure Drop and shared downloads reuse session trust |
@@ -52,7 +66,7 @@ This section reflects the actual state. Sections below are historical documentat
 | PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
-| Zero-knowledge drop uploads | ✅ | Raw key never stored, key in URL fragment |
+| Zero-knowledge drop uploads | ✅ | Raw key never stored, key stays client-side during upload, owner access comes from stored `pin_wrapped_key` |
 | Email module | ⛔ | Removed from UI (code preserved) |
 | Delegated decrypt | 🔜 | Deferred — requires explicit key-wrapping design |
 
@@ -114,10 +128,9 @@ This is the current owner trust model:
 
 File requests remain intentionally separate: the uploader still chooses a passphrase for the content they send.
 
-### Recent Session Work (Commits)
+### Recent Session Work (Selected Milestones)
 
 ```
-[pending]         feat: trust UX polish pass 2 — file row calm, shimmer skeletons, relative timestamps, empty states
 91ca320           feat: trust UX hardening — 3-iteration polish pass across all trust surfaces
 0ada09a           docs: record verified one-pin trust flow state
 7225d28           test: stabilize frontend browser-flow tests
@@ -137,7 +150,7 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass2.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
@@ -248,7 +261,7 @@ Response envelope:
 
 - `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
-- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening: 2 full passes, what changed and why (latest)
+- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening: passes 1-3, verification, and Secure Drop truth alignment
 - `docs/12_ONE_PIN_TRUST_FLOW.md` — one-PIN trust model design and E2E verification
 - `docs/11_TRUST_API_AGENT_KEYS.md` — trust UX, API v1, agent keys deep-dive
 - `docs/09_SECURITY_HARDENING_PHASE2.md` — zero-knowledge sealing reference
@@ -913,8 +926,8 @@ This project is proprietary software developed for ABRN Asesores.
 
 ---
 
-**Last Updated:** March 15, 2026
-**Version:** Production — Vault Explorer + PIN System + Trust UX Hardened (2 passes)
+**Last Updated:** March 16, 2026
+**Version:** Production — Vault Explorer + One-PIN Trust Flow + Trust UX Hardened (3 passes, verified)
 **Built with ❤️ for enterprise security and privacy**
 
 ---

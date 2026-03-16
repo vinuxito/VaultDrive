@@ -1,73 +1,95 @@
-# React + TypeScript + Vite
+# ABRN Drive Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory contains the React + TypeScript frontend for ABRN Drive.
 
-Currently, two official plugins are available:
+It is not a standalone product shell. The production app is served by the Go backend, usually under `/abrn/`, and this frontend builds into `vaultdrive_client/dist/` for that backend to serve.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Stack
 
-## React Compiler
+- React 19
+- TypeScript 5
+- Vite 7
+- Tailwind CSS 4
+- Radix UI primitives
+- Vitest + Testing Library
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## What Lives Here
 
-## Expanding the ESLint configuration
+- Auth and onboarding UI
+- Vault explorer and file-detail trust surfaces
+- Public share page
+- Secure Drop public upload page
+- File Request public upload page
+- Settings, Privacy & Trust, and Agent API Keys UI
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Important Product Truths
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Owner trust model: one app-wide 4-digit PIN
+- Owner session trust is reused across normal secure flows
+- Public share links carry the AES key in the URL fragment
+- Secure Drop and File Request sender experiences must explain what the app can and cannot see in plain language
+- Agent UI must stay ciphertext-first and scope-driven
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Commands
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Install dependencies:
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run unit tests:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run test
 ```
+
+Run the frontend build:
+
+```bash
+npm run build
+```
+
+Run the local Vite dev server:
+
+```bash
+npm run dev
+```
+
+Preview the production bundle locally:
+
+```bash
+npm run preview
+```
+
+## Verification Notes
+
+- The main production-like local path is usually the Go server at `http://localhost:8082/abrn/`, not the raw Vite dev server.
+- Frontend verification is normally paired with backend verification:
+  - `cd vaultdrive_client && npm run test && npm run build`
+  - `cd .. && go test ./... && go build ./...`
+- Current browser smoke coverage has been exercised against the live local app flow:
+  - fresh signup
+  - password login
+  - onboarding / PIN setup
+  - vault open
+  - settings trust surfaces render
+
+## Key Files
+
+- `src/App.tsx` - route map and basename handling
+- `src/pages/files.tsx` - main vault explorer
+- `src/components/vault/TrustRail.tsx` - per-file protection and access rail
+- `src/components/vault/FileSecurityTimeline.tsx` - security timeline
+- `src/components/vault/AccessPanel.tsx` - access visibility and revoke controls
+- `src/components/settings/AgentApiKeysSection.tsx` - delegated-power UI
+- `src/components/onboarding/OnboardingWizard.tsx` - trust briefing + PIN setup
+- `src/pages/drop-upload.tsx` - public Secure Drop sender flow
+- `src/pages/FileRequestPage.tsx` - public File Request sender flow
+
+## Documentation
+
+- Root product docs: `../README.md`
+- Docs index: `../docs/INDEX.md`
+- Trust UX hardening: `../docs/13_TRUST_UX_HARDENING.md`
+- Latest session context: `../docs/SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md`
