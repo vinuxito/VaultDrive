@@ -44,7 +44,10 @@ function originLabel(origin: string): string {
 }
 
 export function TrustRail({ fileId }: TrustRailProps) {
+  const hasToken = Boolean(localStorage.getItem("token"));
   const [summary, setSummary] = useState<TrustSummary | null>(null);
+  const [loading, setLoading] = useState(hasToken);
+  const [error, setError] = useState(!hasToken);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -52,14 +55,29 @@ export function TrustRail({ fileId }: TrustRailProps) {
     fetch(`${API_URL}/v1/files/${fileId}/trust`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: TrustRailEnvelope | null) => {
-        if (payload?.data) setSummary(payload.data);
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("trust_unavailable");
+        }
+
+        return response.json();
       })
-      .catch(() => undefined);
+      .then((payload: TrustRailEnvelope | null) => {
+        if (payload?.data) {
+          setSummary(payload.data);
+          return;
+        }
+
+        throw new Error("trust_unavailable");
+      })
+      .catch(() => {
+        setSummary(null);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
   }, [fileId]);
 
-  if (!summary) {
+  if (loading) {
     return (
       <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 space-y-3">
         <div className="flex items-center justify-between">
@@ -77,7 +95,25 @@ export function TrustRail({ fileId }: TrustRailProps) {
     );
   }
 
+  if (error || !summary) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 space-y-3">
+        <div className="flex items-center gap-2 text-white/50">
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
+          <span className="text-xs font-medium uppercase tracking-[0.15em]">Protection & Access</span>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
+          <p className="text-sm text-white/85">Trust data is temporarily unavailable.</p>
+          <p className="mt-1 text-xs text-white/45">Your file remains encrypted and under your control.</p>
+        </div>
+      </div>
+    );
+  }
+
   const activeCount = summary.entries.filter((e) => e.state === "active").length;
+  const calmSummary = activeCount === 0
+    ? "Only you control this file right now."
+    : `${activeCount} external access point${activeCount !== 1 ? "s are" : " is"} active and reviewable.`;
 
   return (
     <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 space-y-3">
@@ -93,6 +129,11 @@ export function TrustRail({ fileId }: TrustRailProps) {
         </span>
       </div>
 
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3">
+        <p className="text-sm text-white/92 leading-relaxed">{calmSummary}</p>
+        <p className="mt-1 text-xs text-white/40">ABRN Drive stores ciphertext and access metadata only.</p>
+      </div>
+
       <div className="grid gap-3 md:grid-cols-3 text-sm">
         <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
           <div className="flex items-center gap-1.5 text-white/45 text-xs uppercase tracking-[0.15em]">
@@ -100,7 +141,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
             Encryption
           </div>
           <p className="mt-2 text-white/90 leading-snug text-sm">{summary.protection}</p>
-          <p className="mt-1 text-xs text-white/35">In-browser, before upload</p>
+          <p className="mt-1 text-xs text-white/35">Locked in your browser before upload</p>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
@@ -109,10 +150,10 @@ export function TrustRail({ fileId }: TrustRailProps) {
             Source
           </div>
           <p className="mt-2 text-white/90 leading-snug text-sm">{originLabel(summary.origin)}</p>
-          <p className={`mt-1 text-xs ${activeCount === 0 ? "text-white/35" : "text-white/55 font-medium"}`}>
+          <p className={`mt-1 text-xs leading-relaxed ${activeCount === 0 ? "text-white/35" : "text-white/55 font-medium"}`}>
             {activeCount === 0
-              ? "No external access active"
-              : `${activeCount} active access point${activeCount !== 1 ? "s" : ""}`}
+              ? "No external access is active"
+              : `${activeCount} active access point${activeCount !== 1 ? "s" : ""}, all revocable`}
           </p>
         </div>
 
@@ -122,7 +163,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
             Last Event
           </div>
           <p className="mt-2 text-white/90 leading-snug text-sm">{summary.latest_activity}</p>
-          <p className="mt-1 text-xs text-white/35">Full history below</p>
+          <p className="mt-1 text-xs text-white/35">Full event history below</p>
         </div>
       </div>
     </div>

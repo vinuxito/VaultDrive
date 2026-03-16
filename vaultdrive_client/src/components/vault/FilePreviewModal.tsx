@@ -275,8 +275,8 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               </button>
               {trustExpanded && (
                 <div className="space-y-3">
-                  <TrustRail fileId={file.id} />
-                  <FileSecurityTimeline fileId={file.id} />
+                  <TrustRail key={`trust-${file.id}`} fileId={file.id} />
+                  <FileSecurityTimeline key={`timeline-${file.id}`} fileId={file.id} />
                 </div>
               )}
             </div>
