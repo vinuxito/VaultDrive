@@ -33,6 +33,7 @@ import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection"
 import { AgentDeveloperPortalSection } from "../components/settings/AgentDeveloperPortalSection";
 import { AgentOperationsSection } from "../components/settings/AgentOperationsSection";
 import { ApiSimulationSection } from "../components/settings/ApiSimulationSection";
+import { PipelineExamplesSection } from "../components/settings/PipelineExamplesSection";
 import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
@@ -541,6 +542,8 @@ export default function Settings() {
         <AgentOperationsSection />
 
         <ApiSimulationSection />
+
+        <PipelineExamplesSection />
 
         <AuditLogSection />
     </div>
