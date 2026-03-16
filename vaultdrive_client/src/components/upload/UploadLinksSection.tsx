@@ -14,6 +14,9 @@ export function UploadLinksSection() {
   const [error, setError] = useState("");
   const [expandedToken, setExpandedToken] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [confirmDeactivateId, setConfirmDeactivateId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<string>("");
 
   const fetchTokens = useCallback(async () => {
     try {
@@ -47,7 +50,7 @@ export function UploadLinksSection() {
   const handleRefresh = () => {
     setRefreshing(true);
     setError("");
-    fetchTokens();
+    void fetchTokens();
   };
 
   const handleExpand = async (tokenId: string) => {
@@ -83,10 +86,6 @@ export function UploadLinksSection() {
   };
 
   const handleDeactivate = async (token: string) => {
-    if (!confirm("Deactivate this upload link? No more files can be uploaded.")) {
-      return;
-    }
-
     try {
       const auth = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/drop/${token}/done`, {
@@ -98,18 +97,17 @@ export function UploadLinksSection() {
       });
 
       if (response.ok) {
+        setReceipt("Upload link sealed. No more files can be added through that route.");
         await fetchTokens();
       }
     } catch (err) {
       console.error("Error deactivating token:", err);
+    } finally {
+      setConfirmDeactivateId(null);
     }
   };
 
   const handleDelete = async (tokenId: string) => {
-    if (!confirm("Delete this upload link? Files will remain but the link will be removed.")) {
-      return;
-    }
-
     try {
       const auth = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/upload-links/${tokenId}`, {
@@ -120,10 +118,13 @@ export function UploadLinksSection() {
       });
 
       if (response.ok) {
+        setReceipt("Upload link removed. Previously uploaded files remain in your vault.");
         await fetchTokens();
       }
     } catch (err) {
       console.error("Error deleting token:", err);
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -191,6 +192,13 @@ export function UploadLinksSection() {
         </div>
       )}
 
+      {receipt && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+          <p className="font-medium">Done, safe, under control.</p>
+          <p className="mt-1 text-emerald-700">{receipt}</p>
+        </div>
+      )}
+
       {tokens.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <UploadCloud className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -208,15 +216,38 @@ export function UploadLinksSection() {
       ) : (
         <div className="space-y-3">
           {tokens.map((tokenData) => (
-            <UploadLinkCard
-              key={tokenData.id}
-              token={tokenData}
-              isExpanded={expandedToken === tokenData.token}
-              status={getTokenStatus(tokenData)}
-              onExpand={() => handleExpand(tokenData.token)}
-              onDeactivate={() => handleDeactivate(tokenData.token)}
-              onDelete={() => handleDelete(tokenData.id)}
-            />
+            <div key={tokenData.id} className="space-y-2">
+              <UploadLinkCard
+                token={tokenData}
+                isExpanded={expandedToken === tokenData.token}
+                status={getTokenStatus(tokenData)}
+                onExpand={() => handleExpand(tokenData.token)}
+                onDeactivate={() => setConfirmDeactivateId(tokenData.token)}
+                onDelete={() => setConfirmDeleteId(tokenData.id)}
+              />
+
+              {confirmDeactivateId === tokenData.token && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                  <p className="font-medium">Seal this upload link?</p>
+                  <p className="mt-1 text-amber-700">No more files can be uploaded, but anything already delivered stays in your vault.</p>
+                  <div className="mt-3 flex gap-2 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setConfirmDeactivateId(null)}>Keep active</Button>
+                    <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-amber-600 hover:bg-amber-700 text-white">Seal link</Button>
+                  </div>
+                </div>
+              )}
+
+              {confirmDeleteId === tokenData.id && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
+                  <p className="font-medium">Remove this upload link?</p>
+                  <p className="mt-1 text-rose-700">The link disappears immediately, but previously uploaded files remain available in your vault.</p>
+                  <div className="mt-3 flex gap-2 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>Keep link</Button>
+                    <Button size="sm" onClick={() => void handleDelete(tokenData.id)} className="bg-rose-600 hover:bg-rose-700 text-white">Delete link</Button>
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}

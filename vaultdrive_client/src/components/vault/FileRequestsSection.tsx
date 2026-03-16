@@ -30,7 +30,7 @@ type ExpiryOption = "never" | "1" | "7" | "30";
 interface CreateRequestModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (request: FileRequest) => void;
 }
 
 function CreateRequestModal({
@@ -42,6 +42,8 @@ function CreateRequestModal({
   const [expiryDays, setExpiryDays] = useState<ExpiryOption>("7");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [createdRequest, setCreatedRequest] = useState<FileRequest | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,10 +80,9 @@ function CreateRequestModal({
         throw new Error(err.error ?? "Failed to create request");
       }
 
-      onSuccess();
-      onClose();
-      setDescription("");
-      setExpiryDays("7");
+      const created = (await response.json()) as FileRequest;
+      setCreatedRequest(created);
+      onSuccess(created);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to create request"
@@ -92,6 +93,10 @@ function CreateRequestModal({
   };
 
   if (!open) return null;
+
+  const requestUrl = createdRequest
+    ? `${window.location.origin}${BASE_PATH}/request/${createdRequest.token}`
+    : "";
 
   const expiryOptions: { value: ExpiryOption; label: string }[] = [
     { value: "never", label: "Never" },
@@ -118,80 +123,136 @@ function CreateRequestModal({
           </Button>
         </div>
 
-        <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
-          <div>
-            <label
-              htmlFor="req-description"
-              className="block text-white/90 text-sm mb-1"
-            >
-              Instructions for sender{" "}
-              <span className="text-white/50 font-normal">(optional)</span>
-            </label>
-            <textarea
-              id="req-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Please upload your Q1 financial statements here."
-              rows={3}
-              className="w-full rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 focus:outline-none px-3 py-2 text-sm resize-none"
-            />
-          </div>
+        {createdRequest ? (
+          <div className="space-y-4">
+            <div className="rounded-xl bg-emerald-500/15 border border-emerald-400/25 p-4">
+              <p className="text-sm font-semibold text-white">Request created and ready to share</p>
+              <p className="mt-1 text-xs text-white/70 leading-relaxed">
+                This link is live, reviewable, and revocable from your vault. Senders can only upload through the request route you just created.
+              </p>
+            </div>
 
-          <div>
-            <p className="text-white/90 text-sm mb-2">Link Expiration</p>
-            <div className="flex gap-2 flex-wrap">
-              {expiryOptions.map((opt) => (
-                <button
-                  key={opt.value}
+            <div>
+              <label htmlFor="req-created-url" className="block text-white/90 text-sm mb-1">Request URL</label>
+              <div className="flex gap-2">
+                <input
+                  id="req-created-url"
+                  value={requestUrl}
+                  readOnly
+                  className="flex-1 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 px-3 py-2 text-sm"
+                />
+                <Button
                   type="button"
-                  onClick={() => setExpiryDays(opt.value)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-                    expiryDays === opt.value
-                      ? "bg-white text-[#7d4f50]"
-                      : "bg-white/10 text-white hover:bg-white/20"
-                  }`}
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(requestUrl);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
                 >
-                  {opt.label}
-                </button>
-              ))}
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-white/8 border border-white/15 p-3 text-sm text-white/85 space-y-1">
+              <p className="font-medium">Trust receipt</p>
+              <p className="text-xs text-white/70 leading-relaxed">
+                The request stays under your control: you can copy it again, track uploads, or revoke it any time from the File Requests view.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                onClick={() => {
+                  setCreatedRequest(null);
+                  setDescription("");
+                  setExpiryDays("7");
+                  onClose();
+                }}
+                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+              >
+                Done
+              </Button>
             </div>
           </div>
-
-          {error && (
-            <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
-              {error}
+        ) : (
+          <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
+            <div>
+              <label
+                htmlFor="req-description"
+                className="block text-white/90 text-sm mb-1"
+              >
+                Instructions for sender{" "}
+                <span className="text-white/50 font-normal">(optional)</span>
+              </label>
+              <textarea
+                id="req-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Please upload your Q1 financial statements here."
+                rows={3}
+                className="w-full rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 focus:outline-none px-3 py-2 text-sm resize-none"
+              />
             </div>
-          )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-              className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating…
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Request
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+            <div>
+              <p className="text-white/90 text-sm mb-2">Link Expiration</p>
+              <div className="flex gap-2 flex-wrap">
+                {expiryOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setExpiryDays(opt.value)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                      expiryDays === opt.value
+                        ? "bg-white text-[#7d4f50]"
+                        : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Request
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -204,6 +265,9 @@ export function FileRequestsSection() {
   const [error, setError] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<string>("");
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -242,19 +306,24 @@ export function FileRequestsSection() {
   };
 
   const handleRevoke = async (req: FileRequest) => {
-    if (!confirm("Revoke this file request? Senders will no longer be able to upload."))
-      return;
     try {
+      setRevokingId(req.id);
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/file-requests/${req.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
+        setReceipt(`Request revoked. Senders can no longer upload through ${req.description ? 'this request' : 'that link'}.`);
         void fetchRequests();
+      } else {
+        setError("Could not revoke this request right now.");
       }
     } catch {
-      void 0;
+      setError("Could not revoke this request right now.");
+    } finally {
+      setRevokingId(null);
+      setConfirmRevokeId(null);
     }
   };
 
@@ -315,6 +384,13 @@ export function FileRequestsSection() {
       {error && (
         <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}
+        </div>
+      )}
+
+      {receipt && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+          <p className="font-medium">Done, safe, under control.</p>
+          <p className="mt-1 text-emerald-700">{receipt}</p>
         </div>
       )}
 
@@ -411,17 +487,38 @@ export function FileRequestsSection() {
                     </div>
 
                     {req.is_active && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          void handleRevoke(req);
-                        }}
-                        className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        title="Revoke request"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      confirmRevokeId === req.id ? (
+                        <div className="shrink-0 flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setConfirmRevokeId(null)}
+                          >
+                            Keep active
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              void handleRevoke(req);
+                            }}
+                            disabled={revokingId === req.id}
+                            className="bg-rose-600 hover:bg-rose-700 text-white"
+                          >
+                            {revokingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            {revokingId === req.id ? "Revoking…" : "Confirm revoke"}
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setConfirmRevokeId(req.id)}
+                          className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          title="Revoke request"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )
                     )}
                   </div>
                 </div>
@@ -434,7 +531,10 @@ export function FileRequestsSection() {
       <CreateRequestModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={() => {
+        onSuccess={(request) => {
+          setError("");
+          setReceipt(`Request created. Share it when ready; you can track uploads or revoke it at any time.`);
+          setRequests((current) => [request, ...current]);
           void fetchRequests();
         }}
       />
