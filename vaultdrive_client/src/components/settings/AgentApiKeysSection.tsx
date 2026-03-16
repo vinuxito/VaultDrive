@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bot, Copy, KeyRound, Loader2, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
+import { relativeTime } from "../../utils/format";
 
 interface AgentKeyRecord {
   id: string;
@@ -308,6 +309,8 @@ export function AgentApiKeysSection() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const fetchKeys = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -327,11 +330,19 @@ export function AgentApiKeysSection() {
     setRevokingId(keyId);
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/v1/agent-keys/${keyId}`, {
+      const keyName = keys.find((entry) => entry.id === keyId)?.name ?? "Agent key";
+      const response = await fetch(`${API_URL}/v1/agent-keys/${keyId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        throw new Error("Could not revoke agent key");
+      }
+      setError("");
+      setReceipt(`${keyName} was revoked. Any agent using it loses access immediately.`);
       void fetchKeys();
+    } catch {
+      setError("Could not revoke this agent key right now.");
     } finally {
       setRevokingId(null);
       setConfirmRevokeId(null);
@@ -362,6 +373,20 @@ export function AgentApiKeysSection() {
           These keys can manage metadata, ciphertext movement, links, requests, and audit surfaces. They do not grant silent plaintext access.
         </p>
       </div>
+
+      {receipt && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+          <p className="font-medium">Done, safe, under control.</p>
+          <p className="mt-1 text-emerald-700">{receipt}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
+          <p className="font-medium">Action could not be completed.</p>
+          <p className="mt-1 text-rose-700">{error}</p>
+        </div>
+      )}
 
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">
@@ -437,12 +462,22 @@ export function AgentApiKeysSection() {
                 ))}
               </div>
 
+              <div className="rounded-xl border border-slate-200 bg-[#fbfaf8] px-3 py-3 text-sm text-slate-600">
+                <p className="font-medium text-slate-800">Delegated power</p>
+                <p className="mt-1 leading-relaxed">
+                  This key can operate within {key.scopes.length} granted scope{key.scopes.length !== 1 ? "s" : ""}. It can move ciphertext and metadata, but it cannot silently decrypt your files.
+                </p>
+              </div>
+
               <div className="grid gap-3 md:grid-cols-3 text-sm text-slate-600">
                 <div className="rounded-xl bg-slate-50 px-3 py-3 border border-slate-200">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Last used</p>
                   <p className="mt-1 text-slate-900 font-medium">
-                    {key.last_used_at ? new Date(key.last_used_at).toLocaleString() : "Never used"}
+                    {key.last_used_at ? relativeTime(key.last_used_at) : "Never used"}
                   </p>
+                  {key.last_used_at && (
+                    <p className="mt-1 text-xs text-slate-500">{new Date(key.last_used_at).toLocaleString()}</p>
+                  )}
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3 py-3 border border-slate-200">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Last seen from</p>
@@ -466,6 +501,8 @@ export function AgentApiKeysSection() {
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreated={(record) => {
+          setError("");
+          setReceipt(`${record.name} is ready. Save the one-time secret now; only the prefix remains after you close the modal.`);
           setKeys((current) => [record, ...current]);
         }}
       />
