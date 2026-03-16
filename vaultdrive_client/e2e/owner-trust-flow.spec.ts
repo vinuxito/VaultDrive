@@ -24,3 +24,34 @@ test("owner trust flow supports signup, onboarding, and PIN login", async ({ pag
   await loginWithPin(page, account);
   await expect(page).toHaveURL(/abrn$/);
 });
+
+test("owner action receipts expose the underlying API calls", async ({ page }) => {
+  const account = buildOwnerAccount();
+
+  await registerAccount(page, account);
+  await loginWithPassword(page, account);
+  await completeOnboarding(page, account);
+
+  await gotoStable(page, "/files");
+
+  await page.getByRole("button", { name: "Manage" }).first().click();
+  await page.getByRole("button", { name: /create (new )?link/i }).click();
+  await expect(page.locator("#folder")).toBeVisible();
+  const uploadPinField = page.locator("#pin");
+  if (await uploadPinField.isVisible()) {
+    await uploadPinField.fill(account.pin);
+  }
+  const createLinkButton = page.getByRole("button", { name: /^Create Link$/i });
+  await createLinkButton.scrollIntoViewIfNeeded();
+  await createLinkButton.evaluate((element: HTMLButtonElement) => element.click());
+  await expect(page.getByText("POST /api/drop/create")).toBeVisible();
+  await page.getByRole("button", { name: /^Done$/i }).click();
+
+  await page.getByRole("button", { name: "Manage Requests" }).click();
+  await page.getByRole("button", { name: /new request/i }).click();
+  const createRequestButton = page.getByRole("button", { name: /^Create Request$/i });
+  await createRequestButton.scrollIntoViewIfNeeded();
+  await createRequestButton.evaluate((element: HTMLButtonElement) => element.click());
+  await expect(page.getByText("POST /api/file-requests")).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("owner-api-call-receipts.png"), fullPage: true });
+});

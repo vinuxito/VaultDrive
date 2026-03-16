@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { API_URL, BASE_PATH } from "../../utils/api";
+import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 
 interface FileRequest {
   id: string;
@@ -161,6 +162,12 @@ function CreateRequestModal({
                 The request stays under your control: you can copy it again, track uploads, or revoke it any time from the File Requests view.
               </p>
             </div>
+
+            <ApiCallTrace
+              method="POST"
+              path="/api/file-requests"
+              note="ABRN Drive just created a reviewable intake route for this sender request."
+            />
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <Button

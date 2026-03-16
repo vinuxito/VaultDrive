@@ -17,6 +17,7 @@ import {
   arrayBufferToBase64,
 } from "../../utils/crypto";
 import { useSessionVault } from "../../context/SessionVaultContext";
+import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -331,6 +332,12 @@ export function CreateShareLinkModal({
                   The recipient gets a complete link. You keep the ability to inspect when it was created, when it expires, and whether it should remain active.
                 </p>
               </div>
+              <ApiCallTrace
+                method="POST"
+                path={`/api/v1/files/${file.id}/share-link`}
+                scope="shares:create"
+                note="ABRN Drive created a revocable share record while the decryption fragment stayed in the URL after #."
+              />
               {expiryDisplay && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
                   <Calendar className="w-3.5 h-3.5 text-[#f2d7d8] shrink-0" />

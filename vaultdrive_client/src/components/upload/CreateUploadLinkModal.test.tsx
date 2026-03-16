@@ -5,9 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateUploadLinkModal } from "./CreateUploadLinkModal";
 
 const getCredential = vi.fn();
+const setCredential = vi.fn();
 
 vi.mock("../../context/SessionVaultContext", () => ({
-  useSessionVault: () => ({ getCredential }),
+  useSessionVault: () => ({ getCredential, setCredential }),
 }));
 
 describe("CreateUploadLinkModal", () => {
@@ -69,5 +70,8 @@ describe("CreateUploadLinkModal", () => {
 
     const body = JSON.parse(String(dropCall?.[1]?.body ?? "{}")) as { pin?: string };
     expect(body.pin).toBe("1234");
+
+    expect(await screen.findByText(/underlying api call/i)).toBeInTheDocument();
+    expect(screen.getByText("POST /api/drop/create")).toBeInTheDocument();
   });
 });

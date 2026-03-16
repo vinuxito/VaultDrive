@@ -6,6 +6,7 @@ import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, 
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { getCachedPinValue } from "../../utils/pin-trust";
+import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 
 interface Folder {
   id: string;
@@ -238,6 +239,12 @@ export function CreateUploadLinkModal({
                 This route now accepts uploads into the folder you selected. You can watch uploads arrive, seal the route, or remove it later from Upload Links.
               </p>
             </div>
+
+            <ApiCallTrace
+              method="POST"
+              path="/api/drop/create"
+              note="ABRN Drive just created a bounded sender route tied to the folder and PIN trust you selected."
+            />
 
             <div>
               <Label className="text-white/90 text-sm flex items-center gap-1">
