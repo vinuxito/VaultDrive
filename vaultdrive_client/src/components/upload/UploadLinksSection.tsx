@@ -161,7 +161,7 @@ export function UploadLinksSection() {
             Upload Links ({tokens.length})
           </h2>
           <p className="text-sm text-muted-foreground">
-            Manage links for secure file uploads from external users
+            Manage sender routes for secure file delivery from external users
           </p>
         </div>
         <div className="flex gap-2">
@@ -186,6 +186,13 @@ export function UploadLinksSection() {
         </div>
       </div>
 
+      <div className="rounded-[1.6rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfa_0%,#f8f2ee_100%)] px-4 py-4 text-sm text-slate-600 shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.94)_0%,rgba(15,23,42,0.9)_100%)] dark:text-slate-300">
+        <p className="font-medium text-slate-900 dark:text-slate-100">Controlled sender routes</p>
+        <p className="mt-1 leading-relaxed">
+          Each upload link is a bounded route into your vault. You can see its status, seal it after use, or remove it without affecting the files already delivered.
+        </p>
+      </div>
+
       {error && (
         <div className="p-4 rounded-lg bg-destructive/10 text-destructive flex items-center gap-2">
           <span>{error}</span>
@@ -193,20 +200,20 @@ export function UploadLinksSection() {
       )}
 
       {receipt && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+        <div className="abrn-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
           <p className="font-medium">Done, safe, under control.</p>
-          <p className="mt-1 text-emerald-700">{receipt}</p>
+          <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
         </div>
       )}
 
       {tokens.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+        <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
           <UploadCloud className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-2">
+          <p className="text-slate-700 dark:text-slate-200 font-medium mb-2">
             No upload links created yet
           </p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Create a link to let external users upload files securely
+          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+            Create a sender route when you want a client or partner to deliver files into a specific folder without giving them broader access.
           </p>
           <Button onClick={handleOpenCreateModal} className="gap-2">
             <Plus className="w-4 h-4" />

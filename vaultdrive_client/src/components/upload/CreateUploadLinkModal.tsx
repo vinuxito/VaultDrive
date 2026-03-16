@@ -214,13 +214,21 @@ export function CreateUploadLinkModal({
           </Button>
         </div>
 
+        {!createdLink && (
+          <div className="mb-4 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-xs leading-relaxed text-white/72">
+            Create a sender route into a specific folder. You stay in control of the route, its expiry, and whether it should seal itself after a delivery.
+          </div>
+        )}
+
         {createdLink ? (
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-500/15 border border-emerald-400/25">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-white font-semibold text-sm">Secure Drop link ready</p>
-                <p className="text-white/70 text-xs mt-0.5">Share this URL with your client. The link can expire, be sealed after use, or be revoked from your vault at any time.</p>
+            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-emerald-900 font-semibold text-sm">Secure Drop route ready</p>
+                  <p className="text-emerald-800 text-xs mt-1 leading-relaxed">Share this URL when you want a client to deliver files. You can review the route later, seal it after use, or revoke it from your vault.</p>
+                </div>
               </div>
             </div>
 
@@ -254,14 +262,14 @@ export function CreateUploadLinkModal({
 
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <p className="text-white/60 text-xs">
-                Save this link. The encryption key in the URL fragment is shown once — it never reaches the server.
+                The encryption key travels in the URL fragment and never reaches the server. Copy the link now, or find it again later in Upload Links.
               </p>
             </div>
 
             <div className="p-3 rounded-xl bg-white/8 border border-white/15">
               <p className="text-white/80 text-sm flex items-center gap-2">
                 <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
-                Files uploaded through this route stay bound to your app-wide <strong>4-digit PIN</strong>.
+                Files uploaded through this route stay bound to your app-wide <strong>4-digit PIN</strong> so the route feels delegated, not detached.
               </p>
             </div>
 
