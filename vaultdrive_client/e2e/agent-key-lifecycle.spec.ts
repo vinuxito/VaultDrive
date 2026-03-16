@@ -1,0 +1,151 @@
+import { test, expect } from "@playwright/test";
+import {
+  buildOwnerAccount,
+  registerAccount,
+  loginWithPassword,
+  completeOnboarding,
+  gotoStable,
+} from "./helpers/trust";
+
+const apiBase = process.env.ABRN_E2E_API_BASE_URL ?? `${new URL(process.env.ABRN_E2E_BASE_URL ?? "http://127.0.0.1:8090/abrn").origin}/api`;
+
+function apiUrl(path: string): string {
+  const base = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p}`;
+}
+
+test.describe("Agent key lifecycle trust proof", () => {
+  const account = buildOwnerAccount();
+  let jwt = "";
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await registerAccount(page, account);
+    await loginWithPassword(page, account);
+    await completeOnboarding(page, account);
+    jwt = await page.evaluate(() => localStorage.getItem("token") ?? "");
+    expect(jwt).toBeTruthy();
+    await page.close();
+  });
+
+  test("create agent key with scoped permissions", async ({ request }) => {
+    const res = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Reconciliation Bot",
+        scopes: ["files:list", "files:read_metadata", "activity:read"],
+        notes: "E2E test key",
+      },
+    });
+
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.name).toBe("QA Reconciliation Bot");
+    expect(body.data.scopes).toContain("files:list");
+    expect(body.data.plaintext_key).toBeTruthy();
+    expect(body.data.key_prefix).toMatch(/^abrn_ak_/);
+
+    test.info().annotations.push({ type: "agent_key", description: body.data.key_prefix });
+  });
+
+  test("introspect returns agent auth context", async ({ request }) => {
+    const createRes = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Introspect Test",
+        scopes: ["files:list"],
+        notes: "E2E introspect test",
+      },
+    });
+    const createBody = await createRes.json();
+    const agentKey = createBody.data.plaintext_key;
+
+    const introRes = await request.get(apiUrl("/v1/auth/introspect"), {
+      headers: { Authorization: `Bearer ${agentKey}` },
+    });
+
+    expect(introRes.ok()).toBeTruthy();
+    const introBody = await introRes.json();
+    expect(introBody.data.auth_type).toBe("agent_api_key");
+    expect(introBody.data.scopes).toContain("files:list");
+    expect(introBody.data.key_id).toBeTruthy();
+  });
+
+  test("scope denial blocks unauthorized endpoints", async ({ request }) => {
+    const createRes = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Narrow Key",
+        scopes: ["activity:read"],
+        notes: "E2E scope denial test",
+      },
+    });
+    const createBody = await createRes.json();
+    const narrowKey = createBody.data.plaintext_key;
+
+    const filesRes = await request.get(apiUrl("/v1/files"), {
+      headers: { Authorization: `Bearer ${narrowKey}` },
+    });
+
+    expect(filesRes.status()).toBe(403);
+    const errorBody = await filesRes.json();
+    expect(errorBody.success).toBe(false);
+  });
+
+  test("revoked key loses access immediately", async ({ request }) => {
+    const createRes = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Revoke Target",
+        scopes: ["files:list", "activity:read"],
+        notes: "E2E revocation test",
+      },
+    });
+    const createBody = await createRes.json();
+    const targetKey = createBody.data.plaintext_key;
+    const keyId = createBody.data.id;
+
+    const beforeRes = await request.get(apiUrl("/v1/auth/introspect"), {
+      headers: { Authorization: `Bearer ${targetKey}` },
+    });
+    expect(beforeRes.ok()).toBeTruthy();
+
+    const revokeRes = await request.delete(apiUrl(`/v1/agent-keys/${keyId}`), {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
+    expect(revokeRes.ok()).toBeTruthy();
+
+    const afterRes = await request.get(apiUrl("/v1/auth/introspect"), {
+      headers: { Authorization: `Bearer ${targetKey}` },
+    });
+    expect(afterRes.status()).toBe(401);
+  });
+
+  test("agent keys visible in operations audit", async ({ request }) => {
+    const auditRes = await request.get(apiUrl("/v1/audit?resource_type=agent_api_key&limit=10"), {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
+
+    expect(auditRes.ok()).toBeTruthy();
+    const auditBody = await auditRes.json();
+    expect(auditBody.success).toBe(true);
+    expect(auditBody.data.length).toBeGreaterThan(0);
+
+    const actions = auditBody.data.map((e: { action: string }) => e.action);
+    expect(actions).toContain("agent_api_key.created");
+  });
+});
