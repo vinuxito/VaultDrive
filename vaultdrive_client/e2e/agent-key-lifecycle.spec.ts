@@ -187,4 +187,37 @@ test.describe("Agent key lifecycle trust proof", () => {
 
     await page.close();
   });
+
+  test("Filemon operator runs a real agent call and shows the result", async ({ browser, request }) => {
+    const createRes = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Filemon Operator",
+        scopes: ["files:list"],
+        notes: "Filemon operator proof",
+      },
+    });
+    expect(createRes.ok()).toBeTruthy();
+    const createBody = await createRes.json();
+    const rawKey = createBody.data.plaintext_key as string;
+
+    const page = await browser.newPage();
+    await gotoStable(page, "/login");
+    await loginWithPassword(page, account);
+    await gotoStable(page, "/settings");
+
+    await expect(page.getByRole("heading", { name: "Filemon operator" })).toBeVisible();
+    await page.locator("#filemon-raw-key").fill(rawKey);
+    await page.getByRole("button", { name: /run through filemon/i }).click();
+
+    await expect(page.getByText(/^GET http:\/\/127\.0\.0\.1:8090\/abrn\/api\/v1\/auth\/introspect/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Auth type:\s*agent_api_key/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/"auth_type":\s*"agent_api_key"/)).toBeVisible({ timeout: 5000 });
+    await page.screenshot({ path: test.info().outputPath("filemon-operator-console.png"), fullPage: true });
+
+    await page.close();
+  });
 });
