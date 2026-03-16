@@ -468,7 +468,10 @@ export default function Settings() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
               <p className="font-medium text-slate-900">How your files are protected</p>
               <p className="mt-1.5 leading-relaxed">
-                Files are encrypted in your browser before upload. The server stores only the locked version, the delivery metadata, and a record of access events.
+                Files are encrypted in your browser before upload. The server stores only the locked version, delivery metadata, and a record of access events.
+              </p>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                If the server is breached, your files remain unreadable without the key material that never leaves your control.
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">

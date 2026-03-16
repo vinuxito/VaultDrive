@@ -240,12 +240,12 @@ export function CreateShareLinkModal({
               <div className="space-y-1.5">
                 <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                   <Key className="w-3.5 h-3.5" />
-                  {isDropFile ? "4-digit PIN" : "File credential"}
+                  {isDropFile ? "4-digit PIN" : "Upload password"}
                 </label>
                 <p className="text-xs text-white/50">
                   {isDropFile
                     ? "Enter your PIN to prepare this file for secure sharing"
-                    : "Enter the credential originally used for this file so the key can be embedded in the share link"}
+                    : "Enter the password used when this file was encrypted so the key can be embedded in the share link"}
                 </p>
                 <input
                   id="csl-credential"
@@ -308,6 +308,15 @@ export function CreateShareLinkModal({
                   <p className="text-xs text-white/60 mt-0.5">Access control stays with you</p>
                 </div>
               </div>
+              <div className="p-3 rounded-xl bg-white/8 border border-white/15 space-y-1.5">
+                <p className="text-sm font-medium text-white">Trust receipt</p>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  The decryption key is carried in the URL fragment after <strong>#</strong>. ABRN Drive stores the share record, but the server never sees that fragment key.
+                </p>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  You can review or revoke this share at any time from the file's access controls.
+                </p>
+              </div>
               {expiryDisplay && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
                   <Calendar className="w-3.5 h-3.5 text-[#f2d7d8] shrink-0" />
@@ -332,7 +341,7 @@ export function CreateShareLinkModal({
               </div>
               <div className="p-2.5 bg-white/5 border border-white/10 rounded-md">
                 <p className="text-xs text-white/60">
-                  Share this link with the recipient. The decryption key travels in the link — the server never sees it. Revoke anytime from the file's access panel.
+                  Share this link with the recipient. The decryption key travels in the link fragment, never through the server. Revoke anytime from the file's access panel.
                 </p>
               </div>
               <div className="flex gap-2">

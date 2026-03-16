@@ -224,6 +224,13 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
+            <div className="p-3 rounded-xl bg-white/8 border border-white/15 space-y-1.5">
+              <p className="text-sm font-medium text-white">Trust receipt</p>
+              <p className="text-xs text-white/70 leading-relaxed">
+                This route now accepts uploads into the folder you selected. You can watch uploads arrive, seal the route, or remove it later from Upload Links.
+              </p>
+            </div>
+
             <div>
               <Label className="text-white/90 text-sm flex items-center gap-1">
                 <LinkIcon className="w-4 h-4" />
@@ -254,7 +261,7 @@ export function CreateUploadLinkModal({
             <div className="p-3 rounded-xl bg-white/8 border border-white/15">
               <p className="text-white/80 text-sm flex items-center gap-2">
                 <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
-                Use your <strong>4-digit PIN</strong> to decrypt files uploaded via this link.
+                Files uploaded through this route stay bound to your app-wide <strong>4-digit PIN</strong>.
               </p>
             </div>
 
