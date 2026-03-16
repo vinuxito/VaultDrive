@@ -4,6 +4,7 @@ import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle,
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
+import { API_URL } from "../utils/api";
 import ABRNLogo from "../components/branding/abrn-logo";
 
 interface TokenInfo {
@@ -60,7 +61,7 @@ export default function DropUpload() {
 
   const initializeDropLink = useCallback(async () => {
     try {
-      const response = await fetch(`/abrn/api/drop/${token}`);
+      const response = await fetch(`${API_URL}/drop/${token}`);
       
       if (response.status === 404 || response.status === 403) {
         const data = await response.json() as { error?: string };
@@ -269,7 +270,7 @@ export default function DropUpload() {
             let rawEncryptionKey: string;
 
             if (isLegacyKey()) {
-              const keyResponse = await fetch(`/abrn/api/drop/${token}/encryption-key?key=${encodeURIComponent(encryptionKey)}`);
+              const keyResponse = await fetch(`${API_URL}/drop/${token}/encryption-key?key=${encodeURIComponent(encryptionKey)}`);
               if (!keyResponse.ok) {
                 throw new Error("Failed to get encryption key");
               }
@@ -307,7 +308,7 @@ export default function DropUpload() {
               formData.append("client_message", clientMessage);
             }
 
-            xhr.open("POST", `/abrn/api/drop/${token}/upload`);
+            xhr.open("POST", `${API_URL}/drop/${token}/upload`);
             xhr.send(formData);
           } catch (err) {
             setUploadProgress(prev => {
