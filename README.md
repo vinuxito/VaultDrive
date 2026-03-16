@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 16, 2026 (trust UX hardening pass 3 verified locally; docs refreshed; Secure Drop upload boundary aligned with current claims)**
+> **Last updated: March 16, 2026 (visual refinement verified end-to-end; Oracle follow-up trust-surface fixes applied; docs and README aligned to the current app state)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -35,10 +35,20 @@ This section reflects the actual state. Sections below are historical documentat
 - Local browser smoke on `http://localhost:8082/abrn/`: PASS
   - fresh signup
   - password login
-  - onboarding privacy step
-  - PIN setup
-  - vault open
-  - settings trust surfaces rendered
+  - `/files` onboarding gate
+  - PIN setup with account-password rewrap
+  - first-folder creation
+  - protected vault entry
+  - `/settings` trust surfaces rendered
+  - PIN login after clearing local auth state
+
+### Current Trust UX State
+
+- The trust rail, security timeline, and access visibility panel now share a calmer premium visual shell and clearer state hierarchy.
+- Confirmation moments use stronger receipt surfaces and consequence-first copy instead of generic success language.
+- The one-PIN doctrine now reads clearly across onboarding, login, settings, Secure Drop creation, shared downloads, and protected owner flows.
+- Delegated-power surfaces now emphasize scope, last-used visibility, and instant revoke rather than feeling like raw settings.
+- Public sender pages now explain privacy boundaries more clearly, including who can decrypt and what the server does and does not see.
 
 ### What's Live
 
@@ -53,6 +63,7 @@ This section reflects the actual state. Sections below are historical documentat
 | Trust Rail | ✅ | Protection & Access rail — calmer reassurance summary, shimmer skeleton loader, clear temporary-unavailable state |
 | File Security Timeline | ✅ | Security History — event icons, relative + absolute timestamps, reassuring empty state, clear unavailable state |
 | Access Visibility Panel | ✅ | Owner anchor, surfaced access summary, 2-step revoke, relative timestamps, revoke receipt |
+| Shared-file preview trust cue | ✅ | Non-owner preview now explains that the owner controls access and may revoke the share |
 | Privacy Explainer | ✅ | "Privacy & Trust" card — plain-language, consequence-first wording, stronger hierarchy |
 | User sharing (RSA) | ✅ | Zero-knowledge key exchange between users |
 | Group sharing | ✅ | Teams, member management |
@@ -63,6 +74,8 @@ This section reflects the actual state. Sections below are historical documentat
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
 | One-PIN trust flow | ✅ | PIN setup enforced, onboarding binds RSA private key with Lock/Eye/Bot privacy briefing, Secure Drop and shared downloads reuse session trust |
 | Session credential cache | ✅ | PIN cached in-memory and reused for upload/download/share/preview/create-link flows |
+| Upload route receipts | ✅ | Sender routes are framed as reviewable, revocable delivery paths rather than raw token settings |
+| File request receipts | ✅ | Request creation and revocation now produce calmer trust receipts and clearer state transitions |
 | PIN rate limiting | ✅ | 5-attempt lockout, 15-min timeout |
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
@@ -121,6 +134,12 @@ Verified local owner flow on `http://localhost:8082/abrn/`:
 9. Open the upload-link modal
 10. Reuse the cached PIN automatically without a repeated PIN prompt
 
+Additional live verification completed on the current refined UI:
+
+11. Open `/settings`
+12. Verify the One-PIN doctrine and Privacy & Trust surfaces render correctly
+13. Clear local auth state and log in again with PIN
+
 This is the current owner trust model:
 - **one PIN per user**
 - **one trusted session flow**
@@ -150,10 +169,11 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-16-visual-refinement-verification.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
+6. The latest verification + doc checkpoint is `docs/14_VISUAL_REFINEMENT_VERIFICATION.md`.
 
 ---
 
