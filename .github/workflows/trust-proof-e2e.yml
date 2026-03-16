@@ -1,0 +1,99 @@
+name: Trust Proof E2E
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vaultdrive_client/**"
+      - "*.go"
+      - "sql/**"
+      - ".github/workflows/trust-proof-e2e.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "vaultdrive_client/**"
+      - "*.go"
+      - "sql/**"
+      - ".github/workflows/trust-proof-e2e.yml"
+  workflow_dispatch:
+
+jobs:
+  trust-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vaultdrive
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d vaultdrive"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_URL: postgres://postgres:postgres@localhost:5432/vaultdrive?sslmode=disable
+      JWT_SECRET: trust-proof-e2e-secret-key-minimum-32-characters
+      ABRN_E2E_BASE_URL: http://127.0.0.1:8090/abrn
+      ABRN_E2E_API_BASE_URL: http://127.0.0.1:8090/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: vaultdrive_client/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install frontend dependencies
+        working-directory: vaultdrive_client
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: vaultdrive_client
+        run: npx playwright install chromium --with-deps
+
+      - name: Install Goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      - name: Run database migrations
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          goose -dir sql/schema postgres "$DB_URL" up
+
+      - name: Run frontend unit tests
+        working-directory: vaultdrive_client
+        run: npm test
+
+      - name: Run backend tests
+        run: go test ./...
+
+      - name: Run Playwright trust proof suite
+        working-directory: vaultdrive_client
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: vaultdrive_client/playwright-report/
+          retention-days: 14
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: vaultdrive_client/test-results/
+          retention-days: 7

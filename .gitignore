@@ -4,3 +4,5 @@ uploads
 test
 abrndrive
 *.temp*.js
+vaultdrive_client/playwright-report/
+vaultdrive_client/test-results/
