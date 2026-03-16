@@ -43,7 +43,7 @@ func (cfg *ApiConfig) middlewareActor(requiredScopes ...string) func(authedHandl
 		return func(w http.ResponseWriter, r *http.Request) {
 			credential, err := auth.GetBearerToken(r.Header)
 			if err != nil {
-				respondWithError(w, http.StatusUnauthorized, "Missing or invalid token", err)
+				respondWithV1Error(w, r, http.StatusUnauthorized, "Missing or invalid token")
 				return
 			}
 
@@ -54,13 +54,13 @@ func (cfg *ApiConfig) middlewareActor(requiredScopes ...string) func(authedHandl
 
 			userID, err := auth.ValidateJWT(credential, cfg.jwtSecret)
 			if err != nil {
-				respondWithError(w, http.StatusUnauthorized, "Invalid token", err)
+				respondWithV1Error(w, r, http.StatusUnauthorized, "Invalid token")
 				return
 			}
 
 			user, err := cfg.dbQueries.GetUserByID(r.Context(), userID)
 			if err != nil {
-				respondWithError(w, http.StatusInternalServerError, "Error getting user", err)
+				respondWithV1Error(w, r, http.StatusInternalServerError, "Error getting user")
 				return
 			}
 
@@ -76,12 +76,12 @@ func (cfg *ApiConfig) middlewareActor(requiredScopes ...string) func(authedHandl
 func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request, rawKey string, requiredScopes []string, handler authedHandler) {
 	dbKey, err := cfg.dbQueries.GetAgentAPIKeyByHash(r.Context(), hashAgentAPIKey(rawKey))
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Invalid API key", nil)
+		respondWithV1Error(w, r, http.StatusUnauthorized, "Invalid API key")
 		return
 	}
 
 	if dbKey.RevokedAt.Valid || dbKey.Status != "active" {
-		respondWithError(w, http.StatusUnauthorized, "API key is not active", nil)
+		respondWithV1Error(w, r, http.StatusUnauthorized, "API key is not active")
 		return
 	}
 	if dbKey.ExpiresAt.Valid && dbKey.ExpiresAt.Time.Before(time.Now()) {
@@ -93,11 +93,20 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 		cfg.insertAudit(r.Context(), dbKey.UserID, "agent_api_key.expired", "agent_api_key", &dbKey.ID, map[string]interface{}{
 			"path": r.URL.Path,
 		}, r)
-		respondWithError(w, http.StatusUnauthorized, "API key has expired", nil)
+		broadcastAgentOperation(dbKey.UserID, "agent_api_key.expired", map[string]interface{}{
+			"key_id":     dbKey.ID.String(),
+			"agent_name": dbKey.Name,
+			"key_prefix": dbKey.KeyPrefix,
+			"resource":   r.URL.Path,
+			"result":     "expired",
+			"method":     r.Method,
+		})
+		respondWithV1Error(w, r, http.StatusUnauthorized, "API key has expired")
 		return
 	}
 
 	scopes := decodeAgentScopes(dbKey.ScopesJson)
+	matchedScope := ""
 	for _, required := range requiredScopes {
 		if !scopeAllowed(scopes, required) {
 			cfg.insertActivity(r.Context(), dbKey.UserID, "agent_api_key_scope_denied", map[string]interface{}{
@@ -110,14 +119,24 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 				"path":           r.URL.Path,
 				"method":         r.Method,
 			}, r)
-			respondWithError(w, http.StatusForbidden, "API key scope denied", nil)
+			broadcastAgentOperation(dbKey.UserID, "agent_api_key.scope_denied", map[string]interface{}{
+				"key_id":         dbKey.ID.String(),
+				"agent_name":     dbKey.Name,
+				"key_prefix":     dbKey.KeyPrefix,
+				"resource":       r.URL.Path,
+				"result":         "denied",
+				"method":         r.Method,
+				"required_scope": required,
+			})
+			respondWithV1Error(w, r, http.StatusForbidden, "API key scope denied")
 			return
 		}
+		matchedScope = required
 	}
 
 	user, err := cfg.dbQueries.GetUserByID(r.Context(), dbKey.UserID)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error getting user", err)
+		respondWithV1Error(w, r, http.StatusInternalServerError, "Error getting user")
 		return
 	}
 
@@ -135,6 +154,15 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 		"path":   r.URL.Path,
 		"method": r.Method,
 	}, r)
+	broadcastAgentOperation(dbKey.UserID, "agent_api_key.used", map[string]interface{}{
+		"key_id":        dbKey.ID.String(),
+		"agent_name":    dbKey.Name,
+		"key_prefix":    dbKey.KeyPrefix,
+		"resource":      r.URL.Path,
+		"result":        "ok",
+		"method":        r.Method,
+		"matched_scope": matchedScope,
+	})
 
 	ctx := context.WithValue(r.Context(), actorContextKey{}, &actorAuth{
 		AuthType: "agent_api_key",

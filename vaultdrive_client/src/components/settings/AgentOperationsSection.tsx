@@ -3,6 +3,8 @@ import { Radio, RefreshCw, ShieldAlert, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
+import type { ActivityEvent } from "../../hooks";
+import { useSSE } from "../../hooks";
 
 interface AuditEntry {
   id: string;
@@ -23,6 +25,21 @@ interface Envelope {
   success: boolean;
   data: AuditEntry[];
   meta: { pagination: Pagination };
+}
+
+function toLiveAuditEntry(event: ActivityEvent): AuditEntry | null {
+  if (event.event_type !== "agent_operation") return null;
+  const action = typeof event.payload.action === "string" ? event.payload.action : "";
+  if (!action) return null;
+
+  return {
+    id: typeof event.payload.id === "string" ? event.payload.id : event.id,
+    action,
+    resource_type: "agent_api_key",
+    resource_id: typeof event.payload.key_id === "string" ? event.payload.key_id : undefined,
+    created_at: typeof event.payload.created_at === "string" ? event.payload.created_at : event.created_at,
+    metadata: event.payload,
+  };
 }
 
 const AGENT_ACTIONS: Record<string, { label: string; tone: "good" | "warn" | "info" }> = {
@@ -48,6 +65,7 @@ const TONE_ICONS = {
 function extractAgentName(entry: AuditEntry): string {
   const meta = entry.metadata;
   if (!meta) return "Agent";
+  if (typeof meta.agent_name === "string") return meta.agent_name;
   if (typeof meta.name === "string") return meta.name;
   if (typeof meta.key_prefix === "string") return meta.key_prefix;
   return "Agent";
@@ -56,6 +74,7 @@ function extractAgentName(entry: AuditEntry): string {
 function extractResource(entry: AuditEntry): string {
   const meta = entry.metadata;
   if (!meta) return entry.resource_id?.slice(0, 8) ?? "-";
+  if (typeof meta.resource === "string") return meta.resource;
   if (typeof meta.path === "string") return meta.path as string;
   if (typeof meta.required_scope === "string") return `scope: ${meta.required_scope}`;
   return entry.resource_id?.slice(0, 8) ?? "-";
@@ -63,6 +82,11 @@ function extractResource(entry: AuditEntry): string {
 
 function extractResult(entry: AuditEntry): string {
   const meta = entry.metadata;
+  if (typeof meta?.result === "string") {
+    const method = typeof meta.method === "string" ? meta.method : "";
+    if (meta.result === "ok") return method ? `${method} OK` : "OK";
+    return meta.result.charAt(0).toUpperCase() + meta.result.slice(1);
+  }
   if (entry.action === "agent_api_key.scope_denied") return "Denied";
   if (entry.action === "agent_api_key.expired") return "Expired";
   if (entry.action === "agent_api_key.revoked") return "Revoked";
@@ -103,6 +127,20 @@ export function AgentOperationsSection() {
     void fetchOps(0);
   }, [fetchOps]);
 
+  useSSE((event) => {
+    const liveEntry = toLiveAuditEntry(event);
+    if (!liveEntry) return;
+
+    setEntries((current) => {
+      const withoutDuplicate = current.filter((entry) => entry.id !== liveEntry.id);
+      return [liveEntry, ...withoutDuplicate].slice(0, 50);
+    });
+    setPagination((current) => {
+      if (!current) return current;
+      return { ...current, count: current.count + 1 };
+    });
+  });
+
   const loadMore = () => {
     const next = offset + limit;
     setOffset(next);
@@ -117,7 +155,7 @@ export function AgentOperationsSection() {
   const hasMore = pagination ? offset + limit < pagination.count : false;
 
   const stats = {
-    total: pagination?.count ?? entries.length,
+    total: Math.max(pagination?.count ?? 0, entries.length),
     denied: entries.filter((e) => e.action === "agent_api_key.scope_denied").length,
     requests: entries.filter((e) => e.action === "agent_api_key.used").length,
   };
@@ -133,6 +171,10 @@ export function AgentOperationsSection() {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Live view of what your agent keys are doing. Every request, denial, and lifecycle event.
           </p>
+          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Live stream connected
+          </div>
         </div>
         <Button type="button" variant="outline" onClick={refresh} className="shrink-0">
           <RefreshCw className="w-4 h-4 mr-2" />

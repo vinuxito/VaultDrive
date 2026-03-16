@@ -148,4 +148,43 @@ test.describe("Agent key lifecycle trust proof", () => {
     const actions = auditBody.data.map((e: { action: string }) => e.action);
     expect(actions).toContain("agent_api_key.created");
   });
+
+  test("settings shows new agent operations live without manual refresh", async ({ browser, request }) => {
+    const page = await browser.newPage();
+    await gotoStable(page, "/login");
+    await loginWithPassword(page, account);
+    await gotoStable(page, "/settings");
+
+    await expect(page.getByRole("heading", { name: "Agent operations" })).toBeVisible();
+    const operationRows = page.locator("table tbody tr");
+    const initialCount = await operationRows.count();
+
+    const createRes = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Live Stream Agent",
+        scopes: ["files:list"],
+        notes: "Live stream proof",
+      },
+    });
+    expect(createRes.ok()).toBeTruthy();
+    const createBody = await createRes.json();
+    const liveKey = createBody.data.plaintext_key as string;
+
+    const filesRes = await request.get(apiUrl("/v1/files"), {
+      headers: { Authorization: `Bearer ${liveKey}` },
+    });
+    expect(filesRes.ok()).toBeTruthy();
+
+    const operationsTable = page.locator("table");
+    await expect(operationsTable.getByText("QA Live Stream Agent").first()).toBeVisible({ timeout: 5000 });
+    await expect(operationsTable.getByText("/api/v1/files").first()).toBeVisible({ timeout: 5000 });
+    await expect(operationRows).toHaveCount(initialCount + 2, { timeout: 5000 });
+    await page.screenshot({ path: test.info().outputPath("live-agent-operations.png"), fullPage: true });
+
+    await page.close();
+  });
 });

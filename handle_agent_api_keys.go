@@ -11,21 +11,21 @@ import (
 )
 
 type agentAPIKeyResponse struct {
-	ID                string    `json:"id"`
-	Name              string    `json:"name"`
-	KeyPrefix         string    `json:"key_prefix"`
-	Scopes            []string  `json:"scopes"`
-	Status            string    `json:"status"`
-	CreatedAt         time.Time `json:"created_at"`
+	ID                string     `json:"id"`
+	Name              string     `json:"name"`
+	KeyPrefix         string     `json:"key_prefix"`
+	Scopes            []string   `json:"scopes"`
+	Status            string     `json:"status"`
+	CreatedAt         time.Time  `json:"created_at"`
 	LastUsedAt        *time.Time `json:"last_used_at,omitempty"`
 	ExpiresAt         *time.Time `json:"expires_at,omitempty"`
 	RevokedAt         *time.Time `json:"revoked_at,omitempty"`
-	CreatedByIP       string    `json:"created_by_ip,omitempty"`
-	LastUsedIP        string    `json:"last_used_ip,omitempty"`
-	LastUsedUserAgent string    `json:"last_used_user_agent,omitempty"`
-	Notes             string    `json:"notes,omitempty"`
-	UsageCount        int32     `json:"usage_count"`
-	PlaintextKey      string    `json:"plaintext_key,omitempty"`
+	CreatedByIP       string     `json:"created_by_ip,omitempty"`
+	LastUsedIP        string     `json:"last_used_ip,omitempty"`
+	LastUsedUserAgent string     `json:"last_used_user_agent,omitempty"`
+	Notes             string     `json:"notes,omitempty"`
+	UsageCount        int32      `json:"usage_count"`
+	PlaintextKey      string     `json:"plaintext_key,omitempty"`
 }
 
 func toAgentAPIKeyResponse(key database.AgentApiKey) agentAPIKeyResponse {
@@ -151,6 +151,15 @@ func (cfg *ApiConfig) handlerCreateAgentAPIKey(w http.ResponseWriter, r *http.Re
 		"key_prefix": created.KeyPrefix,
 		"scopes":     scopes,
 	}, r)
+	broadcastAgentOperation(user.ID, "agent_api_key.created", map[string]interface{}{
+		"key_id":      created.ID.String(),
+		"agent_name":  created.Name,
+		"key_prefix":  created.KeyPrefix,
+		"resource":    "/api/v1/agent-keys",
+		"result":      "created",
+		"method":      http.MethodPost,
+		"scope_grant": scopes,
+	})
 	respondWithV1(w, r, http.StatusCreated, resp, nil)
 }
 
@@ -178,6 +187,14 @@ func (cfg *ApiConfig) handlerRevokeAgentAPIKey(w http.ResponseWriter, r *http.Re
 		"name":       revoked.Name,
 		"key_prefix": revoked.KeyPrefix,
 	}, r)
+	broadcastAgentOperation(user.ID, "agent_api_key.revoked", map[string]interface{}{
+		"key_id":     revoked.ID.String(),
+		"agent_name": revoked.Name,
+		"key_prefix": revoked.KeyPrefix,
+		"resource":   "/api/v1/agent-keys/" + revoked.ID.String(),
+		"result":     "revoked",
+		"method":     http.MethodDelete,
+	})
 	respondWithV1(w, r, http.StatusOK, toAgentAPIKeyResponse(revoked), nil)
 }
 

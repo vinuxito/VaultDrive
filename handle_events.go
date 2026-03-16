@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/Pranay0205/VaultDrive/auth"
 	"github.com/google/uuid"
@@ -33,6 +34,18 @@ func broadcastToUser(userID uuid.UUID, event string, payload interface{}) {
 	case ch <- string(b):
 	default:
 	}
+}
+
+func broadcastAgentOperation(userID uuid.UUID, action string, details map[string]interface{}) {
+	payload := map[string]interface{}{
+		"id":         uuid.NewString(),
+		"action":     action,
+		"created_at": time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	for key, value := range details {
+		payload[key] = value
+	}
+	broadcastToUser(userID, "agent_operation", payload)
 }
 
 func (cfg *ApiConfig) handlerSSE(w http.ResponseWriter, r *http.Request) {
