@@ -43,3 +43,32 @@ export function groupAgentOperations(entries: AgentOperationEntry[]): AgentOpera
     })
     .sort((left, right) => right.latestAt.localeCompare(left.latestAt));
 }
+
+export function explainAgentOperation(entry: AgentOperationEntry): string {
+  const meta = entry.metadata;
+  const matchedScope = typeof meta?.matched_scope === "string" ? meta.matched_scope : "";
+  const requiredScope = typeof meta?.required_scope === "string" ? meta.required_scope : "";
+  const grantedScopes = Array.isArray(meta?.scope_grant)
+    ? meta.scope_grant.filter((value): value is string => typeof value === "string")
+    : [];
+
+  if (entry.action === "agent_api_key.used") {
+    return matchedScope ? `Allowed by ${matchedScope}` : "Allowed by the key's granted scopes";
+  }
+  if (entry.action === "agent_api_key.scope_denied") {
+    return requiredScope ? `Blocked: missing ${requiredScope}` : "Blocked by scope policy";
+  }
+  if (entry.action === "agent_api_key.created") {
+    return grantedScopes.length > 0
+      ? `Created with ${grantedScopes.length} granted scope${grantedScopes.length === 1 ? "" : "s"}`
+      : "Created and ready for delegated work";
+  }
+  if (entry.action === "agent_api_key.revoked") {
+    return "Revoked immediately by the owner";
+  }
+  if (entry.action === "agent_api_key.expired") {
+    return "Blocked because the key expired";
+  }
+
+  return "Review the event metadata for the exact trust decision";
+}

@@ -219,4 +219,35 @@ test.describe("Agent key lifecycle trust proof", () => {
 
     await page.close();
   });
+
+  test("timeline explains why a scope denial was blocked", async ({ browser, request }) => {
+    const createRes = await request.post(apiUrl("/v1/agent-keys"), {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "QA Denial Explainer",
+        scopes: ["activity:read"],
+        notes: "Trust explanation proof",
+      },
+    });
+    expect(createRes.ok()).toBeTruthy();
+    const createBody = await createRes.json();
+    const rawKey = createBody.data.plaintext_key as string;
+
+    const page = await browser.newPage();
+    await gotoStable(page, "/login");
+    await loginWithPassword(page, account);
+    await gotoStable(page, "/settings");
+
+    const deniedRes = await request.get(apiUrl("/v1/files"), {
+      headers: { Authorization: `Bearer ${rawKey}` },
+    });
+    expect(deniedRes.status()).toBe(403);
+
+    await expect(page.getByText("Blocked: missing files:list").first()).toBeVisible({ timeout: 5000 });
+
+    await page.close();
+  });
 });

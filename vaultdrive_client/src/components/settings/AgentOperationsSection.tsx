@@ -5,7 +5,7 @@ import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
 import type { ActivityEvent } from "../../hooks";
 import { useSSE } from "../../hooks";
-import { groupAgentOperations } from "./agent-operations";
+import { explainAgentOperation, groupAgentOperations } from "./agent-operations";
 
 interface AuditEntry {
   id: string;
@@ -238,6 +238,9 @@ export function AgentOperationsSection() {
                           <code className="mt-2 block text-xs text-slate-700 dark:text-slate-200 font-mono break-all">
                             {extractResource(entry)}
                           </code>
+                          <p className="mt-2 text-xs font-medium text-slate-700 dark:text-slate-200">
+                            {explainAgentOperation(entry)}
+                          </p>
                           <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
                             {extractResult(entry)}
                           </p>
