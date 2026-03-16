@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 16, 2026 (visual refinement verified end-to-end, docs refreshed, README aligned)
+Last updated: March 16, 2026 (trust proof harness implemented, verified end-to-end, docs and README refreshed)
 
 ## Task Documentation
 
@@ -20,6 +20,7 @@ Last updated: March 16, 2026 (visual refinement verified end-to-end, docs refres
 | 12 | [One-PIN Trust Flow](./12_ONE_PIN_TRUST_FLOW.md) | Enforced one-PIN owner workflow, onboarding completion, session trust reuse, and E2E verification |
 | 13 | [Trust UX Hardening](./13_TRUST_UX_HARDENING.md) | Passes 1-3: trust surfaces, delegated-power receipts, sender trust boundaries, verification, Secure Drop truth alignment |
 | 14 | [Visual Refinement Verification](./14_VISUAL_REFINEMENT_VERIFICATION.md) | End-to-end verification of the trust refinement pass, continuity fixes, screenshots, and safe-continuation assessment |
+| 15 | [Trust Proof Harness](./15_TRUST_PROOF_HARNESS.md) | Committed Playwright trust-proof suite, self-hosted Go app verification, CI workflow, and Secure Drop sender hardening |
 
 ## Feature Docs (pre-existing)
 
@@ -46,6 +47,7 @@ Last updated: March 16, 2026 (visual refinement verified end-to-end, docs refres
 | [SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass3.md](./SESSION_MEMORY_2026-03-15-trust-ux-hardening-pass3.md) | Pass 3 — trust receipts, delegated-power clarity, Secure Drop boundary fix, final verification snapshot |
 | [SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md](./SESSION_MEMORY_2026-03-16-build-verification-readme-refresh.md) | Current-code inspection, build + browser verification, docs refresh, README truth update, commit preparation |
 | [SESSION_MEMORY_2026-03-16-visual-refinement-verification.md](./SESSION_MEMORY_2026-03-16-visual-refinement-verification.md) | Final verification pass, Oracle follow-up polish fixes, docs refresh, and commit-safe checkpoint |
+| [SESSION_MEMORY_2026-03-16-trust-proof-harness.md](./SESSION_MEMORY_2026-03-16-trust-proof-harness.md) | Playwright trust-proof harness, CI workflow, Secure Drop path fix, negative boundary proof, and final verification state |
 
 ## Quick Navigation
 
@@ -75,4 +77,4 @@ Last updated: March 16, 2026 (visual refinement verified end-to-end, docs refres
 
 **I want the trust UX hardening summary →** [13_TRUST_UX_HARDENING.md](./13_TRUST_UX_HARDENING.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-16-visual-refinement-verification.md](./SESSION_MEMORY_2026-03-16-visual-refinement-verification.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-03-16-trust-proof-harness.md](./SESSION_MEMORY_2026-03-16-trust-proof-harness.md)
