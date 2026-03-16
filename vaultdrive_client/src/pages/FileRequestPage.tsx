@@ -404,6 +404,16 @@ export default function FileRequestPage() {
             )}
           </div>
 
+          <div className="text-left bg-white/70 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
+            <p className="font-medium text-slate-800">What happened</p>
+            <p className="text-slate-600 leading-relaxed">
+              Your files were encrypted in this browser using the password you chose. ABRN Drive stored only the protected files and request metadata.
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              The recipient can review the delivery now, but they will still need the separate download password to open the files.
+            </p>
+          </div>
+
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
             <p className="text-amber-700 text-sm font-medium">
               Remember your download password
