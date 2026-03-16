@@ -125,9 +125,9 @@ function CreateRequestModal({
 
         {createdRequest ? (
           <div className="space-y-4">
-            <div className="rounded-xl bg-emerald-500/15 border border-emerald-400/25 p-4">
-              <p className="text-sm font-semibold text-white">Request created and ready to share</p>
-              <p className="mt-1 text-xs text-white/70 leading-relaxed">
+            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+              <p className="text-sm font-semibold text-emerald-900">Request created and ready to share</p>
+              <p className="mt-1 text-xs text-emerald-800 leading-relaxed">
                 This link is live, reviewable, and revocable from your vault. Senders can only upload through the request route you just created.
               </p>
             </div>
@@ -354,7 +354,7 @@ export function FileRequestsSection() {
             File Requests ({requests.length})
           </h2>
           <p className="text-sm text-muted-foreground">
-            Request files from clients — they upload directly via a secure link
+            Ask clients for files through a clear, revocable request route
           </p>
         </div>
         <div className="flex gap-2">
@@ -381,6 +381,13 @@ export function FileRequestsSection() {
         </div>
       </div>
 
+      <div className="rounded-[1.6rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfa_0%,#f8f2ee_100%)] px-4 py-4 text-sm text-slate-600 shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.94)_0%,rgba(15,23,42,0.9)_100%)] dark:text-slate-300">
+        <p className="font-medium text-slate-900 dark:text-slate-100">Request only what you need</p>
+        <p className="mt-1 leading-relaxed">
+          File requests keep the sender journey obvious: who they are sending to, what they should provide, and how you can track or revoke the route after it is shared.
+        </p>
+      </div>
+
       {error && (
         <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}
@@ -388,18 +395,18 @@ export function FileRequestsSection() {
       )}
 
       {receipt && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+        <div className="abrn-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
           <p className="font-medium">Done, safe, under control.</p>
-          <p className="mt-1 text-emerald-700">{receipt}</p>
+          <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
         </div>
       )}
 
       {requests.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+        <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
           <Inbox className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-2">No file requests yet</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Create a request link to receive files from external users
+          <p className="text-slate-700 dark:text-slate-200 font-medium mb-2">No file requests yet</p>
+          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+            Create a request when you want a sender to upload documents under a clearly framed set of instructions and a route you can revoke later.
           </p>
           <Button
             onClick={() => setShowCreateModal(true)}
@@ -418,7 +425,7 @@ export function FileRequestsSection() {
             return (
               <div
                 key={req.id}
-                className="border rounded-lg overflow-hidden bg-card"
+                className="rounded-[1.4rem] border border-slate-200 overflow-hidden bg-white shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-slate-900/70"
               >
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">

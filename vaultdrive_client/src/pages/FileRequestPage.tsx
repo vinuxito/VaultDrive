@@ -383,6 +383,13 @@ export default function FileRequestPage() {
             </p>
           </div>
 
+          <div className="abrn-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
+            <p className="text-sm font-semibold text-emerald-900">Delivery receipt</p>
+            <p className="mt-1 text-xs leading-relaxed text-emerald-800">
+              Your encrypted files are now in the request route. The recipient can review the delivery, but they still need the separate password you chose to open the files.
+            </p>
+          </div>
+
           <div className="text-left bg-white/80 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
             {info.owner_display_name && (
               <p className="font-medium text-slate-700">
@@ -487,6 +494,21 @@ export default function FileRequestPage() {
           <p className="text-muted-foreground">
             Your files will be encrypted in your browser before upload
           </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+            <p className="font-medium text-emerald-900">What stays private</p>
+            <p className="mt-1.5 leading-relaxed">
+              Your files are encrypted in this browser with the password you choose. ABRN Drive stores only the protected upload and request metadata.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white/75 px-4 py-4 text-sm text-slate-600 shadow-[0_12px_28px_rgba(125,79,80,0.06)]">
+            <p className="font-medium text-slate-900">What the recipient needs</p>
+            <p className="mt-1.5 leading-relaxed">
+              They can see the upload arrived, but they still need the separate password you share with them to decrypt and open the files.
+            </p>
+          </div>
         </div>
 
         {/* Description / instructions */}

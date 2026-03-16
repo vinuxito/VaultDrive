@@ -394,6 +394,13 @@ export default function DropUpload() {
             </p>
           </div>
 
+          <div className="abrn-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
+            <p className="text-sm font-semibold text-emerald-900">Delivery receipt</p>
+            <p className="mt-1 text-xs leading-relaxed text-emerald-800">
+              The route worked, the upload is complete, and the owner can now review the delivery from the vault without the server learning the key from your link.
+            </p>
+          </div>
+
           <div className="text-left bg-white/80 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
             {tokenInfo.owner_display_name && (
               <p className="font-medium text-slate-700">
@@ -469,6 +476,21 @@ export default function DropUpload() {
           <p className="text-muted-foreground">
             {tokenInfo.link_name ? `${tokenInfo.link_name}` : tokenInfo.folder_name}
           </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+            <p className="font-medium text-emerald-900">What stays private</p>
+            <p className="mt-1.5 leading-relaxed">
+              Your files are encrypted in this browser before upload. The link key stays with the URL fragment rather than the server.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white/75 px-4 py-4 text-sm text-slate-600 shadow-[0_12px_28px_rgba(125,79,80,0.06)]">
+            <p className="font-medium text-slate-900">What the owner can see</p>
+            <p className="mt-1.5 leading-relaxed">
+              They can see that files arrived, when the route was used, and any note you include below. They still need their own trusted owner flow to open protected content.
+            </p>
+          </div>
         </div>
 
         {tokenInfo.description && (
@@ -617,7 +639,7 @@ export default function DropUpload() {
             {!uploading && (
               <div className="space-y-1.5">
                 <label htmlFor="client-message" className="text-sm font-medium text-slate-700">
-                  Add a note for the recipient <span className="text-slate-400 font-normal">(optional)</span>
+                  Add a note for {tokenInfo.owner_display_name || "the owner"} <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <textarea
                   id="client-message"
@@ -658,7 +680,7 @@ export default function DropUpload() {
               <div className="space-y-1 text-sm">
                 <p className="font-medium">End-to-end encrypted</p>
                 <p className="text-muted-foreground">
-                  Your files are encrypted in your browser before being sent. Nobody except the intended recipient can read them.
+                  Your files are encrypted in your browser before being sent. Only {tokenInfo.owner_display_name || "the owner"} can decrypt them with their own trusted owner flow.
                 </p>
               </div>
             </div>
