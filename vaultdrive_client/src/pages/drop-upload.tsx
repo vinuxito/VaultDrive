@@ -303,8 +303,6 @@ export default function DropUpload() {
             formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
             formData.append("salt", "");
             formData.append("algorithm", "AES-256-GCM");
-            formData.append("wrapped_key", encryptionKey);
-            formData.append("password", encryptionKey);
             if (clientMessage) {
               formData.append("client_message", clientMessage);
             }
@@ -410,6 +408,16 @@ export default function DropUpload() {
             {deliveryRef && <p className="text-slate-400 text-xs">Ref: {deliveryRef}</p>}
           </div>
 
+          <div className="text-left bg-white/70 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
+            <p className="font-medium text-slate-800">What happened</p>
+            <p className="text-slate-600 leading-relaxed">
+              Your files were encrypted in this browser before upload. ABRN Drive received the protected files and delivery metadata, not the decryption key from your link.
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              The owner can now review the delivery in their vault, and they can seal or remove this route whenever needed.
+            </p>
+          </div>
+
           <button
             type="button"
             onClick={async () => {
@@ -425,7 +433,7 @@ export default function DropUpload() {
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/8 text-[#7d4f50] text-sm font-medium">
             <Lock className="w-3.5 h-3.5" />
-            AES-256-GCM encrypted · Zero-knowledge storage
+            AES-256-GCM encrypted · Owner-controlled upload route
           </div>
         </div>
       </div>
