@@ -79,6 +79,52 @@ const scopeCategories = [
   },
 ];
 
+interface ScopeTemplate {
+  id: string;
+  label: string;
+  description: string;
+  scopes: string[];
+}
+
+const scopeTemplates: ScopeTemplate[] = [
+  {
+    id: "read-only",
+    label: "Read-Only Observer",
+    description: "List files, read metadata, view trust and audit data. No write access.",
+    scopes: ["files:list", "files:read_metadata", "trust:read", "activity:read"],
+  },
+  {
+    id: "reconciliation",
+    label: "Reconciliation Agent",
+    description: "Read files, download ciphertext, and audit for reconciliation workflows.",
+    scopes: ["files:list", "files:read_metadata", "files:download_ciphertext", "folders:read", "activity:read", "trust:read"],
+  },
+  {
+    id: "upload",
+    label: "Upload Agent",
+    description: "Upload encrypted files and manage folders. No download or sharing.",
+    scopes: ["files:upload_ciphertext", "folders:read", "folders:write"],
+  },
+  {
+    id: "share-manager",
+    label: "Share Manager",
+    description: "Create and manage share links, file requests, and Secure Drop routes.",
+    scopes: ["files:list", "files:read_metadata", "shares:create", "shares:list", "shares:revoke", "requests:create", "requests:list", "requests:revoke"],
+  },
+  {
+    id: "full-ciphertext",
+    label: "Full Ciphertext Operator",
+    description: "All file, folder, sharing, and audit scopes. Maximum operational reach.",
+    scopes: [
+      "files:list", "files:read_metadata", "files:upload_ciphertext", "files:download_ciphertext",
+      "folders:read", "folders:write",
+      "shares:create", "shares:list", "shares:revoke",
+      "requests:create", "requests:list", "requests:revoke",
+      "activity:read", "trust:read",
+    ],
+  },
+];
+
 function CreateKeyModal({
   open,
   onClose,
@@ -256,6 +302,30 @@ function CreateKeyModal({
                 <p className="mt-0.5 text-sm text-slate-500">
                   Start narrow. These keys never carry decryption authority over your files.
                 </p>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-slate-700 uppercase tracking-[0.1em]">Scope templates</p>
+                <div className="grid gap-1.5 md:grid-cols-2">
+                  {scopeTemplates.map((tmpl) => {
+                    const isActive = tmpl.scopes.length === selectedScopes.length &&
+                      tmpl.scopes.every((s) => selectedScopes.includes(s));
+                    return (
+                      <button
+                        key={tmpl.id}
+                        type="button"
+                        onClick={() => setSelectedScopes([...tmpl.scopes])}
+                        className={`text-left rounded-xl border px-3 py-2 text-sm transition-colors ${
+                          isActive
+                            ? "border-[#7d4f50] bg-[#f8efea] text-[#6b4345]"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="font-medium">{tmpl.label}</span>
+                        <span className="block text-xs text-slate-500 mt-0.5">{tmpl.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {scopeCategories.map((category) => (
                 <div key={category.label} className="space-y-1.5">
