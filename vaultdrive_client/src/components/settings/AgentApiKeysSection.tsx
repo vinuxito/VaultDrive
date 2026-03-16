@@ -163,7 +163,7 @@ function CreateKeyModal({
 
         {created ? (
           <div className="p-6 space-y-4 overflow-y-auto">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
+            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
               <div className="flex items-center gap-2 text-emerald-700 font-medium">
                 <ShieldCheck className="w-4 h-4" />
                 Agent key created — save it now
@@ -374,10 +374,28 @@ export function AgentApiKeysSection() {
         </p>
       </div>
 
+      <div className="grid gap-3 md:grid-cols-3 text-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Scoped power</p>
+          <p className="mt-2 text-slate-900 dark:text-slate-100 font-medium">Grant only the job</p>
+          <p className="mt-1 text-xs text-slate-500">Start narrow, then expand only if the workflow truly needs more reach.</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Visible use</p>
+          <p className="mt-2 text-slate-900 dark:text-slate-100 font-medium">See when it was active</p>
+          <p className="mt-1 text-xs text-slate-500">Every key shows last-used context so delegation never becomes invisible.</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Immediate revoke</p>
+          <p className="mt-2 text-slate-900 dark:text-slate-100 font-medium">Pull access back instantly</p>
+          <p className="mt-1 text-xs text-slate-500">If a workflow changes, the key can stop working right away.</p>
+        </div>
+      </div>
+
       {receipt && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+        <div className="abrn-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
           <p className="font-medium">Done, safe, under control.</p>
-          <p className="mt-1 text-emerald-700">{receipt}</p>
+          <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
         </div>
       )}
 
@@ -399,7 +417,7 @@ export function AgentApiKeysSection() {
       ) : (
         <div className="space-y-3">
           {keys.map((key) => (
-            <div key={key.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 space-y-3">
+            <div key={key.id} className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 space-y-3 shadow-[0_16px_34px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">

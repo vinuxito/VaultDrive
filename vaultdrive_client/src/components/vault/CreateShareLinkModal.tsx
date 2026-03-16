@@ -188,6 +188,9 @@ export function CreateShareLinkModal({
           <CardDescription className="text-white/70 truncate">
             {file.filename}
           </CardDescription>
+          <div className="mt-3 rounded-2xl border border-white/10 bg-white/6 px-3 py-3 text-xs leading-relaxed text-white/72">
+            This creates a reviewable route you can revoke later. The share record is visible to you; the decryption fragment stays with the recipient link, not the server.
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-4 py-4">
@@ -301,20 +304,31 @@ export function CreateShareLinkModal({
 
           {step === "done" && (
             <>
-              <div className="flex items-center gap-2 p-3 bg-white/5 border border-emerald-400/20 rounded-xl">
+              <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+                <div className="flex items-center gap-2 text-emerald-800">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold">Share link created</p>
+                    <p className="text-xs mt-1 text-emerald-700">The route is live, visible to you, and revocable at any time.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-white/5 border border-emerald-400/20 rounded-xl">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-white">Link created — revocable anytime</p>
-                  <p className="text-xs text-white/60 mt-0.5">Access control stays with you</p>
+                <div className="mt-3 space-y-1.5">
+                  <p className="text-sm font-medium text-white">Trust receipt</p>
+                  <p className="text-xs text-white/70 leading-relaxed">
+                    The decryption key is carried in the URL fragment after <strong>#</strong>. ABRN Drive stores the share record, but the server never sees that fragment key.
+                  </p>
+                  <p className="text-xs text-white/70 leading-relaxed">
+                    You can review or revoke this share at any time from the file's access controls.
+                  </p>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-white/8 border border-white/15 space-y-1.5">
-                <p className="text-sm font-medium text-white">Trust receipt</p>
+                <p className="text-sm font-medium text-white">Owner control</p>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  The decryption key is carried in the URL fragment after <strong>#</strong>. ABRN Drive stores the share record, but the server never sees that fragment key.
-                </p>
-                <p className="text-xs text-white/70 leading-relaxed">
-                  You can review or revoke this share at any time from the file's access controls.
+                  The recipient gets a complete link. You keep the ability to inspect when it was created, when it expires, and whether it should remain active.
                 </p>
               </div>
               {expiryDisplay && (
