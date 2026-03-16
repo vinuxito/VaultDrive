@@ -5,6 +5,7 @@ import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
 import type { ActivityEvent } from "../../hooks";
 import { useSSE } from "../../hooks";
+import { groupAgentOperations } from "./agent-operations";
 
 interface AuditEntry {
   id: string;
@@ -61,15 +62,6 @@ const TONE_ICONS = {
   warn: ShieldAlert,
   info: Zap,
 };
-
-function extractAgentName(entry: AuditEntry): string {
-  const meta = entry.metadata;
-  if (!meta) return "Agent";
-  if (typeof meta.agent_name === "string") return meta.agent_name;
-  if (typeof meta.name === "string") return meta.name;
-  if (typeof meta.key_prefix === "string") return meta.key_prefix;
-  return "Agent";
-}
 
 function extractResource(entry: AuditEntry): string {
   const meta = entry.metadata;
@@ -159,6 +151,7 @@ export function AgentOperationsSection() {
     denied: entries.filter((e) => e.action === "agent_api_key.scope_denied").length,
     requests: entries.filter((e) => e.action === "agent_api_key.used").length,
   };
+  const groupedEntries = groupAgentOperations(entries);
 
   return (
     <div className="space-y-4">
@@ -207,56 +200,54 @@ export function AgentOperationsSection() {
         </div>
       ) : (
         <>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/60 text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    <th className="px-4 py-2.5 font-medium">Time</th>
-                    <th className="px-4 py-2.5 font-medium">Agent</th>
-                    <th className="px-4 py-2.5 font-medium">Action</th>
-                    <th className="px-4 py-2.5 font-medium">Resource</th>
-                    <th className="px-4 py-2.5 font-medium">Result</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                  {entries.map((entry) => {
+          <div className="space-y-3">
+            {groupedEntries.map((group) => (
+              <div key={group.agentName} className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{group.agentName}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Latest event {relativeTime(group.latestAt)}</p>
+                  </div>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300">
+                    {group.entries.length} events
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {group.entries.map((entry, index) => {
                     const actionDef = AGENT_ACTIONS[entry.action] ?? { label: entry.action, tone: "info" as const };
                     const ToneIcon = TONE_ICONS[actionDef.tone];
                     return (
-                      <tr key={entry.id} className="bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <span className="text-xs text-slate-600 dark:text-slate-300" title={new Date(entry.created_at).toLocaleString()}>
-                            {relativeTime(entry.created_at)}
+                      <div key={entry.id} data-testid="agent-operation-entry" className="flex gap-3">
+                        <div className="flex flex-col items-center">
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-full border ${TONE_STYLES[actionDef.tone]}`}>
+                            <ToneIcon className="w-3.5 h-3.5" />
                           </span>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className="text-xs font-medium text-slate-900 dark:text-slate-100">
-                            {extractAgentName(entry)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${TONE_STYLES[actionDef.tone]}`}>
-                            <ToneIcon className="w-3 h-3" />
-                            {actionDef.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <code className="text-xs text-slate-600 dark:text-slate-400 font-mono truncate max-w-[200px] block">
+                          {index < group.entries.length - 1 ? <span className="mt-1 h-full w-px bg-slate-200 dark:bg-slate-700" /> : null}
+                        </div>
+                        <div className="flex-1 rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 py-3 dark:border-slate-700 dark:bg-slate-950/40">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${TONE_STYLES[actionDef.tone]}`}>
+                              <ToneIcon className="w-3 h-3" />
+                              {actionDef.label}
+                            </span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400" title={new Date(entry.created_at).toLocaleString()}>
+                              {relativeTime(entry.created_at)}
+                            </span>
+                          </div>
+                          <code className="mt-2 block text-xs text-slate-700 dark:text-slate-200 font-mono break-all">
                             {extractResource(entry)}
                           </code>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className="text-xs text-slate-600 dark:text-slate-300">
+                          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
                             {extractResult(entry)}
-                          </span>
-                        </td>
-                      </tr>
+                          </p>
+                        </div>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {hasMore && (
