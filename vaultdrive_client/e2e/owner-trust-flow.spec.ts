@@ -55,3 +55,18 @@ test("owner action receipts expose the underlying API calls", async ({ page }) =
   await expect(page.getByText("POST /api/file-requests")).toBeVisible();
   await page.screenshot({ path: test.info().outputPath("owner-api-call-receipts.png"), fullPage: true });
 });
+
+test("settings keeps advanced control-plane docs collapsed until requested", async ({ page }) => {
+  const account = buildOwnerAccount();
+
+  await registerAccount(page, account);
+  await loginWithPassword(page, account);
+  await completeOnboarding(page, account);
+
+  await gotoStable(page, "/settings");
+  await expect(page.getByText("Control plane at a glance")).toBeVisible();
+  await expect(page.getByText("Quick start")).not.toBeVisible();
+
+  await page.getByRole("button", { name: /agent api reference/i }).click();
+  await expect(page.getByText("Quick start")).toBeVisible();
+});
