@@ -96,6 +96,35 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
     return <ShieldCheck className="w-3.5 h-3.5" />;
   };
 
+  const kindLabel = (kind: string) => {
+    if (kind === "share_link") return "Public link";
+    if (kind === "group") return "Group access";
+    if (kind === "secure_drop") return "Secure Drop route";
+    return "Direct access";
+  };
+
+  const kindDescription = (entry: AccessEntry) => {
+    if (entry.kind === "share_link") {
+      return entry.state === "active"
+        ? "Anyone with the link can currently reach this file until you revoke or it expires."
+        : "This public route is no longer granting fresh access.";
+    }
+    if (entry.kind === "group") {
+      return "A team or shared workspace currently carries this file within your control plane.";
+    }
+    if (entry.kind === "secure_drop") {
+      return "This route allows external senders to deliver files into your vault without seeing your private content.";
+    }
+    return "This visibility path is tracked here so you can review and remove it when needed.";
+  };
+
+  const kindTone = (kind: string) => {
+    if (kind === "share_link") return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-200 dark:border-sky-700/40";
+    if (kind === "group") return "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-200 dark:border-violet-700/40";
+    if (kind === "secure_drop") return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700/40";
+    return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-700/40";
+  };
+
   const stateClasses = (state: string) => {
     if (state === "expired") return "bg-amber-100 text-amber-700 border border-amber-200";
     if (state === "revoked") return "bg-rose-100 text-rose-700 border border-rose-200";
@@ -104,6 +133,18 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
 
   const hasExternal = data && data.entries.length > 0;
   const activeEntries = data?.entries.filter((entry) => entry.state === "active") ?? [];
+  const inactiveEntries = data?.entries.filter((entry) => entry.state !== "active") ?? [];
+  const orderedEntries = [...(data?.entries ?? [])].sort((left, right) => {
+    const stateOrder = (state: string) => {
+      if (state === "active") return 0;
+      if (state === "expired") return 1;
+      return 2;
+    };
+
+    const byState = stateOrder(left.state) - stateOrder(right.state);
+    if (byState !== 0) return byState;
+    return new Date(right.since).getTime() - new Date(left.since).getTime();
+  });
   const accessHeadline = data?.summary || (activeEntries.length === 0
     ? "Only you can reach this file right now."
     : `${activeEntries.length} external access point${activeEntries.length !== 1 ? "s are" : " is"} active.`);
@@ -128,28 +169,56 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-2.5">
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{accessHeadline}</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Review every link, share, and Secure Drop path from one place.
+        <div className="px-5 py-4 space-y-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-[linear-gradient(180deg,#fcfbf9_0%,#f7f3ef_100%)] dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.9)_0%,rgba(15,23,42,0.82)_100%)] px-4 py-4 shadow-[0_10px_30px_rgba(125,79,80,0.08)]">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Current visibility</p>
+                <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">{accessHeadline}</p>
+              </div>
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                {activeEntries.length === 0 ? "Owner only" : `${activeEntries.length} live route${activeEntries.length !== 1 ? "s" : ""}`}
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              See every link, share, or sender route in one place so you can confirm exactly who can reach this file right now.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40">
-            <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Active</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{activeEntries.length}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Routes you may want to review</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Inactive</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{inactiveEntries.length}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Expired or already revoked</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Trust note</p>
+              <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">Always reviewable</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">You can inspect or remove external access at any time.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40 px-4 py-4 shadow-[0_8px_22px_rgba(16,185,129,0.08)]">
+            <div className="w-8 h-8 rounded-2xl bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">You (owner)</p>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">Full access, always</p>
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">You (owner)</p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-700 dark:text-emerald-300">
+                Full access, always. This anchor remains constant even if every external path expires, is revoked, or fails closed.
+              </p>
             </div>
           </div>
 
           {receipt && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
-              <p className="text-sm font-medium text-emerald-800">Done, safe, under control.</p>
-              <p className="mt-1 text-xs text-emerald-700">{receipt}</p>
+            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Done, safe, under control.</p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">{receipt}</p>
             </div>
           )}
 
@@ -169,28 +238,51 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
               <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
             </div>
           ) : (
-            data.entries.map((entry) => (
+            orderedEntries.map((entry) => (
               <div
                 key={`${entry.kind}-${entry.since}`}
-                className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800"
+                className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-4 shadow-sm"
               >
-                <div className="w-6 h-6 rounded-full bg-[#f2d7d8] flex items-center justify-center shrink-0 mt-0.5 text-[#7d4f50]">
-                  {iconFor(entry.kind)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm text-slate-700 dark:text-slate-200">{entry.label}</p>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${stateClasses(entry.state)}`}
-                    >
-                      {entry.state}
-                    </span>
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-2xl border flex items-center justify-center shrink-0 mt-0.5 ${kindTone(entry.kind)}`}>
+                    {iconFor(entry.kind)}
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                    {relativeTime(entry.since)}
-                    {entry.expires_at && ` · expires ${new Date(entry.expires_at).toLocaleDateString()}`}
-                    {typeof entry.access_count === "number" && ` · opened ${entry.access_count}×`}
-                  </p>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium border ${kindTone(entry.kind)}`}>
+                            {kindLabel(entry.kind)}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${stateClasses(entry.state)}`}
+                          >
+                            {entry.state}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm font-medium text-slate-800 dark:text-slate-100">{entry.label}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{kindDescription(entry)}</p>
+                      </div>
+                      <span className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {relativeTime(entry.since)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+                      <span>{new Date(entry.since).toLocaleString()}</span>
+                      {entry.expires_at && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span>expires {new Date(entry.expires_at).toLocaleDateString()}</span>
+                        </>
+                      )}
+                      {typeof entry.access_count === "number" && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span>opened {entry.access_count}×</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))

@@ -137,6 +137,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     setLoadError("");
     setDecryptedBlob(null);
     setCredential("");
+    setTrustExpanded(file.is_owner !== false);
 
     const vaultKey = getPrivateKey();
     if (vaultKey && file.is_owner === false && !file.pin_wrapped_key) {
@@ -262,23 +263,52 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               <button
                 type="button"
                 onClick={() => setTrustExpanded((prev) => !prev)}
-                className="flex items-center gap-1.5 w-full text-left text-white/45 hover:text-white/65 transition-colors mb-2 group rounded-lg px-2 py-1.5 -mx-2 hover:bg-white/[0.03]"
+                className="w-full text-left mb-2 group rounded-2xl border border-white/10 bg-white/[0.04] px-3.5 py-3 hover:bg-white/[0.06] transition-colors"
               >
-                {trustExpanded
-                  ? <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" />
-                  : <ChevronRight className="w-3.5 h-3.5 shrink-0 transition-transform" />
-                }
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="text-xs font-medium uppercase tracking-[0.15em]">
-                  Protection & History
-                </span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300 shrink-0">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-white/50">
+                        {trustExpanded
+                          ? <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" />
+                          : <ChevronRight className="w-3.5 h-3.5 shrink-0 transition-transform" />
+                        }
+                        <span className="text-[11px] font-medium uppercase tracking-[0.18em]">Protection & History</span>
+                      </div>
+                      <p className="mt-1 text-sm font-medium text-white/88">See how this file is protected, shared, and controlled.</p>
+                      <p className="mt-1 text-xs text-white/48">This keeps the trust story visible while you preview the file itself.</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72 whitespace-nowrap">
+                    {trustExpanded ? "Open" : "Show details"}
+                  </span>
+                </div>
               </button>
               {trustExpanded && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <TrustRail key={`trust-${file.id}`} fileId={file.id} />
                   <FileSecurityTimeline key={`timeline-${file.id}`} fileId={file.id} />
                 </div>
               )}
+            </div>
+          )}
+
+          {file.is_owner === false && (
+            <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+              <div className="flex items-start gap-2.5">
+                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white/88">This file was shared with you.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-white/58">
+                    The owner controls access, can revoke the share at any time, and ABRN Drive still keeps the protected content unreadable outside the trusted decrypt flow.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
