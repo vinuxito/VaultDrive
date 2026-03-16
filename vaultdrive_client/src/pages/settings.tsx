@@ -31,6 +31,7 @@ import { useTheme } from "../components/theme-provider";
 import { getPINStatus, setPIN } from "../utils/api";
 import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection";
 import { AgentDeveloperPortalSection } from "../components/settings/AgentDeveloperPortalSection";
+import { AgentOperationsSection } from "../components/settings/AgentOperationsSection";
 import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
@@ -535,6 +536,8 @@ export default function Settings() {
         <AgentApiKeysSection />
 
         <AgentDeveloperPortalSection />
+
+        <AgentOperationsSection />
 
         <AuditLogSection />
     </div>
