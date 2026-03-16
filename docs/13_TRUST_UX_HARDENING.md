@@ -2,11 +2,11 @@
 
 ## Summary
 
-3-iteration UI/UX hardening pass across all trust surfaces in ABRN Drive. The goal was to make the product feel undeniable — calm, premium, and emotionally clear — without breaking existing behavior or weakening the one-PIN trust doctrine.
+Three trust-first hardening passes across ABRN Drive's trust surfaces. The goal was to make the product feel undeniable — calm, premium, and emotionally clear — without breaking existing behavior or weakening the one-PIN trust doctrine.
 
 **Session date:** March 15, 2026 (night)  
 **Starting commit:** `0ada09a` (docs: record verified one-pin trust flow state)  
-**Build state at session end:** Go build PASS · Frontend build PASS (bundle split) · 12/12 tests PASS
+**Latest verified build state:** Go build PASS · Go test PASS · Frontend build PASS · 17/17 frontend tests PASS · local browser smoke PASS
 
 ---
 
@@ -194,3 +194,108 @@ Second 3-iteration loop focusing on the feel and rhythm of the trust surfaces.
 | `components/vault/FilePreviewModal.tsx` | Trust toggle hover feedback |
 | `components/onboarding/OnboardingWizard.tsx` | Privacy card icons |
 | `pages/settings.tsx` | Storage card removal, readability |
+
+---
+
+## Pass 3 — Verification, Receipts, and Truth Alignment (March 16, 2026)
+
+This follow-through pass completed three things at once:
+
+1. finished the remaining trust UX polish in code,
+2. verified the current app state against the live local stack,
+3. corrected a Secure Drop trust boundary mismatch so the code and the copy say the same thing.
+
+### What changed
+
+**Per-file confidence surfaces**
+- `vaultdrive_client/src/components/vault/TrustRail.tsx`
+  - calm summary now avoids repeating the visibility pill text
+  - explicit unavailable state kept separate from normal reassuring state
+- `vaultdrive_client/src/components/vault/FileSecurityTimeline.tsx`
+  - consistent loading / unavailable / empty / active-history states
+  - relative + absolute timestamp hierarchy for better event readability
+- `vaultdrive_client/src/components/vault/AccessPanel.tsx`
+  - surfaced the access summary as a real confidence statement
+  - added revoke receipt and visible error feedback
+  - aligned access-summary and revoke calls to `/api/v1/files/...`
+
+**Delegated-power and control-plane receipts**
+- `vaultdrive_client/src/components/settings/AgentApiKeysSection.tsx`
+  - relative last-used timestamps
+  - clearer delegated-power framing
+  - create/revoke receipts and visible revoke failure state
+- `vaultdrive_client/src/components/vault/FileRequestsSection.tsx`
+  - request-created receipt instead of silent modal close
+  - inline revoke confirmation replacing browser dialogs
+  - visible revoke failure message
+- `vaultdrive_client/src/components/upload/UploadLinksSection.tsx`
+  - inline seal/delete confirmations replacing browser dialogs
+  - calm post-action receipts
+
+**Completion moments and truth-aligned sender messaging**
+- `vaultdrive_client/src/components/vault/CreateShareLinkModal.tsx`
+  - trust receipt around fragment-key delivery and revoke control
+  - clearer non-drop credential wording (`Upload password`)
+- `vaultdrive_client/src/components/upload/CreateUploadLinkModal.tsx`
+  - stronger Secure Drop creation receipt
+  - app-wide one-PIN language reinforced
+- `vaultdrive_client/src/pages/drop-upload.tsx`
+  - sender completion state now explains what happened in calm, factual terms
+  - sender receipt copy updated after backend fix to accurately state that the decryption key is not posted back on upload
+- `vaultdrive_client/src/pages/FileRequestPage.tsx`
+  - sender completion receipt explains delivery and separate-password requirement more clearly
+- `vaultdrive_client/src/pages/settings.tsx`
+  - Privacy & Trust copy sharpened to consequence-first wording
+
+**Shared formatting + regression coverage**
+- `vaultdrive_client/src/utils/format.ts`
+  - extracted shared `relativeTime()` helper used across trust surfaces
+- `vaultdrive_client/src/utils/format.test.ts`
+  - added regression coverage including older-date and future-date boundaries
+
+**Secure Drop trust-boundary fix**
+- `handle_drop.go`
+  - upload handler now trusts stored `pin_wrapped_key` for PIN-protected Secure Drop tokens
+  - legacy `password` / `wrapped_key` requirement remains only for tokens without `pin_wrapped_key`
+- `handle_drop_test.go`
+  - new regression test proves PIN-protected upload tokens succeed without client-supplied key material
+- `vaultdrive_client/src/pages/drop-upload.tsx`
+  - removed client-side posting of `wrapped_key` and `password` during Secure Drop upload
+
+### Verification performed
+
+**Frontend**
+- `cd vaultdrive_client && npm run test` -> PASS (`17/17`)
+- `cd vaultdrive_client && npm run build` -> PASS
+
+**Backend**
+- `go test ./...` -> PASS
+- `go build ./...` -> PASS
+- targeted regression: `go test -run TestHandlerDropUploadAcceptsPinWrappedTokenWithoutClientKeyMaterial` -> PASS
+
+**Browser smoke against the real local app**
+- verified on `http://localhost:8082/abrn/`
+- fresh signup
+- password login
+- onboarding privacy step
+- PIN setup
+- vault open
+- settings page loads `Privacy & Trust`
+- settings page loads `Agent API keys`
+
+### Doctrine check after Pass 3
+
+| Doctrine | Preserved? | Notes |
+|---------|-----------|-------|
+| One PIN per user, used everywhere | ✅ | reinforced in creation + settings copy |
+| No per-action re-prompting for the owner | ✅ | unchanged |
+| Public-share fragment keys never reach server | ✅ | unchanged |
+| Secure Drop upload route keeps decryption key client-side | ✅ | fixed in handler + public upload page |
+| All external access visible and revocable | ✅ | strengthened via receipts and summaries |
+| Agent keys stay ciphertext-first | ✅ | delegated-power copy tightened |
+
+### Remaining risks
+
+1. Main frontend bundle still exceeds Vite's warning threshold; code splitting can be improved later
+2. Trust-surface component coverage is better but still lighter than the importance of the surfaces themselves
+3. `vaultdrive_client/README.md` remains a frontend-specific follow-up if repo-level docs need full normalization
