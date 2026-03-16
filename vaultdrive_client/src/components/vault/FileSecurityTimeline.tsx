@@ -26,6 +26,27 @@ function toneIconBg(tone: string): string {
   return "bg-sky-500/20 text-sky-400 ring-1 ring-sky-400/20";
 }
 
+function toneAccent(tone: string): string {
+  if (tone === "warn") return "border-l-amber-300/45 bg-amber-400/5";
+  if (tone === "good") return "border-l-emerald-300/45 bg-emerald-400/[0.03]";
+  return "border-l-sky-300/35 bg-sky-400/[0.03]";
+}
+
+function toneLabel(tone: string): string {
+  if (tone === "warn") return "Sensitive";
+  if (tone === "good") return "Confirmed";
+  return "Activity";
+}
+
+function eventGroupLabel(eventType: string): string {
+  const t = eventType.toLowerCase();
+  if (t.includes("revoke") || t.includes("revoked")) return "Access change";
+  if (t.includes("share") || t.includes("link")) return "Sharing";
+  if (t.includes("download") || t.includes("view") || t.includes("access")) return "Visibility";
+  if (t.includes("drop") || t.includes("upload")) return "Delivery";
+  return "History";
+}
+
 function getEventIcon(eventType: string): React.ReactNode {
   const t = eventType.toLowerCase();
   if (t.includes("upload")) return <Upload className="w-3 h-3" />;
@@ -72,14 +93,21 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
   }, [fileId]);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4 space-y-3">
-      <div className="flex items-center gap-2 text-white/50">
-        <Clock3 className="w-3.5 h-3.5" />
-        <span className="text-xs font-medium uppercase tracking-[0.15em]">Security History</span>
+    <div className="abrn-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
+      <div className="relative z-10 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 text-white/50">
+          <Clock3 className="w-3.5 h-3.5 text-amber-200" />
+          <span className="abrn-trust-kicker">Security History</span>
+        </div>
+        {!loading && !error && (
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72">
+            {events.length === 0 ? "Owner-only story" : `${events.length} recorded event${events.length !== 1 ? "s" : ""}`}
+          </span>
+        )}
       </div>
 
       {loading ? (
-        <div className="space-y-3 py-1">
+        <div className="relative z-10 space-y-3 py-1">
           {[1, 2, 3].map((row) => (
             <div key={row} className="flex gap-3">
               <div className="w-6 h-6 rounded-full bg-white/10 animate-pulse shrink-0" />
@@ -91,7 +119,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           ))}
         </div>
       ) : error ? (
-        <div className="flex items-center gap-3 py-2">
+        <div className="relative z-10 abrn-trust-panel rounded-2xl flex items-center gap-3 px-4 py-4">
           <div className="w-6 h-6 rounded-full bg-amber-500/20 ring-1 ring-amber-400/20 flex items-center justify-center shrink-0">
             <Clock3 className="w-3 h-3 text-amber-300" />
           </div>
@@ -101,7 +129,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           </div>
         </div>
       ) : events.length === 0 ? (
-        <div className="flex items-center gap-3 py-2">
+        <div className="relative z-10 abrn-trust-panel-strong rounded-2xl flex items-center gap-3 px-4 py-4">
           <div className="w-6 h-6 rounded-full bg-emerald-500/20 ring-1 ring-emerald-400/20 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
           </div>
@@ -111,25 +139,42 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           </div>
         </div>
       ) : (
-        <div className={events.length > 5 ? "max-h-60 overflow-y-auto pr-1 space-y-0" : "space-y-0"}>
+        <div className={`relative z-10 ${events.length > 5 ? "max-h-72 overflow-y-auto pr-1 space-y-0" : "space-y-0"}`}>
           {events.map((event, idx) => (
             <div key={event.id} className="flex gap-3">
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${toneIconBg(event.tone)}`}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1 ${toneIconBg(event.tone)}`}
                 >
                   {getEventIcon(event.event_type)}
                 </div>
                 {idx < events.length - 1 && (
-                  <span className="mt-1 w-px h-5 bg-white/15 shrink-0" />
+                  <span className="mt-1.5 w-px h-6 bg-white/15 shrink-0" />
                 )}
               </div>
-              <div className={`${idx < events.length - 1 ? "pb-4" : "pb-1"} flex-1`}>
-                <p className="text-sm text-white/92 leading-relaxed">{event.label}</p>
-                <div className="mt-0.5 flex items-center gap-2 text-xs text-white/40">
-                  <span>{relativeTime(event.at)}</span>
-                  <span className="text-white/20">•</span>
+              <div
+                className={`${idx < events.length - 1 ? "pb-4" : "pb-1"} abrn-trust-panel rounded-[1.25rem] border-l px-3.5 py-3 flex-1 ${toneAccent(event.tone)}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/55">
+                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-2 py-0.5 font-medium text-white/72">
+                        {eventGroupLabel(event.event_type)}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/55">
+                        {toneLabel(event.tone)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-white/92 leading-relaxed">{event.label}</p>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72 whitespace-nowrap">
+                    {relativeTime(event.at)}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-2 text-xs text-white/42">
                   <span>{new Date(event.at).toLocaleString()}</span>
+                  <span className="text-white/20">•</span>
+                  <span>Readable history of protection and control</span>
                 </div>
               </div>
             </div>
