@@ -30,6 +30,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../components/theme-provider";
 import { getPINStatus, setPIN } from "../utils/api";
 import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection";
+import { AgentDeveloperPortalSection } from "../components/settings/AgentDeveloperPortalSection";
 import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
@@ -532,6 +533,8 @@ export default function Settings() {
         </Card>
 
         <AgentApiKeysSection />
+
+        <AgentDeveloperPortalSection />
 
         <AuditLogSection />
     </div>
