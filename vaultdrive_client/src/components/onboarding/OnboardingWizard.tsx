@@ -397,6 +397,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
               <div className="space-y-2">
                 <Button
+                  data-testid="onboarding-create-folder"
                   className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                   onClick={handleCreateFolder}
                   disabled={creatingFolder || !folderName.trim()}
