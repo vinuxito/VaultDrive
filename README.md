@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 16, 2026 (visual refinement verified end-to-end; Oracle follow-up trust-surface fixes applied; docs and README aligned to the current app state)**
+> **Last updated: March 16, 2026 (trust proof harness implemented and verified end-to-end; docs and README aligned to the current app state)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -32,6 +32,19 @@ This section reflects the actual state. Sections below are historical documentat
 - Frontend build: PASS
 - Backend tests: PASS
 - Backend build: PASS
+- Playwright trust proof suite: PASS (`4/4`)
+- Self-hosted current-code browser verification on `http://127.0.0.1:8090/abrn/`: PASS
+  - fresh signup
+  - password login
+  - `/files` onboarding gate
+  - PIN setup with account-password rewrap
+  - first-folder creation
+  - protected vault entry
+  - `/settings` trust surfaces rendered
+  - PIN login after clearing local auth state
+  - Secure Drop sender upload route
+  - Secure Drop missing-fragment-key rejection
+  - File Request sender upload route
 - Local browser smoke on `http://localhost:8082/abrn/`: PASS
   - fresh signup
   - password login
@@ -49,6 +62,17 @@ This section reflects the actual state. Sections below are historical documentat
 - The one-PIN doctrine now reads clearly across onboarding, login, settings, Secure Drop creation, shared downloads, and protected owner flows.
 - Delegated-power surfaces now emphasize scope, last-used visibility, and instant revoke rather than feeling like raw settings.
 - Public sender pages now explain privacy boundaries more clearly, including who can decrypt and what the server does and does not see.
+
+### Current Proof Automation State
+
+- The repo now contains a committed Playwright trust-proof harness under `vaultdrive_client/e2e/`.
+- The harness self-hosts the current Go app on port `8090` so browser verification runs against current repo code, not a stale manual server.
+- Current committed trust proofs cover:
+  - owner trust flow
+  - Secure Drop sender flow
+  - Secure Drop missing-key boundary
+  - File Request sender flow
+- CI now has a dedicated trust-proof workflow that provisions Postgres, runs migrations, runs unit/backend tests, and then runs the Playwright suite with artifact uploads.
 
 ### What's Live
 
@@ -72,6 +96,8 @@ This section reflects the actual state. Sections below are historical documentat
 | Agent API Keys | ✅ | Scoped, hashed, revocable, delegated-power framing, last-used visible, create/revoke receipts |
 | API v1 | ✅ | 24 versioned endpoints with normalized envelope + request IDs |
 | Ciphertext-first agent access | ✅ | Agents move ciphertext; no server-side decrypt authority |
+| Trust proof harness | ✅ | Playwright suite proves owner and public sender trust flows against the self-hosted current app |
+| Trust proof CI workflow | ✅ | Dedicated GitHub Actions workflow provisions Postgres, runs migrations, unit/backend tests, and Playwright e2e |
 | One-PIN trust flow | ✅ | PIN setup enforced, onboarding binds RSA private key with Lock/Eye/Bot privacy briefing, Secure Drop and shared downloads reuse session trust |
 | Session credential cache | ✅ | PIN cached in-memory and reused for upload/download/share/preview/create-link flows |
 | Upload route receipts | ✅ | Sender routes are framed as reviewable, revocable delivery paths rather than raw token settings |
@@ -140,6 +166,13 @@ Additional live verification completed on the current refined UI:
 12. Verify the One-PIN doctrine and Privacy & Trust surfaces render correctly
 13. Clear local auth state and log in again with PIN
 
+Additional committed trust-proof coverage now exists for public sender paths:
+
+14. Create a Secure Drop route from an authenticated owner session
+15. Open the public sender page and complete an encrypted upload
+16. Verify a missing `#key` fragment fails with a clear error on the sender page
+17. Create a File Request route and complete a passphrase-protected sender upload
+
 This is the current owner trust model:
 - **one PIN per user**
 - **one trusted session flow**
@@ -169,11 +202,11 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-16-visual-refinement-verification.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-16-trust-proof-harness.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
-6. The latest verification + doc checkpoint is `docs/14_VISUAL_REFINEMENT_VERIFICATION.md`.
+6. The latest verification + doc checkpoint is `docs/15_TRUST_PROOF_HARNESS.md`.
 
 ---
 
@@ -283,6 +316,7 @@ Response envelope:
 - `docs/INDEX.md` — full documentation index with task and session history
 - `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening: passes 1-3, verification, and Secure Drop truth alignment
 - `docs/12_ONE_PIN_TRUST_FLOW.md` — one-PIN trust model design and E2E verification
+- `docs/15_TRUST_PROOF_HARNESS.md` — committed Playwright trust-proof harness, CI workflow, and latest verification checkpoint
 - `docs/11_TRUST_API_AGENT_KEYS.md` — trust UX, API v1, agent keys deep-dive
 - `docs/09_SECURITY_HARDENING_PHASE2.md` — zero-knowledge sealing reference
 - `docs/10_PUBLIC_SHARE_AND_FILE_REQUESTS.md` — public share + file requests
