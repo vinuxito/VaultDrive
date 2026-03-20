@@ -439,7 +439,7 @@ export default function DropUpload() {
             {receiptCopied ? "Copied!" : "Copy receipt"}
           </button>
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/8 text-[#7d4f50] text-sm font-medium">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/10 text-[#7d4f50] text-sm font-medium">
             <Lock className="w-3.5 h-3.5" />
             AES-256-GCM encrypted · Owner-controlled upload route
           </div>
@@ -573,7 +573,7 @@ export default function DropUpload() {
                     <p className="text-base font-medium text-slate-700 dark:text-slate-300">
                       Drag & drop files or folders here
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-500">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                       Or use the buttons above
                     </p>
                     <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -639,8 +639,8 @@ export default function DropUpload() {
             )}
             {!uploading && (
               <div className="space-y-1.5">
-                <label htmlFor="client-message" className="text-sm font-medium text-slate-700">
-                  Add a note for {tokenInfo.owner_display_name || "the owner"} <span className="text-slate-400 font-normal">(optional)</span>
+                <label htmlFor="client-message" className="text-sm font-medium text-slate-800">
+                  Add a note for {tokenInfo.owner_display_name || "the owner"} <span className="text-slate-500 font-normal">(optional)</span>
                 </label>
                 <textarea
                   id="client-message"
@@ -679,8 +679,8 @@ export default function DropUpload() {
             <div className="flex gap-3">
               <Lock className="w-5 h-5 text-[#7d4f50] dark:text-[#c4999b] flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
-                <p className="font-medium">End-to-end encrypted</p>
-                <p className="text-muted-foreground">
+                <p className="font-medium text-[#5a3436]">End-to-end encrypted</p>
+                <p className="text-[#6b4345]">
                   Your files are encrypted in your browser before being sent. Only {tokenInfo.owner_display_name || "the owner"} can decrypt them with their own trusted owner flow.
                 </p>
               </div>
