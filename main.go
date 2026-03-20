@@ -347,6 +347,12 @@ func main() {
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
+		// Redirect bare root to /abrn/ so React Router (basename="/abrn") finds routes
+		if path == "/" {
+			http.Redirect(w, r, "/abrn/", http.StatusFound)
+			return
+		}
+
 		// Skip API paths - they should be handled by API routes above
 		// Check for both /api/ and /abrn/api/ patterns
 		if strings.Contains(path, "/api/") {

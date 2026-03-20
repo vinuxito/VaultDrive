@@ -17,7 +17,7 @@ import Dashboard from "./pages/dashboard";
 import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
 
-const basename = window.location.hostname === "abrndrive.filemonprime.net" ? "/" : "/abrn";
+const basename = "/abrn";
 
 function App() {
   return (
