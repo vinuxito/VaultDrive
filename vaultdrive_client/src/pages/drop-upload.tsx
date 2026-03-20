@@ -407,13 +407,13 @@ export default function DropUpload() {
               <p className="font-medium text-slate-700">
                 {tokenInfo.owner_display_name}
                 {tokenInfo.owner_organization && (
-                  <span className="text-slate-400 font-normal"> · {tokenInfo.owner_organization}</span>
+                  <span className="text-slate-500 font-normal"> · {tokenInfo.owner_organization}</span>
                 )}
               </p>
             )}
             <p className="text-slate-600">{completedCount} file{completedCount > 1 ? "s" : ""} received</p>
-            <p className="text-slate-400 text-xs">{new Date().toLocaleString()}</p>
-            {deliveryRef && <p className="text-slate-400 text-xs">Ref: {deliveryRef}</p>}
+            <p className="text-slate-500 text-xs">{new Date().toLocaleString()}</p>
+            {deliveryRef && <p className="text-slate-500 text-xs">Ref: {deliveryRef}</p>}
           </div>
 
           <div className="text-left bg-white/70 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
@@ -463,7 +463,7 @@ export default function DropUpload() {
                 {tokenInfo.owner_display_name ? `Sending to ${tokenInfo.owner_display_name}` : "Secure File Delivery"}
               </span>
               {tokenInfo.owner_organization && (
-                <span className="text-slate-400"> · {tokenInfo.owner_organization}</span>
+                <span className="text-slate-500"> · {tokenInfo.owner_organization}</span>
               )}
             </div>
             <Lock className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />

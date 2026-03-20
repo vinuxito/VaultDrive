@@ -395,7 +395,7 @@ export default function FileRequestPage() {
               <p className="font-medium text-slate-700">
                 {info.owner_display_name}
                 {info.owner_organization && (
-                  <span className="text-slate-400 font-normal">
+                  <span className="text-slate-500 font-normal">
                     {" "}
                     · {info.owner_organization}
                   </span>
@@ -405,9 +405,9 @@ export default function FileRequestPage() {
             <p className="text-slate-600">
               {completedCount} file{completedCount > 1 ? "s" : ""} received
             </p>
-            <p className="text-slate-400 text-xs">{new Date().toLocaleString()}</p>
+            <p className="text-slate-500 text-xs">{new Date().toLocaleString()}</p>
             {deliveryRef && (
-              <p className="text-slate-400 text-xs">Ref: {deliveryRef}</p>
+              <p className="text-slate-500 text-xs">Ref: {deliveryRef}</p>
             )}
           </div>
 

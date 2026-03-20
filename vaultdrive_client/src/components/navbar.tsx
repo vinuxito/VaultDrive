@@ -108,7 +108,7 @@ const getInitials = (name: string) => {
             </div>
             <ul className="flex gap-6">
               <li>
-                <Link to="/" className="hover:text-primary transition-colors">
+                <Link to="/" className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm">
                   Home
                 </Link>
               </li>
@@ -117,7 +117,7 @@ const getInitials = (name: string) => {
                   <li>
                     <Link
                       to="/files"
-                      className="hover:text-primary transition-colors"
+                      className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm"
                     >
                       Files
                     </Link>
@@ -125,7 +125,7 @@ const getInitials = (name: string) => {
                   <li>
                     <Link
                       to="/shared"
-                      className="hover:text-primary transition-colors"
+                      className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm"
                     >
                       Shared
                     </Link>
@@ -134,7 +134,7 @@ const getInitials = (name: string) => {
                     <li>
                       <Link
                         to="/admin"
-                        className="hover:text-primary transition-colors flex items-center gap-1"
+                        className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm flex items-center gap-1"
                       >
                         <Shield className="h-4 w-4" />
                         Admin
@@ -146,7 +146,7 @@ const getInitials = (name: string) => {
               <li>
                 <Link
                   to="/about"
-                  className="hover:text-primary transition-colors"
+                  className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm"
                 >
                   About
                 </Link>
@@ -160,7 +160,7 @@ const getInitials = (name: string) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium text-foreground">
                       Hi, {user.username}
                     </span>
                     <Avatar>
