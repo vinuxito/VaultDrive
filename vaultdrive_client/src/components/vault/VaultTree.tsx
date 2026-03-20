@@ -127,10 +127,10 @@ function SectionHeader({ label, open, onToggle, action }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 group">
       <button type="button" onClick={onToggle} className="flex-1 flex items-center gap-1.5 text-left">
-        <span className="text-slate-400 group-hover:text-slate-600 transition-colors">
+        <span className="text-slate-500 group-hover:text-slate-700 transition-colors">
           {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-600 transition-colors">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-slate-700 transition-colors">
           {label}
         </span>
       </button>
@@ -172,7 +172,7 @@ export function VaultTree({
   return (
     <nav className="h-full flex flex-col gap-0.5 py-3 px-2 overflow-y-auto">
       <div className="px-3 pb-2 mb-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Quick Access</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Quick Access</p>
       </div>
 
       <TreeItem
@@ -215,7 +215,7 @@ export function VaultTree({
         }
       />
 
-      {foldersOpen && folders.length === 0 && <p className="text-xs text-slate-400 px-7 py-1">No folders yet</p>}
+      {foldersOpen && folders.length === 0 && <p className="text-xs text-slate-500 px-7 py-1">No folders yet</p>}
 
       {foldersOpen && folders.length > 0 && onCreateSubfolder && onRenameFolder && onDeleteFolder && (
         <div className="px-1">
@@ -268,7 +268,7 @@ export function VaultTree({
         }
       />
 
-      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-400 px-7 py-1">No drop links</p>}
+      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-500 px-7 py-1">No drop links</p>}
 
       {linksOpen &&
         sortedDropTokens.map((token) => {
@@ -279,7 +279,7 @@ export function VaultTree({
           const label = getDropLabel(token);
 
           const badge = inactive ? (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-400 shrink-0">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
               {used ? "sealed" : "expired"}
             </span>
           ) : expiringSoon ? (
