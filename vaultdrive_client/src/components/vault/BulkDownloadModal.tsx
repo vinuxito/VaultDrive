@@ -125,7 +125,7 @@ export function BulkDownloadModal({
                   <label htmlFor="bulk-download-pin" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                     <Key className="w-3.5 h-3.5" />
                     4-digit PIN
-                    <span className="text-xs text-white/50">(used across your vault)</span>
+                    <span className="text-xs text-white/68">(used across your vault)</span>
                   </label>
                   <input
                     id="bulk-download-pin"
@@ -147,7 +147,7 @@ export function BulkDownloadModal({
                   <label htmlFor="bulk-download-password" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                     <Key className="w-3.5 h-3.5" />
                     File credential
-                    <span className="text-xs text-white/50">(only for older non-PIN files)</span>
+                    <span className="text-xs text-white/68">(only for older non-PIN files)</span>
                   </label>
                   <input
                     id="bulk-download-password"

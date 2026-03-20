@@ -440,7 +440,7 @@ export function CreateUploadLinkModal({
               </button>
               <div>
                 <p className="text-white/90 text-sm font-medium">Seal after first upload</p>
-                <p className="text-white/50 text-xs">Link closes automatically after one use</p>
+                <p className="text-white/68 text-xs">Link closes automatically after one use</p>
               </div>
             </div>
 

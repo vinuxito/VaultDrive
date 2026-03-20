@@ -246,7 +246,7 @@ export function CreateShareLinkModal({
                   <Key className="w-3.5 h-3.5" />
                   {isDropFile ? "4-digit PIN" : "Upload password"}
                 </label>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-white/68">
                   {isDropFile
                     ? "Enter your PIN to prepare this file for secure sharing"
                     : "Enter the password used when this file was encrypted so the key can be embedded in the share link"}

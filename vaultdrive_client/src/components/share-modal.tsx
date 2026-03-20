@@ -400,7 +400,7 @@ export default function ShareModal({
                           onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
                           className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                         />
-                        <p className="text-xs text-white/50 mt-1">
+                        <p className="text-xs text-white/68 mt-1">
                           Used to authorize this share without asking for a separate file password
                         </p>
                       </div>
@@ -415,7 +415,7 @@ export default function ShareModal({
                           onChange={(e) => setPasswordInput(e.target.value)}
                           className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                         />
-                        <p className="text-xs text-white/50 mt-1">
+                        <p className="text-xs text-white/68 mt-1">
                            Used to derive the file key and wrap it with the recipient's RSA public key
                         </p>
                       </div>
