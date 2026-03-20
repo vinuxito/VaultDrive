@@ -166,7 +166,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                       ? "bg-[#7d4f50] text-white ring-2 ring-[#f2d7d8]/30 scale-110 shadow-[0_0_0_10px_rgba(125,79,80,0.16)]"
                       : step > s.num
                       ? "bg-[#7d4f50]/40 text-[#f2d7d8]"
-                      : "bg-white/10 text-white/40"
+                      : "bg-white/10 text-white/55"
                   }`}
                 >
                   {step > s.num ? (
@@ -180,8 +180,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     step === s.num
                       ? "text-[#f2d7d8]"
                       : step > s.num
-                      ? "text-[#f2d7d8]/50"
-                      : "text-white/30"
+                      ? "text-[#f2d7d8]/65"
+                      : "text-white/45"
                   }`}
                 >
                   {s.label}
@@ -293,7 +293,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/48 hover:text-white/70 transition-colors"
                     >
                       {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -330,7 +330,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 h-12"
                   />
-                  <p className="text-xs text-white/40 leading-relaxed">
+                  <p className="text-xs text-white/58 leading-relaxed">
                     We use this once to re-wrap your private key so your one PIN works everywhere in ABRN Drive.
                   </p>
                 </div>
