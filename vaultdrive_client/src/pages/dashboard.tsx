@@ -192,8 +192,8 @@ export default function Dashboard() {
       onClick: () => navigate("/files"),
     },
     {
-      label: "New Drop Link",
-      description: "Create a client upload link",
+      label: "Create Client Upload Link",
+      description: "Create a secure link for client file delivery",
       icon: FolderPlus,
       color: "bg-violet-600 hover:bg-violet-700 text-white",
       onClick: () => navigate("/files"),
@@ -216,13 +216,53 @@ export default function Dashboard() {
           </h1>
           <p className="text-slate-500 flex items-center gap-1.5 text-sm">
             <Shield className="w-4 h-4 text-emerald-500" />
-            Your vault is secure. 🔒
+            Your vault is secure.
           </p>
         </div>
 
+        {posture && (
+          <section>
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+              Attention
+            </h2>
+            <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm p-5">
+              {posture.attention_count === 0 ? (
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Everything looks healthy</p>
+                    <p className="text-xs text-slate-400 mt-0.5">No active links expiring soon, no stale shares</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <p className="text-sm font-medium text-slate-700">{posture.attention_count} item{posture.attention_count > 1 ? "s" : ""} need attention</p>
+                  </div>
+                  {posture.expiring_tokens.map((t) => (
+                    <div key={t.id} className="flex items-start gap-2 pl-6">
+                      <p className="text-xs text-amber-700">
+                        Upload link <strong>{t.link_name || t.id.slice(0, 8)}</strong> expires {formatRelativeTime(t.expires_at)}
+                      </p>
+                    </div>
+                  ))}
+                  {posture.stale_links.map((l) => (
+                    <div key={l.id} className="flex items-start gap-2 pl-6">
+                      <p className="text-xs text-slate-500">
+                        Share link {l.token.slice(0, 8)}… was created {formatRelativeTime(l.created_at)} and has never been accessed
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         <section>
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
-            Quick Stats
+            Vault Overview
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {statsLoading
@@ -248,7 +288,7 @@ export default function Dashboard() {
 
         <section>
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
-            Quick Actions
+            Start Here
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {quickActions.map((action) => (
@@ -268,7 +308,7 @@ export default function Dashboard() {
 
         <section>
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
-            Recent Activity
+            Activity
           </h2>
           <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm overflow-hidden">
             {activityLoading ? (
@@ -283,22 +323,35 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-            ) : activityUnavailable ? (
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
-                  <Clock className="w-5 h-5 text-slate-400" />
+            ) : activityUnavailable || activity.length === 0 ? (
+              stats.files === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
+                    <Activity className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-700 mb-4">Get started with your vault</p>
+                  <div className="w-full max-w-xs space-y-2 text-left">
+                    {[
+                      { step: "1", text: "Upload a file to your vault" },
+                      { step: "2", text: "Create a client upload link" },
+                      { step: "3", text: "Share a file with a colleague" },
+                    ].map(({ step, text }) => (
+                      <div key={step} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span className="w-6 h-6 rounded-full bg-[#f2d7d8] text-[#7d4f50] text-xs font-semibold flex items-center justify-center shrink-0">{step}</span>
+                        <p className="text-xs text-slate-600">{text}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-slate-600">Activity feed coming soon</p>
-                <p className="text-xs text-slate-400 mt-1">Your recent actions will appear here</p>
-              </div>
-            ) : activity.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
-                  <Activity className="w-5 h-5 text-slate-400" />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
+                    <Clock className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-600">No activity yet</p>
+                  <p className="text-xs text-slate-400 mt-1">Upload or share a file to begin.</p>
                 </div>
-                <p className="text-sm font-medium text-slate-600">No activity yet</p>
-                <p className="text-xs text-slate-400 mt-1">Upload a file or share something to get started</p>
-              </div>
+              )
             ) : (
               <div className="divide-y divide-slate-100">
                 {activity.map((item) => {
@@ -325,45 +378,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {posture && (
-          <section>
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
-              Security Posture
-            </h2>
-            <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm p-5">
-              {posture.attention_count === 0 ? (
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Everything looks healthy</p>
-                    <p className="text-xs text-slate-400 mt-0.5">No active links expiring soon, no stale shares</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                    <p className="text-sm font-medium text-slate-700">{posture.attention_count} item{posture.attention_count > 1 ? "s" : ""} need attention</p>
-                  </div>
-                  {posture.expiring_tokens.map((t) => (
-                    <div key={t.id} className="flex items-start gap-2 pl-6">
-                      <p className="text-xs text-amber-700">
-                        Drop link <strong>{t.link_name || t.id.slice(0, 8)}</strong> expires {formatRelativeTime(t.expires_at)}
-                      </p>
-                    </div>
-                  ))}
-                  {posture.stale_links.map((l) => (
-                    <div key={l.id} className="flex items-start gap-2 pl-6">
-                      <p className="text-xs text-slate-500">
-                        Share link {l.token.slice(0, 8)}… was created {formatRelativeTime(l.created_at)} and has never been accessed
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
       </div>
     </DashboardLayout>
   );

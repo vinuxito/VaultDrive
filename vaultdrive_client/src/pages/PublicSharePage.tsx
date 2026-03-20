@@ -74,7 +74,7 @@ export default function PublicSharePage() {
         const hashKey = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
 
         if (!hashKey) {
-          setErrorMsg("Invalid share link — missing decryption key");
+          setErrorMsg("This share link is incomplete. Ask the sender to re-send the full link.");
           setState("error");
           return;
         }
@@ -125,7 +125,7 @@ export default function PublicSharePage() {
       const metadataHeader = response.headers.get("X-File-Metadata");
 
       if (!metadataHeader) {
-        throw new Error("Missing file metadata in server response");
+        throw new Error("This file is unavailable");
       }
 
       const metadata = JSON.parse(metadataHeader) as { iv: string; salt?: string };
@@ -185,7 +185,7 @@ export default function PublicSharePage() {
           {state === "loading" && (
             <div className="flex flex-col items-center gap-4 py-4">
               <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
-              <p className="text-white/85">Loading file info…</p>
+              <p className="text-white/85">Verifying share link…</p>
             </div>
           )}
 
@@ -282,7 +282,10 @@ export default function PublicSharePage() {
               <div>
                 <p className="text-lg font-semibold text-white">This link has expired</p>
                 <p className="text-sm text-white/75 mt-2">
-                  The share link is no longer valid. Ask the sender for a new link.
+                  This share link is no longer valid.
+                </p>
+                <p className="text-sm text-white/60 mt-1">
+                  Contact the file owner to request a new link.
                 </p>
               </div>
             </div>

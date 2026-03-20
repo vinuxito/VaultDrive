@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 16, 2026 (live observable control plane completed, verified end-to-end, docs and README refreshed)
+Last updated: March 20, 2026 (enterprise polish pass completed — 7-step UX upgrade, verified end-to-end, docs and README refreshed)
 
 ## Task Documentation
 
@@ -21,6 +21,7 @@ Last updated: March 16, 2026 (live observable control plane completed, verified 
 | 13 | [Trust UX Hardening](./13_TRUST_UX_HARDENING.md) | Passes 1-3: trust surfaces, delegated-power receipts, sender trust boundaries, verification, Secure Drop truth alignment |
 | 14 | [Visual Refinement Verification](./14_VISUAL_REFINEMENT_VERIFICATION.md) | End-to-end verification of the trust refinement pass, continuity fixes, screenshots, and safe-continuation assessment |
 | 15 | [Trust Proof Harness](./15_TRUST_PROOF_HARNESS.md) | Committed Playwright trust-proof suite, self-hosted Go app verification, CI workflow, and Secure Drop sender hardening |
+| 16 | [Enterprise Polish UX](./16_ENTERPRISE_POLISH_UX.md) | 7-step enterprise polish pass — dashboard clarity, progressive file cards, 3-tab settings, copy cleanup, skeleton loaders, professional public pages |
 
 ## Feature Docs (pre-existing)
 
@@ -49,6 +50,7 @@ Last updated: March 16, 2026 (live observable control plane completed, verified 
 | [SESSION_MEMORY_2026-03-16-visual-refinement-verification.md](./SESSION_MEMORY_2026-03-16-visual-refinement-verification.md) | Final verification pass, Oracle follow-up polish fixes, docs refresh, and commit-safe checkpoint |
 | [SESSION_MEMORY_2026-03-16-trust-proof-harness.md](./SESSION_MEMORY_2026-03-16-trust-proof-harness.md) | Playwright trust-proof harness, CI workflow, Secure Drop path fix, negative boundary proof, and final verification state |
 | [SESSION_MEMORY_2026-03-16-live-observable-control-plane.md](./SESSION_MEMORY_2026-03-16-live-observable-control-plane.md) | 7-pass refinement turning the control plane into a live operator surface with receipts, Filemon execution, grouped timelines, trust explanations, and a calmer shell |
+| [SESSION_MEMORY_2026-03-20-enterprise-polish.md](./SESSION_MEMORY_2026-03-20-enterprise-polish.md) | Enterprise polish pass — 7 steps, 14 files, 284 insertions, build and tests verified |
 
 ## Quick Navigation
 
@@ -78,4 +80,6 @@ Last updated: March 16, 2026 (live observable control plane completed, verified 
 
 **I want the trust UX hardening summary →** [13_TRUST_UX_HARDENING.md](./13_TRUST_UX_HARDENING.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-16-live-observable-control-plane.md](./SESSION_MEMORY_2026-03-16-live-observable-control-plane.md)
+**I want the enterprise polish summary →** [16_ENTERPRISE_POLISH_UX.md](./16_ENTERPRISE_POLISH_UX.md)
+
+**I want the latest session context →** [SESSION_MEMORY_2026-03-20-enterprise-polish.md](./SESSION_MEMORY_2026-03-20-enterprise-polish.md)

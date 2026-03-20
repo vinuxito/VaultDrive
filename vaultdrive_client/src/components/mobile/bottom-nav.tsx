@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Files, Share2, User } from "lucide-react";
+import { Files, Share2, User } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export function BottomNav() {
@@ -11,7 +11,6 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { path: "/", icon: Home, label: "Home" },
     { path: "/files", icon: Files, label: "Files" },
     { path: "/shared", icon: Share2, label: "Shared" },
     { path: "/profile", icon: User, label: "Profile" },

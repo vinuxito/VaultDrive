@@ -1,4 +1,4 @@
-import { Home, Files, Share2, Settings, User, LogOut, X, Users } from "lucide-react";
+import { Files, Share2, Settings, User, LogOut, X, Users } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
@@ -57,15 +57,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   };
 
   const navItems = [
-    { to: "/", icon: <Home />, label: "Home", handler: () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        navigate("/files");
-      }
-    }},
     { to: "/files", icon: <Files />, label: "Files" },
     { to: "/groups", icon: <Users />, label: "Groups" },
-    { to: "/shared", icon: <Share2 />, label: "Shared" },
+    { to: "/shared", icon: <Share2 />, label: "Shared with Me" },
     { to: "/profile", icon: <User />, label: "Profile" },
     { to: "/settings", icon: <Settings />, label: "Settings" },
   ];
@@ -117,7 +111,6 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 label={item.label}
                 onClick={onClose}
                 isActive={location.pathname === item.to}
-                handler={item.handler}
               />
             ))}
         </nav>

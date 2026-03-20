@@ -244,7 +244,7 @@ export default function SharedFiles() {
             </div>
             <div>
               <h1 className="text-3xl font-bold">Shared With Me</h1>
-              <p className="text-muted-foreground">Files that other users have shared with you</p>
+              <p className="text-muted-foreground">Files shared with you by other vault owners.</p>
             </div>
           </div>
         </div>
@@ -270,15 +270,25 @@ export default function SharedFiles() {
           </div>
           <div>
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading shared files...</div>
+              <div className="space-y-2">
+                {["s1","s2","s3"].map((k) => (
+                  <div key={k} className="flex items-center gap-3 p-4 animate-pulse">
+                    <div className="w-10 h-10 rounded-lg bg-slate-200 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-3/4" />
+                      <div className="h-2.5 bg-slate-100 rounded w-1/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : sharedFiles.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/20 flex items-center justify-center">
                   <Share2 className="w-8 h-8 text-[#c4999b]" />
                 </div>
                 <p className="text-muted-foreground font-medium">No shared files yet</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Files shared with you by other users will appear here
+                <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
+                  Ask someone to share a file with you using your vault address.
                 </p>
               </div>
             ) : (

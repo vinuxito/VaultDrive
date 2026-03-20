@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Search, Plus, Settings, Trash2, X, UserPlus } from "lucide-react";
+import { Search, Plus, Settings, Trash2, X, UserPlus, Users } from "lucide-react";
 import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
 
@@ -139,8 +139,31 @@ export default function Groups() {
 
   if (loading) {
     return (
-      <div className="abrn-page-bg flex items-center justify-center" style={{ minHeight: "calc(100vh - 80px)" }}>
-        <div className="text-muted-foreground">Loading groups...</div>
+      <div className="abrn-page-bg p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <div className="h-8 w-32 bg-slate-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {["g1","g2","g3"].map((k) => (
+              <div key={k} className="abrn-glass-card p-6 animate-pulse">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-3/4" />
+                    <div className="h-3 bg-slate-100 rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="h-3 bg-slate-100 rounded w-1/3 mb-4" />
+                <div className="pt-4 border-t border-black/8 flex gap-2">
+                  <div className="h-8 w-20 bg-slate-200 rounded" />
+                  <div className="h-8 w-20 bg-slate-200 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -150,8 +173,9 @@ export default function Groups() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <p className="text-muted-foreground">
-              Manage your groups and share files easily
+            <h1 className="text-3xl font-bold">Groups</h1>
+            <p className="text-muted-foreground mt-1">
+              Groups let you share files with multiple people at once.
             </p>
           </div>
 
@@ -194,10 +218,14 @@ export default function Groups() {
             <AnimatePresence mode="wait">
               {filteredGroups.length === 0 ? (
                 <div className="text-center col-span-full py-12">
-                  <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground text-lg">No groups found</p>
-                  <p className="text-muted-foreground text-sm">
-                    {searchQuery ? "Try a different search" : "Create a group to get started"}
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/10 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-[#c4999b]" />
+                  </div>
+                  <p className="text-muted-foreground text-lg font-medium">
+                    {searchQuery ? "No groups found" : "No groups yet"}
+                  </p>
+                  <p className="text-muted-foreground text-sm mt-2 max-w-xs mx-auto">
+                    {searchQuery ? "Try a different search term." : "Create your first group to share files with multiple people at once."}
                   </p>
                 </div>
               ) : (
@@ -545,8 +573,13 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className="space-y-4 py-4">
+        {["r1","r2"].map((k) => (
+          <div key={k} className="abrn-glass-card p-6 animate-pulse">
+            <div className="h-6 bg-slate-200 rounded w-1/3 mb-3" />
+            <div className="h-4 bg-slate-100 rounded w-2/3" />
+          </div>
+        ))}
       </div>
     );
   }

@@ -250,7 +250,7 @@ export function VaultTree({
       <div className="my-2 mx-3 border-t border-slate-200" />
 
       <SectionHeader
-        label="Drop Links"
+        label="Client Upload Links"
         open={linksOpen}
         onToggle={() => setLinksOpen((open) => !open)}
         action={
@@ -268,7 +268,7 @@ export function VaultTree({
         }
       />
 
-      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-500 px-7 py-1">No drop links</p>}
+      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-500 px-7 py-1">No upload links yet</p>}
 
       {linksOpen &&
         sortedDropTokens.map((token) => {

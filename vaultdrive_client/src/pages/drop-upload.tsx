@@ -337,8 +337,9 @@ export default function DropUpload() {
 
   if (loading) {
     return (
-      <div className="abrn-page-bg flex items-center justify-center">
+      <div className="abrn-page-bg flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-12 h-12 animate-spin text-[#7d4f50]" />
+        <p className="text-sm text-muted-foreground">Verifying your upload link…</p>
       </div>
     );
   }
@@ -349,7 +350,7 @@ export default function DropUpload() {
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-            <CardTitle>Upload Link Error</CardTitle>
+            <CardTitle>This upload link is no longer available</CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardFooter>
@@ -388,10 +389,10 @@ export default function DropUpload() {
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-slate-800">Files delivered securely</h1>
+            <h1 className="text-2xl font-bold text-slate-800">Your files have been delivered securely.</h1>
             <p className="text-slate-500">
               {completedCount} file{completedCount > 1 ? "s" : ""} encrypted and delivered
-              {tokenInfo.link_name ? ` to ${tokenInfo.link_name}` : ""}.
+              {tokenInfo.link_name ? ` to ${tokenInfo.link_name}` : ""}. Keep this reference for your records.
             </p>
           </div>
 

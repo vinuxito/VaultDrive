@@ -1198,7 +1198,7 @@ export default function Files() {
       case "shared": return "Shared with Me";
       case "folder": return selectedNode.folderName;
       case "drop-link": return selectedNode.linkName;
-      case "manage-drops": return "Drop Links";
+      case "manage-drops": return "Client Upload Links";
       case "manage-requests": return "File Requests";
     }
   })();

@@ -1,5 +1,4 @@
 import {
-  Home,
   FolderOpen,
   Link2,
   Settings,
@@ -19,21 +18,11 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleHomeClick = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/files");
-    } else {
-      navigate("/");
-    }
-  };
-
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-    { icon: Home, label: "Home", path: "/", action: handleHomeClick },
     { icon: FolderOpen, label: "Files", path: "/files" },
     { icon: Users, label: "Groups", path: "/groups" },
-    { icon: Link2, label: "Shared", path: "/shared" },
+    { icon: Link2, label: "Shared with Me", path: "/shared" },
   ];
 
   const handleLogout = () => {
@@ -63,7 +52,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             return (
               <button
                 key={item.label}
-                onClick={() => item.action ? item.action() : navigate(item.path)}
+                onClick={() => navigate(item.path)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
                   "hover:bg-[#7d4f50]/10 hover:text-foreground",

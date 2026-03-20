@@ -203,7 +203,7 @@ export function CreateUploadLinkModal({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2 text-white">
             <Plus className="w-5 h-5 text-[#f2d7d8]" />
-            {createdLink ? "Upload Link Created" : "Create New Upload Link"}
+            {createdLink ? "Upload Link Created" : "Create Client Upload Link"}
           </h2>
           <Button
             variant="ghost"

@@ -37,6 +37,7 @@ import { PipelineExamplesSection } from "../components/settings/PipelineExamples
 import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { CollapsibleSection } from "../components/settings/CollapsibleSection";
 import { ControlPlaneStatusSection } from "../components/settings/ControlPlaneStatusSection";
+import { Tabs, TabPanel } from "../components/ui/tabs";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
 import { mergeUserPinState } from "../utils/pin-trust";
@@ -62,6 +63,7 @@ export default function Settings() {
       .catch(() => undefined);
   }, []);
 
+  const [activeTab, setActiveTab] = useState("account");
   const [pinSet, setPinSet] = useState<boolean | null>(null);
   const [showPinForm, setShowPinForm] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -166,26 +168,36 @@ export default function Settings() {
     return null;
   }
 
+  const settingsTabs = [
+    { id: "account", label: "Account" },
+    { id: "security", label: "Security" },
+    { id: "advanced", label: "Advanced" },
+  ];
+
   return (
     <div className="max-w-4xl space-y-6">
-        <div className="rounded-[1.8rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfb_0%,#f8f3ef_100%)] px-6 py-6 shadow-[0_20px_50px_rgba(125,79,80,0.08)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.96)_0%,rgba(15,23,42,0.92)_100%)]">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="rounded-[1.8rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfb_0%,#f8f3ef_100%)] px-6 py-4 shadow-[0_20px_50px_rgba(125,79,80,0.08)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.96)_0%,rgba(15,23,42,0.92)_100%)]">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="abrn-badge">Owner control</span>
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300">
               Trust stays visible
             </span>
           </div>
           <h1 className="text-3xl font-bold abrn-section-heading">Settings</h1>
-          <p className="text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+          <p className="text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
             Keep the vault calm and predictable: one PIN, clear privacy boundaries, and delegated access you can inspect or revoke whenever needed.
           </p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-slate-600 dark:text-slate-300">
+          <div className="mt-3 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-slate-600 dark:text-slate-300">
             <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">PIN trust flows across the vault, sharing, and Secure Drop</div>
             <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">The server stores ciphertext, metadata, and reviewable access events</div>
             <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">Agent credentials stay scoped, visible, and revocable</div>
           </div>
         </div>
 
+        <Tabs tabs={settingsTabs} activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Account Tab */}
+        <TabPanel id="account" activeTab={activeTab} className="space-y-6">
         {/* Appearance Settings */}
         <Card>
           <CardHeader>
@@ -197,7 +209,7 @@ export default function Settings() {
               )}
               Appearance
             </CardTitle>
-<CardDescription>
+            <CardDescription>
               Customize your workspace preferences
             </CardDescription>
           </CardHeader>
@@ -298,12 +310,15 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        </TabPanel>
 
+        {/* Security Tab */}
+        <TabPanel id="security" activeTab={activeTab} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Fingerprint className="w-5 h-5" />
-              Your Vault PIN
+              Your Security PIN
             </CardTitle>
             <CardDescription>
               A single 4-digit PIN used across your vault, shares, Secure Drop, and quick login
@@ -311,7 +326,7 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">One-PIN doctrine</p>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">One PIN for everything</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-3 text-[11px] text-slate-600 dark:text-slate-300">
                 <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/50">Set once, then reuse it across normal owner flows</div>
                 <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/50">Protect your encrypted private key without rewrapping every action</div>
@@ -428,7 +443,7 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Security
+              Encryption
             </CardTitle>
             <CardDescription>
               Your data is protected with end-to-end encryption
@@ -537,6 +552,10 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        </TabPanel>
+
+        {/* Advanced Tab */}
+        <TabPanel id="advanced" activeTab={activeTab} className="space-y-6">
         <AgentApiKeysSection />
 
         <ControlPlaneStatusSection />
@@ -565,6 +584,7 @@ export default function Settings() {
         >
           <AuditLogSection />
         </CollapsibleSection>
+        </TabPanel>
     </div>
   );
 }

@@ -219,7 +219,7 @@ export function Dropzone({
         )}
 
         {/* Info footer */}
-        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground/60">
           <span>All file types supported</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
           <span>Max {formatSize(maxFileSize)}</span>
@@ -229,6 +229,8 @@ export function Dropzone({
               <span>Multiple files</span>
             </>
           )}
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+          <span>All files are encrypted before leaving your device</span>
         </div>
       </div>
 

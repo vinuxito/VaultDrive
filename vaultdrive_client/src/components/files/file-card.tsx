@@ -1,4 +1,5 @@
-import { File as FileIcon, Download, Share2, Trash2, Lock, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { useState } from 'react';
+import { File as FileIcon, Download, Share2, Trash2, MoreVertical, Star } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ElegantCard } from '../elegant';
 import { Button } from '../ui/button';
@@ -37,22 +38,19 @@ const formatFileSize = (bytes: number): string => {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
 };
 
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleString();
-};
 
-const maskKey = (key: string): string => {
-  if (!key || key.length <= 5) return key;
-  return key.substring(0, 5) + "*".repeat(Math.min(key.length - 5, 20));
-};
-
-const parseMetadata = (metadataStr: string) => {
-  try {
-    return JSON.parse(metadataStr);
-  } catch {
-    return null;
-  }
-};
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 30) return `${diffDays}d ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `${diffMonths}mo ago`;
+  return `${Math.floor(diffMonths / 12)}y ago`;
+}
 
 const getFileIconColor = (filename: string) => {
   const extension = filename.split('.').pop()?.toLowerCase();
@@ -85,10 +83,55 @@ export function FileCard({
   onDelete,
   onToggleMetadata,
   onToggleStar,
-  isExpanded,
   viewMode,
 }: FileCardProps) {
-  const metadata = parseMetadata(file.metadata);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const MoreMenu = () => (
+    <div className="relative">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="w-8 h-8"
+              onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+            >
+              <MoreVertical size={16} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>More actions</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-slate-200 min-w-[152px] py-1">
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+              onClick={() => { onShare(file.id, file.filename); setMenuOpen(false); }}
+            >
+              <Share2 size={14} /> Share Link
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+              onClick={() => { onToggleMetadata(file.id); setMenuOpen(false); }}
+            >
+              <FileIcon size={14} /> View Details
+            </button>
+            <div className="my-1 border-t border-slate-100" />
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+              onClick={() => { onDelete(file.id, file.filename); setMenuOpen(false); }}
+            >
+              <Trash2 size={14} /> Delete File
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   if (viewMode === 'list') {
     return (
@@ -104,50 +147,26 @@ export function FileCard({
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{file.filename}</p>
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              <span>{formatFileSize(file.file_size)}</span>
-              <span>•</span>
-              <span>{formatDate(file.created_at)}</span>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              {formatFileSize(file.file_size)} · {formatRelativeDate(file.created_at)}
+            </p>
           </div>
           <div className="flex items-center gap-1 ml-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onDownload(file.id, file.filename, file.metadata)}><Download size={16} /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => onDownload(file.id, file.filename, file.metadata)}>
+                    <Download size={16} />
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>Download</TooltipContent>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onShare(file.id, file.filename)}><Share2 size={16} /></Button>
-                </TooltipTrigger>
-                <TooltipContent>Share</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onDelete(file.id, file.filename)} className="text-red-500 hover:text-red-600"><Trash2 size={16} /></Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onToggleMetadata(file.id)}>
-                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Details</TooltipContent>
-              </Tooltip>
             </TooltipProvider>
+            <MoreMenu />
           </div>
         </div>
-        {isExpanded && metadata && (
-          <div className="border-t bg-muted/30 p-3">
-            {/* Metadata content here */}
-          </div>
-        )}
       </ElegantCard>
-    )
+    );
   }
 
   return (
@@ -163,102 +182,46 @@ export function FileCard({
             <FileIcon size={24} />
           </div>
           <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onToggleStar && onToggleStar(file.id)}
-              className={cn(
-                "transition-all rounded-full",
-                file.starred
-                  ? "text-yellow-400"
-                  : "text-slate-400/70 hover:text-yellow-400"
-              )}
-            >
-              <Star className={cn("w-5 h-5", file.starred && "fill-current")} />
-            </Button>
+            size="icon"
+            variant="ghost"
+            onClick={() => onToggleStar && onToggleStar(file.id)}
+            className={cn(
+              "transition-all rounded-full",
+              file.starred
+                ? "text-yellow-400"
+                : "text-slate-400/70 hover:text-yellow-400"
+            )}
+          >
+            <Star className={cn("w-5 h-5", file.starred && "fill-current")} />
+          </Button>
         </div>
 
         <div className="mt-4 min-w-0">
           <p className="font-semibold truncate text-base">{file.filename}</p>
-          <p className="text-sm text-muted-foreground">{formatFileSize(file.file_size)}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {formatFileSize(file.file_size)} · {formatRelativeDate(file.created_at)}
+          </p>
         </div>
-        
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#7d4f50]/15">
-          <p className="text-xs text-muted-foreground">{formatDate(file.created_at)}</p>
-          <div className="flex items-center gap-1">
+
+        <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-[#7d4f50]/15">
           <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onDownload(file.id, file.filename, file.metadata)} className="w-8 h-8"><Download size={16} /></Button>
-                </TooltipTrigger>
-                <TooltipContent>Download</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onShare(file.id, file.filename)} className="w-8 h-8"><Share2 size={16} /></Button>
-                </TooltipTrigger>
-                <TooltipContent>Share</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onDelete(file.id, file.filename)} className="w-8 h-8 text-red-500 hover:text-red-600"><Trash2 size={16} /></Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={() => onToggleMetadata(file.id)} className="w-8 h-8">
-                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Details</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onDownload(file.id, file.filename, file.metadata)}
+                  className="w-8 h-8"
+                >
+                  <Download size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <MoreMenu />
         </div>
       </div>
-
-      {isExpanded && metadata && (
-        <div className="border-t bg-muted/30 p-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground/80">
-              <Lock className="w-4 h-4" />
-              <span>Encryption Details</span>
-            </div>
-
-            <div className="grid gap-2 text-xs">
-              <div className="flex justify-between items-start">
-                <span className="text-muted-foreground">Algorithm:</span>
-                <span className="font-mono font-medium">{metadata.algorithm || "N/A"}</span>
-              </div>
-
-              {metadata.salt && (
-                <div className="flex justify-between items-start gap-4">
-                  <span className="text-muted-foreground">Salt:</span>
-                  <span className="font-mono break-all text-right">
-                    {maskKey(metadata.salt)}
-                  </span>
-                </div>
-              )}
-
-              {metadata.iv && (
-                <div className="flex justify-between items-start gap-4">
-                  <span className="text-muted-foreground">IV:</span>
-                  <span className="font-mono break-all text-right">
-                    {maskKey(metadata.iv)}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex justify-between items-start gap-4">
-                <span className="text-muted-foreground">File ID:</span>
-                <span className="font-mono break-all text-right">
-                  {file.id}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </ElegantCard>
   );
 }

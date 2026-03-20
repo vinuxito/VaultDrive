@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 16, 2026 (live observable control plane implemented and verified end-to-end; docs and README aligned to the current app state)**
+> **Last updated: March 20, 2026 (enterprise polish pass — 7-step UX upgrade, dashboard/navigation/file-cards/settings/copy/empty-states/public-pages all updated; build and tests verified)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -22,18 +22,18 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (March 16, 2026)
+## Current State (March 20, 2026)
 
 This section reflects the actual state. Sections below are historical documentation.
 
 ### Verification Snapshot
 
 - Frontend tests: `21/21` PASS
-- Frontend build: PASS
+- Frontend build: PASS (tsc -b && vite build, ~8s, 0 TypeScript errors)
 - Backend tests: PASS
 - Backend build: PASS
-- Playwright trust proof suite: PASS (`14/14`)
-- Self-hosted current-code browser verification on `http://127.0.0.1:8090/abrn/`: PASS
+- Playwright trust proof suite: PASS (`14/14`, last run March 16, 2026)
+- Self-hosted current-code browser verification on `http://127.0.0.1:8090/abrn/`: PASS (March 16, 2026)
   - fresh signup
   - password login
   - `/files` onboarding gate
@@ -45,7 +45,7 @@ This section reflects the actual state. Sections below are historical documentat
   - Secure Drop sender upload route
   - Secure Drop missing-fragment-key rejection
   - File Request sender upload route
-- Local browser smoke on `http://localhost:8082/abrn/`: PASS
+- Local browser smoke on `http://localhost:8082/abrn/`: PASS (March 16, 2026)
   - fresh signup
   - password login
   - `/files` onboarding gate
@@ -54,6 +54,51 @@ This section reflects the actual state. Sections below are historical documentat
   - protected vault entry
   - `/settings` trust surfaces rendered
   - PIN login after clearing local auth state
+
+### Enterprise Polish UX State (March 20, 2026)
+
+The full "Enterprise Polish" plan was applied across 7 steps and 14 files. No functional changes — presentation layer only. Build and tests verified clean.
+
+**Dashboard:**
+- Security Posture block now appears at the top of the dashboard (below greeting), renamed "Attention" — the most important status signal is immediately visible
+- Section headings: "Vault Overview" (was "Quick Stats") · "Start Here" (was "Quick Actions") · "Activity" (was "Recent Activity")
+- Emoji removed from subtitle (Shield icon only)
+- Empty activity state shows "No activity yet. Upload or share a file to begin." — no more "Activity feed coming soon" placeholder
+- First-time users (no files, no activity) see a get-started checklist: Upload a file / Create a client upload link / Share with a colleague
+- "New Drop Link" → "Create Client Upload Link"
+
+**Navigation:**
+- "Home" nav item removed from sidebar, mobile nav, and bottom nav — authenticated users no longer have a path back to the public landing page from within the app
+- "Shared" renamed to "Shared with Me" everywhere (sidebar, mobile nav, bottom nav) — removes ambiguity about which direction sharing goes
+- `/shared` page now shows: "Files shared with you by other vault owners."
+- `/groups` page now shows heading and description: "Groups let you share files with multiple people at once."
+
+**File Cards (Progressive Disclosure):**
+- Visible action buttons reduced from 5 to 2: Star (toggle) + Download (primary action)
+- A `•••` more-actions dropdown reveals: "Share Link" / "View Details" / "Delete File" — all labeled, not icon-only
+- Encryption metadata (algorithm, salt, IV) removed from card expansion — belongs in `FilePreviewModal`, not on the file list
+- Metadata line condensed to one line: `{file size} · {relative date}` (e.g. "2.4 MB · 3 days ago")
+
+**Settings (3-Tab Structure):**
+- Settings now has 3 tabs: **Account** / **Security** / **Advanced**
+- **Account tab:** Username, email, organization, appearance (theme toggle) — everyday user settings
+- **Security tab:** Security PIN setup/change, encryption info, privacy & trust — security-focused settings
+- **Advanced tab:** Agent API Keys, Control Plane Status, Agent Operations, API Simulation, API reference, Pipeline examples, Raw audit log — developer and operator tools, out of default view
+- Hero callout padding reduced so settings are visible on first load without scrolling
+- "Vault PIN" → "Security PIN" throughout settings and onboarding
+- "One-PIN doctrine" → "One PIN for everything"
+
+**Copy Cleanup:**
+- All "Drop Links" jargon replaced with "Client Upload Links" throughout (VaultTree section label, CreateUploadLinkModal title, files.tsx tab label)
+- Drop upload page: error heading is now "This upload link is no longer available" · success heading is "Your files have been delivered securely. Keep this reference for your records."
+- Public share page: loading text is "Verifying share link…" · expired state adds "Contact the file owner to request a new link." · technical error strings replaced with plain-language equivalents ("This share link is incomplete. Ask the sender to re-send the full link." / "This file is unavailable")
+- Drop upload page loading: "Verifying your upload link…" (was "Loading file info…")
+
+**Empty and Loading States:**
+- `/shared` and `/groups` pages now use animated skeleton loaders instead of plain "Loading…" text
+- `/shared` empty state: "Ask someone to share a file with you using your vault address."
+- `/groups` empty state: "Create your first group to share files with multiple people at once."
+- Dropzone info footer now includes: "All files are encrypted before leaving your device" — connects feature to benefit
 
 ### Current Trust UX State
 
