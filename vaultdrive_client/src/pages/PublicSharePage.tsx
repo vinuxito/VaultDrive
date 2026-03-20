@@ -178,14 +178,14 @@ export default function PublicSharePage() {
             <ABRNLogo className="h-12 object-contain" alt="ABRN Drive" />
           </div>
           <h1 className="text-xl font-bold text-white">ABRN Drive</h1>
-          <p className="text-white/50 text-sm">Secure File Share</p>
+          <p className="text-white/70 text-sm">Secure File Share</p>
         </div>
 
         <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] rounded-2xl shadow-2xl border border-white/10 p-8 text-white">
           {state === "loading" && (
             <div className="flex flex-col items-center gap-4 py-4">
               <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
-              <p className="text-white/80">Loading file info…</p>
+              <p className="text-white/85">Loading file info…</p>
             </div>
           )}
 
@@ -202,10 +202,10 @@ export default function PublicSharePage() {
                   >
                     {shareInfo.filename}
                   </p>
-                  <p className="text-sm text-white/60 mt-0.5">
+                  <p className="text-sm text-white/75 mt-0.5">
                     {formatFileSize(shareInfo.file_size)}
                   </p>
-                  <p className="text-xs text-white/45 mt-1">
+                  <p className="text-xs text-white/60 mt-1">
                     {formatExpiry(shareInfo.expires_at)}
                   </p>
                 </div>
@@ -222,7 +222,7 @@ export default function PublicSharePage() {
                       {shareInfo.owner_display_name}
                     </span>
                     {shareInfo.owner_organization && (
-                      <span className="text-white/50">
+                      <span className="text-white/65">
                         {" "}
                         · {shareInfo.owner_organization}
                       </span>
@@ -233,7 +233,7 @@ export default function PublicSharePage() {
 
               <div className="flex items-center gap-2 px-3 py-2.5 bg-white/5 rounded-lg border border-white/10">
                 <Shield className="w-4 h-4 text-[#f2d7d8] shrink-0" />
-                <p className="text-xs text-white/70">
+                <p className="text-xs text-white/80">
                   End-to-end encrypted · Key never leaves your browser
                 </p>
               </div>
@@ -254,7 +254,7 @@ export default function PublicSharePage() {
               <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
               <div>
                 <p className="text-white/80 font-medium">Decrypting…</p>
-                <p className="text-xs text-white/50 mt-1">
+                <p className="text-xs text-white/65 mt-1">
                   Decryption happens entirely in your browser
                 </p>
               </div>
@@ -270,7 +270,7 @@ export default function PublicSharePage() {
                   <p className="text-sm text-white/70 mt-1 break-all">{savedFilename}</p>
                 )}
               </div>
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-white/65">
                 The file was saved to your device.
               </p>
             </div>
@@ -281,7 +281,7 @@ export default function PublicSharePage() {
               <Clock className="w-12 h-12 text-amber-400" />
               <div>
                 <p className="text-lg font-semibold text-white">This link has expired</p>
-                <p className="text-sm text-white/60 mt-2">
+                <p className="text-sm text-white/75 mt-2">
                   The share link is no longer valid. Ask the sender for a new link.
                 </p>
               </div>
@@ -295,7 +295,7 @@ export default function PublicSharePage() {
                 <p className="text-lg font-semibold text-white">Something went wrong</p>
                 <p className="text-sm text-red-300 mt-2 break-words">{errorMsg}</p>
               </div>
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-white/65">
                 Make sure you have the complete share link, including the key after #.
               </p>
             </div>
