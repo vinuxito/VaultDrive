@@ -111,7 +111,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
         </div>
         <div className="abrn-trust-panel rounded-2xl px-4 py-4">
           <p className="text-sm text-white/85">Trust data is temporarily unavailable.</p>
-          <p className="mt-1 text-xs text-white/45">Your file remains encrypted and under your control.</p>
+          <p className="mt-1 text-xs text-white/62">Your file remains encrypted and under your control.</p>
         </div>
       </div>
     );
@@ -177,32 +177,32 @@ export function TrustRail({ fileId }: TrustRailProps) {
           ))}
         </div>
         <p className="mt-3 text-sm leading-relaxed text-white/92">{calmSummary}</p>
-        <p className="mt-2 text-xs leading-relaxed text-white/48">
+        <p className="mt-2 text-xs leading-relaxed text-white/62">
           ABRN Drive stores ciphertext and access metadata only, so this view is your control surface rather than a copy of the file.
         </p>
       </div>
 
       <div className="relative z-10 grid gap-3 md:grid-cols-3 text-sm">
         <div className="abrn-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
-          <div className="flex items-center gap-2 text-white/45 text-xs uppercase tracking-[0.15em]">
+          <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400/12 text-emerald-300">
               <Lock className="w-3.5 h-3.5" />
             </span>
             Encryption
           </div>
           <p className="mt-3 text-white/92 leading-snug text-sm font-medium">{summary.protection}</p>
-          <p className="mt-2 text-xs leading-relaxed text-white/42">Locked in your browser before upload, then kept unreadable outside your trusted session.</p>
+          <p className="mt-2 text-xs leading-relaxed text-white/60">Locked in your browser before upload, then kept unreadable outside your trusted session.</p>
         </div>
 
         <div className="abrn-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
-          <div className="flex items-center gap-2 text-white/45 text-xs uppercase tracking-[0.15em]">
+          <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-400/12 text-sky-300">
               <Sparkles className="w-3.5 h-3.5" />
             </span>
             Source
           </div>
           <p className="mt-3 text-white/92 leading-snug text-sm font-medium">{originLabel(summary.origin)}</p>
-          <p className={`mt-2 text-xs leading-relaxed ${activeCount === 0 ? "text-white/38" : "text-white/72 font-medium"}`}>
+          <p className={`mt-2 text-xs leading-relaxed ${activeCount === 0 ? "text-white/60" : "text-white/72 font-medium"}`}>
             {activeCount === 0
               ? "No external access is active"
               : `${activeCount} active access point${activeCount !== 1 ? "s" : ""}, all revocable`}
@@ -210,14 +210,14 @@ export function TrustRail({ fileId }: TrustRailProps) {
         </div>
 
         <div className="abrn-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
-          <div className="flex items-center gap-2 text-white/45 text-xs uppercase tracking-[0.15em]">
+          <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400/12 text-amber-200">
               <Clock3 className="w-3.5 h-3.5" />
             </span>
             Last Event
           </div>
           <p className="mt-3 text-white/92 leading-snug text-sm font-medium">{summary.latest_activity}</p>
-          <p className="mt-2 text-xs leading-relaxed text-white/42">Trace the full chain of sharing, download, revoke, and owner activity below.</p>
+          <p className="mt-2 text-xs leading-relaxed text-white/60">Trace the full chain of sharing, download, revoke, and owner activity below.</p>
         </div>
       </div>
     </div>
