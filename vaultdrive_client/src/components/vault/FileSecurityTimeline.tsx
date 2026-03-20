@@ -125,7 +125,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           </div>
           <div>
             <p className="text-sm text-white/85">Security history is temporarily unavailable.</p>
-            <p className="text-xs text-white/40 mt-0.5">The file remains protected; only the event feed could not be loaded.</p>
+            <p className="text-xs text-white/60 mt-0.5">The file remains protected; only the event feed could not be loaded.</p>
           </div>
         </div>
       ) : events.length === 0 ? (
@@ -135,7 +135,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           </div>
           <div>
             <p className="text-sm text-white/85">No external access has occurred yet.</p>
-            <p className="text-xs text-white/40 mt-0.5">Only you currently hold access to this file.</p>
+            <p className="text-xs text-white/60 mt-0.5">Only you currently hold access to this file.</p>
           </div>
         </div>
       ) : (
@@ -171,9 +171,9 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
                     {relativeTime(event.at)}
                   </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-white/42">
+                <div className="mt-2 flex items-center gap-2 text-xs text-white/58">
                   <span>{new Date(event.at).toLocaleString()}</span>
-                  <span className="text-white/20">•</span>
+                  <span className="text-white/38">•</span>
                   <span>Readable history of protection and control</span>
                 </div>
               </div>
