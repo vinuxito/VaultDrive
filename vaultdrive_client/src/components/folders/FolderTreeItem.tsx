@@ -61,9 +61,9 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
           aria-label={folder.isExpanded ? "Collapse folder" : "Expand folder"}
         >
           {folder.isExpanded ? (
-            <ChevronDown className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-slate-400"}`} />
+            <ChevronDown className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-slate-500"}`} />
           ) : (
-            <ChevronRight className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-slate-400"}`} />
+            <ChevronRight className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-slate-500"}`} />
           )}
         </button>
       ) : (
@@ -111,7 +111,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setShowMenu((prev) => !prev)}
-            className={`h-7 w-7 p-0 ${isSidebar ? "text-slate-400 hover:text-slate-700 hover:bg-slate-100" : ""}`}
+            className={`h-7 w-7 p-0 ${isSidebar ? "text-slate-500 hover:text-slate-700 hover:bg-slate-100" : ""}`}
           >
             <MoreVertical className="w-4 h-4" />
           </Button>

@@ -279,7 +279,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                         <span className="text-[11px] font-medium uppercase tracking-[0.18em]">Protection & History</span>
                       </div>
                       <p className="mt-1 text-sm font-medium text-white/88">See how this file is protected, shared, and controlled.</p>
-                      <p className="mt-1 text-xs text-white/48">This keeps the trust story visible while you preview the file itself.</p>
+                      <p className="mt-1 text-xs text-white/65">This keeps the trust story visible while you preview the file itself.</p>
                     </div>
                   </div>
                   <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72 whitespace-nowrap">
