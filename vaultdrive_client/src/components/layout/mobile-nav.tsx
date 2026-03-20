@@ -157,8 +157,8 @@ function NavLink({ to, icon, label, onClick, isActive, handler }: NavLinkProps) 
       to={handler ? "/files" : to}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-lg transition-colors text-foreground/70",
-        isActive ? "bg-[#7d4f50]/20 text-[#c4999b]" : "hover:bg-[#7d4f50]/10 hover:text-foreground"
+        "flex items-center gap-3 p-3 rounded-lg transition-colors text-foreground/80",
+        isActive ? "bg-[#7d4f50]/15 text-[#7d4f50] font-semibold" : "hover:bg-[#7d4f50]/10 hover:text-foreground"
       )}
       role="menuitem"
     >
