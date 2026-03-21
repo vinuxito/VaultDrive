@@ -71,7 +71,14 @@ export default function ShareModal({
 
   const [pinInput, setPinInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
-  const credentialMode = pinWrappedKey ? "pin" : "password";
+  const credentialMode = (() => {
+    if (pinWrappedKey) return "pin";
+    try {
+      const meta = JSON.parse(fileMetadata ?? "{}") as { credential_scheme?: string };
+      if (meta.credential_scheme === "pin") return "pin";
+    } catch { /* ignore */ }
+    return "password";
+  })();
 
   const { getCredential } = useSessionVault();
   const cachedCred = getCredential();
