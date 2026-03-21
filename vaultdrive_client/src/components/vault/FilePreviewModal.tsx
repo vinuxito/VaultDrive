@@ -94,7 +94,7 @@ function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
-  const { getPrivateKey, getCredential } = useSessionVault();
+  const { getPrivateKey, getCredential, setCredential: cacheCredential } = useSessionVault();
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -105,8 +105,8 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const [credential, setCredential] = useState("");
   const [showCredentialPrompt, setShowCredentialPrompt] = useState(false);
 
-  const loadPreview = useCallback(async (cred: string) => {
-    if (!file) return;
+  const loadPreview = useCallback(async (cred: string): Promise<boolean> => {
+    if (!file) return false;
     setIsLoading(true);
     setLoadError("");
     try {
@@ -123,8 +123,10 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         const url = URL.createObjectURL(blob);
         setBlobUrl(url);
       }
+      return true;
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to decrypt file");
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +166,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const handleCredentialSubmit = async () => {
     if (!credential) return;
     setShowCredentialPrompt(false);
-    await loadPreview(credential);
+    const ct = getCredentialType(file!);
+    const success = await loadPreview(credential);
+    if (success) {
+      cacheCredential(credential, ct === "password" ? "password" : "pin");
+    }
   };
 
   const handleDownloadDecrypted = () => {
