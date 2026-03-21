@@ -97,7 +97,7 @@ export default function Login() {
       } catch {
       }
 
-      navigate("/");
+      navigate(data.pin_set ? "/" : "/files");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
