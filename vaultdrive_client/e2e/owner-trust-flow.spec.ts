@@ -17,6 +17,8 @@ test("owner trust flow supports signup, onboarding, and PIN login", async ({ pag
   await completeOnboarding(page, account);
 
   await gotoStable(page, "/settings");
+  // Settings now has 3 tabs (Account / Security / Advanced); PIN info is on Security tab
+  await page.getByRole("tab", { name: "Security" }).click();
   await expect(page.getByText("One PIN for everything")).toBeVisible();
   await expect(page.getByText("Privacy & Trust")).toBeVisible();
 
@@ -64,6 +66,8 @@ test("settings keeps advanced control-plane docs collapsed until requested", asy
   await completeOnboarding(page, account);
 
   await gotoStable(page, "/settings");
+  // Control plane status is in the Advanced tab (enterprise polish moved it there)
+  await page.getByRole("tab", { name: "Advanced" }).click();
   await expect(page.getByText("Control plane at a glance")).toBeVisible();
   await expect(page.getByText("Quick start")).not.toBeVisible();
 

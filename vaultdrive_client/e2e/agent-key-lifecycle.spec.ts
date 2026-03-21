@@ -99,8 +99,9 @@ test.describe("Agent key lifecycle trust proof", () => {
     });
 
     expect(filesRes.status()).toBe(403);
-    const errorBody = await filesRes.json();
-    expect(errorBody.success).toBe(false);
+    // Backend returns 403 with an error object; success field may be absent — just verify the status is forbidden
+    const errorBody = await filesRes.json() as { error?: string };
+    expect(errorBody.error).toBeTruthy();
   });
 
   test("revoked key loses access immediately", async ({ request }) => {
@@ -154,6 +155,8 @@ test.describe("Agent key lifecycle trust proof", () => {
     await gotoStable(page, "/login");
     await loginWithPassword(page, account);
     await gotoStable(page, "/settings");
+    // Agent operations are in the Advanced tab (enterprise polish moved dev tools there)
+    await page.getByRole("tab", { name: "Advanced" }).click();
 
     await expect(page.getByRole("heading", { name: "Agent operations" })).toBeVisible();
     const operationEntries = page.getByTestId("agent-operation-entry");
@@ -207,6 +210,8 @@ test.describe("Agent key lifecycle trust proof", () => {
     await gotoStable(page, "/login");
     await loginWithPassword(page, account);
     await gotoStable(page, "/settings");
+    // Filemon operator is in the Advanced tab
+    await page.getByRole("tab", { name: "Advanced" }).click();
 
     await expect(page.getByRole("heading", { name: "Filemon operator" })).toBeVisible();
     await page.locator("#filemon-raw-key").fill(rawKey);
@@ -240,6 +245,8 @@ test.describe("Agent key lifecycle trust proof", () => {
     await gotoStable(page, "/login");
     await loginWithPassword(page, account);
     await gotoStable(page, "/settings");
+    // Agent operations timeline is in the Advanced tab
+    await page.getByRole("tab", { name: "Advanced" }).click();
 
     const deniedRes = await request.get(apiUrl("/v1/files"), {
       headers: { Authorization: `Bearer ${rawKey}` },
