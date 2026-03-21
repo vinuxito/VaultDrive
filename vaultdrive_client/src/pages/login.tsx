@@ -21,7 +21,9 @@ export default function Login() {
   const navigate = useNavigate();
   const { setPrivateKey, setCredential } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
-  const [loginMode, setLoginMode] = useState<"password" | "pin">("password");
+  const [loginMode, setLoginMode] = useState<"password" | "pin">(
+    localStorage.getItem("abrn_pin_hint") === "1" ? "pin" : "password"
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -93,6 +95,7 @@ export default function Login() {
           const cryptoKey = await importRSAPrivateKey(pem);
           setPrivateKey(cryptoKey);
           setCredential(pinValue, "pin");
+          localStorage.setItem("abrn_pin_hint", "1");
         }
       } catch {
       }

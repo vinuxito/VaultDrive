@@ -86,6 +86,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           JSON.stringify(mergeUserPinState(user, privateKeyPinEncrypted)),
         );
       }
+      localStorage.setItem("abrn_pin_hint", "1");
       setCredential(pin, "pin");
       setPasswordInput("");
       setStep(3);
