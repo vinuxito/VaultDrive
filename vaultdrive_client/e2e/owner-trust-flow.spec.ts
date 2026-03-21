@@ -17,7 +17,7 @@ test("owner trust flow supports signup, onboarding, and PIN login", async ({ pag
   await completeOnboarding(page, account);
 
   await gotoStable(page, "/settings");
-  await expect(page.getByText("One-PIN doctrine")).toBeVisible();
+  await expect(page.getByText("One PIN for everything")).toBeVisible();
   await expect(page.getByText("Privacy & Trust")).toBeVisible();
 
   await clearLocalAuth(page);
