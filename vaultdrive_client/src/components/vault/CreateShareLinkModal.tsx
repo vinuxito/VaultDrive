@@ -73,7 +73,15 @@ export function CreateShareLinkModal({
   const isDropFile = !!file.pin_wrapped_key;
   const { getCredential } = useSessionVault();
   const cached = getCredential();
-  const hasCachedCred = cached && ((isDropFile && cached.type === "pin") || (!isDropFile && cached.type === "password"));
+  const fileCredentialMode = (() => {
+    if (isDropFile) return "pin";
+    try {
+      const meta = JSON.parse(file.metadata) as { credential_scheme?: string };
+      if (meta.credential_scheme === "pin") return "pin";
+    } catch { /* ignore */ }
+    return "password";
+  })();
+  const hasCachedCred = cached && cached.type === fileCredentialMode;
   const [credential, setCredential] = useState("");
   const [step, setStep] = useState<Step>("credential");
   const [shareUrl, setShareUrl] = useState("");
@@ -244,29 +252,29 @@ export function CreateShareLinkModal({
               <div className="space-y-1.5">
                 <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
                   <Key className="w-3.5 h-3.5" />
-                  {isDropFile ? "4-digit PIN" : "Upload password"}
+                  {fileCredentialMode === "pin" ? "4-digit PIN" : "Upload password"}
                 </label>
                 <p className="text-xs text-white/68">
-                  {isDropFile
+                  {fileCredentialMode === "pin"
                     ? "Enter your PIN to prepare this file for secure sharing"
                     : "Enter the password used when this file was encrypted so the key can be embedded in the share link"}
                 </p>
                 <input
                   id="csl-credential"
                   type="password"
-                    inputMode={isDropFile ? "numeric" : undefined}
-                    maxLength={isDropFile ? 4 : undefined}
+                    inputMode={fileCredentialMode === "pin" ? "numeric" : undefined}
+                    maxLength={fileCredentialMode === "pin" ? 4 : undefined}
                   value={credential}
                   onChange={(e) =>
                     setCredential(
-                        isDropFile
+                        fileCredentialMode === "pin"
                           ? e.target.value.replace(/\D/g, "").slice(0, 4)
                           : e.target.value
                     )
                   }
-                    placeholder={isDropFile ? "••••" : "Enter credential"}
+                    placeholder={fileCredentialMode === "pin" ? "••••" : "Enter credential"}
                     className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none${
-                      isDropFile ? " text-center tracking-widest text-xl" : ""
+                      fileCredentialMode === "pin" ? " text-center tracking-widest text-xl" : ""
                     }`}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && credential) void handleGenerate();
@@ -285,7 +293,7 @@ export function CreateShareLinkModal({
                 <Button
                   onClick={() => void handleGenerate()}
                     disabled={
-                     (!hasCachedCred && (isDropFile ? credential.length !== 4 : credential.length === 0)) ||
+                     (!hasCachedCred && (fileCredentialMode === "pin" ? credential.length !== 4 : credential.length === 0)) ||
                      (expiryDays === "custom" && customDate === "")
                    }
                   className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
