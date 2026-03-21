@@ -33,7 +33,7 @@ test("secure drop sender route accepts delivery with owner context", async ({ pa
     `Expected secure drop upload to succeed, got ${uploadResponse.status()} with body: ${uploadResponseText}`,
   ).toBeTruthy();
 
-  await expect(page.getByText("Files delivered securely")).toBeVisible({ timeout: 30000 });
+  await expect(page.getByText("Your files have been delivered securely.")).toBeVisible({ timeout: 30000 });
   await expect(page.getByText("Delivery receipt")).toBeVisible();
 });
 

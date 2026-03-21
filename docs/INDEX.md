@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 20, 2026 (enterprise polish pass completed — 7-step UX upgrade, verified end-to-end, docs and README refreshed)
+Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed, 14/14 E2E passing, README refreshed)
 
 ## Task Documentation
 
@@ -22,6 +22,7 @@ Last updated: March 20, 2026 (enterprise polish pass completed — 7-step UX upg
 | 14 | [Visual Refinement Verification](./14_VISUAL_REFINEMENT_VERIFICATION.md) | End-to-end verification of the trust refinement pass, continuity fixes, screenshots, and safe-continuation assessment |
 | 15 | [Trust Proof Harness](./15_TRUST_PROOF_HARNESS.md) | Committed Playwright trust-proof suite, self-hosted Go app verification, CI workflow, and Secure Drop sender hardening |
 | 16 | [Enterprise Polish UX](./16_ENTERPRISE_POLISH_UX.md) | 7-step enterprise polish pass — dashboard clarity, progressive file cards, 3-tab settings, copy cleanup, skeleton loaders, professional public pages |
+| 17 | [PIN Auth Unification](./17_PIN_AUTH_UNIFICATION.md) | 8 gaps closed — credential caching, login routing, PIN hint persistence, ShareModal/CreateShareLinkModal credential-mode detection, E2E tab navigation and text fixes |
 
 ## Feature Docs (pre-existing)
 

@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 20, 2026 (enterprise polish pass — 7-step UX upgrade, dashboard/navigation/file-cards/settings/copy/empty-states/public-pages all updated; build and tests verified)**
+> **Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed across credential caching, login routing, and modal credential-mode detection; all E2E tests updated for 3-tab Settings; 14/14 Playwright passing)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,34 +26,24 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot
+### Verification Snapshot (March 20, 2026 — PIN auth unification + E2E green)
 
-- Frontend tests: `21/21` PASS
-- Frontend build: PASS (tsc -b && vite build, ~8s, 0 TypeScript errors)
-- Backend tests: PASS
-- Backend build: PASS
-- Playwright trust proof suite: PASS (`14/14`, last run March 16, 2026)
-- Self-hosted current-code browser verification on `http://127.0.0.1:8090/abrn/`: PASS (March 16, 2026)
-  - fresh signup
-  - password login
-  - `/files` onboarding gate
-  - PIN setup with account-password rewrap
-  - first-folder creation
-  - protected vault entry
-  - `/settings` trust surfaces rendered
-  - PIN login after clearing local auth state
-  - Secure Drop sender upload route
-  - Secure Drop missing-fragment-key rejection
-  - File Request sender upload route
-- Local browser smoke on `http://localhost:8082/abrn/`: PASS (March 16, 2026)
-  - fresh signup
-  - password login
-  - `/files` onboarding gate
-  - PIN setup with account-password rewrap
-  - first-folder creation
-  - protected vault entry
-  - `/settings` trust surfaces rendered
-  - PIN login after clearing local auth state
+| Check | Result | Details |
+|-------|--------|---------|
+| `tsc -b --noEmit` | ✓ CLEAN | 0 TypeScript errors |
+| `npx vitest run` | ✓ 21/21 | All unit tests pass |
+| `npx vite build` | ✓ SUCCESS | ~11.5s, 2290 modules |
+| `npx playwright test` | ✓ **14/14** | All trust-proof E2E specs |
+
+**E2E coverage (14 tests):**
+- Owner trust flow: signup → onboarding → PIN login → Settings (Security + Advanced tabs)
+- Owner action receipts: share link creation + file request creation API-call trace
+- Agent key lifecycle: create, introspect, scope denial, revoke, audit log, live stream, Filemon operator, denial timeline
+- Public sender flows: secure drop delivery, missing-fragment-key rejection, file request sender
+
+**What changed since March 16:**
+- Enterprise polish UX (March 20 morning) — 14 frontend files, presentation-only
+- PIN auth unification (March 20 afternoon) — 8 functional/E2E gaps closed (see [docs/17_PIN_AUTH_UNIFICATION.md](./docs/17_PIN_AUTH_UNIFICATION.md))
 
 ### Enterprise Polish UX State (March 20, 2026)
 
@@ -100,6 +90,32 @@ The full "Enterprise Polish" plan was applied across 7 steps and 14 files. No fu
 - `/groups` empty state: "Create your first group to share files with multiple people at once."
 - Dropzone info footer now includes: "All files are encrypted before leaving your device" — connects feature to benefit
 
+### PIN Authentication Unification (March 20, 2026)
+
+Eight functional and test-coverage gaps were closed across the PIN authentication path. The password-based registration and external auth path was not touched.
+
+**Functional fixes:**
+
+| Component | Gap | Fix |
+|-----------|-----|-----|
+| `FilePreviewModal` | Manual PIN entry was never cached in the session vault — every file re-prompted | `loadPreview` returns `Promise<boolean>`; on success calls `cacheCredential(cred, type)` |
+| `login.tsx` | Successful login always navigated to `"/"` (public homepage) — new users bypassed the DashboardLayout onboarding gate | `navigate(data.pin_set ? "/" : "/files")` |
+| `login.tsx` + `OnboardingWizard` | PIN mode selection was lost after `clearLocalAuth()` wiped localStorage | `abrn_pin_hint="1"` written on PIN set and PIN login; login page reads it on mount to pre-select PIN tab |
+| `share-modal.tsx` | `credentialMode` always `"password"` for non-drop files regardless of their `credential_scheme` | Inspects `JSON.parse(metadata).credential_scheme`; returns `"pin"` when set |
+| `CreateShareLinkModal` | Same credential-mode gap as `share-modal.tsx` | `fileCredentialMode` computed variable; UI labels, `inputMode`, `maxLength`, disabled logic all keyed to it |
+
+**E2E test fixes (3-tab Settings adaptation):**
+
+Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanced). Tests that navigated to `/settings` and immediately asserted content hidden behind a tab were silently failing.
+
+| Spec | Fix |
+|------|-----|
+| `owner-trust-flow` — PIN section | Added `page.getByRole("tab", { name: "Security" }).click()` before asserting |
+| `owner-trust-flow` — control-plane docs | Added `page.getByRole("tab", { name: "Advanced" }).click()` before asserting |
+| `agent-key-lifecycle` — agent-ops heading | Added `Advanced` tab click in 3 tests |
+| `agent-key-lifecycle` — scope denial 403 body | Backend returns `{error:string}`, not `{success:false}` — assertion updated |
+| `public-sender-flows` — delivery success text | UI renders `"Your files have been delivered securely."` (lowercase `f`) but test asserted `"Files delivered securely"` (capital `F`) — case-sensitive mismatch |
+
 ### Current Trust UX State
 
 - The trust rail, security timeline, and access visibility panel now share a calmer premium visual shell and clearer state hierarchy.
@@ -120,14 +136,17 @@ The full "Enterprise Polish" plan was applied across 7 steps and 14 files. No fu
 
 - The repo now contains a committed Playwright trust-proof harness under `vaultdrive_client/e2e/`.
 - The harness self-hosts the current Go app on port `8090` so browser verification runs against current repo code, not a stale manual server.
-- Current committed trust proofs cover:
-  - owner trust flow
+- **Current result: 14/14 passing** (last verified March 20, 2026)
+- Committed trust proofs cover:
+  - owner trust flow (signup → onboarding → PIN login → Settings Security tab)
+  - owner action receipts (share link + file request API-call trace)
   - Secure Drop sender flow
   - Secure Drop missing-key boundary
   - File Request sender flow
-  - live agent execution stream
-  - Filemon operator console
-  - trust explanation for denied scopes
+  - Agent key create / introspect / scope denial / revoke / audit log
+  - Live agent operation stream (Settings Advanced tab)
+  - Filemon operator console (Settings Advanced tab)
+  - Trust explanation for denied scopes (Settings Advanced tab)
 - CI now has a dedicated trust-proof workflow that provisions Postgres, runs migrations, runs unit/backend tests, and then runs the Playwright suite with artifact uploads.
 
 ### What's Live
