@@ -5,4 +5,6 @@ test
 abrndrive
 *.temp*.js
 vaultdrive_client/playwright-report/
+vaultdrive
+test-results/
 vaultdrive_client/test-results/
