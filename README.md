@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 23, 2026 (File sharing E2E suite — 32/32 Playwright tests covering upload, share links, groups, trust UX; removeFileFromGroup path bug fixed)**
+> **Last updated: March 23, 2026 (Admin polish + file sharing E2E suite — 32/32 Playwright, admin error feedback, password validation aligned, bulk delete limit raised)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,16 +26,16 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot (March 23, 2026 — File sharing E2E suite)
+### Verification Snapshot (March 23, 2026 — Admin polish + file sharing E2E suite)
 
 | Check | Result | Details |
 |-------|--------|---------|
 | `go build ./...` | CLEAN | 0 errors |
 | `go vet ./...` | CLEAN | 0 warnings |
-| `go test ./...` | PASS | All Go tests (0.48s) |
+| `go test ./...` | PASS | All Go tests (0.51s) |
 | `tsc --noEmit` | CLEAN | 0 TypeScript errors |
-| `npx vitest run` | **21/21** | All unit tests (5.1s) |
-| `npx vite build` | SUCCESS | ~9.0s |
+| `npx vitest run` | **21/21** | All unit tests (5.8s) |
+| `npx vite build` | SUCCESS | ~9.4s |
 | `npx playwright test` | **32/32** | All E2E specs (2.0m) |
 
 **E2E coverage (32 tests across 8 spec files):**
@@ -56,6 +56,13 @@ This section reflects the actual state. Sections below are historical documentat
   - 4 new endpoints: create user, reset PIN, toggle admin role, bulk delete
   - Frontend admin dashboard: user table with create/edit/delete/password-reset/PIN-reset/admin-toggle + bulk selection with select-all and floating action bar
   - Migration 035: `v.cazares@abrn.mx` promoted to admin alongside `filemon@abrn.mx`
+- File sharing E2E suite (March 23) — see [docs/19_FILE_SHARING_E2E_SUITE.md](./docs/19_FILE_SHARING_E2E_SUITE.md)
+  - 18 new Playwright tests across 6 spec files: file upload, upload links, share links, group CRUD, group sharing, trust UX
+  - Bug fix: `removeFileFromGroupHandler` path param `"groupId"` → `"id"` (was silently failing all group file removals)
+- Admin polish (March 23) — see [docs/20_ADMIN_POLISH.md](./docs/20_ADMIN_POLISH.md)
+  - Error feedback on all admin operations (was silent failures)
+  - Password validation aligned: 8-char minimum everywhere (frontend had 6 in admin create user)
+  - Bulk delete limit raised from 100 to 500
 
 ### Enterprise Polish UX State (March 20, 2026)
 
@@ -148,7 +155,7 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
 
 - The repo now contains a committed Playwright trust-proof harness under `vaultdrive_client/e2e/`.
 - The harness self-hosts the current Go app on port `8090` so browser verification runs against current repo code, not a stale manual server.
-- **Current result: 14/14 passing** (last verified March 20, 2026)
+- **Current result: 32/32 passing** (last verified March 23, 2026)
 - Committed trust proofs cover:
   - owner trust flow (signup → onboarding → PIN login → Settings Security tab)
   - owner action receipts (share link + file request API-call trace)
@@ -159,6 +166,12 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
   - Live agent operation stream (Settings Advanced tab)
   - Filemon operator console (Settings Advanced tab)
   - Trust explanation for denied scopes (Settings Advanced tab)
+  - File upload with browser encryption + AES-256-GCM metadata verification
+  - Upload link lifecycle: UI creation, anonymous sender delivery, 24h expiry
+  - Share link lifecycle: create, access count tracking, instant revoke
+  - Group CRUD: create via UI, add/remove members, delete
+  - Group file sharing: share to group, member access, remove from group
+  - Trust & safety UX: PIN setup, security tab, empty states, API receipts, encryption footer
 - CI now has a dedicated trust-proof workflow that provisions Postgres, runs migrations, runs unit/backend tests, and then runs the Playwright suite with artifact uploads.
 
 ### What's Live
@@ -274,7 +287,12 @@ File requests remain intentionally separate: the uploader still chooses a passph
 ### Recent Session Work (Selected Milestones)
 
 ```
-(pending)          feat: admin user management — routes wired, CRUD, bulk delete, PIN reset, admin toggle
+(latest)           chore: admin polish — error feedback, 8-char password, bulk delete 500
+465a89b           docs: session memory and README update for file sharing E2E suite
+36210fd           test: full E2E suite verification — 32/32 green
+ca540ac           test+fix: group file sharing E2E + removeFileFromGroup path param bug
+70a8226           fix: address code review — registration leak, input validation, self-ID by UUID
+623e48f           feat: admin user management — routes wired, CRUD, bulk delete, PIN reset, admin toggle
 2c5c3d1           docs: PIN auth unification — 14/14 E2E green, verbose README refresh
 91ca320           feat: trust UX hardening — 3-iteration polish pass across all trust surfaces
 0ada09a           docs: record verified one-pin trust flow state
@@ -295,11 +313,11 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-23-admin-user-management.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
-6. The latest verification + doc checkpoint is `docs/18_ADMIN_USER_MANAGEMENT.md`.
+6. The latest verification + doc checkpoint is `docs/20_ADMIN_POLISH.md`.
 7. Admin users: `filemon@abrn.mx` and `v.cazares@abrn.mx`. Admin endpoints at `/api/admin/...`.
 
 ---
@@ -423,6 +441,8 @@ Response envelope:
 
 - `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
+- `docs/20_ADMIN_POLISH.md` — admin polish: error feedback, password validation, bulk delete limit
+- `docs/19_FILE_SHARING_E2E_SUITE.md` — file sharing E2E tests: 18 new Playwright tests, removeFileFromGroup bug fix
 - `docs/18_ADMIN_USER_MANAGEMENT.md` — admin user management: routes, CRUD, bulk delete, PIN reset, admin toggle
 - `docs/17_PIN_AUTH_UNIFICATION.md` — PIN auth unification: 8 gaps closed, E2E fixes
 - `docs/16_ENTERPRISE_POLISH_UX.md` — enterprise polish: 7 steps, 14 files, presentation-only

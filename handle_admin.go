@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const maxBulkDelete = 100
+const maxBulkDelete = 500
 
 // Middleware to require admin access
 func (cfg *ApiConfig) requireAdmin(next authedHandler) authedHandler {

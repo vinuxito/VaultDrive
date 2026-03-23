@@ -159,8 +159,8 @@ export default function Admin() {
       setError("All fields are required");
       return;
     }
-    if (newUser.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (newUser.password.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -206,9 +206,13 @@ export default function Admin() {
       if (response.ok) {
         await fetchUsers();
         setEditingUser(null);
+      } else {
+        const data = await response.json();
+        alert(data.error || "Error updating user");
       }
     } catch (err) {
       console.error("Error updating user:", err);
+      alert("Network error updating user");
     }
   };
 
@@ -229,9 +233,13 @@ export default function Admin() {
         setResetPasswordUser(null);
         setNewPassword("");
         alert("Password reset successfully!");
+      } else {
+        const data = await response.json();
+        alert(data.error || "Error resetting password");
       }
     } catch (err) {
       console.error("Error resetting password:", err);
+      alert("Network error resetting password");
     }
   };
 
@@ -254,9 +262,13 @@ export default function Admin() {
 
       if (response.ok) {
         alert("PIN cleared successfully.");
+      } else {
+        const data = await response.json();
+        alert(data.error || "Error resetting PIN");
       }
     } catch (err) {
       console.error("Error resetting PIN:", err);
+      alert("Network error resetting PIN");
     }
   };
 
@@ -305,9 +317,13 @@ export default function Admin() {
         next.delete(userId);
         setSelected(next);
         await fetchUsers();
+      } else {
+        const data = await response.json();
+        alert(data.error || "Error deleting user");
       }
     } catch (err) {
       console.error("Error deleting user:", err);
+      alert("Network error deleting user");
     }
   };
 
