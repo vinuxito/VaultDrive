@@ -225,7 +225,7 @@ func (cfg *ApiConfig) shareFileToGroupHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (cfg *ApiConfig) removeFileFromGroupHandler(w http.ResponseWriter, r *http.Request, user database.User) {
-	groupIDStr := r.PathValue("groupId")
+	groupIDStr := r.PathValue("id")
 	groupID, err := parseUUID(groupIDStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid group ID", err)
