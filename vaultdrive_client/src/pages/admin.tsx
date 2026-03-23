@@ -58,7 +58,7 @@ export default function Admin() {
 
   // Users that can be selected for bulk delete (not self)
   const selectableUsers = users.filter(
-    (u) => u.email !== currentUser?.email
+    (u) => u.id !== currentUser?.id
   );
   const allSelectableSelected =
     selectableUsers.length > 0 &&
@@ -396,7 +396,7 @@ export default function Admin() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {users.map((user) => {
-              const isSelf = user.email === currentUser?.email;
+              const isSelf = user.id === currentUser?.id;
               const isSelected = selected.has(user.id);
               return (
                 <tr

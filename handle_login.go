@@ -17,6 +17,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type response struct {
+		ID                         string `json:"id"`
 		Username                   string `json:"username"`
 		Email                      string `json:"email"`
 		FirstName                  string `json:"first_name"`
@@ -95,6 +96,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, response{
+		ID:                         user.ID.String(),
 		Username:                   user.Username,
 		Email:                      user.Email,
 		FirstName:                  user.FirstName,

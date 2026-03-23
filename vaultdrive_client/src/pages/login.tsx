@@ -67,6 +67,7 @@ export default function Login() {
       localStorage.setItem(
         "user",
         JSON.stringify({
+          id: data.id,
           username: data.username,
           email: data.email,
           first_name: data.first_name,

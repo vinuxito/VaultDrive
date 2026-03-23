@@ -76,7 +76,15 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, user)
+	respondWithJSON(w, http.StatusCreated, map[string]interface{}{
+		"id":         user.ID,
+		"first_name": user.FirstName,
+		"last_name":  user.LastName,
+		"username":   user.Username,
+		"email":      user.Email,
+		"created_at": user.CreatedAt,
+		"updated_at": user.UpdatedAt,
+	})
 }
 
 func generateRSAKeys() (string, string, error) {

@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/mail"
 	"time"
 
 	"github.com/Pranay0205/VaultDrive/internal/database"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const maxBulkDelete = 100
 
 // Middleware to require admin access
 func (cfg *ApiConfig) requireAdmin(next authedHandler) authedHandler {
@@ -85,6 +88,11 @@ func (cfg *ApiConfig) updateUserAsAdminHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if _, err := mail.ParseAddress(req.Email); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid email format", nil)
+		return
+	}
+
 	updatedUser, err := cfg.dbQueries.UpdateUserAsAdmin(context.Background(), database.UpdateUserAsAdminParams{
 		ID:        userUUID,
 		FirstName: req.FirstName,
@@ -136,8 +144,8 @@ func (cfg *ApiConfig) resetUserPasswordHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	// Validate password
-	if len(req.NewPassword) < 6 {
-		respondWithError(w, http.StatusBadRequest, "Password must be at least 6 characters", nil)
+	if len(req.NewPassword) < 8 {
+		respondWithError(w, http.StatusBadRequest, "Password must be at least 8 characters", nil)
 		return
 	}
 
@@ -206,6 +214,11 @@ func (cfg *ApiConfig) bulkDeleteUsersHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	if len(req.UserIDs) > maxBulkDelete {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Maximum %d users per request", maxBulkDelete), nil)
+		return
+	}
+
 	deleted := 0
 	skipped := 0
 	for _, id := range req.UserIDs {
@@ -220,11 +233,16 @@ func (cfg *ApiConfig) bulkDeleteUsersHandler(w http.ResponseWriter, r *http.Requ
 			continue
 		}
 		if err := cfg.dbQueries.DeleteUserAsAdmin(context.Background(), userUUID); err != nil {
-			log.Printf("Error deleting user %s: %v", id, err)
+			log.Printf("bulk-delete: failed user %s", id)
 			skipped++
 			continue
 		}
 		deleted++
+	}
+
+	if deleted == 0 {
+		respondWithError(w, http.StatusBadRequest, "No users were deleted", nil)
+		return
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
@@ -255,8 +273,13 @@ func (cfg *ApiConfig) createUserAsAdminHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if len(req.Password) < 6 {
-		respondWithError(w, http.StatusBadRequest, "Password must be at least 6 characters", nil)
+	if _, err := mail.ParseAddress(req.Email); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid email format", nil)
+		return
+	}
+
+	if len(req.Password) < 8 {
+		respondWithError(w, http.StatusBadRequest, "Password must be at least 8 characters", nil)
 		return
 	}
 
