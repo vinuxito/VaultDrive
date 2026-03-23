@@ -1,8 +1,12 @@
-/* ABRN Asesores - Custom Font Import */
+/* ABRN Asesores - Custom Font Imports */
+/* Libre Baskerville: display/headings — luxury serif with presence */
 @import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap");
+/* Inter: body text — clean sans-serif with optical sizing for readability */
+@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap");
 
 @import "tailwindcss";
 
+@import "./styles/luxury-tokens.css";
 @import "./styles/elegant-complete.css";
 
 @layer base {
@@ -80,9 +84,26 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Libre Baskerville', Baskerville, Georgia, serif;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
     margin: 0;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Luxury typography: serif for display headings, sans for everything else */
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-body);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-normal);
   }
 }
 

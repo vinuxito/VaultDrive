@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 23, 2026 (Admin polish + file sharing E2E suite — 32/32 Playwright, admin error feedback, password validation aligned, bulk delete limit raised)**
+> **Last updated: March 23, 2026 (Force password change + luxury design tokens + FK cascade fix + admin polish + file sharing E2E suite)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,31 +26,54 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot (March 23, 2026 — Admin polish + file sharing E2E suite)
+### Verification Snapshot (March 23, 2026 — Force password change + luxury tokens)
 
 | Check | Result | Details |
 |-------|--------|---------|
 | `go build ./...` | CLEAN | 0 errors |
 | `go vet ./...` | CLEAN | 0 warnings |
-| `go test ./...` | PASS | All Go tests (0.51s) |
 | `tsc --noEmit` | CLEAN | 0 TypeScript errors |
-| `npx vitest run` | **21/21** | All unit tests (5.8s) |
-| `npx vite build` | SUCCESS | ~9.4s |
-| `npx playwright test` | **32/32** | All E2E specs (2.0m) |
+| `npx vitest run` | **27/27** | 10 test files, all pass (4.56s) |
+| `npx vite build` | SUCCESS | ~8.07s |
+| `npx playwright test` | **32/32** | All E2E specs (last run before this session) |
 
 **E2E coverage (32 tests across 8 spec files):**
 - Owner trust flow: signup, onboarding, PIN login, Settings (Security + Advanced tabs)
 - Owner action receipts: share link creation + file request creation API-call trace
 - Agent key lifecycle: create, introspect, scope denial, revoke, audit log, live stream, Filemon operator, denial timeline
 - Public sender flows: secure drop delivery, missing-fragment-key rejection, file request sender
-- **File upload flow** (new): browser encryption, AES-256-GCM metadata verification
-- **Upload link lifecycle** (new): UI link creation, anonymous sender delivery, 24h expiry verification
-- **Share link lifecycle** (new): create link, access tracking, instant revoke
-- **Group CRUD** (new): create via UI, add/remove members, delete group
-- **Group file sharing** (new): share file to group, member access, group-level revoke
-- **Trust & safety UX** (new): PIN setup, security tab, empty states, API call receipts, encryption footer
+- File upload flow: browser encryption, AES-256-GCM metadata verification
+- Upload link lifecycle: UI link creation, anonymous sender delivery, 24h expiry verification
+- Share link lifecycle: create link, access tracking, instant revoke
+- Group CRUD: create via UI, add/remove members, delete group
+- Group file sharing: share file to group, member access, group-level revoke
+- Trust & safety UX: PIN setup, security tab, empty states, API call receipts, encryption footer
 
-**What changed since March 20:**
+**What changed since last commit:**
+
+- **Force password change** (March 23) — see [docs/21_FORCE_PASSWORD_CHANGE.md](./docs/21_FORCE_PASSWORD_CHANGE.md)
+  - Admin can flag any non-self user to force password change on next login
+  - 3-layer defense: backend middleware gate (blocks all endpoints except change-password), frontend ProtectedRoute guard, login redirect
+  - Private key re-encryption: client-side decrypt with old password, encrypt with new password, backend saves
+  - SessionVault initialization after change so file decryption works immediately on dashboard
+  - Auto-flagged when admin resets a user's password (with proper error handling)
+  - Full-screen gate page: no escape, no navigation — only submit or sign out
+  - Admin dashboard: ShieldAlert force button per user row, disabled when already flagged
+  - Self-flag prevention on both frontend (hidden button) and backend (403)
+  - New `encryptPrivateKeyWithPassword()` in crypto.ts mirrors Go's server-side encryption format
+  - Migration 037: `force_password_change BOOLEAN NOT NULL DEFAULT FALSE`
+  - 3 new sqlc queries + 1 new backend handler file + 1 new frontend page
+  - 2 code reviews resolved 6 issues (2 CRITICAL, 3 HIGH, 1 MEDIUM)
+- **Luxury design token system** (March 23) — Plan 1 Step 1 of luxury UI polish
+  - `luxury-tokens.css`: burgundy palette (50-900), warm neutrals, glassmorphism tokens, layered shadow system, typography scale, spacing, timing
+  - `motion-presets.ts`: Framer Motion springs (gentle/snappy/dramatic/micro), tweens (fast/normal/slow), composite transitions, animation variants, hover/tap states, reduced motion fallbacks
+  - `usePrefersReducedMotion.ts`: React hook for `prefers-reduced-motion` media query
+  - `elegant-complete.css`: bridged legacy CSS variables to luxury tokens, fixed dark mode selectors (`.dark` class instead of `@media`)
+  - `index.css`: Inter font import, luxury token integration, antialiased rendering, heading typography rules
+  - 6 new unit tests for motion presets (spring physics, tween durations, variant shapes)
+- **FK cascade fix** (March 23)
+  - Migration 036: `group_file_shares.created_by` → `ON DELETE CASCADE`, `file_versions.created_by` → `ON DELETE SET NULL`
+  - Root cause of admin DELETE user 500 errors (2 of ~20 FK references had no cascade rules)
 - Admin user management (March 23) — see [docs/18_ADMIN_USER_MANAGEMENT.md](./docs/18_ADMIN_USER_MANAGEMENT.md)
   - 4 existing admin handlers (list, edit, reset password, delete) were dead code — routes now registered in `main.go`
   - 4 new endpoints: create user, reset PIN, toggle admin role, bulk delete
@@ -210,6 +233,8 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
 | CORS hardened | ✅ | Explicit origin allowlist |
 | Zero-knowledge drop uploads | ✅ | Raw key never stored, key stays client-side during upload, owner access comes from stored `pin_wrapped_key` |
 | Admin dashboard | ✅ | Full user management — CRUD, password reset, PIN reset, admin toggle, bulk delete |
+| Force password change | ✅ | 3-layer gate (middleware + ProtectedRoute + login), private key re-encryption, SessionVault init, auto-flag on admin reset |
+| Luxury design tokens | ✅ | Burgundy palette, glassmorphism, Framer Motion presets, reduced motion support (Step 1 of 7) |
 | Email module | ⛔ | Removed from UI (code preserved) |
 | Delegated decrypt | 🔜 | Deferred — requires explicit key-wrapping design |
 

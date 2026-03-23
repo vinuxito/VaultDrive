@@ -14,12 +14,10 @@
               background-color 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .elegant-card {
-    --surface-primary: #1e2330;
-    --surface-secondary: #2c3240;
-    --text-primary: #f8fafc;
-  }
+.dark .elegant-card {
+  --surface-primary: var(--lux-slate-900);
+  --surface-secondary: var(--lux-slate-800);
+  --text-primary: var(--lux-neutral-200);
 }
 
 .elegant-card-hover:hover {
@@ -90,11 +88,9 @@
               background-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-@media (prefers-color-scheme: dark) {
-  .elegant-input {
-    background: #2c3240;
-    color: #f8fafc;
-  }
+.dark .elegant-input {
+  background: var(--lux-slate-800);
+  color: var(--lux-neutral-200);
 }
 
 .elegant-input:focus {
@@ -446,34 +442,32 @@
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
-/* CSS Variables for theming (at bottom for Tailwind compatibility) */
+/* CSS Variables for theming — bridging legacy elegant system to luxury tokens */
 :root {
-  --surface-primary: #fafafa;
-  --surface-secondary: #f4f4f5;
-  --surface-tertiary: #e5e5e5;
-  --text-primary: #222;
-  --text-secondary: #666;
-  --text-tertiary: #999;
-  --accent-primary: #7d4f50;
-  --accent-secondary: #c4999b;
-  --accent-success: #10b981;
-  --accent-warning: #f59e0b;
-  --accent-danger: #ef4444;
-  --elevation-low: 0 2px 8px rgba(0,0,0,0.04);
-  --elevation-medium: 0 4px 16px rgba(0,0,0,0.08);
-  --elevation-high: 0 8px 32px rgba(0,0,0,0.12);
+  --surface-primary: var(--lux-neutral-50);
+  --surface-secondary: var(--lux-neutral-200);
+  --surface-tertiary: var(--lux-neutral-300);
+  --text-primary: var(--lux-slate-700);
+  --text-secondary: var(--lux-slate-500);
+  --text-tertiary: var(--lux-slate-400);
+  --accent-primary: var(--lux-burgundy-600);
+  --accent-secondary: var(--lux-burgundy-300);
+  --accent-success: var(--lux-emerald);
+  --accent-warning: var(--lux-amber);
+  --accent-danger: var(--lux-ruby);
+  --elevation-low: var(--shadow-sm);
+  --elevation-medium: var(--shadow-md);
+  --elevation-high: var(--shadow-lg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface-primary: #1e2330;
-    --surface-secondary: #2c3240;
-    --surface-tertiary: #2c3240;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-tertiary: #64748b;
-    --elevation-low: 0 2px 8px rgba(0,0,0,0.2);
-    --elevation-medium: 0 4px 16px rgba(0,0,0,0.3);
-    --elevation-high: 0 8px 32px rgba(0,0,0,0.4);
-  }
+.dark {
+  --surface-primary: var(--lux-slate-900);
+  --surface-secondary: var(--lux-slate-800);
+  --surface-tertiary: var(--lux-slate-800);
+  --text-primary: var(--lux-neutral-200);
+  --text-secondary: var(--lux-slate-400);
+  --text-tertiary: var(--lux-slate-500);
+  --elevation-low: var(--shadow-sm);
+  --elevation-medium: var(--shadow-md);
+  --elevation-high: var(--shadow-lg);
 }

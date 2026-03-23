@@ -248,4 +248,5 @@ type User struct {
 	PinFailedAttempts      int32
 	PinLockedUntil         sql.NullTime
 	OrganizationName       sql.NullString
+	ForcePasswordChange    bool
 }

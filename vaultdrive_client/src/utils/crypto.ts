@@ -260,6 +260,45 @@ export async function decryptPrivateKeyWithPassword(
   return new TextDecoder().decode(decrypted);
 }
 
+// Encrypt RSA private key PEM with password using AES-256-GCM.
+// Mirror of Go's encryptPrivateKey: [16B salt][12B IV][ciphertext] → base64.
+// Key = SHA-256(salt || password).
+export async function encryptPrivateKeyWithPassword(
+  password: string,
+  privateKeyPem: string,
+): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  const passwordBytes = new TextEncoder().encode(password.normalize("NFC"));
+  const combined = new Uint8Array(salt.length + passwordBytes.length);
+  combined.set(salt, 0);
+  combined.set(passwordBytes, salt.length);
+
+  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    hashBuffer,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"],
+  );
+
+  const plaintext = new TextEncoder().encode(privateKeyPem);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    aesKey,
+    plaintext,
+  );
+
+  const result = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
+  result.set(salt, 0);
+  result.set(iv, salt.length);
+  result.set(new Uint8Array(ciphertext), salt.length + iv.length);
+
+  return arrayBufferToBase64(result);
+}
+
 // Helper: Create a Blob from decrypted data
 export function createBlobFromDecrypted(
   decryptedData: ArrayBuffer,

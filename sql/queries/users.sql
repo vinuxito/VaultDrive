@@ -104,3 +104,18 @@ WHERE id = $1;
 UPDATE users
 SET is_admin = $2, updated_at = $3
 WHERE id = $1;
+
+-- name: SetForcePasswordChange :exec
+UPDATE users
+SET force_password_change = $2, updated_at = $3
+WHERE id = $1;
+
+-- name: ClearForcePasswordChange :exec
+UPDATE users
+SET force_password_change = FALSE, updated_at = $2
+WHERE id = $1;
+
+-- name: UpdateUserPrivateKeyEncrypted :exec
+UPDATE users
+SET private_key_encrypted = $2, updated_at = $3
+WHERE id = $1;

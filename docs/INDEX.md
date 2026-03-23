@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 23, 2026 (File sharing E2E suite — 32/32 Playwright tests + admin polish)
+Last updated: March 23, 2026 (Force password change + luxury design tokens + FK cascade fix)
 
 ## Task Documentation
 
@@ -26,6 +26,7 @@ Last updated: March 23, 2026 (File sharing E2E suite — 32/32 Playwright tests 
 | 18 | [Admin User Management](./18_ADMIN_USER_MANAGEMENT.md) | Admin routes wired up (were dead code), create user, reset password, reset PIN, admin toggle, bulk delete, v.cazares promoted |
 | 19 | [File Sharing E2E Suite](./19_FILE_SHARING_E2E_SUITE.md) | 18 new Playwright E2E tests — file upload, share links, upload links, groups, trust UX; removeFileFromGroup bug fixed |
 | 20 | [Admin Polish](./20_ADMIN_POLISH.md) | Admin error feedback, password validation alignment (6→8 chars), bulk delete limit bump (100→500) |
+| 21 | [Force Password Change](./21_FORCE_PASSWORD_CHANGE.md) | Admin security gate — force users to change password on next login, 3-layer defense, private key re-encryption |
 
 ## Feature Docs (pre-existing)
 
@@ -57,6 +58,7 @@ Last updated: March 23, 2026 (File sharing E2E suite — 32/32 Playwright tests 
 | [SESSION_MEMORY_2026-03-20-enterprise-polish.md](./SESSION_MEMORY_2026-03-20-enterprise-polish.md) | Enterprise polish pass — 7 steps, 14 files, 284 insertions, build and tests verified |
 | [SESSION_MEMORY_2026-03-23-admin-user-management.md](./SESSION_MEMORY_2026-03-23-admin-user-management.md) | Admin user management — routes wired, CRUD + bulk delete + PIN reset + admin toggle, verification pass |
 | [SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md](./SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md) | 7-iteration E2E loop — 18 new tests for file upload, share links, groups, trust UX |
+| [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md) | Force password change + luxury design tokens + FK cascade fix |
 
 ## Quick Navigation
 
@@ -92,4 +94,6 @@ Last updated: March 23, 2026 (File sharing E2E suite — 32/32 Playwright tests 
 
 **I want the E2E file sharing test coverage →** [19_FILE_SHARING_E2E_SUITE.md](./19_FILE_SHARING_E2E_SUITE.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md](./SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md)
+**I want the force password change summary →** [21_FORCE_PASSWORD_CHANGE.md](./21_FORCE_PASSWORD_CHANGE.md)
+
+**I want the latest session context →** [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md)

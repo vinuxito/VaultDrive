@@ -3,15 +3,22 @@ import { DashboardLayout } from './layout/dashboard-layout';
 
 const useAuth = () => {
   const token = localStorage.getItem('token');
-  // In a real app, you'd also validate the token here
-  return { isAuthenticated: !!token };
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  return {
+    isAuthenticated: !!token,
+    forcePasswordChange: !!user.force_password_change,
+  };
 };
 
 export const ProtectedRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, forcePasswordChange } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (forcePasswordChange) {
+    return <Navigate to="/force-password-change" replace />;
   }
 
   return (

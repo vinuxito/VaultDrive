@@ -46,14 +46,15 @@ func (cfg *ApiConfig) getAllUsersHandler(w http.ResponseWriter, r *http.Request,
 			isAdmin = u.IsAdmin.Bool
 		}
 		response[i] = map[string]interface{}{
-			"id":         u.ID,
-			"first_name": u.FirstName,
-			"last_name":  u.LastName,
-			"username":   u.Username,
-			"email":      u.Email,
-			"is_admin":   isAdmin,
-			"created_at": u.CreatedAt,
-			"updated_at": u.UpdatedAt,
+			"id":                    u.ID,
+			"first_name":            u.FirstName,
+			"last_name":             u.LastName,
+			"username":              u.Username,
+			"email":                 u.Email,
+			"is_admin":              isAdmin,
+			"force_password_change": u.ForcePasswordChange,
+			"created_at":            u.CreatedAt,
+			"updated_at":            u.UpdatedAt,
 		}
 	}
 
@@ -156,18 +157,29 @@ func (cfg *ApiConfig) resetUserPasswordHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	now := time.Now()
 	err = cfg.dbQueries.UpdateUserPassword(context.Background(), database.UpdateUserPasswordParams{
 		ID:           userUUID,
 		PasswordHash: string(hashedPassword),
-		UpdatedAt:    time.Now(),
+		UpdatedAt:    now,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error updating password", err)
 		return
 	}
 
+	// Auto-flag: user must change this admin-set password on next login
+	if err := cfg.dbQueries.SetForcePasswordChange(context.Background(), database.SetForcePasswordChangeParams{
+		ID:                  userUUID,
+		ForcePasswordChange: true,
+		UpdatedAt:           now,
+	}); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Password was reset but failed to set force-change flag", err)
+		return
+	}
+
 	respondWithJSON(w, http.StatusOK, map[string]string{
-		"message": "Password reset successfully",
+		"message": "Password reset successfully. User will be required to change it on next login.",
 	})
 }
 
@@ -353,6 +365,36 @@ func (cfg *ApiConfig) resetUserPINHandler(w http.ResponseWriter, r *http.Request
 
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"message": "PIN reset successfully. User will need to set a new PIN.",
+	})
+}
+
+// POST /admin/users/{id}/force-password-change - Require user to change password on next login
+func (cfg *ApiConfig) forcePasswordChangeHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	userID := r.PathValue("id")
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	// Prevent admin from flagging themselves
+	if userUUID == user.ID {
+		respondWithError(w, http.StatusBadRequest, "Cannot force password change on your own account", nil)
+		return
+	}
+
+	err = cfg.dbQueries.SetForcePasswordChange(context.Background(), database.SetForcePasswordChangeParams{
+		ID:                  userUUID,
+		ForcePasswordChange: true,
+		UpdatedAt:           time.Now(),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error setting force password change", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "User will be required to change password on next login",
 	})
 }
 

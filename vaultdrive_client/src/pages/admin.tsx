@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   Shield,
+  ShieldAlert,
   Edit2,
   Trash2,
   Key,
@@ -20,6 +21,7 @@ interface User {
   username: string;
   email: string;
   is_admin: boolean;
+  force_password_change: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -302,6 +304,36 @@ export default function Admin() {
     }
   };
 
+  const handleForcePasswordChange = async (user: User) => {
+    if (
+      !confirm(
+        `Require ${user.first_name} ${user.last_name} to change their password on next login?`
+      )
+    )
+      return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/users/${user.id}/force-password-change`,
+        {
+          method: "POST",
+          headers: authHeaders(),
+        }
+      );
+
+      if (response.ok) {
+        await fetchUsers();
+        alert("User will be required to change password on next login.");
+      } else {
+        const data = await response.json();
+        alert(data.error || "Error setting force password change");
+      }
+    } catch (err) {
+      console.error("Error forcing password change:", err);
+      alert("Network error");
+    }
+  };
+
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
@@ -502,6 +534,24 @@ export default function Admin() {
                     >
                       <Lock className="h-4 w-4" />
                     </button>
+                    {!isSelf && (
+                      <button
+                        onClick={() => handleForcePasswordChange(user)}
+                        className={`mr-3 ${
+                          user.force_password_change
+                            ? "text-amber-600"
+                            : "text-amber-400 hover:text-amber-600"
+                        }`}
+                        title={
+                          user.force_password_change
+                            ? "Password change already required"
+                            : "Force password change on next login"
+                        }
+                        disabled={user.force_password_change}
+                      >
+                        <ShieldAlert className="h-4 w-4" />
+                      </button>
+                    )}
                     {!isSelf && (
                       <button
                         onClick={() => handleDeleteUser(user.id)}

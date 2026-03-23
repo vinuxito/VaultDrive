@@ -13,6 +13,22 @@ import (
 	"github.com/google/uuid"
 )
 
+const clearForcePasswordChange = `-- name: ClearForcePasswordChange :exec
+UPDATE users
+SET force_password_change = FALSE, updated_at = $2
+WHERE id = $1
+`
+
+type ClearForcePasswordChangeParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ClearForcePasswordChange(ctx context.Context, arg ClearForcePasswordChangeParams) error {
+	_, err := q.db.ExecContext(ctx, clearForcePasswordChange, arg.ID, arg.UpdatedAt)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   first_name,
@@ -26,7 +42,7 @@ INSERT INTO users (
   updated_at
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change
 `
 
 type CreateUserParams struct {
@@ -72,6 +88,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PinFailedAttempts,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
+		&i.ForcePasswordChange,
 	)
 	return i, err
 }
@@ -97,7 +114,7 @@ func (q *Queries) DeleteUserAsAdmin(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
 ORDER BY created_at DESC
 `
 
@@ -129,6 +146,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.PinFailedAttempts,
 			&i.PinLockedUntil,
 			&i.OrganizationName,
+			&i.ForcePasswordChange,
 		); err != nil {
 			return nil, err
 		}
@@ -144,7 +162,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
 WHERE email = $1
 `
 
@@ -169,12 +187,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PinFailedAttempts,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
+		&i.ForcePasswordChange,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
 WHERE id = $1
 `
 
@@ -199,12 +218,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PinFailedAttempts,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
+		&i.ForcePasswordChange,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
 WHERE username = $1
 `
 
@@ -229,6 +249,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.PinFailedAttempts,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
+		&i.ForcePasswordChange,
 	)
 	return i, err
 }
@@ -342,6 +363,23 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Sea
 	return items, nil
 }
 
+const setForcePasswordChange = `-- name: SetForcePasswordChange :exec
+UPDATE users
+SET force_password_change = $2, updated_at = $3
+WHERE id = $1
+`
+
+type SetForcePasswordChangeParams struct {
+	ID                  uuid.UUID
+	ForcePasswordChange bool
+	UpdatedAt           time.Time
+}
+
+func (q *Queries) SetForcePasswordChange(ctx context.Context, arg SetForcePasswordChangeParams) error {
+	_, err := q.db.ExecContext(ctx, setForcePasswordChange, arg.ID, arg.ForcePasswordChange, arg.UpdatedAt)
+	return err
+}
+
 const setPrivateKeyPinEncrypted = `-- name: SetPrivateKeyPinEncrypted :exec
 UPDATE users
 SET private_key_pin_encrypted = $2
@@ -400,7 +438,7 @@ SET
   email = $4,
   updated_at = $5
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change
 `
 
 type UpdateUserParams struct {
@@ -438,6 +476,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.PinFailedAttempts,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
+		&i.ForcePasswordChange,
 	)
 	return i, err
 }
@@ -451,7 +490,7 @@ SET
   username = $5,
   updated_at = $6
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change
 `
 
 type UpdateUserAsAdminParams struct {
@@ -491,6 +530,7 @@ func (q *Queries) UpdateUserAsAdmin(ctx context.Context, arg UpdateUserAsAdminPa
 		&i.PinFailedAttempts,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
+		&i.ForcePasswordChange,
 	)
 	return i, err
 }
@@ -511,5 +551,22 @@ type UpdateUserPasswordParams struct {
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
 	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.ID, arg.PasswordHash, arg.UpdatedAt)
+	return err
+}
+
+const updateUserPrivateKeyEncrypted = `-- name: UpdateUserPrivateKeyEncrypted :exec
+UPDATE users
+SET private_key_encrypted = $2, updated_at = $3
+WHERE id = $1
+`
+
+type UpdateUserPrivateKeyEncryptedParams struct {
+	ID                  uuid.UUID
+	PrivateKeyEncrypted string
+	UpdatedAt           time.Time
+}
+
+func (q *Queries) UpdateUserPrivateKeyEncrypted(ctx context.Context, arg UpdateUserPrivateKeyEncryptedParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPrivateKeyEncrypted, arg.ID, arg.PrivateKeyEncrypted, arg.UpdatedAt)
 	return err
 }

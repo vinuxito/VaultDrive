@@ -230,6 +230,10 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.searchUsersHandler)))
 
+	mux.Handle("POST /api/users/change-password",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handleChangePassword)))
+
 	mux.Handle("POST /api/users/pin",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerSetUserPIN)))
@@ -366,6 +370,10 @@ func main() {
 	mux.Handle("PUT /api/admin/users/{id}/admin-status",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.toggleAdminHandler))))
+
+	mux.Handle("POST /api/admin/users/{id}/force-password-change",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.forcePasswordChangeHandler))))
 
 	mux.Handle("DELETE /api/admin/users/{id}",
 		apiConfig.middlewareMetricsInc(

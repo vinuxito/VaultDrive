@@ -29,6 +29,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		PrivateKeyPinEncrypted     string `json:"private_key_pin_encrypted,omitempty"`
 		IsAdmin                    bool   `json:"is_admin"`
 		PinSet                     bool   `json:"pin_set"`
+		ForcePasswordChange        bool   `json:"force_password_change"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -108,5 +109,6 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		PrivateKeyPinEncrypted:     privateKeyPinEncrypted,
 		IsAdmin:                    isAdmin,
 		PinSet:                     pinSet,
+		ForcePasswordChange:        user.ForcePasswordChange,
 	})
 }

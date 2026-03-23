@@ -74,6 +74,7 @@ export default function Login() {
           last_name: data.last_name,
           is_admin: data.is_admin,
           pin_set: data.pin_set,
+          force_password_change: data.force_password_change || false,
           private_key_encrypted: data.private_key_encrypted,
           private_key_pin_encrypted: data.private_key_pin_encrypted || null,
           public_key: data.public_key,
@@ -81,6 +82,12 @@ export default function Login() {
       );
 
       window.dispatchEvent(new Event("auth-change"));
+
+      // Force password change gate — no vault access until password is changed
+      if (data.force_password_change) {
+        navigate("/force-password-change", { replace: true });
+        return;
+      }
 
       try {
         if (loginMode === "password" && data.private_key_encrypted) {

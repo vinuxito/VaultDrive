@@ -8,6 +8,10 @@ import (
 	"github.com/Pranay0205/VaultDrive/internal/database"
 )
 
+// changePasswordPath is the only endpoint allowed when force_password_change is set.
+// Kept as a const so the middleware gate and route registration stay in sync.
+const changePasswordPath = "/api/users/change-password"
+
 type authedHandler func(http.ResponseWriter, *http.Request, database.User)
 
 func (cfg *ApiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
@@ -27,6 +31,12 @@ func (cfg *ApiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 		user, err := cfg.dbQueries.GetUserByID(context.Background(), userID)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Error getting user", err)
+			return
+		}
+
+		// Gate: if force_password_change is set, only allow the change-password endpoint
+		if user.ForcePasswordChange && r.URL.Path != changePasswordPath {
+			respondWithError(w, http.StatusForbidden, "Password change required. Please change your password before continuing.", nil)
 			return
 		}
 

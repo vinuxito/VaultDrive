@@ -14,6 +14,7 @@ import DropUpload from "./pages/drop-upload";
 import PublicSharePage from "./pages/PublicSharePage";
 import FileRequestPage from "./pages/FileRequestPage";
 import Dashboard from "./pages/dashboard";
+import ForcePasswordChange from "./pages/force-password-change";
 import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
 
@@ -25,6 +26,7 @@ function App() {
       <Router basename={basename}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/force-password-change" element={<ForcePasswordChange />} />
           {/* Public pages with Navbar */}
           <Route path="/" element={<Navbar><Home /></Navbar>} />
           <Route path="/about" element={<Navbar><About /></Navbar>} />
