@@ -79,22 +79,44 @@ export async function loginWithPin(page: Page, account: OwnerAccount) {
   await page.waitForURL((url) => !url.toString().includes("/login"));
 }
 
-async function getAuthToken(page: Page): Promise<string> {
+export async function uploadFileAsOwner(
+  page: Page,
+  account: OwnerAccount,
+  file: { name: string; mimeType: string; buffer: Buffer },
+) {
+  const fileInput = page.locator("#file-input");
+  await fileInput.setInputFiles(file);
+  await expect(page.getByText(file.name)).toBeVisible();
+
+  // Click the file-bar Encrypt & Upload button
+  await page.locator("button", { hasText: /Encrypt & Upload/i }).first().click();
+
+  // Handle PIN modal if it appears (first upload needs PIN confirmation)
+  const pinField = page.locator("#vault-credential");
+  if (await pinField.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await pinField.fill(account.pin);
+    // The modal's button is the last "Encrypt & Upload" in DOM
+    await page.locator("button", { hasText: /Encrypt & Upload/i }).last().click();
+  }
+
+  // Wait for upload to complete successfully
+  await page.waitForResponse(
+    (response) => response.url().includes("/api/files/upload") && response.ok(),
+    { timeout: 30000 },
+  );
+}
+
+export function resolveApiUrl(path: string): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${apiBaseURL}${normalizedPath.replace(/^\/api/, "")}`;
+}
+
+export async function getAuthToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => localStorage.getItem("token"));
   if (!token) {
     throw new Error("No auth token found in localStorage.");
   }
   return token;
-}
-
-function resolveAppUrl(page: Page, path: string): string {
-  void page;
-  return new URL(path, appBaseURL).toString();
-}
-
-function resolveApiUrl(path: string): string {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${apiBaseURL}${normalizedPath.replace(/^\/api/, "")}`;
 }
 
 export async function createUploadRoute(page: Page, account: OwnerAccount) {
