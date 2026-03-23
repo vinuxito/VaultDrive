@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 23, 2026 (Admin user management — routes wired up from dead code, full CRUD + bulk delete + PIN reset + admin toggle; migration 035 promotes second admin; 14/14 Playwright passing)**
+> **Last updated: March 23, 2026 (File sharing E2E suite — 32/32 Playwright tests covering upload, share links, groups, trust UX; removeFileFromGroup path bug fixed)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,22 +26,29 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot (March 23, 2026 — Admin user management + E2E green)
+### Verification Snapshot (March 23, 2026 — File sharing E2E suite)
 
 | Check | Result | Details |
 |-------|--------|---------|
 | `go build ./...` | CLEAN | 0 errors |
 | `go vet ./...` | CLEAN | 0 warnings |
-| `go test ./...` | PASS | All Go tests (0.49s) |
+| `go test ./...` | PASS | All Go tests (0.48s) |
 | `tsc --noEmit` | CLEAN | 0 TypeScript errors |
-| `npx vite build` | SUCCESS | ~9.5s, 2290 modules |
-| `npx playwright test` | **14/14** | All trust-proof E2E specs (34.8s) |
+| `npx vitest run` | **21/21** | All unit tests (5.1s) |
+| `npx vite build` | SUCCESS | ~9.0s |
+| `npx playwright test` | **32/32** | All E2E specs (2.0m) |
 
-**E2E coverage (14 tests):**
+**E2E coverage (32 tests across 8 spec files):**
 - Owner trust flow: signup, onboarding, PIN login, Settings (Security + Advanced tabs)
 - Owner action receipts: share link creation + file request creation API-call trace
 - Agent key lifecycle: create, introspect, scope denial, revoke, audit log, live stream, Filemon operator, denial timeline
 - Public sender flows: secure drop delivery, missing-fragment-key rejection, file request sender
+- **File upload flow** (new): browser encryption, AES-256-GCM metadata verification
+- **Upload link lifecycle** (new): UI link creation, anonymous sender delivery, 24h expiry verification
+- **Share link lifecycle** (new): create link, access tracking, instant revoke
+- **Group CRUD** (new): create via UI, add/remove members, delete group
+- **Group file sharing** (new): share file to group, member access, group-level revoke
+- **Trust & safety UX** (new): PIN setup, security tab, empty states, API call receipts, encryption footer
 
 **What changed since March 20:**
 - Admin user management (March 23) — see [docs/18_ADMIN_USER_MANAGEMENT.md](./docs/18_ADMIN_USER_MANAGEMENT.md)
