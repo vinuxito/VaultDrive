@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed, 14/14 E2E passing, README refreshed)
+Last updated: March 23, 2026 (Admin user management — routes wired, CRUD + bulk delete + PIN reset + admin toggle, 14/14 E2E passing)
 
 ## Task Documentation
 
@@ -23,6 +23,7 @@ Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed, 14/14 E2E 
 | 15 | [Trust Proof Harness](./15_TRUST_PROOF_HARNESS.md) | Committed Playwright trust-proof suite, self-hosted Go app verification, CI workflow, and Secure Drop sender hardening |
 | 16 | [Enterprise Polish UX](./16_ENTERPRISE_POLISH_UX.md) | 7-step enterprise polish pass — dashboard clarity, progressive file cards, 3-tab settings, copy cleanup, skeleton loaders, professional public pages |
 | 17 | [PIN Auth Unification](./17_PIN_AUTH_UNIFICATION.md) | 8 gaps closed — credential caching, login routing, PIN hint persistence, ShareModal/CreateShareLinkModal credential-mode detection, E2E tab navigation and text fixes |
+| 18 | [Admin User Management](./18_ADMIN_USER_MANAGEMENT.md) | Admin routes wired up (were dead code), create user, reset password, reset PIN, admin toggle, bulk delete, v.cazares promoted |
 
 ## Feature Docs (pre-existing)
 
@@ -52,6 +53,7 @@ Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed, 14/14 E2E 
 | [SESSION_MEMORY_2026-03-16-trust-proof-harness.md](./SESSION_MEMORY_2026-03-16-trust-proof-harness.md) | Playwright trust-proof harness, CI workflow, Secure Drop path fix, negative boundary proof, and final verification state |
 | [SESSION_MEMORY_2026-03-16-live-observable-control-plane.md](./SESSION_MEMORY_2026-03-16-live-observable-control-plane.md) | 7-pass refinement turning the control plane into a live operator surface with receipts, Filemon execution, grouped timelines, trust explanations, and a calmer shell |
 | [SESSION_MEMORY_2026-03-20-enterprise-polish.md](./SESSION_MEMORY_2026-03-20-enterprise-polish.md) | Enterprise polish pass — 7 steps, 14 files, 284 insertions, build and tests verified |
+| [SESSION_MEMORY_2026-03-23-admin-user-management.md](./SESSION_MEMORY_2026-03-23-admin-user-management.md) | Admin user management — routes wired, CRUD + bulk delete + PIN reset + admin toggle, verification pass |
 
 ## Quick Navigation
 
@@ -83,4 +85,6 @@ Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed, 14/14 E2E 
 
 **I want the enterprise polish summary →** [16_ENTERPRISE_POLISH_UX.md](./16_ENTERPRISE_POLISH_UX.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-20-enterprise-polish.md](./SESSION_MEMORY_2026-03-20-enterprise-polish.md)
+**I want the admin user management summary →** [18_ADMIN_USER_MANAGEMENT.md](./18_ADMIN_USER_MANAGEMENT.md)
+
+**I want the latest session context →** [SESSION_MEMORY_2026-03-23-admin-user-management.md](./SESSION_MEMORY_2026-03-23-admin-user-management.md)

@@ -267,6 +267,22 @@ func (q *Queries) GetUserPublicKeyByID(ctx context.Context, id uuid.UUID) (GetUs
 	return i, err
 }
 
+const resetUserPINAsAdmin = `-- name: ResetUserPINAsAdmin :exec
+UPDATE users
+SET pin_hash = NULL, pin_set_at = NULL, pin_failed_attempts = 0, pin_locked_until = NULL, private_key_pin_encrypted = NULL, updated_at = $2
+WHERE id = $1
+`
+
+type ResetUserPINAsAdminParams struct {
+	ID        uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ResetUserPINAsAdmin(ctx context.Context, arg ResetUserPINAsAdminParams) error {
+	_, err := q.db.ExecContext(ctx, resetUserPINAsAdmin, arg.ID, arg.UpdatedAt)
+	return err
+}
+
 const searchUsers = `-- name: SearchUsers :many
 SELECT id, username, email, first_name, last_name, created_at, updated_at
 FROM users
@@ -339,6 +355,23 @@ type SetPrivateKeyPinEncryptedParams struct {
 
 func (q *Queries) SetPrivateKeyPinEncrypted(ctx context.Context, arg SetPrivateKeyPinEncryptedParams) error {
 	_, err := q.db.ExecContext(ctx, setPrivateKeyPinEncrypted, arg.ID, arg.PrivateKeyPinEncrypted)
+	return err
+}
+
+const setUserAdminStatus = `-- name: SetUserAdminStatus :exec
+UPDATE users
+SET is_admin = $2, updated_at = $3
+WHERE id = $1
+`
+
+type SetUserAdminStatusParams struct {
+	ID        uuid.UUID
+	IsAdmin   sql.NullBool
+	UpdatedAt time.Time
+}
+
+func (q *Queries) SetUserAdminStatus(ctx context.Context, arg SetUserAdminStatusParams) error {
+	_, err := q.db.ExecContext(ctx, setUserAdminStatus, arg.ID, arg.IsAdmin, arg.UpdatedAt)
 	return err
 }
 

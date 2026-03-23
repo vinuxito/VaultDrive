@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 20, 2026 (PIN auth unification — 8 gaps closed across credential caching, login routing, and modal credential-mode detection; all E2E tests updated for 3-tab Settings; 14/14 Playwright passing)**
+> **Last updated: March 23, 2026 (Admin user management — routes wired up from dead code, full CRUD + bulk delete + PIN reset + admin toggle; migration 035 promotes second admin; 14/14 Playwright passing)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -22,28 +22,33 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (March 20, 2026)
+## Current State (March 23, 2026)
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot (March 20, 2026 — PIN auth unification + E2E green)
+### Verification Snapshot (March 23, 2026 — Admin user management + E2E green)
 
 | Check | Result | Details |
 |-------|--------|---------|
-| `tsc -b --noEmit` | ✓ CLEAN | 0 TypeScript errors |
-| `npx vitest run` | ✓ 21/21 | All unit tests pass |
-| `npx vite build` | ✓ SUCCESS | ~11.5s, 2290 modules |
-| `npx playwright test` | ✓ **14/14** | All trust-proof E2E specs |
+| `go build ./...` | CLEAN | 0 errors |
+| `go vet ./...` | CLEAN | 0 warnings |
+| `go test ./...` | PASS | All Go tests (0.49s) |
+| `tsc --noEmit` | CLEAN | 0 TypeScript errors |
+| `npx vite build` | SUCCESS | ~9.5s, 2290 modules |
+| `npx playwright test` | **14/14** | All trust-proof E2E specs (34.8s) |
 
 **E2E coverage (14 tests):**
-- Owner trust flow: signup → onboarding → PIN login → Settings (Security + Advanced tabs)
+- Owner trust flow: signup, onboarding, PIN login, Settings (Security + Advanced tabs)
 - Owner action receipts: share link creation + file request creation API-call trace
 - Agent key lifecycle: create, introspect, scope denial, revoke, audit log, live stream, Filemon operator, denial timeline
 - Public sender flows: secure drop delivery, missing-fragment-key rejection, file request sender
 
-**What changed since March 16:**
-- Enterprise polish UX (March 20 morning) — 14 frontend files, presentation-only
-- PIN auth unification (March 20 afternoon) — 8 functional/E2E gaps closed (see [docs/17_PIN_AUTH_UNIFICATION.md](./docs/17_PIN_AUTH_UNIFICATION.md))
+**What changed since March 20:**
+- Admin user management (March 23) — see [docs/18_ADMIN_USER_MANAGEMENT.md](./docs/18_ADMIN_USER_MANAGEMENT.md)
+  - 4 existing admin handlers (list, edit, reset password, delete) were dead code — routes now registered in `main.go`
+  - 4 new endpoints: create user, reset PIN, toggle admin role, bulk delete
+  - Frontend admin dashboard: user table with create/edit/delete/password-reset/PIN-reset/admin-toggle + bulk selection with select-all and floating action bar
+  - Migration 035: `v.cazares@abrn.mx` promoted to admin alongside `filemon@abrn.mx`
 
 ### Enterprise Polish UX State (March 20, 2026)
 
@@ -184,12 +189,13 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
 | Zero-knowledge drop uploads | ✅ | Raw key never stored, key stays client-side during upload, owner access comes from stored `pin_wrapped_key` |
+| Admin dashboard | ✅ | Full user management — CRUD, password reset, PIN reset, admin toggle, bulk delete |
 | Email module | ⛔ | Removed from UI (code preserved) |
 | Delegated decrypt | 🔜 | Deferred — requires explicit key-wrapping design |
 
-### DB Migration Version: 34
+### DB Migration Version: 35
 
-All 34 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`, `agent_api_keys`.
+All 35 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`, `agent_api_keys`.
 
 Run after pulling:
 ```bash
@@ -261,6 +267,8 @@ File requests remain intentionally separate: the uploader still chooses a passph
 ### Recent Session Work (Selected Milestones)
 
 ```
+(pending)          feat: admin user management — routes wired, CRUD, bulk delete, PIN reset, admin toggle
+2c5c3d1           docs: PIN auth unification — 14/14 E2E green, verbose README refresh
 91ca320           feat: trust UX hardening — 3-iteration polish pass across all trust surfaces
 0ada09a           docs: record verified one-pin trust flow state
 7225d28           test: stabilize frontend browser-flow tests
@@ -280,11 +288,12 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-16-trust-proof-harness.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-23-admin-user-management.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
-6. The latest verification + doc checkpoint is `docs/15_TRUST_PROOF_HARNESS.md`.
+6. The latest verification + doc checkpoint is `docs/18_ADMIN_USER_MANAGEMENT.md`.
+7. Admin users: `filemon@abrn.mx` and `v.cazares@abrn.mx`. Admin endpoints at `/api/admin/...`.
 
 ---
 
@@ -358,6 +367,21 @@ Response envelope:
 | `DELETE` | `/api/v1/agent-keys/{id}` | `api_keys:write` | Revoke key |
 | `GET` | `/api/v1/auth/introspect` | (none) | Returns `{auth_type, user_id, scopes, key_id}` |
 
+### Admin Endpoints (JWT + admin role required)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/users` | List all users (excludes sensitive fields) |
+| `POST` | `/api/admin/users` | Create new user (generates RSA keypair) |
+| `PUT` | `/api/admin/users/{id}` | Update user details (name, email, username) |
+| `POST` | `/api/admin/users/{id}/reset-password` | Force-reset user password |
+| `POST` | `/api/admin/users/{id}/reset-pin` | Clear user PIN (forces re-enrollment) |
+| `PUT` | `/api/admin/users/{id}/admin-status` | Promote or demote user (self-change blocked) |
+| `DELETE` | `/api/admin/users/{id}` | Delete single user (self-delete blocked) |
+| `POST` | `/api/admin/users/bulk-delete` | Delete multiple users by ID array |
+
+**Admin users:** `filemon@abrn.mx`, `v.cazares@abrn.mx`
+
 ### Agent Key Scopes
 
 | Scope | What It Allows |
@@ -392,9 +416,12 @@ Response envelope:
 
 - `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
-- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening: passes 1-3, verification, and Secure Drop truth alignment
+- `docs/18_ADMIN_USER_MANAGEMENT.md` — admin user management: routes, CRUD, bulk delete, PIN reset, admin toggle
+- `docs/17_PIN_AUTH_UNIFICATION.md` — PIN auth unification: 8 gaps closed, E2E fixes
+- `docs/16_ENTERPRISE_POLISH_UX.md` — enterprise polish: 7 steps, 14 files, presentation-only
+- `docs/15_TRUST_PROOF_HARNESS.md` — committed Playwright trust-proof harness, CI workflow
+- `docs/13_TRUST_UX_HARDENING.md` — trust UX hardening: passes 1-3, verification
 - `docs/12_ONE_PIN_TRUST_FLOW.md` — one-PIN trust model design and E2E verification
-- `docs/15_TRUST_PROOF_HARNESS.md` — committed Playwright trust-proof harness, CI workflow, and latest verification checkpoint
 - `docs/11_TRUST_API_AGENT_KEYS.md` — trust UX, API v1, agent keys deep-dive
 - `docs/09_SECURITY_HARDENING_PHASE2.md` — zero-knowledge sealing reference
 - `docs/10_PUBLIC_SHARE_AND_FILE_REQUESTS.md` — public share + file requests
@@ -458,6 +485,16 @@ Response envelope:
 - **Group file sharing**: Share encrypted files with entire groups
 - **Member management**: Add/remove members, assign roles
 - **Group audit**: Track who shared what files to which groups
+
+### 🔧 Admin Dashboard
+- **User management**: List all users with name, email, username, role, join date
+- **Create users**: Admin can register new users (RSA keypair generated server-side)
+- **Reset password**: Force-set a new password for any user
+- **Reset PIN**: Clear a user's PIN so they must re-enroll on next login
+- **Admin role toggle**: Promote or demote users — self-demotion prevented
+- **Delete users**: Single delete or bulk delete with checkboxes and select-all
+- **Self-protection**: Admin cannot delete or demote their own account
+- **Access control**: All admin endpoints require `is_admin = TRUE` via `requireAdmin` middleware
 
 ### 📧 Email Module *(removed from UI, code preserved)*
 - IMAP integration code preserved in disabled handlers
@@ -713,6 +750,16 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed documentation.
 - `POST /abrn/api/groups/{id}/files` - Share file to group
 - `GET /abrn/api/groups/{id}/files` - List group files
 
+### Admin (All endpoints require JWT + admin role)
+- `GET /api/admin/users` - List all users
+- `POST /api/admin/users` - Create new user (generates RSA keypair)
+- `PUT /api/admin/users/{id}` - Update user details
+- `POST /api/admin/users/{id}/reset-password` - Reset user password
+- `POST /api/admin/users/{id}/reset-pin` - Clear user PIN
+- `PUT /api/admin/users/{id}/admin-status` - Toggle admin role
+- `DELETE /api/admin/users/{id}` - Delete user
+- `POST /api/admin/users/bulk-delete` - Bulk delete users
+
 ### Email *(handlers disabled — code preserved as `.disabled` files)*
 - Routes removed from active routing; handlers in `handle_email_accounts.go.disabled`, `handle_email_fetching.go.disabled`, `imap_client.go.disabled`
 
@@ -797,7 +844,9 @@ import { FileWidget } from "../components/files";
 ABRN-Drive/
 ├── main.go                          # HTTP server, routing, static file serving
 ├── handle_*.go                      # API endpoint handlers
+│   ├── handle_admin.go              # Admin user management (8 handlers)
 │   ├── handle_login.go              # PIN + password dual-auth
+│   ├── handle_user_create.go        # User registration + RSA keygen
 │   ├── handle_user_pin.go           # Set PIN / PIN status
 │   ├── handle_drop.go               # Secure Drop (PIN-wrapped keys)
 │   ├── handle_list_files.go         # File list (includes starred field)
@@ -810,7 +859,8 @@ ABRN-Drive/
 │   ├── queries/                     # SQL queries (.sql)
 │   └── schema/                      # Database migrations
 │       ├── 023_user_pin.sql         # pin_hash, pin_set_at on users
-│       └── 024_upload_tokens_pin_wrapped_key.sql  # pin_wrapped_key on file_access_keys
+│       ├── 024_upload_tokens_pin_wrapped_key.sql  # pin_wrapped_key on file_access_keys
+│       └── 035_add_vcazares_admin.sql   # v.cazares@abrn.mx admin promotion
 ├── vaultdrive_client/
 │   ├── src/
 │   │   ├── components/
@@ -831,9 +881,10 @@ ABRN-Drive/
 │   │   │   ├── branding/            # ABRN logo and footer
 │   │   │   └── ui/                  # shadcn/ui components
 │   │   ├── pages/
-│   │   │   ├── files.tsx            # ⭐ Vault Explorer (split-pane redesign)
-│   │   │   ├── login.tsx            # PIN ↔ password tab toggle
-│   │   │   ├── settings.tsx         # PIN management card
+│   │   │   ├── admin.tsx            # Admin dashboard (user CRUD, bulk delete)
+│   │   │   ├── files.tsx            # Vault Explorer (split-pane redesign)
+│   │   │   ├── login.tsx            # PIN / password tab toggle
+│   │   │   ├── settings.tsx         # PIN management card (3-tab layout)
 │   │   │   ├── groups.tsx
 │   │   │   ├── shared.tsx
 │   │   │   └── drop-upload.tsx

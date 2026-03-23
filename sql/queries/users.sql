@@ -94,3 +94,13 @@ WHERE id = $1;
 -- name: GetUserPublicKeyByID :one
 SELECT id, public_key FROM users
 WHERE id = $1;
+
+-- name: ResetUserPINAsAdmin :exec
+UPDATE users
+SET pin_hash = NULL, pin_set_at = NULL, pin_failed_attempts = 0, pin_locked_until = NULL, private_key_pin_encrypted = NULL, updated_at = $2
+WHERE id = $1;
+
+-- name: SetUserAdminStatus :exec
+UPDATE users
+SET is_admin = $2, updated_at = $3
+WHERE id = $1;

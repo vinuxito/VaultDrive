@@ -338,6 +338,39 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("activity:read")(apiConfig.handlerGetAuditLogs)))
 
+	// Admin routes
+	mux.Handle("GET /api/admin/users",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.getAllUsersHandler))))
+
+	mux.Handle("POST /api/admin/users/bulk-delete",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.bulkDeleteUsersHandler))))
+
+	mux.Handle("POST /api/admin/users",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.createUserAsAdminHandler))))
+
+	mux.Handle("PUT /api/admin/users/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.updateUserAsAdminHandler))))
+
+	mux.Handle("POST /api/admin/users/{id}/reset-password",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.resetUserPasswordHandler))))
+
+	mux.Handle("POST /api/admin/users/{id}/reset-pin",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.resetUserPINHandler))))
+
+	mux.Handle("PUT /api/admin/users/{id}/admin-status",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.toggleAdminHandler))))
+
+	mux.Handle("DELETE /api/admin/users/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.deleteUserAsAdminHandler))))
+
 	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
 
 	fmt.Printf("Starting server on port %s...\n", port)

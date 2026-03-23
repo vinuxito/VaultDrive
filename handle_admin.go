@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -183,5 +186,193 @@ func (cfg *ApiConfig) deleteUserAsAdminHandler(w http.ResponseWriter, r *http.Re
 
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"message": "User deleted successfully",
+	})
+}
+
+// POST /admin/users/bulk-delete - Delete multiple users at once
+func (cfg *ApiConfig) bulkDeleteUsersHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	type bulkDeleteRequest struct {
+		UserIDs []string `json:"user_ids"`
+	}
+
+	var req bulkDeleteRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	if len(req.UserIDs) == 0 {
+		respondWithError(w, http.StatusBadRequest, "No users selected", nil)
+		return
+	}
+
+	deleted := 0
+	skipped := 0
+	for _, id := range req.UserIDs {
+		userUUID, err := uuid.Parse(id)
+		if err != nil {
+			skipped++
+			continue
+		}
+		// Prevent admin from deleting themselves
+		if userUUID == user.ID {
+			skipped++
+			continue
+		}
+		if err := cfg.dbQueries.DeleteUserAsAdmin(context.Background(), userUUID); err != nil {
+			log.Printf("Error deleting user %s: %v", id, err)
+			skipped++
+			continue
+		}
+		deleted++
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message": fmt.Sprintf("Deleted %d user(s), skipped %d", deleted, skipped),
+		"deleted": deleted,
+		"skipped": skipped,
+	})
+}
+
+// POST /admin/users - Create a new user (admin)
+func (cfg *ApiConfig) createUserAsAdminHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	type createUserRequest struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Username  string `json:"username"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+	}
+
+	var req createUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	if req.FirstName == "" || req.LastName == "" || req.Username == "" || req.Email == "" || req.Password == "" {
+		respondWithError(w, http.StatusBadRequest, "All fields are required", nil)
+		return
+	}
+
+	if len(req.Password) < 6 {
+		respondWithError(w, http.StatusBadRequest, "Password must be at least 6 characters", nil)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error hashing password", err)
+		return
+	}
+
+	privKeyPEM, pubKeyPEM, err := generateRSAKeys()
+	if err != nil {
+		log.Printf("Error generating keys: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Error creating user keys", err)
+		return
+	}
+
+	encryptedPrivKey, err := encryptPrivateKey(privKeyPEM, req.Password)
+	if err != nil {
+		log.Printf("Error encrypting private key: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Error securing user keys", err)
+		return
+	}
+
+	now := time.Now()
+	newUser, err := cfg.dbQueries.CreateUser(context.Background(), database.CreateUserParams{
+		FirstName:           req.FirstName,
+		LastName:            req.LastName,
+		Username:            req.Username,
+		Email:               req.Email,
+		PasswordHash:        string(hashedPassword),
+		PublicKey:           pubKeyPEM,
+		PrivateKeyEncrypted: encryptedPrivKey,
+		CreatedAt:           now,
+		UpdatedAt:           now,
+	})
+	if err != nil {
+		log.Printf("Error creating user in DB: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Error creating user (email or username may already exist)", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]interface{}{
+		"id":         newUser.ID,
+		"first_name": newUser.FirstName,
+		"last_name":  newUser.LastName,
+		"username":   newUser.Username,
+		"email":      newUser.Email,
+		"is_admin":   false,
+		"created_at": newUser.CreatedAt,
+		"updated_at": newUser.UpdatedAt,
+	})
+}
+
+// POST /admin/users/{id}/reset-pin - Clear user's PIN so they can re-enroll
+func (cfg *ApiConfig) resetUserPINHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	userID := r.PathValue("id")
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	err = cfg.dbQueries.ResetUserPINAsAdmin(context.Background(), database.ResetUserPINAsAdminParams{
+		ID:        userUUID,
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error resetting PIN", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "PIN reset successfully. User will need to set a new PIN.",
+	})
+}
+
+// PUT /admin/users/{id}/admin-status - Toggle admin role
+func (cfg *ApiConfig) toggleAdminHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	userID := r.PathValue("id")
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	// Prevent removing admin from own account
+	if userUUID == user.ID {
+		respondWithError(w, http.StatusBadRequest, "Cannot change your own admin status", nil)
+		return
+	}
+
+	type adminStatusRequest struct {
+		IsAdmin bool `json:"is_admin"`
+	}
+
+	var req adminStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	err = cfg.dbQueries.SetUserAdminStatus(context.Background(), database.SetUserAdminStatusParams{
+		ID:        userUUID,
+		IsAdmin:   sql.NullBool{Bool: req.IsAdmin, Valid: true},
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error updating admin status", err)
+		return
+	}
+
+	action := "granted"
+	if !req.IsAdmin {
+		action = "revoked"
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Admin access " + action + " successfully",
 	})
 }
