@@ -149,6 +149,7 @@ func main() {
 	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
 	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
+	mux.HandleFunc("POST /api/drop/{token}/recover-key", apiConfig.handlerDropTokenRecoverKey)
 
 	mux.Handle("POST /api/files/upload", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateFiles)))
 	mux.Handle("POST /api/v1/files/upload",

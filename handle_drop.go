@@ -783,6 +783,139 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(response)
 }
 
+func (cfg *ApiConfig) handlerDropTokenRecoverKey(w http.ResponseWriter, r *http.Request) {
+	// Extract token from URL path
+	trimmed := strings.TrimPrefix(r.URL.Path, "/api/drop/")
+	trimmed = strings.TrimSuffix(trimmed, "/recover-key")
+	tokenStr := strings.TrimSuffix(trimmed, "/")
+
+	if tokenStr == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "No token provided"})
+		return
+	}
+
+	// Authenticate owner
+	authToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Missing authorization"})
+		return
+	}
+
+	ownerID, err := auth.ValidateJWT(authToken, cfg.jwtSecret)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid token"})
+		return
+	}
+
+	// Look up the upload token
+	uploadToken, err := cfg.dbQueries.GetUploadTokenByToken(r.Context(), tokenStr)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Upload token not found"})
+		return
+	}
+
+	// Verify caller is the owner
+	if uploadToken.OwnerUserID != ownerID {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Not authorized"})
+		return
+	}
+
+	// Verify pin_wrapped_key exists
+	if !uploadToken.PinWrappedKey.Valid || uploadToken.PinWrappedKey.String == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "This link has no recoverable key"})
+		return
+	}
+
+	// Parse PIN from request body
+	var req struct {
+		Pin string `json:"pin"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Pin == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "pin is required"})
+		return
+	}
+
+	// Load owner for PIN hash
+	owner, err := cfg.dbQueries.GetUserByID(r.Context(), ownerID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Could not load user"})
+		return
+	}
+
+	if !owner.PinHash.Valid || owner.PinHash.String == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "PIN not set"})
+		return
+	}
+
+	// Check PIN lockout
+	var lockedUntil *time.Time
+	var failedAttempts int
+	cfg.db.QueryRowContext(r.Context(),
+		"SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1", ownerID,
+	).Scan(&failedAttempts, &lockedUntil)
+	if lockedUntil != nil && lockedUntil.After(time.Now()) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusTooManyRequests)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Too many incorrect PIN attempts. Try again after " + lockedUntil.UTC().Format(time.RFC3339)})
+		return
+	}
+
+	// Verify PIN
+	if err := auth.CheckPasswordHash(req.Pin, owner.PinHash.String); err != nil {
+		newAttempts := failedAttempts + 1
+		if newAttempts >= 5 {
+			cfg.db.ExecContext(r.Context(),
+				"UPDATE users SET pin_failed_attempts = $1, pin_locked_until = NOW() + INTERVAL '15 minutes' WHERE id = $2",
+				newAttempts, ownerID)
+		} else {
+			cfg.db.ExecContext(r.Context(),
+				"UPDATE users SET pin_failed_attempts = $1 WHERE id = $2",
+				newAttempts, ownerID)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect PIN"})
+		return
+	}
+	cfg.db.ExecContext(r.Context(),
+		"UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1", ownerID)
+
+	// Unwrap the key
+	rawKey, err := auth.UnwrapKey(req.Pin, uploadToken.PinWrappedKey.String)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Could not recover encryption key"})
+		return
+	}
+
+	cfg.insertAudit(r.Context(), ownerID, "secure_drop.key_recovered", "upload_token", &uploadToken.ID, map[string]interface{}{
+		"link_name": uploadToken.LinkName.String,
+	}, r)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"encryption_key": rawKey})
+}
+
 func (cfg *ApiConfig) handlerDropTokenFiles(w http.ResponseWriter, r *http.Request) {
 	// Extract drop token from URL path
 	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/drop/"), "/")

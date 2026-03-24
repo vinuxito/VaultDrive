@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 23, 2026 (Force password change + luxury design tokens + FK cascade fix + admin polish + file sharing E2E suite)**
+> **Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + reveal UI + client error UX)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -22,20 +22,19 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (March 23, 2026)
+## Current State (March 24, 2026)
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot (March 23, 2026 — Force password change + luxury tokens)
+### Verification Snapshot (March 24, 2026 — Drop link key recovery)
 
 | Check | Result | Details |
 |-------|--------|---------|
 | `go build ./...` | CLEAN | 0 errors |
-| `go vet ./...` | CLEAN | 0 warnings |
 | `tsc --noEmit` | CLEAN | 0 TypeScript errors |
-| `npx vitest run` | **27/27** | 10 test files, all pass (4.56s) |
-| `npx vite build` | SUCCESS | ~8.07s |
-| `npx playwright test` | **32/32** | All E2E specs (last run before this session) |
+| `npx vitest run` | **27/27** | 10 test files, all pass (6.07s) |
+| `npx vite build` | SUCCESS | ~8.98s |
+| `npx playwright test` | **32/32** | All E2E specs (last run March 23, 2026) |
 
 **E2E coverage (32 tests across 8 spec files):**
 - Owner trust flow: signup, onboarding, PIN login, Settings (Security + Advanced tabs)
@@ -51,6 +50,14 @@ This section reflects the actual state. Sections below are historical documentat
 
 **What changed since last commit:**
 
+- **Drop link key recovery** (March 24) — see [docs/22_DROP_KEY_RECOVERY.md](./docs/22_DROP_KEY_RECOVERY.md)
+  - **Bug:** Client upload links were broken — encryption key (`#key=` fragment) was only available at creation time and lost once the modal closed
+  - New `POST /api/drop/{token}/recover-key` endpoint: owner enters PIN, server unwraps `pin_wrapped_key` via `auth.UnwrapKey()`, returns raw hex key
+  - Full PIN validation with 5-attempt lockout, 15-min timeout, audit trail (`secure_drop.key_recovered`)
+  - `UploadLinkCard.tsx`: amber warning when key is missing, "Reveal full link with PIN" button with inline PIN input, auto-copy on success
+  - `drop-upload.tsx`: distinct amber "Incomplete upload link" page (vs red "no longer available"), missing-key detected on page load not on upload attempt
+  - Dead code removed: `isLegacyKey()` function and code path calling deleted `/api/drop/{token}/encryption-key` endpoint
+  - 4 files changed, ~330 lines, no new migration required
 - **Force password change** (March 23) — see [docs/21_FORCE_PASSWORD_CHANGE.md](./docs/21_FORCE_PASSWORD_CHANGE.md)
   - Admin can flag any non-self user to force password change on next login
   - 3-layer defense: backend middleware gate (blocks all endpoints except change-password), frontend ProtectedRoute guard, login redirect
@@ -232,6 +239,7 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
 | Auth-gated user lookup | ✅ | No unauthenticated enumeration |
 | CORS hardened | ✅ | Explicit origin allowlist |
 | Zero-knowledge drop uploads | ✅ | Raw key never stored, key stays client-side during upload, owner access comes from stored `pin_wrapped_key` |
+| Drop link key recovery | ✅ | Owner can recover full URL with PIN from Upload Links panel — `auth.UnwrapKey` with lockout + audit |
 | Admin dashboard | ✅ | Full user management — CRUD, password reset, PIN reset, admin toggle, bulk delete |
 | Force password change | ✅ | 3-layer gate (middleware + ProtectedRoute + login), private key re-encryption, SessionVault init, auto-flag on admin reset |
 | Luxury design tokens | ✅ | Burgundy palette, glassmorphism, Framer Motion presets, reduced motion support (Step 1 of 7) |
@@ -255,6 +263,7 @@ Regular vault upload:  owner credential (PIN or password) → PBKDF2(100k) → A
 
 Drop file:             owner PIN → PBKDF2 → WrapKey → pin_wrapped_key in DB
                        client → randomKey from URL fragment → AES-256-GCM → stored ciphertext
+                       key recovery: POST /api/drop/{token}/recover-key + PIN → UnwrapKey → raw key returned
 
 Public share:          owner PIN → unwraps file key → raw AES key in URL #fragment → recipient decrypts
                        Key in fragment never reaches server (even in server logs)
@@ -312,7 +321,9 @@ File requests remain intentionally separate: the uploader still chooses a passph
 ### Recent Session Work (Selected Milestones)
 
 ```
-(latest)           chore: admin polish — error feedback, 8-char password, bulk delete 500
+(latest)           fix: drop link key recovery — PIN-unwrap endpoint, reveal UI, client error UX
+668eb57           feat: force password change + luxury design tokens + FK cascade fix
+6285402           chore: admin polish — error feedback, 8-char password, bulk delete 500
 465a89b           docs: session memory and README update for file sharing E2E suite
 36210fd           test: full E2E suite verification — 32/32 green
 ca540ac           test+fix: group file sharing E2E + removeFileFromGroup path param bug
@@ -338,11 +349,11 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-24-drop-key-recovery.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
-6. The latest verification + doc checkpoint is `docs/20_ADMIN_POLISH.md`.
+6. The latest verification + doc checkpoint is `docs/22_DROP_KEY_RECOVERY.md`.
 7. Admin users: `filemon@abrn.mx` and `v.cazares@abrn.mx`. Admin endpoints at `/api/admin/...`.
 
 ---
@@ -417,6 +428,18 @@ Response envelope:
 | `DELETE` | `/api/v1/agent-keys/{id}` | `api_keys:write` | Revoke key |
 | `GET` | `/api/v1/auth/introspect` | (none) | Returns `{auth_type, user_id, scopes, key_id}` |
 
+### Drop Link Endpoints (JWT required)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/drop/create` | Create drop link (returns URL with `#key=` fragment) |
+| `GET` | `/api/drop/tokens` | List owner's drop links (no key in response) |
+| `GET` | `/api/drop/{token}` | Public token info (validates expiry, file limits) |
+| `POST` | `/api/drop/{token}/upload` | Public file upload (encrypted ciphertext) |
+| `POST` | `/api/drop/{token}/recover-key` | Recover encryption key with PIN. Body: `{"pin":"1234"}`. Returns `{"encryption_key":"hex..."}` |
+| `GET` | `/api/drop/{token}/files` | List files uploaded through this link |
+| `POST` | `/api/drop/{token}/done` | Mark link as used/sealed |
+
 ### Admin Endpoints (JWT + admin role required)
 
 | Method | Path | Description |
@@ -466,6 +489,7 @@ Response envelope:
 
 - `README.md` — this file: product overview, current state, architecture, API reference
 - `docs/INDEX.md` — full documentation index with task and session history
+- `docs/22_DROP_KEY_RECOVERY.md` — drop link key recovery: PIN-unwrap endpoint, reveal UI, error UX, dead code removal
 - `docs/20_ADMIN_POLISH.md` — admin polish: error feedback, password validation, bulk delete limit
 - `docs/19_FILE_SHARING_E2E_SUITE.md` — file sharing E2E tests: 18 new Playwright tests, removeFileFromGroup bug fix
 - `docs/18_ADMIN_USER_MANAGEMENT.md` — admin user management: routes, CRUD, bulk delete, PIN reset, admin toggle

@@ -35,13 +35,7 @@ function readKeyFromUrl(): string {
   if (hash.includes("key=")) {
     return hash.replace(/^#key=/, "").replace(/.*key=/, "");
   }
-  const params = new URLSearchParams(window.location.search);
-  return params.get("key") || "";
-}
-
-function isLegacyKey(): boolean {
-  const params = new URLSearchParams(window.location.search);
-  return !!params.get("key") && !window.location.hash.includes("key=");
+  return "";
 }
 
 export default function DropUpload() {
@@ -51,6 +45,7 @@ export default function DropUpload() {
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [missingKey, setMissingKey] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [encryptionKey, setEncryptionKey] = useState("");
@@ -83,10 +78,12 @@ export default function DropUpload() {
       }
 
       setTokenInfo(data);
-      
+
       const key = readKeyFromUrl();
       if (key) {
         setEncryptionKey(key);
+      } else {
+        setMissingKey(true);
       }
     } catch {
       setError("Unable to validate upload link");
@@ -267,22 +264,9 @@ export default function DropUpload() {
       setTimeout(() => {
         (async () => {
           try {
-            let rawEncryptionKey: string;
-
-            if (isLegacyKey()) {
-              const keyResponse = await fetch(`${API_URL}/drop/${token}/encryption-key?key=${encodeURIComponent(encryptionKey)}`);
-              if (!keyResponse.ok) {
-                throw new Error("Failed to get encryption key");
-              }
-              const keyData = await keyResponse.json() as { encryption_key: string };
-              rawEncryptionKey = keyData.encryption_key;
-            } else {
-              rawEncryptionKey = encryptionKey;
-            }
-
             const fileBuffer = await file.arrayBuffer();
             const iv = crypto.getRandomValues(new Uint8Array(12));
-            const encryptionKeyBytes = hexToBytes(rawEncryptionKey);
+            const encryptionKeyBytes = hexToBytes(encryptionKey);
             const aesKey = await crypto.subtle.importKey(
               "raw",
               new Uint8Array(encryptionKeyBytes),
@@ -352,6 +336,29 @@ export default function DropUpload() {
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
             <CardTitle>This upload link is no longer available</CardTitle>
             <CardDescription>{error}</CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => navigate("/")} variant="outline" className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  if (missingKey && tokenInfo) {
+    return (
+      <div className="abrn-page-bg flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
+            <CardTitle>Incomplete upload link</CardTitle>
+            <CardDescription>
+              This link is missing the encryption key needed to secure your files.
+              Please ask the sender to re-send the full link (the part after # is required).
+            </CardDescription>
           </CardHeader>
           <CardFooter>
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">

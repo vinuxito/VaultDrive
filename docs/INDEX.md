@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 23, 2026 (Force password change + luxury design tokens + FK cascade fix)
+Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + reveal UI + error UX)
 
 ## Task Documentation
 
@@ -27,6 +27,7 @@ Last updated: March 23, 2026 (Force password change + luxury design tokens + FK 
 | 19 | [File Sharing E2E Suite](./19_FILE_SHARING_E2E_SUITE.md) | 18 new Playwright E2E tests — file upload, share links, upload links, groups, trust UX; removeFileFromGroup bug fixed |
 | 20 | [Admin Polish](./20_ADMIN_POLISH.md) | Admin error feedback, password validation alignment (6→8 chars), bulk delete limit bump (100→500) |
 | 21 | [Force Password Change](./21_FORCE_PASSWORD_CHANGE.md) | Admin security gate — force users to change password on next login, 3-layer defense, private key re-encryption |
+| 22 | [Drop Key Recovery](./22_DROP_KEY_RECOVERY.md) | Fix broken drop links — PIN-unwrap endpoint, reveal-key UI, missing-key error page, dead code cleanup |
 
 ## Feature Docs (pre-existing)
 
@@ -59,6 +60,7 @@ Last updated: March 23, 2026 (Force password change + luxury design tokens + FK 
 | [SESSION_MEMORY_2026-03-23-admin-user-management.md](./SESSION_MEMORY_2026-03-23-admin-user-management.md) | Admin user management — routes wired, CRUD + bulk delete + PIN reset + admin toggle, verification pass |
 | [SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md](./SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md) | 7-iteration E2E loop — 18 new tests for file upload, share links, groups, trust UX |
 | [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md) | Force password change + luxury design tokens + FK cascade fix |
+| [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md) | Drop link key recovery — PIN-unwrap endpoint, reveal UI, error UX |
 
 ## Quick Navigation
 
@@ -96,4 +98,6 @@ Last updated: March 23, 2026 (Force password change + luxury design tokens + FK 
 
 **I want the force password change summary →** [21_FORCE_PASSWORD_CHANGE.md](./21_FORCE_PASSWORD_CHANGE.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md)
+**I want to understand drop link key recovery →** [22_DROP_KEY_RECOVERY.md](./22_DROP_KEY_RECOVERY.md)
+
+**I want the latest session context →** [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md)
