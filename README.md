@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + reveal UI + client error UX)**
+> **Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycle proof)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,30 +26,38 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 This section reflects the actual state. Sections below are historical documentation.
 
-### Verification Snapshot (March 24, 2026 — Drop link key recovery)
+### Verification Snapshot (March 24, 2026 — Drop full cycle E2E)
 
 | Check | Result | Details |
 |-------|--------|---------|
 | `go build ./...` | CLEAN | 0 errors |
 | `tsc --noEmit` | CLEAN | 0 TypeScript errors |
-| `npx vitest run` | **27/27** | 10 test files, all pass (6.07s) |
-| `npx vite build` | SUCCESS | ~8.98s |
-| `npx playwright test` | **32/32** | All E2E specs (last run March 23, 2026) |
+| `npx vitest run` | **27/27** | 10 test files, all pass (6.83s) |
+| `npx vite build` | SUCCESS | ~9.66s |
+| `npx playwright test` | **35/35** | All E2E specs (10 spec files, 2.0m runtime) |
 
-**E2E coverage (32 tests across 8 spec files):**
+**E2E coverage (35 tests across 10 spec files):**
 - Owner trust flow: signup, onboarding, PIN login, Settings (Security + Advanced tabs)
 - Owner action receipts: share link creation + file request creation API-call trace
 - Agent key lifecycle: create, introspect, scope denial, revoke, audit log, live stream, Filemon operator, denial timeline
-- Public sender flows: secure drop delivery, missing-fragment-key rejection, file request sender
+- Public sender flows: secure drop delivery, missing-key error page (amber "Incomplete upload link"), file request sender
 - File upload flow: browser encryption, AES-256-GCM metadata verification
 - Upload link lifecycle: UI link creation, anonymous sender delivery, 24h expiry verification
 - Share link lifecycle: create link, access tracking, instant revoke
 - Group CRUD: create via UI, add/remove members, delete group
 - Group file sharing: share file to group, member access, group-level revoke
 - Trust & safety UX: PIN setup, security tab, empty states, API call receipts, encryption footer
+- **Drop full cycle: create link → client upload → owner download+decrypt, key recovery + re-share, wrong PIN rejection**
 
 **What changed since last commit:**
 
+- **Drop full cycle E2E** (March 24) — see [docs/23_DROP_FULL_CYCLE_E2E.md](./docs/23_DROP_FULL_CYCLE_E2E.md)
+  - 3 new Playwright tests proving the complete drop link lifecycle end-to-end
+  - **Test 1 (the critical proof):** Owner creates link → anonymous client uploads → owner logs in → downloads + decrypts with PIN → success
+  - **Test 2:** Owner recovers encryption key via PIN API → reconstructs full URL → client uploads with recovered key
+  - **Test 3:** Wrong PIN rejected with 400+ status
+  - Fixed pre-existing `public-sender-flows` test for new "Incomplete upload link" UX
+  - **Result: 35/35 E2E tests pass** (was 32)
 - **Drop link key recovery** (March 24) — see [docs/22_DROP_KEY_RECOVERY.md](./docs/22_DROP_KEY_RECOVERY.md)
   - **Bug:** Client upload links were broken — encryption key (`#key=` fragment) was only available at creation time and lost once the modal closed
   - New `POST /api/drop/{token}/recover-key` endpoint: owner enters PIN, server unwraps `pin_wrapped_key` via `auth.UnwrapKey()`, returns raw hex key
@@ -187,12 +195,12 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
 
 - The repo now contains a committed Playwright trust-proof harness under `vaultdrive_client/e2e/`.
 - The harness self-hosts the current Go app on port `8090` so browser verification runs against current repo code, not a stale manual server.
-- **Current result: 32/32 passing** (last verified March 23, 2026)
+- **Current result: 35/35 passing** (last verified March 24, 2026)
 - Committed trust proofs cover:
   - owner trust flow (signup → onboarding → PIN login → Settings Security tab)
   - owner action receipts (share link + file request API-call trace)
   - Secure Drop sender flow
-  - Secure Drop missing-key boundary
+  - Secure Drop missing-key boundary (amber "Incomplete upload link" page)
   - File Request sender flow
   - Agent key create / introspect / scope denial / revoke / audit log
   - Live agent operation stream (Settings Advanced tab)
@@ -204,6 +212,7 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
   - Group CRUD: create via UI, add/remove members, delete
   - Group file sharing: share to group, member access, remove from group
   - Trust & safety UX: PIN setup, security tab, empty states, API receipts, encryption footer
+  - **Drop full cycle: create link → client upload → owner download+decrypt, key recovery + re-share, wrong PIN rejection**
 - CI now has a dedicated trust-proof workflow that provisions Postgres, runs migrations, runs unit/backend tests, and then runs the Playwright suite with artifact uploads.
 
 ### What's Live
@@ -248,9 +257,13 @@ Enterprise polish restructured Settings into 3 tabs (Account / Security / Advanc
 | Email module | ⛔ | Removed from UI (code preserved) |
 | Delegated decrypt | 🔜 | Deferred — requires explicit key-wrapping design |
 
-### DB Migration Version: 35
+### DB Migration Version: 37
 
-All 35 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`, `agent_api_keys`.
+All 37 Goose migrations applied. Key tables: `users`, `files`, `file_access_keys`, `folders`, `upload_tokens`, `file_requests`, `public_share_links`, `groups`, `activity_log`, `refresh_tokens`, `agent_api_keys`.
+
+Recent migrations:
+- 036: FK cascade fix (`group_file_shares.created_by` → `ON DELETE CASCADE`, `file_versions.created_by` → `ON DELETE SET NULL`)
+- 037: `force_password_change BOOLEAN NOT NULL DEFAULT FALSE` on `users` table
 
 Run after pulling:
 ```bash
@@ -323,7 +336,9 @@ File requests remain intentionally separate: the uploader still chooses a passph
 ### Recent Session Work (Selected Milestones)
 
 ```
-(latest)           fix: drop link key recovery — PIN-unwrap endpoint, reveal UI, client error UX
+(latest)           test: drop full cycle E2E — 35/35 pass, full lifecycle proof
+111dc4f           fix: owner download of drop files — wrong SQL column + download logic gap
+b5c1ac6           fix: drop link key recovery — PIN-unwrap endpoint, reveal UI, client error UX
 668eb57           feat: force password change + luxury design tokens + FK cascade fix
 6285402           chore: admin polish — error feedback, 8-char password, bulk delete 500
 465a89b           docs: session memory and README update for file sharing E2E suite
@@ -351,11 +366,11 @@ e8033a4           feat: public share UX overhaul + inbound file requests system
 If you're a coding agent, start here:
 
 1. Read `docs/INDEX.md` for the full documentation map.
-2. Check `docs/SESSION_MEMORY_2026-03-24-drop-key-recovery.md` for the latest verified session context.
+2. Check `docs/SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md` for the latest verified session context.
 3. Never run destructive DB commands without explicit approval.
 4. All sensitive config is in `.env` (not in git). Never commit it.
 5. The single law: **PIN set once = PIN used everywhere across the app.** No per-action re-prompting for the owner.
-6. The latest verification + doc checkpoint is `docs/22_DROP_KEY_RECOVERY.md`.
+6. The latest verification + doc checkpoint is `docs/23_DROP_FULL_CYCLE_E2E.md`.
 7. Admin users: `filemon@abrn.mx` and `v.cazares@abrn.mx`. Admin endpoints at `/api/admin/...`.
 
 ---

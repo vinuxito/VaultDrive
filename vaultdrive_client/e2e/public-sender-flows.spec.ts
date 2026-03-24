@@ -48,14 +48,10 @@ test("secure drop sender route fails clearly when the fragment key is missing", 
   const urlWithoutKey = uploadUrl.split("#")[0] ?? uploadUrl;
   await page.goto(urlWithoutKey, { waitUntil: "domcontentloaded" });
 
-  await expect(page.getByText("Secure File Delivery")).toBeVisible();
-  await page.locator("#file-input").setInputFiles({
-    name: "drop-proof.txt",
-    mimeType: "text/plain",
-    buffer: Buffer.from("secure drop sender proof"),
-  });
-
-  await expect(page.getByText("Encryption key not found in URL. Please use the full link provided to you.")).toBeVisible();
+  // With the improved error UX, a missing key now shows a distinct "Incomplete upload link" page
+  // instead of loading the upload form and failing later
+  await expect(page.getByText("Incomplete upload link")).toBeVisible();
+  await expect(page.getByText("the part after # is required")).toBeVisible();
 });
 
 test("file request sender flow requires passphrase and completes with receipt", async ({ page }) => {

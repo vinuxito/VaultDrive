@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + reveal UI + error UX)
+Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycle proof)
 
 ## Task Documentation
 
@@ -28,6 +28,7 @@ Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + r
 | 20 | [Admin Polish](./20_ADMIN_POLISH.md) | Admin error feedback, password validation alignment (6→8 chars), bulk delete limit bump (100→500) |
 | 21 | [Force Password Change](./21_FORCE_PASSWORD_CHANGE.md) | Admin security gate — force users to change password on next login, 3-layer defense, private key re-encryption |
 | 22 | [Drop Key Recovery](./22_DROP_KEY_RECOVERY.md) | Fix broken drop links — PIN-unwrap endpoint, reveal-key UI, missing-key error page, dead code cleanup |
+| 23 | [Drop Full Cycle E2E](./23_DROP_FULL_CYCLE_E2E.md) | Full lifecycle proof — create link, client upload, owner download+decrypt, key recovery, wrong PIN |
 
 ## Feature Docs (pre-existing)
 
@@ -61,6 +62,7 @@ Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + r
 | [SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md](./SESSION_MEMORY_2026-03-23-file-sharing-e2e-suite.md) | 7-iteration E2E loop — 18 new tests for file upload, share links, groups, trust UX |
 | [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md) | Force password change + luxury design tokens + FK cascade fix |
 | [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md) | Drop link key recovery — PIN-unwrap endpoint, reveal UI, error UX |
+| [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md) | Drop full cycle E2E — 35/35 tests, full lifecycle verified |
 
 ## Quick Navigation
 
@@ -100,4 +102,6 @@ Last updated: March 24, 2026 (Drop link key recovery — PIN-unwrap endpoint + r
 
 **I want to understand drop link key recovery →** [22_DROP_KEY_RECOVERY.md](./22_DROP_KEY_RECOVERY.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md)
+**I want the drop full cycle E2E proof →** [23_DROP_FULL_CYCLE_E2E.md](./23_DROP_FULL_CYCLE_E2E.md)
+
+**I want the latest session context →** [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md)
