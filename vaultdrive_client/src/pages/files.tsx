@@ -747,8 +747,9 @@ export default function Files() {
       const cachedFileKey = sessionVault.getFileKey(file.id);
       if (cachedFileKey) {
         encryptionKey = cachedFileKey;
-      } else if (isDropUpload && file.pin_wrapped_key) {
-        const rawKey = await unwrapKey(credential, file.pin_wrapped_key);
+      } else if (isDropUpload && (file.pin_wrapped_key || wrappedKeyB64)) {
+        const pinWrapped = file.pin_wrapped_key || wrappedKeyB64 || "";
+        const rawKey = await unwrapKey(credential, pinWrapped);
         const keyBytes = hexToBytes(rawKey);
         encryptionKey = await crypto.subtle.importKey(
           "raw",

@@ -57,7 +57,9 @@ This section reflects the actual state. Sections below are historical documentat
   - `UploadLinkCard.tsx`: amber warning when key is missing, "Reveal full link with PIN" button with inline PIN input, auto-copy on success
   - `drop-upload.tsx`: distinct amber "Incomplete upload link" page (vs red "no longer available"), missing-key detected on page load not on upload attempt
   - Dead code removed: `isLegacyKey()` function and code path calling deleted `/api/drop/{token}/encryption-key` endpoint
-  - 4 files changed, ~330 lines, no new migration required
+  - **Critical fix:** `files_with_drop_source.sql` was reading `upload_tokens.password_hash` instead of `upload_tokens.pin_wrapped_key` — owner could never decrypt drop-uploaded files
+  - **Critical fix:** Frontend download logic skipped `X-Wrapped-Key` header for owner users — added fallback for drop files
+  - 7 files changed, no new migration required
 - **Force password change** (March 23) — see [docs/21_FORCE_PASSWORD_CHANGE.md](./docs/21_FORCE_PASSWORD_CHANGE.md)
   - Admin can flag any non-self user to force password change on next login
   - 3-layer defense: backend middleware gate (blocks all endpoints except change-password), frontend ProtectedRoute guard, login redirect

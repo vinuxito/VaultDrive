@@ -10,7 +10,7 @@ SELECT
     f.encrypted_metadata,
     f.drop_source_id,
     u.token as drop_token,
-    u.password_hash as pin_wrapped_key,
+    u.pin_wrapped_key,
     fol.id as drop_folder_id,
     fol.name as drop_folder_name
 FROM files f
