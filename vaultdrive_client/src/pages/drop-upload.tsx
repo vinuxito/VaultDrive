@@ -5,6 +5,8 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
 import { API_URL } from "../utils/api";
+import { buildDropUploadFormData } from "../utils/drop-upload";
+import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import ABRNLogo from "../components/branding/abrn-logo";
 
 interface TokenInfo {
@@ -101,40 +103,15 @@ export default function DropUpload() {
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const items = Array.from(e.dataTransfer?.items || []);
-    const files: File[] = [];
-    
-    for (const item of items) {
-      const entry = item.webkitGetAsEntry?.();
-      if (entry) {
-        processEntry(entry, files);
-      }
-    }
-    
-    if (files.length > 0) {
-      handleUpload(files);
-    }
-  };
 
-  const processEntry = (entry: FileSystemEntry, files: File[], path: string = "") => {
-    if (entry.isFile) {
-      (entry as FileSystemFileEntry).file((file: File) => {
-        if (path) {
-          Object.defineProperty(file, "webkitRelativePath", { value: path + "/" + file.name });
-        }
-        files.push(file);
-      });
-    } else if (entry.isDirectory) {
-      const dirReader = (entry as FileSystemDirectoryEntry).createReader();
-      dirReader.readEntries(async (entries: FileSystemEntry[]) => {
-        for (const subEntry of entries) {
-          processEntry(subEntry, files, path ? `${path}/${subEntry.name}` : subEntry.name);
-        }
-      });
+    const items = Array.from(e.dataTransfer?.items || []);
+    const files = await collectFilesFromDataTransferItems(items);
+
+    if (files.length > 0) {
+      handleUpload(files, true);
     }
   };
 
@@ -282,15 +259,13 @@ export default function DropUpload() {
             );
             
             const ivBytes = new Uint8Array(iv);
-            const formData = new FormData();
-            const blobName = relativePath ? fileName : "files[]";
-            formData.append(blobName, new Blob([encryptedData]), relativePath || fileName);
-            formData.append("iv", btoa(String.fromCharCode(...Array.from(ivBytes))));
-            formData.append("salt", "");
-            formData.append("algorithm", "AES-256-GCM");
-            if (clientMessage) {
-              formData.append("client_message", clientMessage);
-            }
+            const formData = buildDropUploadFormData({
+              file,
+              encryptedData,
+              iv: ivBytes,
+              relativePath,
+              clientMessage: clientMessage || undefined,
+            });
 
             xhr.open("POST", `${API_URL}/drop/${token}/upload`);
             xhr.send(formData);
