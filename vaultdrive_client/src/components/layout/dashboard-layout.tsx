@@ -26,6 +26,7 @@ import { Toast } from "./Toast";
 import type { ToastMessage } from "./Toast";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { requiresPinSetup } from "../../utils/pin-trust";
+import { API_URL } from "../../utils/api";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -44,6 +45,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [showOnboarding, setShowOnboarding] = useState(() => requiresPinSetup(user));
+
+  // Verify PIN status from server to handle stale localStorage
+  useEffect(() => {
+    if (!showOnboarding) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch(`${API_URL}/users/pin/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.pin_set) {
+          // PIN already set server-side — update localStorage and dismiss onboarding
+          const stored = JSON.parse(localStorage.getItem("user") || "{}");
+          localStorage.setItem("user", JSON.stringify({ ...stored, pin_set: true }));
+          setShowOnboarding(false);
+        }
+      })
+      .catch(() => undefined);
+  }, [showOnboarding]);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);

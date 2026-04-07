@@ -167,6 +167,57 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer as ArrayBuffer;
 }
 
+function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
+  const totalLength = arrays.reduce((sum, array) => sum + array.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const array of arrays) {
+    result.set(array, offset);
+    offset += array.length;
+  }
+  return result;
+}
+
+function uint8ArrayToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
+function encodeDerLength(length: number): Uint8Array {
+  if (length < 0x80) {
+    return Uint8Array.of(length);
+  }
+
+  const bytes: number[] = [];
+  let remaining = length;
+  while (remaining > 0) {
+    bytes.unshift(remaining & 0xff);
+    remaining >>= 8;
+  }
+
+  return Uint8Array.of(0x80 | bytes.length, ...bytes);
+}
+
+function encodeDer(tag: number, value: Uint8Array): Uint8Array {
+  return concatUint8Arrays(Uint8Array.of(tag), encodeDerLength(value.length), value);
+}
+
+function wrapPkcs1PrivateKeyAsPkcs8(pkcs1Key: Uint8Array): Uint8Array {
+  const version = Uint8Array.of(0x02, 0x01, 0x00);
+  const rsaEncryptionAlgorithm = Uint8Array.of(
+    0x30, 0x0d,
+    0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01,
+    0x05, 0x00,
+  );
+  const privateKeyOctetString = encodeDer(0x04, pkcs1Key);
+
+  return encodeDer(
+    0x30,
+    concatUint8Arrays(version, rsaEncryptionAlgorithm, privateKeyOctetString),
+  );
+}
+
 // Helper: Convert hex string to bytes
 export function hexToBytes(hex: string): Uint8Array {
   if (hex.length % 2 !== 0) {
@@ -237,27 +288,41 @@ export async function decryptPrivateKeyWithPassword(
   const iv = data.slice(16, 28);
   const ciphertext = data.slice(28);
 
-  const passwordBytes = new TextEncoder().encode(password.normalize("NFC"));
-  const combined = new Uint8Array(salt.length + passwordBytes.length);
-  combined.set(salt, 0);
-  combined.set(passwordBytes, salt.length);
+  const decryptWithPasswordBytes = async (candidatePassword: string): Promise<string> => {
+    const passwordBytes = new TextEncoder().encode(candidatePassword);
+    const combined = new Uint8Array(salt.length + passwordBytes.length);
+    combined.set(salt, 0);
+    combined.set(passwordBytes, salt.length);
 
-  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
-  const aesKey = await crypto.subtle.importKey(
-    "raw",
-    hashBuffer,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["decrypt"],
-  );
+    const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+    const aesKey = await crypto.subtle.importKey(
+      "raw",
+      hashBuffer,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"],
+    );
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    aesKey,
-    ciphertext,
-  );
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      aesKey,
+      ciphertext,
+    );
 
-  return new TextDecoder().decode(decrypted);
+    return new TextDecoder().decode(decrypted);
+  };
+
+  const normalizedPassword = password.normalize("NFC");
+
+  try {
+    return await decryptWithPasswordBytes(normalizedPassword);
+  } catch (normalizedError: unknown) {
+    if (normalizedPassword !== password) {
+      return decryptWithPasswordBytes(password);
+    }
+
+    throw normalizedError;
+  }
 }
 
 // Encrypt RSA private key PEM with password using AES-256-GCM.
@@ -440,13 +505,24 @@ export async function importRSAPublicKey(publicKeyPem: string): Promise<CryptoKe
 
 // Import an RSA private key from PKCS8 base64 string (decrypted)
 export async function importRSAPrivateKey(privateKeyB64: string): Promise<CryptoKey> {
-  const pemHeader = "-----BEGIN PRIVATE KEY-----";
-  const pemFooter = "-----END PRIVATE KEY-----";
+  const pkcs8PemHeader = "-----BEGIN PRIVATE KEY-----";
+  const pkcs8PemFooter = "-----END PRIVATE KEY-----";
+  const pkcs1PemHeader = "-----BEGIN RSA PRIVATE KEY-----";
+  const pkcs1PemFooter = "-----END RSA PRIVATE KEY-----";
   let b64 = privateKeyB64.trim();
-  if (b64.startsWith(pemHeader)) {
-    b64 = b64.replace(pemHeader, "").replace(pemFooter, "").replace(/\s/g, "");
+  let keyBuffer: ArrayBuffer;
+
+  if (b64.startsWith(pkcs8PemHeader)) {
+    b64 = b64.replace(pkcs8PemHeader, "").replace(pkcs8PemFooter, "").replace(/\s/g, "");
+    keyBuffer = base64ToArrayBuffer(b64);
+  } else if (b64.startsWith(pkcs1PemHeader)) {
+    b64 = b64.replace(pkcs1PemHeader, "").replace(pkcs1PemFooter, "").replace(/\s/g, "");
+    const pkcs1Key = new Uint8Array(base64ToArrayBuffer(b64));
+    keyBuffer = uint8ArrayToArrayBuffer(wrapPkcs1PrivateKeyAsPkcs8(pkcs1Key));
+  } else {
+    keyBuffer = base64ToArrayBuffer(b64);
   }
-  const keyBuffer = base64ToArrayBuffer(b64);
+
   return await window.crypto.subtle.importKey(
     "pkcs8",
     keyBuffer,
@@ -466,6 +542,47 @@ export async function wrapKeyWithRSA(recipientPublicKey: CryptoKey, aesKey: Cryp
     rawKey
   );
   return arrayBufferToBase64(encrypted);
+}
+
+// Wrap a file AES key with another AES key (for folder sharing)
+// Returns base64 string: [12-byte IV][ciphertext]
+export async function wrapKeyWithAES(
+  wrappingKey: CryptoKey,
+  fileKey: CryptoKey
+): Promise<string> {
+  const rawFileKey = await window.crypto.subtle.exportKey("raw", fileKey);
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const wrapped = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    wrappingKey,
+    rawFileKey
+  );
+  const result = new Uint8Array(12 + wrapped.byteLength);
+  result.set(iv, 0);
+  result.set(new Uint8Array(wrapped), 12);
+  return arrayBufferToBase64(result);
+}
+
+// Unwrap a file AES key using a folder share AES key
+export async function unwrapKeyWithAES(
+  wrappingKey: CryptoKey,
+  wrappedB64: string
+): Promise<CryptoKey> {
+  const data = new Uint8Array(base64ToArrayBuffer(wrappedB64));
+  const iv = data.slice(0, 12);
+  const ciphertext = data.slice(12);
+  const rawKey = await window.crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    wrappingKey,
+    ciphertext
+  );
+  return window.crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
 }
 
 // Unwrap an RSA-OAEP wrapped AES key using the user's RSA private key

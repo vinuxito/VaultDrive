@@ -1,27 +1,86 @@
 import {
   decryptPrivateKeyWithPassword,
   encryptPrivateKeyWithPIN,
+  encryptPrivateKeyWithPassword,
 } from "./crypto";
 
 interface CreatePinProtectedPrivateKeyParams {
   privateKeyEncrypted: string | null;
   password: string;
   pin: string;
+  previousPassword?: string;
+}
+
+export interface PinEnrollmentResult {
+  privateKeyPinEncrypted: string;
+  reEncryptedPrivateKey?: string;
+}
+
+const MISSING_PRIVATE_KEY_ERROR =
+  "We couldn't load your encrypted private key. Sign out and sign back in, then try setting your PIN again.";
+
+const INCORRECT_PASSWORD_ERROR =
+  "Incorrect password — enter your account login password.";
+
+export function getPinEnrollmentErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    const message = error.message.trim();
+    const normalized = message.toLowerCase();
+
+    if (!message) {
+      return INCORRECT_PASSWORD_ERROR;
+    }
+
+    if (normalized.includes("decryption failed") || normalized.includes("decrypt")) {
+      return INCORRECT_PASSWORD_ERROR;
+    }
+
+    return message;
+  }
+
+  return "Failed to set PIN. Please try again.";
 }
 
 export async function createPinProtectedPrivateKey({
   privateKeyEncrypted,
   password,
   pin,
-}: CreatePinProtectedPrivateKeyParams): Promise<string | undefined> {
+  previousPassword,
+}: CreatePinProtectedPrivateKeyParams): Promise<PinEnrollmentResult> {
   if (!privateKeyEncrypted) {
-    return undefined;
+    throw new Error(MISSING_PRIVATE_KEY_ERROR);
   }
 
-  const privateKeyPem = await decryptPrivateKeyWithPassword(
-    password,
-    privateKeyEncrypted,
-  );
+  let privateKeyPem: string;
+  let usedRecovery = false;
 
-  return encryptPrivateKeyWithPIN(pin, privateKeyPem);
+  try {
+    privateKeyPem = await decryptPrivateKeyWithPassword(
+      password,
+      privateKeyEncrypted,
+    );
+  } catch (error: unknown) {
+    if (previousPassword) {
+      try {
+        privateKeyPem = await decryptPrivateKeyWithPassword(
+          previousPassword,
+          privateKeyEncrypted,
+        );
+        usedRecovery = true;
+      } catch (secondError: unknown) {
+        throw new Error(getPinEnrollmentErrorMessage(secondError));
+      }
+    } else {
+      throw new Error(getPinEnrollmentErrorMessage(error));
+    }
+  }
+
+  const privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pin, privateKeyPem);
+  const result: PinEnrollmentResult = { privateKeyPinEncrypted };
+
+  if (usedRecovery) {
+    result.reEncryptedPrivateKey = await encryptPrivateKeyWithPassword(password, privateKeyPem);
+  }
+
+  return result;
 }

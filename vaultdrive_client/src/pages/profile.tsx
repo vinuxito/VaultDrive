@@ -56,7 +56,7 @@ export default function Profile() {
     // Fetch full user data from API
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${API_URL}/userme`, {
+        const response = await fetch(`${API_URL}/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

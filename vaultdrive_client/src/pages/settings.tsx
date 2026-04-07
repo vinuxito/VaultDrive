@@ -39,7 +39,10 @@ import { CollapsibleSection } from "../components/settings/CollapsibleSection";
 import { ControlPlaneStatusSection } from "../components/settings/ControlPlaneStatusSection";
 import { Tabs, TabPanel } from "../components/ui/tabs";
 import { useSessionVault } from "../context/SessionVaultContext";
-import { createPinProtectedPrivateKey } from "../utils/pin-enrollment";
+import {
+  createPinProtectedPrivateKey,
+  getPinEnrollmentErrorMessage,
+} from "../utils/pin-enrollment";
 import { mergeUserPinState } from "../utils/pin-trust";
 
 export default function Settings() {
@@ -69,6 +72,8 @@ export default function Settings() {
   const [pinInput, setPinInput] = useState("");
   const [oldPinInput, setOldPinInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [previousPasswordInput, setPreviousPasswordInput] = useState("");
+  const [showRecovery, setShowRecovery] = useState(false);
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState("");
   const [pinLoading, setPinLoading] = useState(false);
@@ -110,37 +115,36 @@ export default function Settings() {
       const userObj = stored ? JSON.parse(stored) : null;
       const privateKeyEncrypted: string | null = userObj?.private_key_encrypted ?? null;
 
-      let privateKeyPinEncrypted: string | undefined;
-      try {
-        privateKeyPinEncrypted = await createPinProtectedPrivateKey({
-          privateKeyEncrypted,
-          password: passwordInput,
-          pin: pinInput,
-        });
-      } catch (err) {
-        if (err instanceof Error && (err.message.includes("Decryption failed") || err.message.includes("decrypt"))) {
-          throw new Error("Incorrect password — enter your account login password.");
-        }
-        throw err;
-      }
+      const { privateKeyPinEncrypted, reEncryptedPrivateKey } = await createPinProtectedPrivateKey({
+        privateKeyEncrypted,
+        password: passwordInput,
+        pin: pinInput,
+        previousPassword: showRecovery ? previousPasswordInput : undefined,
+      });
 
       await setPIN(pinInput, token, pinSet ? oldPinInput : undefined, privateKeyPinEncrypted);
       setPinSet(true);
       setCredential(pinInput, "pin");
       setPinSuccess(pinSet ? "PIN changed successfully." : "PIN set successfully.");
       setShowPinForm(false);
+      setShowRecovery(false);
       setPinInput("");
       setOldPinInput("");
       setPasswordInput("");
+      setPreviousPasswordInput("");
       if (stored && userObj) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(mergeUserPinState(userObj, privateKeyPinEncrypted)),
-        );
+        const updatedUser = mergeUserPinState(userObj, privateKeyPinEncrypted);
+        if (reEncryptedPrivateKey) {
+          updatedUser.private_key_encrypted = reEncryptedPrivateKey;
+        }
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to save PIN.";
+      const msg = getPinEnrollmentErrorMessage(err);
       setPinError(msg);
+      if (msg.includes("Incorrect password")) {
+        setShowRecovery(true);
+      }
     } finally {
       setPinLoading(false);
     }
@@ -420,6 +424,22 @@ export default function Settings() {
                   />
                   <p className="text-xs text-muted-foreground">Needed to bind your PIN to your encryption key</p>
                 </div>
+                {showRecovery && (
+                  <div className="space-y-1 p-3 rounded-xl bg-amber-50 border border-amber-100 dark:bg-amber-950/30 dark:border-amber-900/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Label className="text-amber-700 dark:text-amber-400">Previous Password</Label>
+                    <input
+                      type="password"
+                      value={previousPasswordInput}
+                      onChange={(e) => setPreviousPasswordInput(e.target.value)}
+                      placeholder="Enter your previous password"
+                      className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      onKeyDown={(e) => { if (e.key === "Enter") handlePinSubmit(); }}
+                    />
+                    <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-1">
+                      Your administrator may have reset your password. Enter your previous password to recover your encryption key.
+                    </p>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <Button
                   variant="outline"

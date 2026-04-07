@@ -12,13 +12,15 @@ import Admin from "./pages/admin";
 import AdminTests from "./pages/admin-tests";
 import DropUpload from "./pages/drop-upload";
 import PublicSharePage from "./pages/PublicSharePage";
+import PublicFolderSharePage from "./pages/PublicFolderSharePage";
 import FileRequestPage from "./pages/FileRequestPage";
 import Dashboard from "./pages/dashboard";
 import ForcePasswordChange from "./pages/force-password-change";
 import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
+import { BASE_PATH } from "./utils/base-path";
 
-const basename = "/abrn";
+const basename = BASE_PATH;
 
 function App() {
   return (
@@ -32,6 +34,7 @@ function App() {
           <Route path="/about" element={<Navbar><About /></Navbar>} />
           <Route path="/drop/:token" element={<DropUpload />} />
           <Route path="/share/:token" element={<PublicSharePage />} />
+          <Route path="/folder-share/:token" element={<PublicFolderSharePage />} />
           <Route path="/request/:token" element={<FileRequestPage />} />
           {/* Authenticated pages - ProtectedRoute handles auth check + DashboardLayout */}
           <Route element={<ProtectedRoute />}>

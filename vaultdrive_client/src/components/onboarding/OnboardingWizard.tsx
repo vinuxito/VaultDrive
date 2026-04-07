@@ -15,7 +15,10 @@ import {
 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
-import { createPinProtectedPrivateKey } from "../../utils/pin-enrollment";
+import {
+  createPinProtectedPrivateKey,
+  getPinEnrollmentErrorMessage,
+} from "../../utils/pin-enrollment";
 import { mergeUserPinState } from "../../utils/pin-trust";
 
 interface OnboardingWizardProps {
@@ -34,6 +37,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [pinError, setPinError] = useState("");
   const [settingPin, setSettingPin] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
+  const [previousPassword, setPreviousPassword] = useState("");
+  const [showRecovery, setShowRecovery] = useState(false);
 
   const [folderName, setFolderName] = useState("");
   const [folderError, setFolderError] = useState("");
@@ -59,10 +64,11 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     try {
       const stored = localStorage.getItem("user");
       const user = stored ? JSON.parse(stored) : null;
-      const privateKeyPinEncrypted = await createPinProtectedPrivateKey({
+      const { privateKeyPinEncrypted, reEncryptedPrivateKey } = await createPinProtectedPrivateKey({
         privateKeyEncrypted: user?.private_key_encrypted ?? null,
         password: passwordInput,
         pin,
+        previousPassword: showRecovery ? previousPassword : undefined,
       });
 
       const res = await fetch(`${API_URL}/users/pin`, {
@@ -81,21 +87,22 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         throw new Error(data.error || "Failed to set PIN");
       }
       if (stored) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(mergeUserPinState(user, privateKeyPinEncrypted)),
-        );
+        const updatedUser = mergeUserPinState(user, privateKeyPinEncrypted);
+        if (reEncryptedPrivateKey) {
+          updatedUser.private_key_encrypted = reEncryptedPrivateKey;
+        }
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
       localStorage.setItem("abrn_pin_hint", "1");
       setCredential(pin, "pin");
       setPasswordInput("");
+      setPreviousPassword("");
       setStep(3);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to set PIN";
-      if (message.includes("Decryption failed") || message.includes("decrypt")) {
-        setPinError("Incorrect password — enter your account login password.");
-      } else {
-        setPinError(message);
+      const msg = getPinEnrollmentErrorMessage(err);
+      setPinError(msg);
+      if (msg.includes("Incorrect password")) {
+        setShowRecovery(true);
       }
     } finally {
       setSettingPin(false);
@@ -146,9 +153,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
       <div
-        className="max-w-2xl w-full p-0 overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
+        className="max-w-2xl w-full p-0 overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.5)] my-auto"
         style={{ background: "linear-gradient(160deg, rgba(51,23,27,0.98) 0%, rgba(24,11,14,0.98) 52%, rgba(14,10,15,1) 100%)" }}
       >
         <div className="px-8 pt-8 pb-0">
@@ -336,6 +343,26 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   </p>
                 </div>
 
+                {showRecovery && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Label htmlFor="onboarding-previous-password" className="text-amber-200/70 text-xs font-medium uppercase tracking-wider">
+                      Previous Password
+                    </Label>
+                    <Input
+                      id="onboarding-previous-password"
+                      type="password"
+                      placeholder="Enter your previous password"
+                      value={previousPassword}
+                      onChange={(e) => setPreviousPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
+                      className="bg-amber-500/5 border-amber-500/20 text-white placeholder:text-white/20 focus:border-amber-500/40 focus:ring-amber-500/10 h-12"
+                    />
+                    <p className="text-xs text-amber-200/50 leading-relaxed">
+                      Your administrator may have reset your password. Enter your previous password to recover your encryption key.
+                    </p>
+                  </div>
+                )}
+
                 {pinError && (
                   <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
                     {pinError}
@@ -344,8 +371,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               </div>
 
               <Button
+                type="button"
                 className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
-                onClick={handleSetPin}
+                onClick={() => { void handleSetPin(); }}
                 disabled={settingPin || pin.length !== 4 || confirmPin.length !== 4 || passwordInput.length === 0}
               >
                 {settingPin ? (
