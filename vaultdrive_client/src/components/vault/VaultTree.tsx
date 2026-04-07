@@ -17,6 +17,7 @@ export type TreeNode =
   | { type: "starred" }
   | { type: "shared" }
   | { type: "folder"; folderId: string; folderName: string }
+  | { type: "manage-folder-shares"; folderId: string; folderName: string }
   | { type: "drop-link"; token: string; tokenId: string; linkName: string }
   | { type: "manage-drops" }
   | { type: "manage-requests" };
@@ -43,6 +44,8 @@ interface VaultTreeProps {
   onCreateSubfolder?: (parentId: string) => void;
   onRenameFolder?: (folderId: string, name: string) => void;
   onDeleteFolder?: (folderId: string, name: string) => void;
+  onShareFolder?: (folderId: string, name: string) => void;
+  onManageShareFolder?: (folderId: string, name: string) => void;
 }
 
 function isDropExpired(token: DropTokenInfo): boolean {
@@ -152,6 +155,8 @@ export function VaultTree({
   onCreateSubfolder,
   onRenameFolder,
   onDeleteFolder,
+  onShareFolder,
+  onManageShareFolder,
 }: VaultTreeProps) {
   const [foldersOpen, setFoldersOpen] = useState(true);
   const [linksOpen, setLinksOpen] = useState(true);
@@ -233,6 +238,8 @@ export function VaultTree({
             onRenameFolder={onRenameFolder}
             onDeleteFolder={onDeleteFolder}
             onCreateSubfolder={onCreateSubfolder}
+            onShareFolder={onShareFolder}
+            onManageShareFolder={onManageShareFolder}
           />
         </div>
       )}

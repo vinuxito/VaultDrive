@@ -47,6 +47,7 @@ import {
 } from "../utils/crypto";
 import ShareModal from "../components/share-modal";
 import { CreateShareLinkModal } from "../components/vault/CreateShareLinkModal";
+import { CreateFolderShareLinkModal } from "../components/vault/CreateFolderShareLinkModal";
 import { AccessPanel } from "../components/vault/AccessPanel";
 import FolderModal from "../components/folders/FolderModal";
 import DeleteFolderModal from "../components/folders/DeleteFolderModal";
@@ -59,9 +60,15 @@ import {
 import type { TreeNode, DropTokenInfo, BulkDownloadFile, FileOrigin } from "../components/vault";
 import type { Folder } from "../components/files/FolderBreadcrumb";
 import { useSessionVault } from "../context/SessionVaultContext";
+import {
+  syncAllFolderShareLinks,
+  syncFolderShareLinksForFolder,
+  type SyncableFolderShareLink,
+} from "../utils/folder-share-sync";
 import { FilePreviewModal } from "../components/vault/FilePreviewModal";
 import { UploadLinksSection } from "../components/upload";
 import { FileRequestsSection } from "../components/vault/FileRequestsSection";
+import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksSection";
 
 interface FileData {
   id: string;
@@ -83,6 +90,7 @@ interface FileData {
   drop_folder_id?: string | null;
   drop_folder_name?: string | null;
   pin_wrapped_key?: string | null;
+  folder_id?: string | null;
 }
 
 interface SharedFile {
@@ -185,8 +193,9 @@ function collectFolderDescendantIds(folders: Folder[], folderId: string): Set<st
 
 function getFolderFileCounts(files: FileData[]): Record<string, number> {
   return files.reduce<Record<string, number>>((counts, file) => {
-    if (!file.drop_folder_id) return counts;
-    counts[file.drop_folder_id] = (counts[file.drop_folder_id] ?? 0) + 1;
+    const fid = file.folder_id ?? file.drop_folder_id;
+    if (!fid) return counts;
+    counts[fid] = (counts[fid] ?? 0) + 1;
     return counts;
   }, {});
 }
@@ -292,6 +301,11 @@ export default function Files() {
     pin_wrapped_key?: string | null;
   } | null>(null);
 
+  const [showFolderShareModal, setShowFolderShareModal] = useState(false);
+  const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
+  const [folderSharePanelVersion, setFolderSharePanelVersion] = useState(0);
+  const initialFolderShareSyncAttemptedRef = useRef(false);
+
   const fetchFiles = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -374,6 +388,52 @@ export default function Files() {
     }
   }, [dropLinkFiles]);
 
+  const syncExistingFolderShares = useCallback(async (folderId?: string) => {
+    const token = localStorage.getItem("token");
+    const credential = sessionVault.getCredential();
+    const storedUser = localStorage.getItem("user");
+    const currentUser = storedUser ? JSON.parse(storedUser) as {
+      private_key_encrypted?: string | null;
+      private_key_pin_encrypted?: string | null;
+    } : null;
+
+    if (!token || !credential) {
+      return;
+    }
+
+    const linksResponse = await fetch(`${API_URL}/folder-share-links`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!linksResponse.ok) {
+      return;
+    }
+
+    const links = (await linksResponse.json()) as SyncableFolderShareLink[];
+    const syncResult = folderId
+      ? await syncFolderShareLinksForFolder({
+          folderId,
+          folders,
+          links,
+          authToken: token,
+          credential,
+          cachedPrivateKey: sessionVault.getPrivateKey(),
+          currentUser,
+        })
+      : await syncAllFolderShareLinks({
+          links,
+          authToken: token,
+          credential,
+          cachedPrivateKey: sessionVault.getPrivateKey(),
+          currentUser,
+        });
+
+    if (syncResult.syncedFiles > 0) {
+      await fetchFiles();
+      setSuccessMessage(`Updated ${syncResult.syncedFiles} file${syncResult.syncedFiles === 1 ? "" : "s"} across active folder shares.`);
+      setTimeout(() => setSuccessMessage(""), 5000);
+    }
+  }, [fetchFiles, folders, sessionVault]);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
@@ -382,6 +442,21 @@ export default function Files() {
     fetchFolders();
     fetchDropTokens();
   }, [navigate, fetchFiles, fetchSharedFiles, fetchFolders, fetchDropTokens]);
+
+  useEffect(() => {
+    if (initialFolderShareSyncAttemptedRef.current) {
+      return;
+    }
+    if (folders.length === 0) {
+      return;
+    }
+    if (!sessionVault.getCredential()) {
+      return;
+    }
+
+    initialFolderShareSyncAttemptedRef.current = true;
+    void syncExistingFolderShares();
+  }, [folders, sessionVault, syncExistingFolderShares]);
 
   useEffect(() => {
     if (selectedNode.type === "drop-link") {
@@ -478,7 +553,10 @@ export default function Files() {
         break;
       case "folder": {
         const descendantIds = collectFolderDescendantIds(folders, selectedNode.folderId);
-        list = myFiles.filter((file) => file.drop_folder_id && descendantIds.has(file.drop_folder_id));
+        list = myFiles.filter((file) =>
+          (file.drop_folder_id && descendantIds.has(file.drop_folder_id)) ||
+          (file.folder_id && descendantIds.has(file.folder_id))
+        );
         break;
       }
       case "shared":
@@ -630,6 +708,9 @@ export default function Files() {
       formData.append("algorithm", "AES-256-GCM");
       formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
       formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
+      if (selectedNode.type === "folder") {
+        formData.append("folder_id", selectedNode.folderId);
+      }
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/upload`, {
         method: "POST",
@@ -644,6 +725,9 @@ export default function Files() {
       const fileInput = document.getElementById("file-input") as HTMLInputElement;
       if (fileInput) fileInput.value = "";
       await fetchFiles();
+      if (selectedNode.type === "folder") {
+        await syncExistingFolderShares(selectedNode.folderId);
+      }
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload file");
@@ -677,6 +761,9 @@ export default function Files() {
       formData.append("algorithm", "AES-256-GCM");
       formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
       formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
+      if (selectedNode.type === "folder") {
+        formData.append("folder_id", selectedNode.folderId);
+      }
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/upload`, {
         method: "POST",
@@ -713,6 +800,9 @@ export default function Files() {
       await performUploadFile(files[i], password, newItems[i].id);
     }
     await fetchFiles();
+    if (selectedNode.type === "folder") {
+      await syncExistingFolderShares(selectedNode.folderId);
+    }
   };
 
   const downloadFileWithCredential = async (
@@ -1053,6 +1143,16 @@ export default function Files() {
     }
   };
 
+  const handleShareFolder = (folderId: string, folderName: string) => {
+    setFolderForShare({ id: folderId, name: folderName });
+    setShowFolderShareModal(true);
+  };
+
+  const handleManageFolderShares = (folderId: string, folderName: string) => {
+    setSelectedNode({ type: "manage-folder-shares", folderId, folderName });
+    setSidebarOpen(false);
+  };
+
   const openCreateFolderModal = (parentId: string | null = null) => {
     setFolderModalMode("create");
     setFolderModalParentId(parentId);
@@ -1198,6 +1298,7 @@ export default function Files() {
       case "starred": return "Starred";
       case "shared": return "Shared with Me";
       case "folder": return selectedNode.folderName;
+      case "manage-folder-shares": return `${selectedNode.folderName} · Shared Links`;
       case "drop-link": return selectedNode.linkName;
       case "manage-drops": return "Client Upload Links";
       case "manage-requests": return "File Requests";
@@ -1298,6 +1399,8 @@ export default function Files() {
               onCreateSubfolder={(parentId) => openCreateFolderModal(parentId)}
               onRenameFolder={openRenameFolderModal}
               onDeleteFolder={openDeleteFolderModal}
+              onShareFolder={handleShareFolder}
+              onManageShareFolder={handleManageFolderShares}
             />
           </aside>
 
@@ -1310,6 +1413,16 @@ export default function Files() {
               <div className="flex-1 overflow-auto p-6">
                 <FileRequestsSection />
               </div>
+            ) : selectedNode.type === "manage-folder-shares" ? (
+              <FolderSharedLinksSection
+                folder={{ id: selectedNode.folderId, name: selectedNode.folderName }}
+                onCreateLink={() => handleShareFolder(selectedNode.folderId, selectedNode.folderName)}
+                onStatusMessage={(message) => {
+                  setSuccessMessage(message);
+                  setTimeout(() => setSuccessMessage(""), 5000);
+                }}
+                refreshKey={folderSharePanelVersion}
+              />
             ) : (
             <>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/60 bg-white shrink-0">
@@ -2055,6 +2168,14 @@ export default function Files() {
         />
       )}
 
+      {showFolderShareModal && folderForShare && (
+        <CreateFolderShareLinkModal
+          isOpen={showFolderShareModal}
+          onClose={() => { setShowFolderShareModal(false); setFolderForShare(null); }}
+          onCreated={() => setFolderSharePanelVersion((value) => value + 1)}
+          folder={folderForShare}
+        />
+      )}
       {accessPanelFile && (
         <AccessPanel
           fileId={accessPanelFile.id}

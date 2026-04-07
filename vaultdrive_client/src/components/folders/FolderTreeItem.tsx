@@ -9,6 +9,8 @@ import {
   FolderPlus,
   Edit2,
   Trash2,
+  Share2,
+  Link2,
 } from "lucide-react";
 import type { FolderNode } from "./FolderTree";
 
@@ -23,6 +25,8 @@ interface FolderTreeItemProps {
   onRename: () => void;
   onDelete: () => void;
   onCreateSubfolder: () => void;
+  onShare?: () => void;
+  onManageShares?: () => void;
 }
 
 export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
@@ -36,6 +40,8 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   onRename,
   onDelete,
   onCreateSubfolder,
+  onShare,
+  onManageShares,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
 
@@ -56,6 +62,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     >
       {hasChildren ? (
         <button
+          type="button"
           onClick={onToggleExpand}
           className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-[#7d4f50]/10"
           aria-label={folder.isExpanded ? "Collapse folder" : "Expand folder"}
@@ -71,6 +78,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       )}
 
       <button
+        type="button"
         onClick={onNavigate}
         className="flex-shrink-0"
         aria-label={`Navigate to ${folder.name}`}
@@ -83,6 +91,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       </button>
 
       <button
+        type="button"
         onClick={onNavigate}
         className={`flex-1 text-left truncate transition-colors ${isSidebar ? "text-sm" : "text-sm"} ${
           active ? "font-medium text-[#6b4345]" : ""
@@ -118,13 +127,16 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
 
           {showMenu && (
             <>
-              <div
+              <button
+                type="button"
+                aria-label="Close folder actions"
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
 
               <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-slate-200 bg-white shadow-lg z-20 overflow-hidden">
                 <button
+                  type="button"
                   onClick={() => {
                     onCreateSubfolder();
                     setShowMenu(false);
@@ -134,7 +146,34 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                   <FolderPlus className="w-4 h-4" />
                   Create Subfolder
                 </button>
+                {onShare && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onShare();
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share Folder
+                  </button>
+                )}
+                {onManageShares && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onManageShares();
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    Manage Shared Links
+                  </button>
+                )}
                 <button
+                  type="button"
                   onClick={() => {
                     onRename();
                     setShowMenu(false);
@@ -145,6 +184,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                   Rename
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     onDelete();
                     setShowMenu(false);
