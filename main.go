@@ -264,6 +264,34 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerRevokePublicShareLink)))
 
+	// Folder share links (authenticated)
+	mux.Handle("POST /api/folders/{folderId}/share-link",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerCreateFolderShareLink)))
+	mux.Handle("GET /api/folders/{folderId}/share-links",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListFolderShareLinks)))
+	mux.Handle("DELETE /api/folder-share-links/{linkId}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerRevokeFolderShareLink)))
+	mux.Handle("GET /api/folder-share-links",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListOwnedFolderShareLinks)))
+	mux.Handle("POST /api/folder-share-links/{linkId}/sync",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerSyncFolderShareLink)))
+	mux.Handle("GET /api/folders/{folderId}/files-recursive",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetFolderFilesRecursive)))
+	mux.Handle("POST /api/files/access-keys-batch",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetBatchAccessKeys)))
+
+	// Folder share (public, no auth)
+	mux.HandleFunc("GET /api/folder-share/{token}/info", apiConfig.handlerGetFolderShareInfo)
+	mux.HandleFunc("GET /api/folder-share/{token}/keys", apiConfig.handlerGetFolderShareKeys)
+	mux.HandleFunc("GET /api/folder-share/{token}/file/{fileId}", apiConfig.handlerGetFolderShareFile)
+
 	mux.Handle("POST /api/file-requests",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerCreateFileRequest)))
