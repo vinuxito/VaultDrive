@@ -308,6 +308,7 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 				EncryptedMetadata: sql.NullString{String: string(metaJSON), Valid: true},
 				CreatedAt:         now,
 				UpdatedAt:         now,
+				FolderID:          uuid.NullUUID{},
 			})
 			if err != nil {
 				os.Remove(storagePath)

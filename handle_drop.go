@@ -343,6 +343,7 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
 			DropSourceID:      uuid.NullUUID{UUID: uploadToken.ID, Valid: true},
+			FolderID:          uuid.NullUUID{},
 		})
 
 		if err != nil {

@@ -129,6 +129,7 @@ func (cfg *ApiConfig) handlerV1CreateFile(w http.ResponseWriter, r *http.Request
 		CreatedAt:         time.Now().UTC(),
 		UpdatedAt:         time.Now().UTC(),
 		DropSourceID:      uuid.NullUUID{},
+		FolderID:          uuid.NullUUID{},
 	})
 	if err != nil {
 		_ = os.Remove(filePath)

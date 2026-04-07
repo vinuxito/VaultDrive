@@ -38,6 +38,14 @@ RETURNING *;
 DELETE FROM folders
 WHERE id = $1 AND owner_id = $2;
 
+-- name: GetFolderSubtreeIDs :many
+WITH RECURSIVE subtree AS (
+  SELECT folders.id FROM folders WHERE folders.id = $1
+  UNION ALL
+  SELECT f.id FROM folders f INNER JOIN subtree s ON f.parent_id = s.id
+)
+SELECT subtree.id FROM subtree;
+
 -- name: GetFolderPath :many
 WITH RECURSIVE folder_path AS (
   SELECT folders.id, folders.name, folders.parent_id, 0 as level

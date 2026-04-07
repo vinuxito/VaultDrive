@@ -47,6 +47,7 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 		DropFolderID   *string   `json:"drop_folder_id"`
 		DropFolderName *string   `json:"drop_folder_name"`
 		PinWrappedKey  *string   `json:"pin_wrapped_key"`
+		FolderID       *string   `json:"folder_id"`
 	}
 
 	fileResponses := []FileResponse{}
@@ -77,6 +78,12 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 			pinWrappedKey = &f.PinWrappedKey.String
 		}
 
+		var folderID *string = nil
+		if f.FolderID.Valid {
+			id := f.FolderID.UUID.String()
+			folderID = &id
+		}
+
 		fileResponses = append(fileResponses, FileResponse{
 			ID:             f.ID,
 			Filename:       f.Filename,
@@ -89,6 +96,7 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 			DropFolderID:   dropFolderID,
 			DropFolderName: dropFolderName,
 			PinWrappedKey:  pinWrappedKey,
+			FolderID:       folderID,
 		})
 	}
 

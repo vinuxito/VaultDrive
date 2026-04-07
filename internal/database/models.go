@@ -76,6 +76,7 @@ type File struct {
 	UpdatedAt         time.Time
 	Starred           bool
 	DropSourceID      uuid.NullUUID
+	FolderID          uuid.NullUUID
 }
 
 type FileAccessKey struct {
@@ -131,6 +132,26 @@ type Folder struct {
 	ParentID  uuid.NullUUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type FolderShareFileKey struct {
+	ID                uuid.UUID
+	FolderShareLinkID uuid.UUID
+	FileID            uuid.UUID
+	WrappedFileKey    string
+	CreatedAt         time.Time
+}
+
+type FolderShareLink struct {
+	ID             uuid.UUID
+	FolderID       uuid.UUID
+	OwnerID        uuid.UUID
+	Token          string
+	ExpiresAt      sql.NullTime
+	IsActive       bool
+	AccessCount    int32
+	LastAccessedAt sql.NullTime
+	CreatedAt      time.Time
 }
 
 type Group struct {

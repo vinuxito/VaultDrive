@@ -9,6 +9,7 @@ SELECT
     f.updated_at,
     f.encrypted_metadata,
     f.drop_source_id,
+    f.folder_id,
     u.token as drop_token,
     u.pin_wrapped_key,
     fol.id as drop_folder_id,

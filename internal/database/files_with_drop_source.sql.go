@@ -24,6 +24,7 @@ SELECT
     f.updated_at,
     f.encrypted_metadata,
     f.drop_source_id,
+    f.folder_id,
     u.token as drop_token,
     u.pin_wrapped_key,
     fol.id as drop_folder_id,
@@ -45,6 +46,7 @@ type GetFilesWithDropSourceRow struct {
 	UpdatedAt         time.Time
 	EncryptedMetadata sql.NullString
 	DropSourceID      uuid.NullUUID
+	FolderID          uuid.NullUUID
 	DropToken         sql.NullString
 	PinWrappedKey     sql.NullString
 	DropFolderID      uuid.NullUUID
@@ -70,6 +72,7 @@ func (q *Queries) GetFilesWithDropSource(ctx context.Context, ownerID uuid.NullU
 			&i.UpdatedAt,
 			&i.EncryptedMetadata,
 			&i.DropSourceID,
+			&i.FolderID,
 			&i.DropToken,
 			&i.PinWrappedKey,
 			&i.DropFolderID,

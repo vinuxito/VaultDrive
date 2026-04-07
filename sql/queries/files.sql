@@ -8,9 +8,10 @@ INSERT INTO files (
     current_key_version,
     created_at,
     updated_at,
-    drop_source_id
+    drop_source_id,
+    folder_id
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING *;
 
 -- name: GetFileByID :one
@@ -67,3 +68,17 @@ SET starred = $2,
     updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: GetFilesByFolderID :many
+SELECT * FROM files
+WHERE folder_id = $1
+ORDER BY filename ASC;
+
+-- name: UpdateFileFolderID :exec
+UPDATE files SET folder_id = $1, updated_at = $2
+WHERE id = $3;
+
+-- name: GetFilesByFolderIDs :many
+SELECT * FROM files
+WHERE folder_id = ANY($1::uuid[])
+ORDER BY folder_id, filename ASC;

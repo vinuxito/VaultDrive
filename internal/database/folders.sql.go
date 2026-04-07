@@ -138,6 +138,38 @@ func (q *Queries) GetFolderPath(ctx context.Context, id uuid.UUID) ([]GetFolderP
 	return items, nil
 }
 
+const getFolderSubtreeIDs = `-- name: GetFolderSubtreeIDs :many
+WITH RECURSIVE subtree AS (
+  SELECT folders.id FROM folders WHERE folders.id = $1
+  UNION ALL
+  SELECT f.id FROM folders f INNER JOIN subtree s ON f.parent_id = s.id
+)
+SELECT subtree.id FROM subtree
+`
+
+func (q *Queries) GetFolderSubtreeIDs(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getFolderSubtreeIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFoldersByOwner = `-- name: GetFoldersByOwner :many
 SELECT id, owner_id, name, parent_id, created_at, updated_at FROM folders
 WHERE owner_id = $1

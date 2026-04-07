@@ -96,6 +96,15 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Optional folder assignment
+	var folderUUID uuid.NullUUID
+	if folderIDStr := r.FormValue("folder_id"); folderIDStr != "" {
+		fid, parseErr := uuid.Parse(folderIDStr)
+		if parseErr == nil {
+			folderUUID = uuid.NullUUID{UUID: fid, Valid: true}
+		}
+	}
+
 	dbfile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
 		OwnerID:           uuid.NullUUID{UUID: ownerID, Valid: true},
 		Filename:          handler.Filename,
@@ -106,6 +115,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		CreatedAt:         time.Now().UTC(),
 		UpdatedAt:         time.Now().UTC(),
 		DropSourceID:      uuid.NullUUID{},
+		FolderID:          folderUUID,
 	})
 
 	if err != nil {
