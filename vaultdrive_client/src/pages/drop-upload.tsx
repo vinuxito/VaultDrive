@@ -139,7 +139,7 @@ export default function DropUpload() {
 
     setUploading(true);
     setUploadProgress(files.map(f => ({
-      fileName: f.name,
+      fileName: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
       status: "pending",
       progress: 0,
       bytesUploaded: 0,
@@ -157,8 +157,8 @@ export default function DropUpload() {
   };
 
   const uploadFile = async (file: File, isFolder: boolean): Promise<void> => {
-    const fileName = file.name;
     const relativePath = (isFolder && (file as File & { webkitRelativePath?: string }).webkitRelativePath) || "";
+    const fileName = relativePath || file.name;
     
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();

@@ -213,8 +213,20 @@
   "hotPaths": [
     {
       "path": "vaultdrive_client/src/pages/files.tsx",
-      "accessCount": 33,
-      "lastAccessed": 1775728665641,
+      "accessCount": 43,
+      "lastAccessed": 1775728922360,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/pages/drop-upload.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1775729018705,
+      "type": "file"
+    },
+    {
+      "path": ".gnhf/runs/make-sure-we-can-upl-56c5d2/notes.md",
+      "accessCount": 8,
+      "lastAccessed": 1775729086425,
       "type": "file"
     },
     {
@@ -224,9 +236,15 @@
       "type": "file"
     },
     {
-      "path": ".gnhf/runs/make-sure-we-can-upl-56c5d2/notes.md",
-      "accessCount": 5,
-      "lastAccessed": 1775728829061,
+      "path": "vaultdrive_client/src/pages/FileRequestPage.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1775728876886,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/utils/drop-drag.ts",
+      "accessCount": 4,
+      "lastAccessed": 1775728917535,
       "type": "file"
     },
     {
@@ -236,33 +254,27 @@
       "type": "directory"
     },
     {
-      "path": "vaultdrive_client/src/utils/drop-drag.ts",
-      "accessCount": 3,
-      "lastAccessed": 1775728634102,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/pages/FileRequestPage.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1775728734241,
-      "type": "file"
-    },
-    {
       "path": "vaultdrive_client/src/utils/folder-upload.ts",
-      "accessCount": 2,
-      "lastAccessed": 1775728616128,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/pages/drop-upload.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775728660199,
+      "accessCount": 3,
+      "lastAccessed": 1775728860158,
       "type": "file"
     },
     {
       "path": "handle_file_requests.go",
       "accessCount": 2,
       "lastAccessed": 1775728705307,
+      "type": "file"
+    },
+    {
+      "path": "internal/database/folders.sql.go",
+      "accessCount": 2,
+      "lastAccessed": 1775728930114,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/utils/drop-upload.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775728973594,
       "type": "file"
     },
     {
@@ -284,22 +296,16 @@
       "type": "file"
     },
     {
-      "path": "vaultdrive_client/src/utils/drop-upload.ts",
-      "accessCount": 1,
-      "lastAccessed": 1775727834802,
-      "type": "file"
-    },
-    {
       "path": "handle_files.go",
       "accessCount": 1,
       "lastAccessed": 1775727856475,
       "type": "file"
     },
     {
-      "path": "internal/database/folders.sql.go",
+      "path": "",
       "accessCount": 1,
-      "lastAccessed": 1775727937072,
-      "type": "file"
+      "lastAccessed": 1775728926603,
+      "type": "directory"
     }
   ],
   "userDirectives": []
