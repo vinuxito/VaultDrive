@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /lamp/www/ABRN-Drive && go build ./... 2>&1\",\"timeout\":60000,\"description\":\"Build Go backend\"}",
+  "error": "Exit code 1\n# github.com/Pranay0205/VaultDrive\n./handle_file_requests.go:346:17: undefined: originalName\n./handle_file_requests.go:363:7: undefined: originalName\n./handle_file_requests.go:369:24: undefined: originalName\n./handle_file_requests.go:372:86: undefined: originalName\n[rerun: b19]",
+  "timestamp": "2026-04-09T09:53:51.326Z",
+  "retry_count": 1
+}

@@ -245,14 +245,16 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 
 	for _, fileHeaders := range r.MultipartForm.File {
 		for _, fh := range fileHeaders {
-			originalName := filepath.Base(fh.Filename)
-			if originalName == "" || originalName == "." {
+			// Preserve relative path for folder uploads (e.g. "ProjectX/src/index.ts")
+			originalPath := fh.Filename
+			safeFilename := filepath.Base(originalPath)
+			if safeFilename == "" || safeFilename == "." {
 				continue
 			}
 
 			if req.MaxFileSize.Valid && fh.Size > req.MaxFileSize.Int64 {
 				respondWithError(w, http.StatusRequestEntityTooLarge,
-					fmt.Sprintf("File %s exceeds maximum size", originalName), nil)
+					fmt.Sprintf("File %s exceeds maximum size", safeFilename), nil)
 				return
 			}
 
@@ -263,9 +265,24 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 			}
 
 			fileIDForPath := uuid.New()
-			ext := filepath.Ext(originalName)
+			ext := filepath.Ext(safeFilename)
 			storedName := fileIDForPath.String() + ext
-			storagePath := filepath.Join(uploadDir, storedName)
+
+			// Create nested directory structure if relative path present
+			relativeDir := filepath.Dir(originalPath)
+			var storagePath string
+			if relativeDir != "." && relativeDir != "" {
+				relativeDir = filepath.Clean(relativeDir)
+				targetDir := filepath.Join(uploadDir, relativeDir)
+				if err := os.MkdirAll(targetDir, 0755); err != nil {
+					f.Close()
+					log.Printf("Failed to create directory %s: %v", targetDir, err)
+					continue
+				}
+				storagePath = filepath.Join(targetDir, storedName)
+			} else {
+				storagePath = filepath.Join(uploadDir, storedName)
+			}
 
 			dst, err := os.Create(storagePath)
 			if err != nil {
@@ -302,7 +319,7 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 			pinWrappedKey := r.FormValue("pin_wrapped_key")
 			createdFile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
 				OwnerID:           uuid.NullUUID{UUID: req.OwnerID, Valid: true},
-				Filename:          originalName,
+				Filename:          originalPath,
 				FilePath:          storagePath,
 				FileSize:          fileSize,
 				EncryptedMetadata: sql.NullString{String: string(metaJSON), Valid: true},
@@ -326,7 +343,7 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 
 			fileEntry := map[string]string{
 				"file_id":  createdFile.ID.String(),
-				"filename": originalName,
+				"filename": originalPath,
 				"size":     fmt.Sprintf("%d", fileSize),
 			}
 			fileEntryJSON, _ := json.Marshal(fileEntry)
@@ -343,16 +360,16 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 				EventType: "file_request_upload",
 				Payload: pqtype.NullRawMessage{
 					RawMessage: json.RawMessage(fmt.Sprintf(`{"filename":%q,"request_token":%q}`,
-						originalName, strings.TrimSpace(token[:min(8, len(token))]))),
+						originalPath, strings.TrimSpace(token[:min(8, len(token))]))),
 					Valid: true,
 				},
 			})
 			cfg.insertAudit(r.Context(), req.OwnerID, "file_request.uploaded", "file", &createdFile.ID, map[string]interface{}{
 				"file_request_id": req.ID.String(),
-				"filename":        originalName,
+				"filename":        originalPath,
 			}, r)
 
-			results = append(results, uploadResult{FileID: createdFile.ID.String(), Filename: originalName})
+			results = append(results, uploadResult{FileID: createdFile.ID.String(), Filename: originalPath})
 		}
 	}
 

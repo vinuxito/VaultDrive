@@ -72,6 +72,9 @@ import { UploadLinksSection } from "../components/upload";
 import { FileRequestsSection } from "../components/vault/FileRequestsSection";
 import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksSection";
 import { buildMoveTargetOptions } from "../utils/file-move";
+import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
+import type { DragDataTransferItem } from "../utils/drop-drag";
+import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
 
 interface FileData {
   id: string;
@@ -489,11 +492,23 @@ export default function Files() {
       e.preventDefault();
       dragCounter.current = 0;
       setIsDragging(false);
-      const files = e.dataTransfer?.files;
-      if (files && files.length > 0) {
-        droppedFilesRef.current = Array.from(files);
-        setPasswordAction("drop-upload");
-        setShowPasswordModal(true);
+      const items = Array.from(e.dataTransfer?.items ?? []) as unknown as DragDataTransferItem[];
+      if (items.length > 0 && items.some((i) => (i as unknown as DataTransferItem).webkitGetAsEntry?.()?.isDirectory)) {
+        // Folder drop — collect files with relative paths preserved
+        void collectFilesFromDataTransferItems(items).then((collected) => {
+          if (collected.length > 0) {
+            droppedFilesRef.current = collected;
+            setPasswordAction("drop-upload");
+            setShowPasswordModal(true);
+          }
+        });
+      } else {
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) {
+          droppedFilesRef.current = Array.from(files);
+          setPasswordAction("drop-upload");
+          setShowPasswordModal(true);
+        }
       }
     };
     window.addEventListener("dragenter", onDragEnter);
@@ -695,6 +710,16 @@ export default function Files() {
     }
   };
 
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) {
+      droppedFilesRef.current = files;
+      setPasswordAction("drop-upload");
+      setShowPasswordModal(true);
+    }
+    e.target.value = "";
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) { setError("Please select a file to upload"); return; }
     const cached = sessionVault.getCredential();
@@ -750,10 +775,11 @@ export default function Files() {
     }
   };
 
-  const performUploadFile = async (
+  const performUploadFileToFolder = async (
     file: globalThis.File,
     password: string,
-    trayId: string
+    trayId: string,
+    folderId: string | null
   ): Promise<boolean> => {
     const updateTray = (progress: number, status: UploadTrayItem["status"]) => {
       setUploadTray((prev) =>
@@ -774,7 +800,9 @@ export default function Files() {
       formData.append("algorithm", "AES-256-GCM");
       formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
       formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
-      if (selectedNode.type === "folder") {
+      if (folderId) {
+        formData.append("folder_id", folderId);
+      } else if (selectedNode.type === "folder") {
         formData.append("folder_id", selectedNode.folderId);
       }
       const token = localStorage.getItem("token");
@@ -801,16 +829,43 @@ export default function Files() {
     droppedFilesRef.current = null;
     if (!files || files.length === 0) return;
 
+    // Check if any file has a relative path (folder upload)
+    const hasFolderStructure = files.some(
+      (f) => ((f as File & { webkitRelativePath?: string }).webkitRelativePath || "").includes("/")
+    );
+
+    let pathToId = new Map<string, string>();
+    if (hasFolderStructure) {
+      try {
+        const rootId = selectedNode.type === "folder" ? selectedNode.folderId : null;
+        const folderInfos = folders.map((f) => ({
+          id: f.id,
+          name: f.name,
+          parentId: f.parentId,
+        }));
+        pathToId = await ensureFolderStructure(files, rootId, folderInfos);
+        // Refresh folders after creating new ones
+        await fetchFolders();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to create folder structure");
+        return;
+      }
+    }
+
     const newItems: UploadTrayItem[] = files.map((f) => ({
       id: Math.random().toString(36).slice(2),
-      name: f.name,
+      name: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
       progress: 0,
       status: "uploading",
     }));
     setUploadTray((prev) => [...prev, ...newItems]);
 
+    const fallbackFolderId = selectedNode.type === "folder" ? selectedNode.folderId : null;
     for (let i = 0; i < files.length; i++) {
-      await performUploadFile(files[i], password, newItems[i].id);
+      const folderId = hasFolderStructure
+        ? getFolderIdForFile(files[i], pathToId, fallbackFolderId)
+        : fallbackFolderId;
+      await performUploadFileToFolder(files[i], password, newItems[i].id, folderId);
     }
     await fetchFiles();
     if (selectedNode.type === "folder") {
@@ -1537,6 +1592,20 @@ export default function Files() {
                       type="file"
                       className="hidden"
                       onChange={handleFileSelect}
+                    />
+                    <label
+                      htmlFor="folder-input"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-[#7d4f50]/30 text-[#7d4f50] hover:bg-[#7d4f50]/5 transition-colors"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      Folder
+                    </label>
+                    <input
+                      id="folder-input"
+                      type="file"
+                      className="hidden"
+                      onChange={handleFolderSelect}
+                      {...{ webkitdirectory: "", directory: "" } as Record<string, string>}
                     />
                   </>
                 )}

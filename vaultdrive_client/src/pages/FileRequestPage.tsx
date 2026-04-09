@@ -8,6 +8,7 @@ import {
   Clock,
   AlertCircle,
   FileIcon,
+  FolderOpen,
   Lock,
   ShieldCheck,
   Building2,
@@ -16,6 +17,8 @@ import {
   EyeOff,
   Key,
 } from "lucide-react";
+import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
+import type { DragDataTransferItem } from "../utils/drop-drag";
 
 import { Button } from "../components/ui/button";
 import {
@@ -128,9 +131,18 @@ export default function FileRequestPage() {
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer?.files ?? []);
-    if (files.length > 0) {
-      setSelectedFiles((prev) => [...prev, ...files]);
+    const items = Array.from(e.dataTransfer?.items ?? []) as unknown as DragDataTransferItem[];
+    if (items.length > 0 && items.some((i) => (i as unknown as DataTransferItem).webkitGetAsEntry?.()?.isDirectory)) {
+      void collectFilesFromDataTransferItems(items).then((collected) => {
+        if (collected.length > 0) {
+          setSelectedFiles((prev) => [...prev, ...collected]);
+        }
+      });
+    } else {
+      const files = Array.from(e.dataTransfer?.files ?? []);
+      if (files.length > 0) {
+        setSelectedFiles((prev) => [...prev, ...files]);
+      }
     }
   };
 
@@ -175,8 +187,17 @@ export default function FileRequestPage() {
     setDeliveryRef(token?.slice(0, 8) ?? "");
   };
 
+  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...files]);
+    }
+    e.target.value = "";
+  };
+
   const uploadFile = (file: File): Promise<void> => {
-    const fileName = file.name;
+    const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || "";
+    const fileName = relativePath || file.name;
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -586,6 +607,35 @@ export default function FileRequestPage() {
                   onChange={handleFileChange}
                   disabled={uploading}
                 />
+                <input
+                  id="folder-input-req"
+                  type="file"
+                  multiple
+                  className="sr-only"
+                  onChange={handleFolderChange}
+                  disabled={uploading}
+                  {...{ webkitdirectory: "", directory: "" } as Record<string, string>}
+                />
+
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <label htmlFor="file-input-req" className="group relative cursor-pointer">
+                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 text-center">
+                      <FileIcon className="w-7 h-7 mx-auto mb-2 text-slate-600 group-hover:text-[#7d4f50] transition-colors duration-300" />
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-[#7d4f50] transition-colors duration-300">
+                        Select Files
+                      </span>
+                    </div>
+                  </label>
+                  <label htmlFor="folder-input-req" className="group relative cursor-pointer">
+                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 text-center">
+                      <FolderOpen className="w-7 h-7 mx-auto mb-2 text-slate-600 group-hover:text-[#7d4f50] transition-colors duration-300" />
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-[#7d4f50] transition-colors duration-300">
+                        Select Folder
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
                 <button
                   type="button"
                   className={`w-full border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 cursor-pointer ${
@@ -602,10 +652,10 @@ export default function FileRequestPage() {
                 >
                   <Upload className="w-12 h-12 mx-auto mb-3 text-slate-400" />
                   <p className="text-base font-medium text-slate-700">
-                    Drag &amp; drop files here
+                    Drag &amp; drop files or folders here
                   </p>
                   <p className="text-sm text-slate-500 mt-1">
-                    or click to browse
+                    or use the buttons above
                   </p>
                 </button>
 
@@ -624,7 +674,7 @@ export default function FileRequestPage() {
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <FileIcon className="w-4 h-4 text-slate-400 shrink-0" />
                           <span className="truncate text-slate-700">
-                            {file.name}
+                            {(file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name}
                           </span>
                           <span className="text-slate-400 shrink-0 text-xs">
                             {formatBytes(file.size)}

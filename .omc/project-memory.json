@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775532837641,
+  "lastScanned": 1775727788368,
   "projectRoot": "/lamp/www/ABRN-Drive",
   "techStack": {
     "languages": [
@@ -73,7 +73,7 @@
       "path": "auth",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775532837608,
+      "lastAccessed": 1775727788325,
       "keyFiles": [
         "auth.go",
         "imap.go"
@@ -82,8 +82,8 @@
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 53,
-      "lastAccessed": 1775532837610,
+      "fileCount": 54,
+      "lastAccessed": 1775727788327,
       "keyFiles": [
         "01_EMAIL_DISABLED.md",
         "02_PIN_SYSTEM.md",
@@ -96,14 +96,14 @@
       "path": "internal",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775532837620,
+      "lastAccessed": 1775727788344,
       "keyFiles": []
     },
     "llmskills": {
       "path": "llmskills",
       "purpose": null,
       "fileCount": 5,
-      "lastAccessed": 1775532837630,
+      "lastAccessed": 1775727788348,
       "keyFiles": [
         "LIGHTPANDA_E2E.md",
         "LIGHTPANDA_FOR_AGENTS.md",
@@ -116,7 +116,7 @@
       "path": "plans",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1775532837631,
+      "lastAccessed": 1775727788351,
       "keyFiles": [
         "abrn-drive-phase2-execution-plan.md",
         "secure-file-platform-upgrade-plan-v3.md",
@@ -128,7 +128,7 @@
       "path": "plans-old",
       "purpose": null,
       "fileCount": 15,
-      "lastAccessed": 1775532837631,
+      "lastAccessed": 1775727788356,
       "keyFiles": [
         "FINAL-IMPLEMENTATION-STATUS.md",
         "phase-1-completion-summary.md",
@@ -141,7 +141,7 @@
       "path": "screenshots",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775532837632,
+      "lastAccessed": 1775727788357,
       "keyFiles": [
         "image.png",
         "logo.svg"
@@ -151,7 +151,7 @@
       "path": "sdk",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1775532837632,
+      "lastAccessed": 1775727788357,
       "keyFiles": [
         "client.ts",
         "example.ts",
@@ -162,34 +162,34 @@
       "path": "sql",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775532837633,
+      "lastAccessed": 1775727788358,
       "keyFiles": []
     },
     "test-results": {
       "path": "test-results",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775532837633,
+      "lastAccessed": 1775727788358,
       "keyFiles": []
     },
     "uploads": {
       "path": "uploads",
       "purpose": null,
-      "fileCount": 127,
-      "lastAccessed": 1775532837634,
+      "fileCount": 254,
+      "lastAccessed": 1775727788359,
       "keyFiles": [
+        "010b748c-a27b-4d0e-8b4f-b11debace3b2.pdf",
+        "0155c6d1-0978-4f8a-ad05-0b93adcee094.txt",
+        "0219ccc2-4b5c-4d0e-972b-c8eafc8c80a9.txt",
         "0345d144-c4c2-45b8-976f-6dbc498ebe54.txt",
-        "035b6fdd-736b-4393-b7df-6fe0a517b825.txt",
-        "05905c75-774d-40a3-bdf7-f480c5104d78.txt",
-        "05c052a8-f3d4-4485-b513-21f373ae97d5.txt",
-        "09206f1a-b371-4d06-9a02-22168a86ba46.txt"
+        "035b6fdd-736b-4393-b7df-6fe0a517b825.txt"
       ]
     },
     "vaultdrive_client": {
       "path": "vaultdrive_client",
       "purpose": null,
       "fileCount": 15,
-      "lastAccessed": 1775532837636,
+      "lastAccessed": 1775727788361,
       "keyFiles": [
         "README.md",
         "components.json",
@@ -202,7 +202,7 @@
       "path": "vaultdrive_client/dist",
       "purpose": "Distribution/build output",
       "fileCount": 4,
-      "lastAccessed": 1775532837640,
+      "lastAccessed": 1775727788367,
       "keyFiles": [
         "abrn-logo.png",
         "index.html",
@@ -212,304 +212,88 @@
   },
   "hotPaths": [
     {
-      "path": "",
-      "accessCount": 23,
-      "lastAccessed": 1775535620737,
-      "type": "directory"
-    },
-    {
       "path": "vaultdrive_client/src/pages/files.tsx",
-      "accessCount": 14,
-      "lastAccessed": 1775536813921,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src",
-      "accessCount": 9,
-      "lastAccessed": 1775535986929,
-      "type": "directory"
-    },
-    {
-      "path": "main.go",
-      "accessCount": 7,
-      "lastAccessed": 1775533915629,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/pages/PublicSharePage.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1775533665856,
-      "type": "file"
-    },
-    {
-      "path": "sql/queries/files.sql",
-      "accessCount": 5,
-      "lastAccessed": 1775533737171,
-      "type": "file"
-    },
-    {
-      "path": "sql/queries/folders.sql",
-      "accessCount": 5,
-      "lastAccessed": 1775533755926,
-      "type": "file"
-    },
-    {
-      "path": "sql/queries/public_share_links.sql",
-      "accessCount": 4,
-      "lastAccessed": 1775533642691,
-      "type": "file"
-    },
-    {
-      "path": "handle_public_share_links.go",
-      "accessCount": 4,
-      "lastAccessed": 1775533648605,
+      "accessCount": 27,
+      "lastAccessed": 1775728116296,
       "type": "file"
     },
     {
       "path": "handle_drop.go",
-      "accessCount": 4,
-      "lastAccessed": 1775533828258,
-      "type": "file"
-    },
-    {
-      "path": "internal/database/models.go",
-      "accessCount": 4,
-      "lastAccessed": 1775533841874,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/utils/crypto.ts",
-      "accessCount": 4,
-      "lastAccessed": 1775533949316,
-      "type": "file"
-    },
-    {
-      "path": "handle_list_files.go",
-      "accessCount": 4,
-      "lastAccessed": 1775536768331,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/pages/shared.tsx",
       "accessCount": 3,
-      "lastAccessed": 1775533054931,
+      "lastAccessed": 1775727866981,
       "type": "file"
     },
     {
-      "path": "sql/schema/006_folders.sql",
+      "path": "vaultdrive_client/src",
       "accessCount": 3,
-      "lastAccessed": 1775533272223,
-      "type": "file"
+      "lastAccessed": 1775727900141,
+      "type": "directory"
     },
     {
-      "path": "sql/schema/027_public_share_links.sql",
-      "accessCount": 3,
-      "lastAccessed": 1775533273178,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/002_files.sql",
-      "accessCount": 3,
-      "lastAccessed": 1775533273535,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/005_file_access_keys.sql",
-      "accessCount": 3,
-      "lastAccessed": 1775533274014,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/vault/BulkDownloadModal.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1775533295092,
-      "type": "file"
-    },
-    {
-      "path": "handle_folders.go",
-      "accessCount": 3,
-      "lastAccessed": 1775533649383,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/vault/CreateShareLinkModal.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1775533665504,
-      "type": "file"
-    },
-    {
-      "path": "sql/queries/file_access_keys.sql",
-      "accessCount": 3,
-      "lastAccessed": 1775533672542,
-      "type": "file"
-    },
-    {
-      "path": "handle_files.go",
-      "accessCount": 3,
-      "lastAccessed": 1775533810588,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/004_file_shares.sql",
+      "path": ".gnhf/runs/make-sure-we-can-upl-56c5d2/notes.md",
       "accessCount": 2,
-      "lastAccessed": 1775533024182,
+      "lastAccessed": 1775728582491,
       "type": "file"
     },
     {
-      "path": "handle_file_share.go",
-      "accessCount": 2,
-      "lastAccessed": 1775533026652,
-      "type": "file"
-    },
-    {
-      "path": "handle_file_download.go",
-      "accessCount": 2,
-      "lastAccessed": 1775533036077,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/019_file_drop_source.sql",
-      "accessCount": 2,
-      "lastAccessed": 1775533295561,
-      "type": "file"
-    },
-    {
-      "path": "sqlc.yaml",
-      "accessCount": 2,
-      "lastAccessed": 1775533643124,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/folders/FolderTree.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775533700923,
-      "type": "file"
-    },
-    {
-      "path": "handle_user_pin.go",
-      "accessCount": 2,
-      "lastAccessed": 1775534784998,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/033_share_link_access_tracking.sql",
+      "path": "vaultdrive_client/src/components/upload/dropzone.tsx",
       "accessCount": 1,
-      "lastAccessed": 1775533007496,
+      "lastAccessed": 1775727811977,
       "type": "file"
     },
     {
-      "path": "internal/database/public_share_links.sql.go",
+      "path": "vaultdrive_client/src/utils/hooks.ts",
       "accessCount": 1,
-      "lastAccessed": 1775533026687,
-      "type": "file"
-    },
-    {
-      "path": "handle_list_shared_files.go",
-      "accessCount": 1,
-      "lastAccessed": 1775533026894,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/folders/MyFoldersSection.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775533027476,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/files/MyFilesSection.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775533027545,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/folders/FolderModal.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775533027877,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/025_user_private_key_pin_encrypted.sql",
-      "accessCount": 1,
-      "lastAccessed": 1775533028454,
-      "type": "file"
-    },
-    {
-      "path": "vaultdrive_client/src/components/share-modal.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775533034298,
-      "type": "file"
-    },
-    {
-      "path": "internal/database/folders.sql.go",
-      "accessCount": 1,
-      "lastAccessed": 1775533041347,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/020_upload_tokens_password.sql",
-      "accessCount": 1,
-      "lastAccessed": 1775533041784,
-      "type": "file"
-    },
-    {
-      "path": "sql/schema/021_upload_tokens_raw_key.sql",
-      "accessCount": 1,
-      "lastAccessed": 1775533041950,
+      "lastAccessed": 1775727812415,
       "type": "file"
     },
     {
       "path": "vaultdrive_client/src/pages/drop-upload.tsx",
       "accessCount": 1,
-      "lastAccessed": 1775533055789,
+      "lastAccessed": 1775727821186,
       "type": "file"
     },
     {
-      "path": "sql/queries/shares.sql",
+      "path": "vaultdrive_client/src/pages/FileRequestPage.tsx",
       "accessCount": 1,
-      "lastAccessed": 1775533060100,
+      "lastAccessed": 1775727822367,
       "type": "file"
     },
     {
-      "path": "sql/schema/018_upload_tokens.sql",
+      "path": "vaultdrive_client/src/components/files/MyFilesSection.tsx",
       "accessCount": 1,
-      "lastAccessed": 1775533090766,
+      "lastAccessed": 1775727822722,
       "type": "file"
     },
     {
-      "path": "middleware_auth.go",
+      "path": "vaultdrive_client/src/utils/drop-drag.ts",
       "accessCount": 1,
-      "lastAccessed": 1775533091827,
+      "lastAccessed": 1775727834420,
       "type": "file"
     },
     {
-      "path": "auth/auth.go",
+      "path": "vaultdrive_client/src/utils/drop-upload.ts",
       "accessCount": 1,
-      "lastAccessed": 1775533100023,
+      "lastAccessed": 1775727834802,
       "type": "file"
     },
     {
-      "path": "vaultdrive_client/src/pages/dashboard.tsx",
+      "path": "handle_files.go",
       "accessCount": 1,
-      "lastAccessed": 1775533108491,
+      "lastAccessed": 1775727856475,
       "type": "file"
     },
     {
-      "path": "sql/schema/024_upload_tokens_pin_wrapped_key.sql",
+      "path": "internal/database/folders.sql.go",
       "accessCount": 1,
-      "lastAccessed": 1775533112264,
+      "lastAccessed": 1775727937072,
       "type": "file"
     },
     {
-      "path": "sql",
+      "path": "vaultdrive_client/src/utils/folder-upload.ts",
       "accessCount": 1,
-      "lastAccessed": 1775533159311,
-      "type": "directory"
-    },
-    {
-      "path": "sql/schema",
-      "accessCount": 1,
-      "lastAccessed": 1775533168080,
-      "type": "directory"
+      "lastAccessed": 1775727998493,
+      "type": "file"
     }
   ],
   "userDirectives": []
