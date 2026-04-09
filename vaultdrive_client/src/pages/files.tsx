@@ -29,6 +29,7 @@ import {
   Zap,
   CheckCircle2,
   Shield,
+  FolderOpen,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_URL, BASE_PATH } from "../utils/api";
@@ -51,6 +52,7 @@ import { CreateFolderShareLinkModal } from "../components/vault/CreateFolderShar
 import { AccessPanel } from "../components/vault/AccessPanel";
 import FolderModal from "../components/folders/FolderModal";
 import DeleteFolderModal from "../components/folders/DeleteFolderModal";
+import { MoveFileModal } from "../components/files/MoveFileModal";
 import {
   VaultTree,
   BulkActionBar,
@@ -69,6 +71,7 @@ import { FilePreviewModal } from "../components/vault/FilePreviewModal";
 import { UploadLinksSection } from "../components/upload";
 import { FileRequestsSection } from "../components/vault/FileRequestsSection";
 import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksSection";
+import { buildMoveTargetOptions } from "../utils/file-move";
 
 interface FileData {
   id: string;
@@ -248,6 +251,9 @@ export default function Files() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<{ id: string; filename: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showMoveFileModal, setShowMoveFileModal] = useState(false);
+  const [fileToMove, setFileToMove] = useState<FileData | null>(null);
+  const [movingFile, setMovingFile] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
@@ -292,6 +298,7 @@ export default function Files() {
   const [typeFilter, setTypeFilter] = useState<FileTypeFilter>("all");
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+  const [fileContextMenu, setFileContextMenu] = useState<{ file: FileData; x: number; y: number } | null>(null);
 
   const [showShareLinkModal, setShowShareLinkModal] = useState(false);
   const [fileForShareLink, setFileForShareLink] = useState<{
@@ -305,6 +312,7 @@ export default function Files() {
   const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
   const [folderSharePanelVersion, setFolderSharePanelVersion] = useState(0);
   const initialFolderShareSyncAttemptedRef = useRef(false);
+  const [moveFolders, setMoveFolders] = useState<Folder[]>([]);
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -351,10 +359,12 @@ export default function Files() {
       if (response.ok) {
         const data = await response.json();
         setFolders(data || []);
+        return data || [];
       }
     } catch {
-      return;
+      return [];
     }
+    return [];
   }, []);
 
   const fetchDropTokens = useCallback(async () => {
@@ -499,11 +509,14 @@ export default function Files() {
   }, []);
 
   useEffect(() => {
-    if (!openActionMenu) return;
-    const handler = () => setOpenActionMenu(null);
+    if (!openActionMenu && !fileContextMenu) return;
+    const handler = () => {
+      setOpenActionMenu(null);
+      setFileContextMenu(null);
+    };
     window.addEventListener("click", handler);
     return () => window.removeEventListener("click", handler);
-  }, [openActionMenu]);
+  }, [fileContextMenu, openActionMenu]);
 
   const applyTypeFilter = useCallback((list: FileData[]): FileData[] => {
     if (typeFilter === "all") return list;
@@ -985,6 +998,53 @@ export default function Files() {
   const handleDeleteClick = (fileId: string, filename: string) => {
     setFileToDelete({ id: fileId, filename });
     setShowDeleteModal(true);
+  };
+
+  const handleMoveClick = async (file: FileData) => {
+    const latestFolders = await fetchFolders();
+    setMoveFolders(latestFolders);
+    setFileToMove(file);
+    setShowMoveFileModal(true);
+    setOpenActionMenu(null);
+    setFileContextMenu(null);
+  };
+
+  const handleMoveFileSubmit = async (targetFolderId: string) => {
+    if (!fileToMove) return;
+
+    setMovingFile(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/files/${fileToMove.id}/move`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ folder_id: targetFolderId }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) { navigate("/login"); return; }
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to move file");
+      }
+
+      await fetchFiles();
+      await fetchFolders();
+      await syncExistingFolderShares(targetFolderId);
+      const destinationName = buildMoveTargetOptions(folders, fileToMove.folder_id ?? null)
+        .find((folder) => folder.id === targetFolderId)?.name ?? "the selected folder";
+      setSuccessMessage(`Moved ${fileToMove.filename} to ${destinationName}.`);
+      setTimeout(() => setSuccessMessage(""), 5000);
+      setShowMoveFileModal(false);
+      setFileToMove(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to move file");
+    } finally {
+      setMovingFile(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -1599,6 +1659,16 @@ export default function Files() {
                         <button
                           type="button"
                           className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer text-left"
+                          onContextMenu={(event) => {
+                            if (file.is_owner === false) return;
+                            event.preventDefault();
+                            setOpenActionMenu(null);
+                            setFileContextMenu({
+                              file,
+                              x: Math.min(event.clientX, window.innerWidth - 220),
+                              y: Math.min(event.clientY, window.innerHeight - 120),
+                            });
+                          }}
                           onClick={() => setPreviewFile(file)}
                         >
                           <File className="w-4 h-4 text-slate-400 shrink-0" />
@@ -1697,6 +1767,17 @@ export default function Files() {
                             {file.is_owner !== false && (
                               <button
                                 type="button"
+                                onClick={() => { void handleMoveClick(file); }}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#7d4f50] hover:bg-[#f2d7d8]/40 transition-colors"
+                                title="Move to folder"
+                              >
+                                <FolderOpen className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {file.is_owner !== false && (
+                              <button
+                                type="button"
                                 onClick={() => handleDeleteClick(file.id, file.filename)}
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                                 title="Delete"
@@ -1782,8 +1863,17 @@ export default function Files() {
                                    <Shield className="w-3.5 h-3.5" /> Access control
                                  </button>
                                )}
-                               {file.is_owner !== false && (
-                                  <button
+                              {file.is_owner !== false && (
+                                <button
+                                  type="button"
+                                  onClick={() => { void handleMoveClick(file); setOpenActionMenu(null); }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                >
+                                  <FolderOpen className="w-3.5 h-3.5" /> Move to folder
+                                </button>
+                              )}
+                              {file.is_owner !== false && (
+                                 <button
                                     type="button"
                                     onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -1811,6 +1901,21 @@ export default function Files() {
           <div className="border-4 border-dashed border-white/60 rounded-2xl p-16 text-white text-2xl font-semibold">
             Drop files to upload
           </div>
+        </div>
+      )}
+
+      {fileContextMenu && (
+        <div
+          className="fixed z-50 min-w-[180px] rounded-xl border border-slate-200 bg-white shadow-xl py-1"
+          style={{ left: fileContextMenu.x, top: fileContextMenu.y }}
+        >
+          <button
+            type="button"
+            onClick={() => { void handleMoveClick(fileContextMenu.file); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 text-left"
+          >
+            <FolderOpen className="w-3.5 h-3.5" /> Move to folder
+          </button>
         </div>
       )}
 
@@ -2167,6 +2272,21 @@ export default function Files() {
           file={fileForShareLink}
         />
       )}
+
+      <MoveFileModal
+        open={showMoveFileModal}
+        onOpenChange={(open) => {
+          setShowMoveFileModal(open);
+          if (!open) {
+            setFileToMove(null);
+            setMoveFolders([]);
+          }
+        }}
+        file={fileToMove ? { id: fileToMove.id, filename: fileToMove.filename, folder_id: fileToMove.folder_id } : null}
+        folders={moveFolders.length > 0 ? moveFolders : folders}
+        moving={movingFile}
+        onMove={handleMoveFileSubmit}
+      />
 
       {showFolderShareModal && folderForShare && (
         <CreateFolderShareLinkModal

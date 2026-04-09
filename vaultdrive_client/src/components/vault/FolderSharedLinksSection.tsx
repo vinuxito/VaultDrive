@@ -10,6 +10,10 @@ import {
   type SyncableFolderShareLink,
 } from "../../utils/folder-share-sync";
 import { resolveOwnerPrivateKeyFromSession } from "../../utils/owner-private-key";
+import {
+  getFolderShareOwnerCredentialType,
+  resolveFolderSharePanelCredential,
+} from "../../utils/folder-share-repair";
 
 interface FolderSharedLinksSectionProps {
   folder: {
@@ -44,10 +48,12 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   const [busyId, setBusyId] = useState<string | null>(null);
   const [legacyUrls, setLegacyUrls] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, string>>({});
+  const [ownerCredentialInput, setOwnerCredentialInput] = useState("");
 
   const currentUser = useMemo(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) as {
+      pin_set?: boolean;
       private_key_encrypted?: string | null;
       private_key_pin_encrypted?: string | null;
       public_key?: string | null;
@@ -96,9 +102,15 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
 
   async function handleSync(link: SyncableFolderShareLink) {
     const token = localStorage.getItem("token");
-    const credential = sessionVault.getCredential();
+    const credential = resolveFolderSharePanelCredential(
+      sessionVault.getCredential(),
+      ownerCredentialInput,
+      currentUser,
+    );
     if (!token || !credential) {
-      setErrorMsg("Open your vault with your current credential first, then try again.");
+      setErrorMsg(currentUser?.pin_set
+        ? "Enter your current PIN to update this shared link."
+        : "Enter your current password to update this shared link.");
       return;
     }
 
@@ -120,6 +132,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
           : "This shared link was already up to date.";
 
       setResults((prev) => ({ ...prev, [link.id]: message }));
+      sessionVault.setCredential(credential.value, credential.type);
       onStatusMessage?.(message);
       await fetchLinksForFolder(folder.id);
     } catch (error) {
@@ -162,9 +175,15 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   }
 
   async function buildShareUrl(link: SyncableFolderShareLink): Promise<string> {
-    const credential = sessionVault.getCredential();
+    const credential = resolveFolderSharePanelCredential(
+      sessionVault.getCredential(),
+      ownerCredentialInput,
+      currentUser,
+    );
     if (!credential || !currentUser || !link.owner_wrapped_folder_key) {
-      throw new Error("Open your vault with your current credential first, then try again.");
+      throw new Error(currentUser?.pin_set
+        ? "Enter your current PIN to open or copy this link."
+        : "Enter your current password to open or copy this link.");
     }
 
     const privateKey = await resolveOwnerPrivateKeyFromSession(
@@ -179,6 +198,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
     const folderShareKey = await unwrapKeyWithRSA(privateKey, link.owner_wrapped_folder_key);
     const rawKey = await window.crypto.subtle.exportKey("raw", folderShareKey);
     const keyB64 = arrayBufferToBase64(rawKey);
+    sessionVault.setCredential(credential.value, credential.type);
     return `${window.location.origin}${BASE_PATH}/folder-share/${link.token}#${keyB64}`;
   }
 
@@ -243,6 +263,28 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
           </Card>
         ) : (
           <div className="space-y-4">
+            {!sessionVault.getCredential() && (
+              <Card className="border-slate-200/80 shadow-sm">
+                <CardContent className="py-4 space-y-2">
+                  <label htmlFor="folder-share-owner-credential" className="text-sm font-medium text-slate-700">
+                    {currentUser?.pin_set ? "Enter your current PIN" : "Enter your current password"}
+                  </label>
+                  <input
+                    id="folder-share-owner-credential"
+                    type="password"
+                    inputMode={currentUser?.pin_set ? "numeric" : undefined}
+                    maxLength={currentUser?.pin_set ? 4 : undefined}
+                    value={ownerCredentialInput}
+                    onChange={(event) => setOwnerCredentialInput(event.target.value)}
+                    placeholder={currentUser?.pin_set ? "••••" : "Current password"}
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7d4f50]/40 focus:outline-none"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Use your current {getFolderShareOwnerCredentialType(currentUser) === "pin" ? "PIN" : "password"} once here, then update or open links from this panel.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             {visibleLinks.map((link) => {
               const status = getLinkLifecycleStatus(link);
               const needsLegacyUrl = !link.owner_wrapped_folder_key;

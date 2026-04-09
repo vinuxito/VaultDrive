@@ -72,6 +72,24 @@ export interface SyncFolderShareLinkByIdParams {
   providedShareUrl?: string;
 }
 
+export function buildFolderShareSyncPayload(
+  wrappedKeys: Record<string, string>,
+  ownerWrappedFolderKey?: string,
+): { wrapped_keys: Record<string, string>; owner_wrapped_folder_key?: string } {
+  return ownerWrappedFolderKey
+    ? { wrapped_keys: wrappedKeys, owner_wrapped_folder_key: ownerWrappedFolderKey }
+    : { wrapped_keys: wrappedKeys };
+}
+
+async function readErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const data = await response.json() as { error?: string };
+    return data.error || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function isLinkCurrentlyActive(link: SyncableFolderShareLink): boolean {
   if (!link.is_active) {
     return false;
@@ -176,6 +194,7 @@ async function syncSingleFolderShareLink(
   credential: CachedCredential,
   rsaPrivateKey: CryptoKey,
   folderShareKey: CryptoKey,
+  ownerWrappedFolderKey?: string,
 ): Promise<SyncSingleFolderShareResult> {
   const [files, existingKeys] = await Promise.all([
     fetchFolderSubtreeFiles(link.folder_id, authToken),
@@ -220,10 +239,10 @@ async function syncSingleFolderShareLink(
       "Content-Type": "application/json",
       Authorization: `Bearer ${authToken}`,
     },
-    body: JSON.stringify({ wrapped_keys: wrappedKeys }),
+    body: JSON.stringify(buildFolderShareSyncPayload(wrappedKeys, ownerWrappedFolderKey)),
   });
   if (!response.ok) {
-    throw new Error("Failed to sync folder share link");
+    throw new Error(await readErrorMessage(response, "Failed to sync folder share link"));
   }
 
   const data = (await response.json()) as { synced?: number };
@@ -263,22 +282,26 @@ export async function syncFolderShareLinkById({
     throw new Error("Paste the original share URL so the browser can recover this older link.");
   }
 
-  if (ownerWrappedFolderKey) {
+  if (ownerWrappedFolderKey && !link.owner_wrapped_folder_key) {
     const response = await fetch(`${API_URL}/folder-share-links/${link.id}/sync`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ wrapped_keys: {}, owner_wrapped_folder_key: ownerWrappedFolderKey }),
+      body: JSON.stringify(buildFolderShareSyncPayload({}, ownerWrappedFolderKey)),
     });
     if (!response.ok) {
-      throw new Error("Failed to upgrade this older shared link.");
+      if (response.status === 400) {
+      } else {
+        throw new Error(await readErrorMessage(response, "Failed to upgrade this older shared link."));
+      }
+    } else {
+      upgraded = true;
     }
-    upgraded = true;
   }
 
-  const result = await syncSingleFolderShareLink(link, authToken, credential, rsaPrivateKey, folderShareKey);
+  const result = await syncSingleFolderShareLink(link, authToken, credential, rsaPrivateKey, folderShareKey, ownerWrappedFolderKey);
   return { ...result, upgraded };
 }
 

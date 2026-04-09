@@ -160,3 +160,102 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 	})
 
 }
+
+func (cfg *ApiConfig) handlerMoveFileToFolder(w http.ResponseWriter, r *http.Request, user database.User) {
+	fileIDStr := r.PathValue("id")
+	if fileIDStr == "" {
+		respondWithError(w, http.StatusBadRequest, "File ID is required", nil)
+		return
+	}
+
+	fileID, err := uuid.Parse(fileIDStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid file ID format", err)
+		return
+	}
+
+	var body struct {
+		FolderID string `json:"folder_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	if body.FolderID == "" {
+		respondWithError(w, http.StatusBadRequest, "folder_id is required", nil)
+		return
+	}
+
+	targetFolderID, err := uuid.Parse(body.FolderID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid folder ID format", err)
+		return
+	}
+
+	file, err := cfg.dbQueries.GetFileByID(r.Context(), fileID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "File not found", err)
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "Error retrieving file", err)
+		return
+	}
+	if !file.OwnerID.Valid || file.OwnerID.UUID != user.ID {
+		respondWithError(w, http.StatusForbidden, "You do not own this file", nil)
+		return
+	}
+
+	folder, err := cfg.dbQueries.GetFolderByID(r.Context(), targetFolderID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "Target folder not found", err)
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "Error retrieving target folder", err)
+		return
+	}
+	if folder.OwnerID != user.ID {
+		respondWithError(w, http.StatusForbidden, "You do not own the target folder", nil)
+		return
+	}
+
+	if file.FolderID.Valid && file.FolderID.UUID == targetFolderID {
+		respondWithJSON(w, http.StatusOK, map[string]any{
+			"status":    "success",
+			"moved":     false,
+			"file_id":   file.ID,
+			"folder_id": targetFolderID,
+		})
+		return
+	}
+
+	err = cfg.dbQueries.UpdateFileFolderID(r.Context(), database.UpdateFileFolderIDParams{
+		FolderID:  uuid.NullUUID{UUID: targetFolderID, Valid: true},
+		UpdatedAt: time.Now().UTC(),
+		ID:        file.ID,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to move file", err)
+		return
+	}
+
+	cfg.insertActivity(r.Context(), user.ID, "file_moved", map[string]interface{}{
+		"file_id":          file.ID.String(),
+		"filename":         file.Filename,
+		"target_folder":    folder.Name,
+		"target_folder_id": targetFolderID.String(),
+	})
+	cfg.insertAudit(r.Context(), user.ID, "file.moved", "file", &file.ID, map[string]interface{}{
+		"filename":         file.Filename,
+		"target_folder_id": targetFolderID.String(),
+		"target_folder":    folder.Name,
+	}, r)
+
+	respondWithJSON(w, http.StatusOK, map[string]any{
+		"status":    "success",
+		"moved":     true,
+		"file_id":   file.ID,
+		"folder_id": targetFolderID,
+	})
+}

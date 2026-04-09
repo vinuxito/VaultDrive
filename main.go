@@ -152,6 +152,12 @@ func main() {
 	mux.HandleFunc("POST /api/drop/{token}/recover-key", apiConfig.handlerDropTokenRecoverKey)
 
 	mux.Handle("POST /api/files/upload", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateFiles)))
+	mux.Handle("POST /api/files/{id}/move",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerMoveFileToFolder)))
+	mux.Handle("PUT /api/files/{id}/folder",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerMoveFileToFolder)))
 	mux.Handle("POST /api/v1/files/upload",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("files:upload_ciphertext")(apiConfig.handlerV1CreateFile)))

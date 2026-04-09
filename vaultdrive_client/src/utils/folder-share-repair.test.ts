@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   canRepairFolderShareLink,
   findOwnedFolderShareLink,
+  getFolderShareOwnerCredentialType,
   getFolderShareRepairLabel,
+  resolveFolderSharePanelCredential,
 } from "./folder-share-repair";
 
 describe("findOwnedFolderShareLink", () => {
@@ -48,5 +50,50 @@ describe("getFolderShareRepairLabel", () => {
         owner_wrapped_folder_key: "stored",
       }),
     ).toBe("Update this link");
+  });
+});
+
+describe("getFolderShareOwnerCredentialType", () => {
+  it("prefers pin when the user already has a PIN", () => {
+    expect(getFolderShareOwnerCredentialType({ pin_set: true })).toBe("pin");
+    expect(getFolderShareOwnerCredentialType({ pin_set: false })).toBe("password");
+    expect(getFolderShareOwnerCredentialType(null)).toBe("password");
+  });
+});
+
+describe("resolveFolderSharePanelCredential", () => {
+  it("uses cached credentials when available", () => {
+    expect(
+      resolveFolderSharePanelCredential(
+        { type: "pin", value: "2468" },
+        "ignored",
+        { pin_set: true },
+      ),
+    ).toEqual({ type: "pin", value: "2468" });
+  });
+
+  it("ignores cached credentials when they do not match the expected owner credential type", () => {
+    expect(
+      resolveFolderSharePanelCredential(
+        { type: "password", value: "stale-password" },
+        "2468",
+        { pin_set: true },
+      ),
+    ).toEqual({ type: "pin", value: "2468" });
+  });
+
+  it("builds a credential from inline owner input when the session is fresh", () => {
+    expect(resolveFolderSharePanelCredential(null, " 2468 ", { pin_set: true })).toEqual({
+      type: "pin",
+      value: "2468",
+    });
+    expect(resolveFolderSharePanelCredential(null, "password123", { pin_set: false })).toEqual({
+      type: "password",
+      value: "password123",
+    });
+  });
+
+  it("returns null when there is no usable credential", () => {
+    expect(resolveFolderSharePanelCredential(null, "   ", { pin_set: true })).toBeNull();
   });
 });

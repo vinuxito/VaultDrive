@@ -26,3 +26,29 @@ export function getFolderShareRepairLabel(link: SyncableFolderShareLink | null):
 
   return link.owner_wrapped_folder_key ? "Update this link" : "Repair this link";
 }
+
+export function getFolderShareOwnerCredentialType(user: { pin_set?: boolean } | null): "pin" | "password" {
+  return user?.pin_set ? "pin" : "password";
+}
+
+export function resolveFolderSharePanelCredential(
+  cachedCredential: CachedCredential | null,
+  inputValue: string,
+  user: { pin_set?: boolean } | null,
+): CachedCredential | null {
+  const expectedType = getFolderShareOwnerCredentialType(user);
+
+  if (cachedCredential && cachedCredential.type === expectedType) {
+    return cachedCredential;
+  }
+
+  const trimmed = inputValue.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  return {
+    value: trimmed,
+    type: expectedType,
+  };
+}

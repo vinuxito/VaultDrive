@@ -1,6 +1,8 @@
 import {
   base64ToArrayBuffer,
   deriveKeyFromPassword,
+  hexToBytes,
+  unwrapKey,
   unwrapKeyWithRSA,
 } from "./crypto";
 
@@ -29,6 +31,12 @@ function parseFolderShareMetadata(encryptedMetadata: string): FolderShareMetadat
   }
 }
 
+function uint8ArrayToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
 export async function resolveFolderShareFileKey({
   wrappedKey,
   encryptedMetadata,
@@ -36,6 +44,22 @@ export async function resolveFolderShareFileKey({
   credentialType,
   rsaPrivateKey,
 }: ResolveFolderShareFileKeyParams): Promise<CryptoKey> {
+  if (/^[0-9a-f]+$/i.test(wrappedKey)) {
+    if (credentialType !== "pin") {
+      throw new Error("This folder contains files encrypted with your PIN. Open sharing from a trusted PIN session first.");
+    }
+
+    const rawHex = await unwrapKey(credential, wrappedKey);
+    const rawKey = uint8ArrayToArrayBuffer(hexToBytes(rawHex));
+    return window.crypto.subtle.importKey(
+      "raw",
+      rawKey,
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"],
+    );
+  }
+
   if (!wrappedKey.includes(":")) {
     return unwrapKeyWithRSA(rsaPrivateKey, wrappedKey);
   }

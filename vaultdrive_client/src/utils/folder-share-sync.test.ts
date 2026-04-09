@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildFolderShareSyncPayload,
   extractFolderShareKeyFromUrl,
   filterSyncableLinksForFolder,
   getAncestorFolderIds,
@@ -60,5 +61,25 @@ describe("extractFolderShareKeyFromUrl", () => {
         "token123",
       ),
     ).toThrow("That URL belongs to a different shared link.");
+  });
+});
+
+describe("buildFolderShareSyncPayload", () => {
+  it("combines missing wrapped keys with owner upgrade material in one request body", () => {
+    expect(
+      buildFolderShareSyncPayload(
+        { "file-1": "wrapped-key-1" },
+        "owner-wrapped-folder-key",
+      ),
+    ).toEqual({
+      wrapped_keys: { "file-1": "wrapped-key-1" },
+      owner_wrapped_folder_key: "owner-wrapped-folder-key",
+    });
+  });
+
+  it("omits owner upgrade material when not provided", () => {
+    expect(buildFolderShareSyncPayload({ "file-1": "wrapped-key-1" })).toEqual({
+      wrapped_keys: { "file-1": "wrapped-key-1" },
+    });
   });
 });

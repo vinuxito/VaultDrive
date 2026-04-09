@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const cryptoMocks = vi.hoisted(() => ({
   deriveKeyFromPassword: vi.fn(),
   unwrapKeyWithRSA: vi.fn(),
+  unwrapKey: vi.fn(),
+  hexToBytes: vi.fn(),
 }));
 
 vi.mock("./crypto", async () => {
@@ -11,6 +13,8 @@ vi.mock("./crypto", async () => {
     ...actual,
     deriveKeyFromPassword: cryptoMocks.deriveKeyFromPassword,
     unwrapKeyWithRSA: cryptoMocks.unwrapKeyWithRSA,
+    unwrapKey: cryptoMocks.unwrapKey,
+    hexToBytes: cryptoMocks.hexToBytes,
   };
 });
 
@@ -59,6 +63,28 @@ describe("resolveFolderShareFileKey", () => {
       "cmVhbC1yc2EtY2lwaGVydGV4dA==",
     );
     expect(cryptoMocks.deriveKeyFromPassword).not.toHaveBeenCalled();
+  });
+
+  it("unwraps secure-drop PIN keys stored as hex instead of treating them as RSA ciphertext", async () => {
+    const importedKey = { kind: "drop-pin" } as unknown as CryptoKey;
+    cryptoMocks.unwrapKey.mockResolvedValue("00112233");
+    cryptoMocks.hexToBytes.mockReturnValue(new Uint8Array([0, 17, 34, 51]));
+
+    const importKeySpy = vi.spyOn(window.crypto.subtle, "importKey").mockResolvedValue(importedKey);
+
+    const result = await resolveFolderShareFileKey({
+      wrappedKey: "abcdef0123456789",
+      encryptedMetadata: JSON.stringify({ algorithm: "AES-256-GCM" }),
+      credential: "2468",
+      credentialType: "pin",
+      rsaPrivateKey: { kind: "rsa" } as unknown as CryptoKey,
+    });
+
+    expect(result).toBe(importedKey);
+    expect(cryptoMocks.unwrapKey).toHaveBeenCalledWith("2468", "abcdef0123456789");
+    expect(cryptoMocks.unwrapKeyWithRSA).not.toHaveBeenCalled();
+    expect(importKeySpy).toHaveBeenCalled();
+    importKeySpy.mockRestore();
   });
 
   it("fails clearly when a password-encrypted owner file is shared from a PIN-only flow", async () => {
