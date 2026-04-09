@@ -172,7 +172,7 @@ export default function FileRequestPage() {
     setError("");
     setUploadProgress(
       selectedFiles.map((f) => ({
-        fileName: f.name,
+        fileName: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
         status: "pending",
         progress: 0,
         bytesUploaded: 0,

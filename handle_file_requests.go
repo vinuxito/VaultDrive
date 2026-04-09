@@ -273,6 +273,11 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 			var storagePath string
 			if relativeDir != "." && relativeDir != "" {
 				relativeDir = filepath.Clean(relativeDir)
+				// Prevent path traversal — reject any ".." components
+				if strings.Contains(relativeDir, "..") {
+					log.Printf("Rejected path traversal attempt: %s", originalPath)
+					continue
+				}
 				targetDir := filepath.Join(uploadDir, relativeDir)
 				if err := os.MkdirAll(targetDir, 0755); err != nil {
 					f.Close()

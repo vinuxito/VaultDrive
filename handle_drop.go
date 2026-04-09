@@ -263,6 +263,15 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		if relativeDir != "." && relativeDir != "" {
 			// Clean the relative path to prevent directory traversal
 			relativeDir = filepath.Clean(relativeDir)
+			// Reject any ".." components to prevent path traversal
+			if strings.Contains(relativeDir, "..") {
+				log.Printf("Rejected path traversal attempt: %s", originalPath)
+				results = append(results, FileResult{
+					FileName: originalPath,
+					Error:    "Invalid file path",
+				})
+				continue
+			}
 			targetDir := filepath.Join(uploadDir, relativeDir)
 			if err := os.MkdirAll(targetDir, 0755); err != nil {
 				log.Printf("Failed to create directory %s: %v", targetDir, err)
