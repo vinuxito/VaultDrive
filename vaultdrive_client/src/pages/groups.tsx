@@ -139,7 +139,7 @@ export default function Groups() {
 
   if (loading) {
     return (
-      <div className="abrn-page-bg p-4 md:p-8">
+      <div className="brand-page-bg p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <div className="h-8 w-32 bg-slate-200 rounded animate-pulse mb-2" />
@@ -147,7 +147,7 @@ export default function Groups() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {["g1","g2","g3"].map((k) => (
-              <div key={k} className="abrn-glass-card p-6 animate-pulse">
+              <div key={k} className="brand-glass-card p-6 animate-pulse">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
                   <div className="flex-1 space-y-2">
@@ -169,7 +169,7 @@ export default function Groups() {
   }
 
   return (
-    <div className="abrn-page-bg p-4 md:p-8">
+    <div className="brand-page-bg p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -236,7 +236,7 @@ export default function Groups() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => navigate(`/groups/${group.id}`)}
-                    className="abrn-glass-card p-6 cursor-pointer"
+                    className="brand-glass-card p-6 cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -575,7 +575,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
     return (
       <div className="space-y-4 py-4">
         {["r1","r2"].map((k) => (
-          <div key={k} className="abrn-glass-card p-6 animate-pulse">
+          <div key={k} className="brand-glass-card p-6 animate-pulse">
             <div className="h-6 bg-slate-200 rounded w-1/3 mb-3" />
             <div className="h-4 bg-slate-100 rounded w-2/3" />
           </div>
@@ -602,10 +602,10 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         Back to Groups
       </Button>
 
-      <div className="abrn-glass-card p-6 mb-6">
+      <div className="brand-glass-card p-6 mb-6">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold abrn-gradient-text">{group.name}</h2>
+            <h2 className="text-2xl font-bold brand-gradient-text">{group.name}</h2>
             <p className="text-muted-foreground mt-1">{group.description}</p>
             <p className="text-sm text-muted-foreground mt-1">
               {members.length} members • {files.length} files
@@ -639,7 +639,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         ) : (
           <div className="grid gap-3">
             {members.map((member) => (
-              <div key={member.id} className="abrn-glass-card flex items-center justify-between p-3">
+              <div key={member.id} className="brand-glass-card flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                     {member.username.charAt(0).toUpperCase()}

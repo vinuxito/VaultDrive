@@ -4,6 +4,7 @@ import { API_URL } from "../utils/api";
 import { ShieldCheck, Link2, Upload, FileQuestion, ExternalLink, Copy, AlertTriangle, Clock, CheckCircle, XCircle, Ban } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { relativeTime } from "../utils/format";
+import { branding } from "../config/branding";
 
 interface ShareItem {
   id: string;
@@ -119,7 +120,7 @@ export default function AccessCenter() {
     { key: "drop", label: "Drop routes", icon: <Upload className="w-4 h-4" />, count: dropTokens.length },
   ];
 
-  const baseURL = window.location.origin + "/abrn";
+  const baseURL = window.location.origin + branding.basePath;
 
   return (
     <DashboardLayout>

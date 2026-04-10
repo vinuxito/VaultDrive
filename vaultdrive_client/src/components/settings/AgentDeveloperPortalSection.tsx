@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Code2, Copy, ChevronDown, ChevronUp, Terminal, Globe, Shield } from "lucide-react";
+import { branding } from "../../config/branding";
 
 const API_BASE = "/api/v1";
 
@@ -48,12 +49,12 @@ const METHOD_COLORS: Record<string, string> = {
 const CATEGORIES = ["Files", "Trust", "Sharing", "Requests", "Folders", "Audit", "Keys"];
 
 function makeCurl(endpoint: EndpointDef): string {
-  const base = `${window.location.origin}/abrn${API_BASE}`;
+  const base = `${window.location.origin}${branding.apiBasePath.replace(/\/api$/, "")}${API_BASE}`;
   const url = `${base}${endpoint.path}`;
   const parts = [`curl -s`];
   if (endpoint.method !== "GET") parts.push(`-X ${endpoint.method}`);
   parts.push(`"${url}"`);
-  parts.push(`-H "Authorization: Bearer $ABRN_KEY"`);
+  parts.push(`-H "Authorization: Bearer $${branding.agentKeyEnvVar}"`);
   if (endpoint.method === "POST" && !endpoint.path.includes("upload")) {
     parts.push(`-H "Content-Type: application/json"`);
     parts.push(`-d '{}'`);
@@ -146,17 +147,17 @@ export function AgentDeveloperPortalSection() {
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 px-3 py-2.5">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] uppercase tracking-[0.14em] text-slate-400">verify your key</span>
-            <CopyButton text={`curl -s "${window.location.origin}/abrn/api/v1/auth/introspect" \\\n  -H "Authorization: Bearer $ABRN_KEY" | jq .`} />
+            <CopyButton text={`curl -s "${window.location.origin}${branding.apiBasePath}/v1/auth/introspect" \\\n  -H "Authorization: Bearer $${branding.agentKeyEnvVar}" | jq .`} />
           </div>
           <pre className="text-[11px] text-emerald-400 font-mono whitespace-pre-wrap break-all leading-relaxed">
-{`curl -s "${window.location.origin}/abrn/api/v1/auth/introspect" \\
-  -H "Authorization: Bearer $ABRN_KEY" | jq .`}
+{`curl -s "${window.location.origin}${branding.apiBasePath}/v1/auth/introspect" \\
+  -H "Authorization: Bearer $${branding.agentKeyEnvVar}" | jq .`}
           </pre>
         </div>
         <div className="grid gap-2 sm:grid-cols-3 text-[11px]">
           <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2 text-slate-600 dark:text-slate-300">
             <Globe className="w-3 h-3 inline mr-1" />
-            Base: <code className="font-mono">{window.location.origin}/abrn/api/v1</code>
+            Base: <code className="font-mono">{window.location.origin}{branding.apiBasePath}/v1</code>
           </div>
           <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2 text-slate-600 dark:text-slate-300">
             <Shield className="w-3 h-3 inline mr-1" />

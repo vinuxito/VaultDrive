@@ -18,6 +18,7 @@ import {
 } from "../../utils/crypto";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
+import { branding } from "../../config/branding";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -313,7 +314,7 @@ export function CreateShareLinkModal({
 
           {step === "done" && (
             <>
-              <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+              <div className="brand-receipt-surface rounded-2xl px-4 py-4">
                 <div className="flex items-center gap-2 text-emerald-800">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
@@ -327,7 +328,7 @@ export function CreateShareLinkModal({
                 <div className="mt-3 space-y-1.5">
                   <p className="text-sm font-medium text-white">Trust receipt</p>
                   <p className="text-xs text-white/70 leading-relaxed">
-                    The decryption key is carried in the URL fragment after <strong>#</strong>. ABRN Drive stores the share record, but the server never sees that fragment key.
+                    The decryption key is carried in the URL fragment after <strong>#</strong>. {branding.productName} stores the share record, but the server never sees that fragment key.
                   </p>
                   <p className="text-xs text-white/70 leading-relaxed">
                     You can review or revoke this share at any time from the file's access controls.
@@ -344,7 +345,7 @@ export function CreateShareLinkModal({
                 method="POST"
                 path={`/api/v1/files/${file.id}/share-link`}
                 scope="shares:create"
-                note="ABRN Drive created a revocable share record while the decryption fragment stayed in the URL after #."
+                note={`${branding.productName} created a revocable share record while the decryption fragment stayed in the URL after #.`}
               />
               {expiryDisplay && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">

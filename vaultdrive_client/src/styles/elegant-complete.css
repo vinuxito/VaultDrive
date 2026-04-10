@@ -254,20 +254,20 @@
   50% { opacity: 0.6; }
 }
 
-/* ========== ABRN Drive — abrnmx-style visual system ========== */
+/* ========== Brand — brand visual visual system ========== */
 
-/* Page background: warm cream gradient matching abrnmx */
-.abrn-page-bg {
+/* Page background: warm cream gradient warm cream */
+.brand-page-bg {
   background: linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%);
   min-height: 100vh;
 }
 
 /* Hero section: warm radial highlight */
-.abrn-hero-bg {
+.brand-hero-bg {
   position: relative;
   overflow: hidden;
 }
-.abrn-hero-bg::before {
+.brand-hero-bg::before {
   content: '';
   position: absolute;
   top: -120px;
@@ -280,8 +280,8 @@
   z-index: 0;
 }
 
-/* Glass card — white frosted glass, abrnmx style */
-.abrn-glass-card {
+/* Glass card — white frosted glass, brand style */
+.brand-glass-card {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -290,14 +290,14 @@
   box-shadow: 0 4px 24px rgba(125, 79, 80, 0.07), 0 1px 4px rgba(0,0,0,0.04);
   transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
-.abrn-glass-card:hover {
+.brand-glass-card:hover {
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 10px 36px rgba(125, 79, 80, 0.12), 0 2px 8px rgba(0,0,0,0.06);
   transform: translateY(-2px);
 }
 
 /* Glass navbar */
-.abrn-glass-nav {
+.brand-glass-nav {
   background: rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(18px) !important;
   -webkit-backdrop-filter: blur(18px) !important;
@@ -306,7 +306,7 @@
 }
 
 /* Eyebrow badge */
-.abrn-badge {
+.brand-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -321,7 +321,7 @@
 }
 
 /* Gradient text — dark-slate → burgundy */
-.abrn-gradient-text {
+.brand-gradient-text {
   background: linear-gradient(120deg, #3d4451 0%, #7d4f50 55%, #c4999b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -329,7 +329,7 @@
 }
 
 /* Lighter section headings */
-.abrn-section-heading {
+.brand-section-heading {
   background: linear-gradient(120deg, #3d4451 0%, #7d4f50 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -337,21 +337,21 @@
 }
 
 /* Primary CTA button */
-.abrn-btn-primary {
+.brand-btn-primary {
   background-color: #7d4f50 !important;
   color: #ffffff !important;
   border: none !important;
   box-shadow: 0 4px 16px rgba(125,79,80,0.30) !important;
   transition: background-color 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease !important;
 }
-.abrn-btn-primary:hover {
+.brand-btn-primary:hover {
   background-color: #6b4345 !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 6px 22px rgba(125,79,80,0.38) !important;
 }
 
 /* Ghost button */
-.abrn-btn-ghost {
+.brand-btn-ghost {
   background: rgba(255,255,255,0.72) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
@@ -359,54 +359,54 @@
   color: #3d4451 !important;
   transition: background 0.18s ease, box-shadow 0.18s ease !important;
 }
-.abrn-btn-ghost:hover {
+.brand-btn-ghost:hover {
   background: rgba(255,255,255,0.95) !important;
   box-shadow: 0 3px 14px rgba(0,0,0,0.09) !important;
 }
 
 /* Footer */
-.abrn-footer {
+.brand-footer {
   background: linear-gradient(180deg, #f2ece9 0%, #ede5e1 100%);
   border-top: 2px solid rgba(125, 79, 80, 0.25);
 }
 
-/* Dark mode overrides for ABRN classes */
-.dark .abrn-page-bg {
+/* Dark mode overrides for brand classes */
+.dark .brand-page-bg {
   background: linear-gradient(180deg, #1e2330 0%, #1a1f2c 100%);
 }
-.dark .abrn-glass-card {
+.dark .brand-glass-card {
   background: rgba(44, 50, 64, 0.75);
   border-color: rgba(255,255,255,0.10);
   box-shadow: 0 4px 24px rgba(0,0,0,0.25);
 }
-.dark .abrn-glass-card:hover {
+.dark .brand-glass-card:hover {
   background: rgba(44, 50, 64, 0.92);
 }
-.dark .abrn-glass-nav {
+.dark .brand-glass-nav {
   background: rgba(30, 35, 48, 0.90) !important;
   border-bottom-color: rgba(255,255,255,0.08) !important;
 }
-.dark .abrn-gradient-text {
+.dark .brand-gradient-text {
   background: linear-gradient(120deg, #f2f0ed 0%, #c4999b 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
-.dark .abrn-section-heading {
+.dark .brand-section-heading {
   background: linear-gradient(120deg, #e8e4df 0%, #c4999b 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
-.dark .abrn-badge {
+.dark .brand-badge {
   background: rgba(196, 153, 155, 0.15);
   border-color: rgba(196, 153, 155, 0.30);
   color: #c4999b;
 }
-.dark .abrn-btn-ghost {
+.dark .brand-btn-ghost {
   background: rgba(255,255,255,0.08) !important;
   border-color: rgba(255,255,255,0.15) !important;
   color: #f2f0ed !important;
 }
-.dark .abrn-footer {
+.dark .brand-footer {
   background: linear-gradient(180deg, #1a1f2c 0%, #161b26 100%);
   border-top-color: rgba(125,79,80,0.40);
 }

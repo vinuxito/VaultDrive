@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { DashboardLayout } from "../components/layout/dashboard-layout";
+import { branding } from "../config/branding";
 import {
   runAllTests,
   cleanupTestData,
@@ -83,7 +84,7 @@ export default function AdminTests() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `abrn-drive-test-results-${Date.now()}.json`;
+    a.download = `${branding.productSlug}-test-results-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -106,7 +107,7 @@ export default function AdminTests() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">System Tests</h1>
           <p className="text-muted-foreground">
-            Run comprehensive tests to verify ABRN Drive functionality
+            {`Run comprehensive tests to verify ${branding.productName} functionality`}
           </p>
         </div>
 

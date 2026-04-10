@@ -5,6 +5,7 @@ import { useSessionVault } from "../../context/SessionVaultContext";
 import { API_URL } from "../../utils/api";
 import { TrustRail } from "./TrustRail";
 import { FileSecurityTimeline } from "./FileSecurityTimeline";
+import { branding } from "../../config/branding";
 import {
   unwrapKey,
   hexToBytes,
@@ -311,7 +312,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                 <div>
                   <p className="text-sm font-medium text-white/88">This file was shared with you.</p>
                   <p className="mt-1 text-xs leading-relaxed text-white/58">
-                    The owner controls access, can revoke the share at any time, and ABRN Drive still keeps the protected content unreadable outside the trusted decrypt flow.
+                    {`The owner controls access, can revoke the share at any time, and ${branding.productName} still keeps the protected content unreadable outside the trusted decrypt flow.`}
                   </p>
                 </div>
               </div>

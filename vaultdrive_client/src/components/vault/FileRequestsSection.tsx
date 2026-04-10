@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { API_URL, BASE_PATH } from "../../utils/api";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
+import { branding } from "../../config/branding";
 
 interface FileRequest {
   id: string;
@@ -126,7 +127,7 @@ function CreateRequestModal({
 
         {createdRequest ? (
           <div className="space-y-4">
-            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+            <div className="brand-receipt-surface rounded-2xl px-4 py-4">
               <p className="text-sm font-semibold text-emerald-900">Request created and ready to share</p>
               <p className="mt-1 text-xs text-emerald-800 leading-relaxed">
                 This link is live, reviewable, and revocable from your vault. Senders can only upload through the request route you just created.
@@ -166,7 +167,7 @@ function CreateRequestModal({
             <ApiCallTrace
               method="POST"
               path="/api/file-requests"
-              note="ABRN Drive just created a reviewable intake route for this sender request."
+              note={`${branding.productName} just created a reviewable intake route for this sender request.`}
             />
 
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -402,7 +403,7 @@ export function FileRequestsSection() {
       )}
 
       {receipt && (
-        <div className="abrn-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
+        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
           <p className="font-medium">Done, safe, under control.</p>
           <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
         </div>

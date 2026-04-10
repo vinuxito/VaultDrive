@@ -7,7 +7,8 @@ import { hexToBytes } from "../utils/crypto";
 import { API_URL } from "../utils/api";
 import { buildDropUploadFormData } from "../utils/drop-upload";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
-import ABRNLogo from "../components/branding/abrn-logo";
+import BrandLogo from "../components/branding/brand-logo";
+import { branding } from "../config/branding";
 
 interface TokenInfo {
   valid: boolean;
@@ -298,7 +299,7 @@ export default function DropUpload() {
 
   if (loading) {
     return (
-      <div className="abrn-page-bg flex flex-col items-center justify-center gap-3">
+      <div className="brand-page-bg flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-12 h-12 animate-spin text-[#7d4f50]" />
         <p className="text-sm text-muted-foreground">Verifying your upload link…</p>
       </div>
@@ -307,7 +308,7 @@ export default function DropUpload() {
 
   if (error) {
     return (
-      <div className="abrn-page-bg flex items-center justify-center p-4">
+      <div className="brand-page-bg flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
@@ -327,7 +328,7 @@ export default function DropUpload() {
 
   if (missingKey && tokenInfo) {
     return (
-      <div className="abrn-page-bg flex items-center justify-center p-4">
+      <div className="brand-page-bg flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
@@ -368,7 +369,7 @@ export default function DropUpload() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f2ece9] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
-          <ABRNLogo className="h-14 mx-auto" alt="ABRN Asesores SC" />
+          <BrandLogo className="h-14 mx-auto" />
           <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center mx-auto">
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
@@ -380,7 +381,7 @@ export default function DropUpload() {
             </p>
           </div>
 
-          <div className="abrn-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
+          <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
             <p className="text-sm font-semibold text-emerald-900">Delivery receipt</p>
             <p className="mt-1 text-xs leading-relaxed text-emerald-800">
               The route worked, the upload is complete, and the owner can now review the delivery from the vault without the server learning the key from your link.
@@ -404,7 +405,7 @@ export default function DropUpload() {
           <div className="text-left bg-white/70 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
             <p className="font-medium text-slate-800">What happened</p>
             <p className="text-slate-600 leading-relaxed">
-              Your files were encrypted in this browser before upload. ABRN Drive received the protected files and delivery metadata, not the decryption key from your link.
+              {`Your files were encrypted in this browser before upload. ${branding.productName} received the protected files and delivery metadata, not the decryption key from your link.`}
             </p>
             <p className="text-xs text-slate-500 leading-relaxed">
               The owner can now review the delivery in their vault, and they can seal or remove this route whenever needed.
@@ -434,10 +435,10 @@ export default function DropUpload() {
   }
 
   return (
-    <div className="abrn-page-bg p-4 md:p-8">
+    <div className="brand-page-bg p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex justify-start mb-4">
-          <ABRNLogo className="h-12" alt="ABRN Asesores SC" />
+          <BrandLogo className="h-12" />
         </div>
 
         {(tokenInfo.owner_display_name || tokenInfo.owner_organization) && (
@@ -682,7 +683,7 @@ export default function DropUpload() {
                 if (authToken) {
                   navigate("/files");
                 } else {
-                  window.location.href = "https://abrn.mx/";
+                  window.location.href = branding.marketingURL;
                 }
               }}
               variant="outline"

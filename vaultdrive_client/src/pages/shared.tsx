@@ -235,7 +235,7 @@ export default function SharedFiles() {
   };
 
   return (
-    <div className="abrn-page-bg py-8">
+    <div className="brand-page-bg py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -256,7 +256,7 @@ export default function SharedFiles() {
           </div>
         )}
 
-        <div className="abrn-glass-card p-6">
+        <div className="brand-glass-card p-6">
           <div className="mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
@@ -316,7 +316,7 @@ export default function SharedFiles() {
           </div>
         </div>
 
-        <div className="abrn-glass-card mt-6 p-6">
+        <div className="brand-glass-card mt-6 p-6">
           <div className="flex gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Lock className="w-5 h-5 text-primary" />

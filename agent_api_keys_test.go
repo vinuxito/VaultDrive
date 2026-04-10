@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestGenerateAgentAPIKeyTokenProducesPrefixAndHash(t *testing.T) {
-	raw, prefix, hash, err := generateAgentAPIKeyToken()
+	raw, prefix, hash, err := generateAgentAPIKeyToken("qx_ak")
 	if err != nil {
 		t.Fatalf("generateAgentAPIKeyToken returned error: %v", err)
 	}

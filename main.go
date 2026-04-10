@@ -21,6 +21,7 @@ type ApiConfig struct {
 	dbQueries *database.Queries
 	db        *sql.DB
 	jwtSecret string
+	Product   ProductConfig
 }
 
 func (cfg *ApiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -31,37 +32,37 @@ func (cfg *ApiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 	})
 }
 
-func middlewareCORS(next http.Handler) http.Handler {
-	allowed := os.Getenv("CORS_ALLOWED_ORIGINS")
-	if allowed == "" {
-		allowed = "https://dev-app.filemonprime.net,https://abrndrive.filemonprime.net,http://localhost:5173,http://localhost:8082"
-	}
-	origins := strings.Split(allowed, ",")
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		allowOrigin := ""
-		for _, o := range origins {
-			if strings.TrimSpace(o) == origin {
-				allowOrigin = origin
-				break
+// middlewareCORS returns a CORS middleware preconfigured with the product's
+// allowed origin list. The origins come from ProductConfig rather than being
+// read from os.Getenv directly so that validation and defaulting happen in a
+// single place at startup.
+func middlewareCORS(origins []string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			allowOrigin := ""
+			for _, o := range origins {
+				if strings.TrimSpace(o) == origin {
+					allowOrigin = origin
+					break
+				}
 			}
-		}
-		if allowOrigin == "" && origin == "" {
-			allowOrigin = origins[0]
-		}
-		w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
+			if allowOrigin == "" && origin == "" && len(origins) > 0 {
+				allowOrigin = origins[0]
+			}
+			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
 
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func main() {
@@ -89,14 +90,21 @@ func main() {
 	}
 	defer db.Close()
 
+	productCfg := LoadProductConfig()
+
 	apiConfig := ApiConfig{
 		apiHits:   atomic.Int32{},
 		dbQueries: database.New(db),
 		db:        db,
 		jwtSecret: jwtSecret,
+		Product:   productCfg,
 	}
 
 	fmt.Println("Connected to the database successfully.")
+	log.Printf("Product: %s (slug=%s base=%s)", productCfg.Name, productCfg.Slug, productCfg.BasePath)
+
+	// Run idempotent admin bootstrap if ADMIN_BOOTSTRAP_EMAILS is set.
+	apiConfig.bootstrapAdmins()
 
 	mux := http.NewServeMux()
 
@@ -454,29 +462,33 @@ func main() {
 
 	fmt.Printf("Starting server on port %s...\n", port)
 
-	// SPA catch-all handler - must be registered AFTER API routes
-	// Handles any non-API route that doesn't match file
+	// SPA catch-all handler - must be registered AFTER API routes.
+	// Handles any non-API route that doesn't match a file. The base path
+	// comes from ProductConfig so a QuantiX deployment serves under
+	// /quantix/ while an ABRN deployment serves under /abrn/.
+	basePath := productCfg.BasePath                // "/abrn/" or "/quantix/"
+	basePathNoSlash := productCfg.BasePathTrimmed() // "/abrn" or "/quantix"
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
-		// Redirect bare root to /abrn/ so React Router (basename="/abrn") finds routes
+		// Redirect bare root to BasePath so React Router (basename=BasePath) finds routes.
 		if path == "/" {
-			http.Redirect(w, r, "/abrn/", http.StatusFound)
+			http.Redirect(w, r, basePath, http.StatusFound)
 			return
 		}
 
-		// Skip API paths - they should be handled by API routes above
-		// Check for both /api/ and /abrn/api/ patterns
+		// Skip API paths - they should be handled by API routes above.
+		// Catches both /api/ and /<base>/api/ patterns.
 		if strings.Contains(path, "/api/") {
 			http.NotFound(w, r)
 			return
 		}
 
-		// Vite builds with base:"/abrn/" so asset URLs carry a /abrn prefix,
-		// but the files in dist/ live at the root of dist (not in an abrn/ subdir).
-		// The old domain strips /abrn/ via Apache ProxyPass; the new dedicated
-		// domain does not, so we normalise here for both cases.
-		cleanPath := strings.TrimPrefix(path, "/abrn")
+		// Vite builds with base=BasePath so asset URLs carry the base prefix,
+		// but the files in dist/ live at the root of dist (not in a subdir).
+		// Old domains strip the base via Apache ProxyPass; new dedicated
+		// domains do not, so we normalise here for both cases.
+		cleanPath := strings.TrimPrefix(path, basePathNoSlash)
 
 		if cleanPath == "" || cleanPath == "/" {
 			cleanPath = "/index.html"
@@ -497,7 +509,7 @@ func main() {
 	// Configure server with explicit timeouts for large file uploads
 	server := &http.Server{
 		Addr:    ":" + port,
-		Handler: middlewareCORS(mux),
+		Handler: middlewareCORS(productCfg.CORSOrigins)(mux),
 		// Timeouts configured for 2GB uploads (30 minutes)
 		ReadTimeout:    30 * time.Minute, // Maximum time to read request body
 		WriteTimeout:   30 * time.Minute, // Maximum time to write response

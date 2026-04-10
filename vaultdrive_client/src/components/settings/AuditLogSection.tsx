@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Activity, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
+import { branding } from "../../config/branding";
 
 interface AuditEntry {
   id: string;
@@ -146,7 +147,7 @@ export function AuditLogSection() {
         </div>
       ) : entries.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-          No audit events recorded yet. Actions appear here as you use ABRN Drive.
+          {`No audit events recorded yet. Actions appear here as you use ${branding.productName}.`}
         </div>
       ) : (
         <div className="space-y-2">

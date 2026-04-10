@@ -10,6 +10,7 @@ import {
   type SyncableFolderShareLink,
 } from "../../utils/folder-share-sync";
 import { resolveOwnerPrivateKeyFromSession } from "../../utils/owner-private-key";
+import { branding } from "../../config/branding";
 import {
   getFolderShareOwnerCredentialType,
   resolveFolderSharePanelCredential,
@@ -325,7 +326,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                           value={legacyUrls[link.id] ?? ""}
                           onChange={(event) => setLegacyUrls((prev) => ({ ...prev, [link.id]: event.target.value }))}
                           rows={3}
-                          placeholder="https://abrndrive.filemonprime.net/folder-share/...#..."
+                          placeholder={`${branding.publicBaseURL}/folder-share/...#...`}
                           className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7d4f50]/40 focus:outline-none"
                         />
                       </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Lock, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { ABRNLogo } from "../components/branding";
+import { BrandLogo } from "../components/branding";
 import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useSessionVault } from "../context/SessionVaultContext";
@@ -145,11 +145,11 @@ export default function ForcePasswordChange() {
   };
 
   return (
-    <div className="abrn-page-bg flex items-center justify-center p-4" style={{ minHeight: "100vh" }}>
-      <div className="abrn-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
+    <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "100vh" }}>
+      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <ABRNLogo className="w-16 h-16" />
+            <BrandLogo className="w-16 h-16" />
           </div>
           <div className="flex justify-center mb-3">
             <div className="rounded-full bg-amber-100 p-3">

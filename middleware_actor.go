@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
-	"github.com/google/uuid"
 )
 
 type actorContextKey struct{}
@@ -47,7 +47,7 @@ func (cfg *ApiConfig) middlewareActor(requiredScopes ...string) func(authedHandl
 				return
 			}
 
-			if strings.HasPrefix(credential, agentAPIKeyPrefix+"_") {
+			if cfg.Product.IsAgentAPIKey(credential) {
 				cfg.handleAgentKeyAuth(w, r, credential, requiredScopes, handler)
 				return
 			}

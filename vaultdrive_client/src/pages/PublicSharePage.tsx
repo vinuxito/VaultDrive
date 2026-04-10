@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_URL } from "../utils/api";
 import { decryptFile, base64ToArrayBuffer } from "../utils/crypto";
-import ABRNLogo from "../components/branding/abrn-logo";
+import BrandLogo from "../components/branding/brand-logo";
+import { branding } from "../config/branding";
 import {
   CheckCircle2,
   AlertCircle,
@@ -175,9 +176,9 @@ export default function PublicSharePage() {
       <div className="w-full max-w-md space-y-4">
         <div className="text-center mb-2">
           <div className="flex justify-center mb-3">
-            <ABRNLogo className="h-12 object-contain" alt="ABRN Drive" />
+            <BrandLogo className="h-12 object-contain" />
           </div>
-          <h1 className="text-xl font-bold text-white">ABRN Drive</h1>
+          <h1 className="text-xl font-bold text-white">{branding.productName}</h1>
           <p className="text-white/70 text-sm">Secure File Share</p>
         </div>
 

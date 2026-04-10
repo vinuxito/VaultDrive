@@ -1,8 +1,23 @@
-# ABRN Drive Frontend
+# QuantiX Drive Frontend
 
-This directory contains the React + TypeScript frontend for ABRN Drive.
+This directory contains the React + TypeScript frontend for QuantiX Drive (and
+its downstream ABRN Drive branded deployment).
 
-It is not a standalone product shell. The production app is served by the Go backend, usually under `/abrn/`, and this frontend builds into `vaultdrive_client/dist/` for that backend to serve.
+It is not a standalone product shell. The production app is served by the Go
+backend, usually under `/quantix/` (or `/abrn/` for the ABRN deployment), and
+this frontend builds into `vaultdrive_client/dist/` for that backend to serve.
+
+## Branding Configuration
+
+All branding (name, colors, logo, base path, API URL) is driven by `VITE_*` env
+vars. See:
+
+- `.env` — committed QuantiX defaults (active when no override is present)
+- `.env.example` — documented QuantiX defaults you can copy to `.env.local`
+- `.env.abrn` — ABRN Drive downstream overrides; activate with
+  `cp .env.abrn .env.local && npm run build`
+- `src/config/branding.ts` — single source of truth for the `branding` object
+  consumed by React components
 
 ## Stack
 
@@ -70,12 +85,17 @@ npm run preview
 
 ## Verification Notes
 
-- The main production-like local path is usually the Go server at `http://localhost:8082/abrn/`, not the raw Vite dev server.
+- The main production-like local path is usually the Go server at
+  `http://localhost:8082/quantix/` (or `/abrn/` under the ABRN override), not
+  the raw Vite dev server.
 - Frontend verification is normally paired with backend verification:
   - `cd vaultdrive_client && npm run test && npm run build`
   - `cd .. && go test ./... && go build ./...`
-- The committed Playwright harness defaults to `http://127.0.0.1:8090/abrn/` and starts its own Go server against the current repo code during `npm run test:e2e`.
-- If you need to target a proxied or remote environment, override `ABRN_E2E_BASE_URL` and `ABRN_E2E_API_BASE_URL` explicitly.
+- The committed Playwright harness defaults to `http://127.0.0.1:8090/<base>/`
+  and starts its own Go server against the current repo code during
+  `npm run test:e2e`.
+- If you need to target a proxied or remote environment, override
+  `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
 - Current browser smoke coverage has been exercised against the live local app flow:
   - fresh signup
   - password login

@@ -216,7 +216,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
           </div>
 
           {receipt && (
-            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+            <div className="brand-receipt-surface rounded-2xl px-4 py-4">
               <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Done, safe, under control.</p>
               <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">{receipt}</p>
             </div>

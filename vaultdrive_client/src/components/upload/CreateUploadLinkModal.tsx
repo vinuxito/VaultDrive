@@ -7,6 +7,7 @@ import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { getCachedPinValue } from "../../utils/pin-trust";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
+import { branding } from "../../config/branding";
 
 interface Folder {
   id: string;
@@ -223,7 +224,7 @@ export function CreateUploadLinkModal({
 
         {createdLink ? (
           <div className="space-y-4">
-            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+            <div className="brand-receipt-surface rounded-2xl px-4 py-4">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
@@ -243,7 +244,7 @@ export function CreateUploadLinkModal({
             <ApiCallTrace
               method="POST"
               path="/api/drop/create"
-              note="ABRN Drive just created a bounded sender route tied to the folder and PIN trust you selected."
+              note={`${branding.productName} just created a bounded sender route tied to the folder and PIN trust you selected.`}
             />
 
             <div>

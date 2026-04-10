@@ -1,4 +1,5 @@
 import { API_URL } from "./api";
+import { branding } from "../config/branding";
 
 export interface TestResult {
   name: string;
@@ -62,7 +63,7 @@ export async function runTest(
 
 export async function testFileUpload(): Promise<TestResult> {
   try {
-    const testContent = "Test file content for ABRN Drive";
+    const testContent = `Test file content for ${branding.productName}`;
     const blob = new Blob([testContent], { type: "text/plain" });
     const file = new File([blob], "test_file_upload.txt", {
       type: "text/plain",

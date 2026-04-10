@@ -727,7 +727,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		"link_name": req.LinkName,
 	}, r)
 
-	uploadURL := fmt.Sprintf("/abrn/drop/%s#key=%s", dropToken, randomKey)
+	uploadURL := fmt.Sprintf("%sdrop/%s#key=%s", cfg.Product.BasePath, dropToken, randomKey)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -805,7 +805,7 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 
 	response := []TokenResponse{}
 	for _, t := range tokens {
-		uploadURL := fmt.Sprintf("/abrn/drop/%s", t.Token)
+		uploadURL := fmt.Sprintf("%sdrop/%s", cfg.Product.BasePath, t.Token)
 
 		var expiresAt *time.Time
 		if t.ExpiresAt.Valid {

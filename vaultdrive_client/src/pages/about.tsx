@@ -4,14 +4,14 @@ import VaultIcon from "../components/ui/vault-icon";
 
 export default function About() {
   return (
-    <div className="abrn-page-bg py-16">
+    <div className="brand-page-bg py-16">
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center mb-4">
             <VaultIcon className="w-20 h-20 drop-shadow-xl" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 abrn-gradient-text">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 brand-gradient-text">
             About VaultDrive
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -21,7 +21,7 @@ export default function About() {
         </div>
 
         {/* Project Motivation */}
-        <div className="abrn-glass-card p-8 mb-8">
+        <div className="brand-glass-card p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Target className="w-5 h-5 text-primary" />
@@ -58,7 +58,7 @@ export default function About() {
         </div>
 
         {/* Team Section */}
-        <div className="abrn-glass-card p-8 mb-8">
+        <div className="brand-glass-card p-8 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Users className="w-5 h-5 text-primary" />
@@ -68,7 +68,7 @@ export default function About() {
           <p className="text-sm text-muted-foreground mb-6">Computer Science Students · 2025</p>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="abrn-glass-card p-6">
+            <div className="brand-glass-card p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <span className="text-2xl font-bold text-primary">PG</span>
@@ -83,7 +83,7 @@ export default function About() {
               </p>
             </div>
 
-            <div className="abrn-glass-card p-6">
+            <div className="brand-glass-card p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <span className="text-2xl font-bold text-primary">AD</span>
@@ -101,7 +101,7 @@ export default function About() {
         </div>
 
         {/* Tech Stack */}
-        <div className="abrn-glass-card p-8 mb-8">
+        <div className="brand-glass-card p-8 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
               <Shield className="w-5 h-5 text-green-600" />
@@ -144,7 +144,7 @@ export default function About() {
         </div>
 
         {/* Key Features */}
-        <div className="abrn-glass-card p-8 mb-8">
+        <div className="brand-glass-card p-8 mb-8">
           <h2 className="text-xl font-semibold mb-6">Key Features</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
@@ -168,7 +168,7 @@ export default function About() {
         <div className="text-center mt-12">
           <Button
             size="lg"
-            className="gap-2 abrn-btn-primary"
+            className="gap-2 brand-btn-primary"
             onClick={() => window.open("https://github.com/Pranay0205/VaultDrive", "_blank")}
           >
             <Github className="w-5 h-5" />

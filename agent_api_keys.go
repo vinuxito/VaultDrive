@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-const agentAPIKeyPrefix = "abrn_ak"
-
 var allowedAgentScopes = []string{
 	"activity:read",
 	"api_keys:read",
@@ -31,12 +29,19 @@ var allowedAgentScopes = []string{
 	"trust:read",
 }
 
-func generateAgentAPIKeyToken() (string, string, string, error) {
+// generateAgentAPIKeyToken mints a new agent API key using the supplied
+// product prefix (e.g. "qx_ak", "abrn_ak"). Legacy prefixes continue to
+// validate via ProductConfig.IsAgentAPIKey — this function only governs
+// issuance of new keys.
+func generateAgentAPIKeyToken(keyPrefix string) (string, string, string, error) {
+	if keyPrefix == "" {
+		return "", "", "", fmt.Errorf("generate api key: empty prefix")
+	}
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", "", "", fmt.Errorf("generate api key: %w", err)
 	}
-	raw := agentAPIKeyPrefix + "_" + base64.RawURLEncoding.EncodeToString(b)
+	raw := keyPrefix + "_" + base64.RawURLEncoding.EncodeToString(b)
 	prefix := raw
 	if len(prefix) > 18 {
 		prefix = prefix[:18]

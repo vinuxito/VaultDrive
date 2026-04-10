@@ -31,13 +31,13 @@ type fileRequestResponse struct {
 	CreatedAt     time.Time  `json:"created_at"`
 }
 
-func dbFileRequestToResponse(req database.FileRequest) fileRequestResponse {
+func dbFileRequestToResponse(req database.FileRequest, basePath string) fileRequestResponse {
 	resp := fileRequestResponse{
 		ID:          req.ID.String(),
 		Token:       req.Token,
 		Description: req.Description.String,
 		IsActive:    req.IsActive.Bool,
-		RequestURL:  fmt.Sprintf("/abrn/request/%s", req.Token),
+		RequestURL:  fmt.Sprintf("%srequest/%s", basePath, req.Token),
 		CreatedAt:   req.CreatedAt,
 	}
 	if req.ExpiresAt.Valid {
@@ -115,7 +115,7 @@ func (cfg *ApiConfig) handlerCreateFileRequest(w http.ResponseWriter, r *http.Re
 		"token": req.Token,
 	}, r)
 
-	respondWithJSON(w, http.StatusCreated, dbFileRequestToResponse(req))
+	respondWithJSON(w, http.StatusCreated, dbFileRequestToResponse(req, cfg.Product.BasePath))
 }
 
 func (cfg *ApiConfig) handlerListFileRequests(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -126,7 +126,7 @@ func (cfg *ApiConfig) handlerListFileRequests(w http.ResponseWriter, r *http.Req
 	}
 	result := make([]fileRequestResponse, 0, len(reqs))
 	for _, req := range reqs {
-		result = append(result, dbFileRequestToResponse(req))
+		result = append(result, dbFileRequestToResponse(req, cfg.Product.BasePath))
 	}
 	respondWithJSON(w, http.StatusOK, result)
 }

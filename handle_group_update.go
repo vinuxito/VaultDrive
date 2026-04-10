@@ -15,7 +15,7 @@ type updateGroupRequest struct {
 	Description string `json:"description"`
 }
 
-// PUT /abrn/api/groups/{id} - Update group
+// PUT /api/groups/{id} - Update group
 func (cfg *ApiConfig) updateGroupHandler(w http.ResponseWriter, r *http.Request, user database.User) {
 	groupIDStr := r.PathValue("id")
 	groupID, err := uuid.Parse(groupIDStr)

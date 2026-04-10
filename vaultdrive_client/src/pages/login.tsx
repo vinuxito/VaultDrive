@@ -7,10 +7,11 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Lock, Mail, User, Eye, EyeOff, Fingerprint } from "lucide-react";
-import { ABRNLogo, PoweredByBadge } from "../components/branding";
+import { BrandLogo, PoweredByBadge } from "../components/branding";
 import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useSessionVault } from "../context/SessionVaultContext";
+import { branding } from "../config/branding";
 import {
   decryptPrivateKeyWithPassword,
   decryptPrivateKeyWithPIN,
@@ -22,7 +23,7 @@ export default function Login() {
   const { setPrivateKey, setCredential } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
   const [loginMode, setLoginMode] = useState<"password" | "pin">(
-    localStorage.getItem("abrn_pin_hint") === "1" ? "pin" : "password"
+    localStorage.getItem(`${branding.productSlug}_pin_hint`) === "1" ? "pin" : "password"
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -103,7 +104,7 @@ export default function Login() {
           const cryptoKey = await importRSAPrivateKey(pem);
           setPrivateKey(cryptoKey);
           setCredential(pinValue, "pin");
-          localStorage.setItem("abrn_pin_hint", "1");
+          localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
         }
       } catch {
       }
@@ -150,17 +151,17 @@ export default function Login() {
   };
 
   return (
-    <div className="abrn-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
-      <div className="abrn-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
+    <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
+      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-            <span className="abrn-badge">Private access</span>
+            <span className="brand-badge">Private access</span>
           </div>
           <div className="flex justify-center mb-4">
-            <ABRNLogo className="w-20 h-20" />
+            <BrandLogo className="w-20 h-20" />
           </div>
           <CardTitle className="text-2xl">
-            {isLogin ? "Welcome to ABRN Drive" : "Join ABRN Drive"}
+            {isLogin ? `Welcome to ${branding.productName}` : `Join ${branding.productName}`}
           </CardTitle>
           <CardDescription>
             {isLogin
@@ -216,7 +217,7 @@ export default function Login() {
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-slate-500">
                   {loginMode === "password"
-                    ? "Once your PIN is enrolled, ABRN Drive can reuse that trust across the vault, secure links, and protected handoffs."
+                    ? "{`Once your PIN is enrolled, ${branding.productName} can reuse that trust across the vault, secure links, and protected handoffs.`}"
                     : "Your PIN unlocks the owner trust path without reintroducing normal per-action friction."}
                 </p>
               </div>
@@ -308,7 +309,7 @@ export default function Login() {
                   (loginMode === "pin" && pinValue.length !== 4)
                 }
               >
-                {loading ? "Logging in..." : isLogin ? "Open ABRN Drive" : "Continue securely"}
+                {loading ? "Logging in..." : isLogin ? `Open ${branding.productName}` : "Continue securely"}
               </Button>
             </form>
           ) : (

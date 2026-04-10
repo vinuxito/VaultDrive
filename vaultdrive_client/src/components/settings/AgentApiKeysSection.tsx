@@ -3,6 +3,7 @@ import { Bot, Copy, KeyRound, Loader2, ShieldCheck, Trash2 } from "lucide-react"
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
+import { branding } from "../../config/branding";
 
 interface AgentKeyRecord {
   id: string;
@@ -209,13 +210,13 @@ function CreateKeyModal({
 
         {created ? (
           <div className="p-6 space-y-4 overflow-y-auto">
-            <div className="abrn-receipt-surface rounded-2xl px-4 py-4">
+            <div className="brand-receipt-surface rounded-2xl px-4 py-4">
               <div className="flex items-center gap-2 text-emerald-700 font-medium">
                 <ShieldCheck className="w-4 h-4" />
                 Agent key created — save it now
               </div>
               <p className="mt-2 text-sm text-emerald-700/90">
-                This is the only time ABRN Drive will show the full key. After you close this window, only the visible prefix remains.
+                {`This is the only time ${branding.productName} will show the full key. After you close this window, only the visible prefix remains.`}
               </p>
             </div>
 
@@ -463,7 +464,7 @@ export function AgentApiKeysSection() {
       </div>
 
       {receipt && (
-        <div className="abrn-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
+        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
           <p className="font-medium">Done, safe, under control.</p>
           <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
         </div>
@@ -482,7 +483,7 @@ export function AgentApiKeysSection() {
         </div>
       ) : keys.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-          No agent keys yet. Create one when you want an outside system to work through ABRN Drive.
+          {`No agent keys yet. Create one when you want an outside system to work through ${branding.productName}.`}
         </div>
       ) : (
         <div className="space-y-3">

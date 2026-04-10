@@ -1,27 +1,41 @@
-import ABRNLogo from "./abrn-logo";
+import { branding, getCopyrightLine } from "../../config/branding";
+import BrandLogo from "./brand-logo";
 import PoweredByBadge from "./powered-by-badge";
 
 export default function LandingPageFooter() {
+  const radialGradient = `radial-gradient(ellipse at 50% 100%, ${branding.primaryColor}14 0%, transparent 70%)`;
+
   return (
-    <footer className="abrn-footer relative overflow-hidden">
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 100%, rgba(125,79,80,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+    <footer className="brand-footer relative overflow-hidden">
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: radialGradient,
+          pointerEvents: "none",
+        }}
+      />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         <div className="flex flex-col items-center justify-center mb-8">
-          <ABRNLogo className="w-16 h-16 mb-4" alt="ABRN Asesores" />
+          <BrandLogo className="w-16 h-16 mb-4" alt={branding.companyName} />
           <div className="text-center space-y-2">
-            <h3 className="text-2xl font-bold text-foreground">ABRN Asesores</h3>
-            <p className="text-muted-foreground text-sm">Coded for Excellence</p>
+            <h3 className="text-2xl font-bold text-foreground">
+              {branding.companyName}
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              {branding.landingTagline}
+            </p>
           </div>
         </div>
 
         <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold abrn-gradient-text mb-2">
-            Coded for ABRN Asesores
+          <h2 className="text-3xl md:text-4xl font-bold brand-gradient-text mb-2">
+            {branding.landingTagline}
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             Enterprise-grade encrypted cloud storage designed and developed for
-            the secure needs of ABRN Asesores
+            the secure needs of {branding.companyName}
           </p>
         </div>
 
@@ -30,11 +44,12 @@ export default function LandingPageFooter() {
         </div>
       </div>
 
-      <div className="border-t border-[#7d4f50]/20 py-4">
+      <div
+        className="border-t py-4"
+        style={{ borderColor: `${branding.primaryColor}33` }}
+      >
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} ABRN Asesores. All rights reserved.
-          </p>
+          <p className="text-sm text-muted-foreground">{getCopyrightLine()}</p>
         </div>
       </div>
     </footer>

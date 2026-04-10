@@ -35,7 +35,7 @@ describe("CreateUploadLinkModal", () => {
       }
 
       if (url.endsWith("/drop/create")) {
-        return new Response(JSON.stringify({ upload_url: "/abrn/drop/abc#key=secret" }), {
+        return new Response(JSON.stringify({ upload_url: "/quantix/drop/abc#key=secret" }), {
           status: 201,
           headers: { "Content-Type": "application/json" },
         });

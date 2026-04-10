@@ -11,8 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { ThemeToggle } from "./theme-toggle";
-import { ABRNLogo } from "./branding";
+import { BrandLogo } from "./branding";
 import { Shield } from "lucide-react";
+import { branding } from "../config/branding";
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -96,15 +97,15 @@ const getInitials = (name: string) => {
 
   return (
     <>
-      <nav className="abrn-glass-nav sticky top-0 z-50">
+      <nav className="brand-glass-nav sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div
               className="flex items-center gap-4 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <ABRNLogo className="w-10 h-10 m-1" />
-              <h1 className="text-2xl font-bold text-primary">ABRN Drive</h1>
+              <BrandLogo className="w-10 h-10 m-1" />
+              <h1 className="text-2xl font-bold text-primary">{branding.productName}</h1>
             </div>
             <ul className="flex gap-6">
               <li>

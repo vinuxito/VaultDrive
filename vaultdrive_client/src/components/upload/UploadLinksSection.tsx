@@ -200,7 +200,7 @@ export function UploadLinksSection() {
       )}
 
       {receipt && (
-        <div className="abrn-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
+        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
           <p className="font-medium">Done, safe, under control.</p>
           <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
         </div>

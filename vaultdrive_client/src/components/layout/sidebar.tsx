@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ABRNLogo } from "../branding";
+import { BrandLogo } from "../branding";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -45,7 +45,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     >
       <div className="flex-1 flex flex-col overflow-y-auto">
         <div className={cn("flex items-center h-16 px-4 shrink-0 transition-all duration-300", collapsed ? 'justify-center' : 'justify-between')}>
-            <ABRNLogo className={cn("h-8 transition-transform duration-300", collapsed && "rotate-90")} alt="ABRN Asesores" />
+            <BrandLogo className={cn("h-8 transition-transform duration-300", collapsed && "rotate-90")} />
           </div>
 
         <nav className="flex-1 p-3 space-y-2">

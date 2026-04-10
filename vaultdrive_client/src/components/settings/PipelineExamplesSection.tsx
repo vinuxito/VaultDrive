@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Workflow, Copy } from "lucide-react";
+import { branding } from "../../config/branding";
 
 type Lang = "curl" | "python" | "node" | "pseudocode";
 
@@ -10,7 +11,7 @@ interface PipelineSnippet {
 }
 
 function getBaseUrl(): string {
-  return `${window.location.origin}/abrn/api/v1`;
+  return `${window.location.origin}${branding.apiBasePath}/v1`;
 }
 
 function buildSnippets(): PipelineSnippet[] {
@@ -21,13 +22,13 @@ function buildSnippets(): PipelineSnippet[] {
       label: "curl",
       code: `# 1. Search for files
 FILES=$(curl -s "${base}/files?q=invoice" \\
-  -H "Authorization: Bearer $ABRN_KEY")
+  -H "Authorization: Bearer ${branding.agentKeyEnvVar}")
 echo "$FILES" | jq '.data[].filename'
 
 # 2. Download ciphertext (first match)
 FILE_ID=$(echo "$FILES" | jq -r '.data[0].id')
 curl -s "${base}/files/$FILE_ID/download" \\
-  -H "Authorization: Bearer $ABRN_KEY" \\
+  -H "Authorization: Bearer ${branding.agentKeyEnvVar}" \\
   -o encrypted.bin -D headers.txt
 
 # 3. Extract wrapped key from response headers
@@ -41,7 +42,7 @@ echo "Decrypt with owner's PIN-derived RSA private key"`,
       code: `import requests, json
 
 BASE = "${base}"
-HEADERS = {"Authorization": f"Bearer {ABRN_KEY}"}
+HEADERS = {"Authorization": f"Bearer {${branding.agentKeyEnvVar}}"}
 
 # 1. Search for files
 files = requests.get(f"{BASE}/files", params={"q": "invoice"},
@@ -66,7 +67,7 @@ print(f"Downloaded {len(ciphertext)} bytes of ciphertext")`,
       lang: "node",
       label: "Node.js",
       code: `const BASE = "${base}";
-const headers = { Authorization: \`Bearer \${ABRN_KEY}\` };
+const headers = { Authorization: \`Bearer \${${branding.agentKeyEnvVar}}\` };
 
 // 1. Search for files
 const filesRes = await fetch(\`\${BASE}/files?q=invoice\`, { headers });
@@ -106,7 +107,7 @@ SCOPES: files:list, files:read_metadata, files:download_ciphertext
    c. LOG metadata for reconciliation record
 
 3. NOTIFY owner that N files are staged for review
-   Owner opens ABRN Drive → decrypts in browser → confirms
+   Owner opens ${branding.productName} → decrypts in browser → confirms
 
 TRUST BOUNDARY:
   Agent sees: filenames, sizes, timestamps, ciphertext

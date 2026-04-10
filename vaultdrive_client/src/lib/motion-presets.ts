@@ -1,5 +1,5 @@
 /**
- * ABRN Drive — Luxury Fintech Motion Presets
+ * Luxury Fintech Motion Presets
  * Framer Motion spring physics configurations.
  *
  * Design principle: motion should feel physical — like objects with mass

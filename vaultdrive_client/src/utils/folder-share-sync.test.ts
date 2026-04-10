@@ -48,7 +48,7 @@ describe("extractFolderShareKeyFromUrl", () => {
   it("extracts the token and fragment key from a full share URL", () => {
     expect(
       extractFolderShareKeyFromUrl(
-        "https://abrndrive.filemonprime.net/folder-share/token123#abcXYZ=",
+        "https://example.com/folder-share/token123#abcXYZ=",
         "token123",
       ),
     ).toEqual({ token: "token123", keyB64: "abcXYZ=" });
@@ -57,7 +57,7 @@ describe("extractFolderShareKeyFromUrl", () => {
   it("rejects a pasted URL for the wrong link", () => {
     expect(() =>
       extractFolderShareKeyFromUrl(
-        "https://abrndrive.filemonprime.net/folder-share/other#abcXYZ=",
+        "https://example.com/folder-share/other#abcXYZ=",
         "token123",
       ),
     ).toThrow("That URL belongs to a different shared link.");

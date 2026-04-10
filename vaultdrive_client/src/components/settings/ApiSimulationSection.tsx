@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Bot, CheckCircle2, ChevronDown, Loader2, Play, XCircle } from "lucide-react";
 import { API_URL } from "../../utils/api";
+import { branding } from "../../config/branding";
 
 interface AgentKey {
   id: string;
@@ -181,11 +182,11 @@ export function ApiSimulationSection() {
               value={rawKey}
               onChange={(e) => setRawKey(e.target.value)}
               rows={3}
-              placeholder="Paste the full abrn_ak_... value you just copied"
+              placeholder={`Paste the full ${branding.agentKeyPrefix}_... value you just copied`}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-[#7d4f50] focus:outline-none"
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              ABRN only shows the raw key once. Paste it here when you want Filemon to operate the real API surface.
+              {`${branding.companyName} only shows the raw key once. Paste it here when you want Filemon to operate the real API surface.`}
             </p>
           </div>
 
@@ -270,7 +271,7 @@ export function ApiSimulationSection() {
               <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 mb-2">Filemon execution</p>
               <pre className="text-[11px] text-slate-600 dark:text-slate-300 font-mono whitespace-pre-wrap break-all leading-relaxed">
                 <span className={METHOD_COLORS[resultMethod || endpoint.method] ?? "text-slate-600"}>{resultMethod || endpoint.method}</span>
-                {` ${window.location.origin}/abrn${resultPath || `/api/v1${endpoint.path}`}\nAuth type: ${authType || "pending"}\nScope check: ${scopeRequired} → ${allGrantedForEndpoint ? "PASS" : "DENY"}${resultStatus !== null ? `\nHTTP ${resultStatus}` : ""}`}
+                {` ${window.location.origin}${branding.apiBasePath.replace(/\/api$/, "")}${resultPath || `/api/v1${endpoint.path}`}\nAuth type: ${authType || "pending"}\nScope check: ${scopeRequired} → ${allGrantedForEndpoint ? "PASS" : "DENY"}${resultStatus !== null ? `\nHTTP ${resultStatus}` : ""}`}
               </pre>
               {resolvedScopes.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">

@@ -34,9 +34,10 @@ import {
   generateSalt,
   arrayBufferToBase64,
 } from "../utils/crypto";
-import ABRNLogo from "../components/branding/abrn-logo";
+import BrandLogo from "../components/branding/brand-logo";
 import { API_URL } from "../utils/api";
 import { buildFileRequestUploadFormData } from "../utils/file-request-upload";
+import { branding } from "../config/branding";
 
 interface RequestInfo {
   description: string;
@@ -346,7 +347,7 @@ export default function FileRequestPage() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="abrn-page-bg flex items-center justify-center">
+      <div className="brand-page-bg flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-[#7d4f50]" />
       </div>
     );
@@ -355,7 +356,7 @@ export default function FileRequestPage() {
   // ── Error (no info loaded) ───────────────────────────────────────────────
   if (error && !info) {
     return (
-      <div className="abrn-page-bg flex items-center justify-center p-4">
+      <div className="brand-page-bg flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
@@ -365,12 +366,12 @@ export default function FileRequestPage() {
           <CardFooter>
             <Button
               onClick={() => {
-                window.location.href = "https://abrn.mx/";
+                window.location.href = branding.marketingURL;
               }}
               variant="outline"
               className="w-full"
             >
-              Back to ABRN
+              {`Back to ${branding.companyName}`}
             </Button>
           </CardFooter>
         </Card>
@@ -398,7 +399,7 @@ export default function FileRequestPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f2ece9] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
-          <ABRNLogo className="h-14 mx-auto" alt="ABRN Asesores SC" />
+          <BrandLogo className="h-14 mx-auto" />
 
           <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center mx-auto">
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
@@ -415,7 +416,7 @@ export default function FileRequestPage() {
             </p>
           </div>
 
-          <div className="abrn-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
+          <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
             <p className="text-sm font-semibold text-emerald-900">Delivery receipt</p>
             <p className="mt-1 text-xs leading-relaxed text-emerald-800">
               Your encrypted files are now in the request route. The recipient can review the delivery, but they still need the separate password you chose to open the files.
@@ -446,7 +447,7 @@ export default function FileRequestPage() {
           <div className="text-left bg-white/70 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
             <p className="font-medium text-slate-800">What happened</p>
             <p className="text-slate-600 leading-relaxed">
-              Your files were encrypted in this browser using the password you chose. ABRN Drive stored only the protected files and request metadata.
+              {`Your files were encrypted in this browser using the password you chose. ${branding.productName} stored only the protected files and request metadata.`}
             </p>
             <p className="text-xs text-slate-500 leading-relaxed">
               The recipient can review the delivery now, but they will still need the separate download password to open the files.
@@ -492,10 +493,10 @@ export default function FileRequestPage() {
 
   // ── Main upload UI ───────────────────────────────────────────────────────
   return (
-    <div className="abrn-page-bg p-4 md:p-8">
+    <div className="brand-page-bg p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex justify-start mb-4">
-          <ABRNLogo className="h-12" alt="ABRN Asesores SC" />
+          <BrandLogo className="h-12" />
         </div>
 
         {/* Owner identity banner */}
@@ -532,7 +533,7 @@ export default function FileRequestPage() {
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
             <p className="font-medium text-emerald-900">What stays private</p>
             <p className="mt-1.5 leading-relaxed">
-              Your files are encrypted in this browser with the password you choose. ABRN Drive stores only the protected upload and request metadata.
+              {`Your files are encrypted in this browser with the password you choose. ${branding.productName} stores only the protected upload and request metadata.`}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white/75 px-4 py-4 text-sm text-slate-600 shadow-[0_12px_28px_rgba(125,79,80,0.06)]">

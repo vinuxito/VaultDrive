@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck, Lock, Sparkles, Clock3 } from "lucide-react";
 import { API_URL } from "../../utils/api";
+import { branding } from "../../config/branding";
 
 interface TrustEntry {
   kind: string;
@@ -86,7 +87,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
 
   if (loading) {
     return (
-      <div className="abrn-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
+      <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="h-3 w-36 bg-white/10 rounded animate-pulse" />
           <div className="h-5 w-20 bg-white/10 rounded-full animate-pulse" />
@@ -104,12 +105,12 @@ export function TrustRail({ fileId }: TrustRailProps) {
 
   if (error || !summary) {
     return (
-      <div className="abrn-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
+      <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
         <div className="flex items-center gap-2 text-white/50">
           <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-          <span className="abrn-trust-kicker">Protection & Access</span>
+          <span className="brand-trust-kicker">Protection & Access</span>
         </div>
-        <div className="abrn-trust-panel rounded-2xl px-4 py-4">
+        <div className="brand-trust-panel rounded-2xl px-4 py-4">
           <p className="text-sm text-white/85">Trust data is temporarily unavailable.</p>
           <p className="mt-1 text-xs text-white/62">Your file remains encrypted and under your control.</p>
         </div>
@@ -131,12 +132,12 @@ export function TrustRail({ fileId }: TrustRailProps) {
     : `${activeCount} external access point${activeCount !== 1 ? "s are" : " is"} active and reviewable.`;
 
   return (
-    <div className="abrn-trust-shell rounded-[1.75rem] px-4 py-4 space-y-4">
+    <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-4">
       <div className="relative z-10 flex items-start justify-between gap-3 flex-wrap">
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-white/55">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="abrn-trust-kicker">Protection & Access</span>
+            <span className="brand-trust-kicker">Protection & Access</span>
           </div>
           <div>
             <p className="text-lg font-semibold text-white">{accessStateLabel(summary.access_state)}</p>
@@ -159,7 +160,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
         </div>
       </div>
 
-      <div className="relative z-10 abrn-trust-panel-strong rounded-[1.4rem] px-4 py-4">
+      <div className="relative z-10 brand-trust-panel-strong rounded-[1.4rem] px-4 py-4">
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/55">
           <span className="inline-flex items-center rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 font-medium text-emerald-200">
             Ciphertext stored only
@@ -178,12 +179,12 @@ export function TrustRail({ fileId }: TrustRailProps) {
         </div>
         <p className="mt-3 text-sm leading-relaxed text-white/92">{calmSummary}</p>
         <p className="mt-2 text-xs leading-relaxed text-white/62">
-          ABRN Drive stores ciphertext and access metadata only, so this view is your control surface rather than a copy of the file.
+          {`${branding.productName} stores ciphertext and access metadata only, so this view is your control surface rather than a copy of the file.`}
         </p>
       </div>
 
       <div className="relative z-10 grid gap-3 md:grid-cols-3 text-sm">
-        <div className="abrn-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
+        <div className="brand-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
           <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400/12 text-emerald-300">
               <Lock className="w-3.5 h-3.5" />
@@ -194,7 +195,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
           <p className="mt-2 text-xs leading-relaxed text-white/60">Locked in your browser before upload, then kept unreadable outside your trusted session.</p>
         </div>
 
-        <div className="abrn-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
+        <div className="brand-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
           <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-400/12 text-sky-300">
               <Sparkles className="w-3.5 h-3.5" />
@@ -209,7 +210,7 @@ export function TrustRail({ fileId }: TrustRailProps) {
           </p>
         </div>
 
-        <div className="abrn-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
+        <div className="brand-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
           <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400/12 text-amber-200">
               <Clock3 className="w-3.5 h-3.5" />

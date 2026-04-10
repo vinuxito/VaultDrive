@@ -20,6 +20,7 @@ import {
   getPinEnrollmentErrorMessage,
 } from "../../utils/pin-enrollment";
 import { mergeUserPinState } from "../../utils/pin-trust";
+import { branding } from "../../config/branding";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
@@ -93,7 +94,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
-      localStorage.setItem("abrn_pin_hint", "1");
+      localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
       setCredential(pin, "pin");
       setPasswordInput("");
       setPreviousPassword("");
@@ -339,7 +340,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 h-12"
                   />
                   <p className="text-xs text-white/58 leading-relaxed">
-                    We use this once to re-wrap your private key so your one PIN works everywhere in ABRN Drive.
+                    {`We use this once to re-wrap your private key so your one PIN works everywhere in ${branding.productName}.`}
                   </p>
                 </div>
 
@@ -491,7 +492,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <div className="text-left space-y-2">
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <p className="text-sm text-white/70">You only set this once. ABRN Drive now carries that trust through normal owner flows.</p>
+                  <p className="text-sm text-white/70">{`You only set this once. ${branding.productName} now carries that trust through normal owner flows.`}</p>
                 </div>
               </div>
 

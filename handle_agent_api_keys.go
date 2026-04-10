@@ -107,7 +107,7 @@ func (cfg *ApiConfig) handlerCreateAgentAPIKey(w http.ResponseWriter, r *http.Re
 			}
 		}
 	}
-	rawKey, prefix, hash, err := generateAgentAPIKeyToken()
+	rawKey, prefix, hash, err := generateAgentAPIKeyToken(cfg.Product.AgentKeyPrefix)
 	if err != nil {
 		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not generate API key")
 		return

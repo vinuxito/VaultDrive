@@ -93,11 +93,11 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
   }, [fileId]);
 
   return (
-    <div className="abrn-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
+    <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
       <div className="relative z-10 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 text-white/50">
           <Clock3 className="w-3.5 h-3.5 text-amber-200" />
-          <span className="abrn-trust-kicker">Security History</span>
+          <span className="brand-trust-kicker">Security History</span>
         </div>
         {!loading && !error && (
           <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72">
@@ -119,7 +119,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           ))}
         </div>
       ) : error ? (
-        <div className="relative z-10 abrn-trust-panel rounded-2xl flex items-center gap-3 px-4 py-4">
+        <div className="relative z-10 brand-trust-panel rounded-2xl flex items-center gap-3 px-4 py-4">
           <div className="w-6 h-6 rounded-full bg-amber-500/20 ring-1 ring-amber-400/20 flex items-center justify-center shrink-0">
             <Clock3 className="w-3 h-3 text-amber-300" />
           </div>
@@ -129,7 +129,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
           </div>
         </div>
       ) : events.length === 0 ? (
-        <div className="relative z-10 abrn-trust-panel-strong rounded-2xl flex items-center gap-3 px-4 py-4">
+        <div className="relative z-10 brand-trust-panel-strong rounded-2xl flex items-center gap-3 px-4 py-4">
           <div className="w-6 h-6 rounded-full bg-emerald-500/20 ring-1 ring-emerald-400/20 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
           </div>
@@ -153,7 +153,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
                 )}
               </div>
               <div
-                className={`${idx < events.length - 1 ? "pb-4" : "pb-1"} abrn-trust-panel rounded-[1.25rem] border-l px-3.5 py-3 flex-1 ${toneAccent(event.tone)}`}
+                className={`${idx < events.length - 1 ? "pb-4" : "pb-1"} brand-trust-panel rounded-[1.25rem] border-l px-3.5 py-3 flex-1 ${toneAccent(event.tone)}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-2">

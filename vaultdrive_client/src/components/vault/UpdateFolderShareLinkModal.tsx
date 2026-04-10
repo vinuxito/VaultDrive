@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
+import { branding } from "../../config/branding";
 import {
   syncFolderShareLinkById,
   type SyncableFolderShareLink,
@@ -213,7 +214,7 @@ export function UpdateFolderShareLinkModal({
                           value={legacyUrls[link.id] ?? ""}
                           onChange={(event) => setLegacyUrls((prev) => ({ ...prev, [link.id]: event.target.value }))}
                           rows={3}
-                          placeholder="https://abrndrive.filemonprime.net/folder-share/...#..."
+                          placeholder={`${branding.publicBaseURL}/folder-share/...#...`}
                           className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
                         />
                       </div>

@@ -1,6 +1,8 @@
+import { branding } from "../config/branding";
+
 export { BASE_PATH } from "./base-path";
 
-export const API_URL = import.meta.env.VITE_API_URL || "/abrn/api";
+export const API_URL = branding.apiBasePath;
 
 // Email Accounts API
 export interface EmailAccountPayload {

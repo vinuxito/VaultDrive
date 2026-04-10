@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Generated at build time by brandManifestPlugin in vite.config.ts —
+# the manifest.json mirrors active VITE_* branding vars and therefore
+# differs per-deployment. Committing it would cause conflicts on every
+# branded rebuild. The plugin regenerates it on `npm run build`/`dev`.
+public/manifest.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -2,7 +2,7 @@ import { Files, Share2, Settings, User, LogOut, X, Users } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
-import { ABRNLogo, PoweredByBadge } from "../branding";
+import { BrandLogo, PoweredByBadge } from "../branding";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface MobileNavProps {
@@ -73,7 +73,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
       <div className="fixed inset-y-0 left-0 w-[280px] elegant-overlay z-50 animate-slide-right flex flex-col md:hidden">
         <div className="flex items-center justify-between p-4 border-b border-[#7d4f50]/15">
           <Link to="/" onClick={onClose} className="flex items-center gap-2">
-            <ABRNLogo className="h-8" alt="ABRN Asesores" />
+            <BrandLogo className="h-8" />
           </Link>
           <button
             onClick={onClose}

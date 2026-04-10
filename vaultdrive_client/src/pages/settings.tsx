@@ -44,6 +44,7 @@ import {
   getPinEnrollmentErrorMessage,
 } from "../utils/pin-enrollment";
 import { mergeUserPinState } from "../utils/pin-trust";
+import { branding } from "../config/branding";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ export default function Settings() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("/abrn/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${branding.apiBasePath}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.ok ? r.json() : null)
       .then((u) => { if (u?.organization_name) setOrgName(u.organization_name as string); })
       .catch(() => undefined);
@@ -89,7 +90,7 @@ export default function Settings() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("/abrn/api/v1/governance/settings", {
+    fetch(`${branding.apiBasePath}/v1/governance/settings`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.ok ? r.json() : null)
@@ -181,7 +182,7 @@ export default function Settings() {
     setOrgSaving(true);
     try {
       const token = localStorage.getItem("token");
-      await fetch("/abrn/api/users/organization", {
+      await fetch(`${branding.apiBasePath}/users/organization`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ organization_name: orgName }),
@@ -211,7 +212,7 @@ export default function Settings() {
     if (!token) return;
     setGovSaving(true);
     try {
-      await fetch("/abrn/api/v1/governance/settings", {
+      await fetch(`${branding.apiBasePath}/v1/governance/settings`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -231,12 +232,12 @@ export default function Settings() {
     <div className="max-w-4xl space-y-6">
         <div className="rounded-[1.8rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfb_0%,#f8f3ef_100%)] px-6 py-4 shadow-[0_20px_50px_rgba(125,79,80,0.08)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.96)_0%,rgba(15,23,42,0.92)_100%)]">
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="abrn-badge">Owner control</span>
+            <span className="brand-badge">Owner control</span>
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300">
               Trust stays visible
             </span>
           </div>
-          <h1 className="text-3xl font-bold abrn-section-heading">Settings</h1>
+          <h1 className="text-3xl font-bold brand-section-heading">Settings</h1>
           <p className="text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
             Keep the vault calm and predictable: one PIN, clear privacy boundaries, and delegated access you can inspect or revoke whenever needed.
           </p>
@@ -348,7 +349,7 @@ export default function Settings() {
                 type="text"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                placeholder="e.g. ABRN Asesores SC"
+                placeholder={`e.g. ${branding.companyName}`}
                 className="flex-1 px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
                 onKeyDown={(e) => { if (e.key === "Enter") void saveOrgName(); }}
               />
@@ -393,7 +394,7 @@ export default function Settings() {
                 Checking PIN status…
               </div>
             ) : pinSet ? (
-              <div className="abrn-receipt-surface rounded-2xl flex items-start gap-3 p-4">
+              <div className="brand-receipt-surface rounded-2xl flex items-start gap-3 p-4">
                 <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                 <div>
                   <p className="font-semibold text-green-900 dark:text-green-100">PIN is set</p>
@@ -572,7 +573,7 @@ export default function Settings() {
               Privacy & Trust
             </CardTitle>
             <CardDescription>
-              What ABRN Drive sees, what it protects, and what you control
+              {`What ${branding.productName} sees, what it protects, and what you control`}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
@@ -583,7 +584,7 @@ export default function Settings() {
               </div>
               <p className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">How your files are protected</p>
               <p className="mt-2 leading-relaxed text-slate-700 dark:text-slate-300">
-                Files are encrypted in your browser before upload. ABRN Drive stores the locked version, delivery metadata, and a record of access events so you can understand what happened without giving up control.
+                {`Files are encrypted in your browser before upload. ${branding.productName} stores the locked version, delivery metadata, and a record of access events so you can understand what happened without giving up control.`}
               </p>
               <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                 If the server is breached, your files remain unreadable without the key material that never leaves your control.
