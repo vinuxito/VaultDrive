@@ -1,4 +1,3 @@
-export { default as ABRNLogo } from "./abrn-logo";
 export { default as QuantixLogo } from "./quantix-logo";
 export { default as BrandLogo } from "./brand-logo";
 export { default as FilemonAvatar } from "./filemon-avatar";

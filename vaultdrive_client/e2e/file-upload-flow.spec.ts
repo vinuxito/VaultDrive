@@ -21,7 +21,7 @@ test.describe("File upload with browser-side encryption", () => {
     await uploadFileAsOwner(page, account, {
       name: "test-upload.txt",
       mimeType: "text/plain",
-      buffer: Buffer.from("ABRN Drive encryption proof — iteration 1"),
+      buffer: Buffer.from("QuantiX Drive encryption proof — iteration 1"),
     });
 
     // Verify the file appears in the vault list

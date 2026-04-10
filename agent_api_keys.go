@@ -30,9 +30,9 @@ var allowedAgentScopes = []string{
 }
 
 // generateAgentAPIKeyToken mints a new agent API key using the supplied
-// product prefix (e.g. "qx_ak", "abrn_ak"). Legacy prefixes continue to
-// validate via ProductConfig.IsAgentAPIKey — this function only governs
-// issuance of new keys.
+// product prefix (e.g. "qx_ak"). Legacy prefixes continue to validate via
+// ProductConfig.IsAgentAPIKey — this function only governs issuance of new
+// keys.
 func generateAgentAPIKeyToken(keyPrefix string) (string, string, string, error) {
 	if keyPrefix == "" {
 		return "", "", "", fmt.Errorf("generate api key: empty prefix")

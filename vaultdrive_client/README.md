@@ -1,11 +1,10 @@
 # QuantiX Drive Frontend
 
-This directory contains the React + TypeScript frontend for QuantiX Drive (and
-its downstream ABRN Drive branded deployment).
+This directory contains the React + TypeScript frontend for QuantiX Drive.
 
 It is not a standalone product shell. The production app is served by the Go
-backend, usually under `/quantix/` (or `/abrn/` for the ABRN deployment), and
-this frontend builds into `vaultdrive_client/dist/` for that backend to serve.
+backend under the configured base path (default `/quantix/`), and this
+frontend builds into `vaultdrive_client/dist/` for that backend to serve.
 
 ## Branding Configuration
 
@@ -14,10 +13,12 @@ vars. See:
 
 - `.env` — committed QuantiX defaults (active when no override is present)
 - `.env.example` — documented QuantiX defaults you can copy to `.env.local`
-- `.env.abrn` — ABRN Drive downstream overrides; activate with
-  `cp .env.abrn .env.local && npm run build`
 - `src/config/branding.ts` — single source of truth for the `branding` object
   consumed by React components
+
+Branded downstream deployments override these values in their own `.env.local`
+or build-time environment and may replace `src/components/branding/brand-logo.tsx`
+in an overlay to render an alternate logo.
 
 ## Stack
 
@@ -86,24 +87,15 @@ npm run preview
 ## Verification Notes
 
 - The main production-like local path is usually the Go server at
-  `http://localhost:8082/quantix/` (or `/abrn/` under the ABRN override), not
-  the raw Vite dev server.
+  `http://localhost:8082/quantix/`, not the raw Vite dev server.
 - Frontend verification is normally paired with backend verification:
   - `cd vaultdrive_client && npm run test && npm run build`
   - `cd .. && go test ./... && go build ./...`
-- The committed Playwright harness defaults to `http://127.0.0.1:8090/<base>/`
+- The committed Playwright harness defaults to `http://127.0.0.1:8090/quantix/`
   and starts its own Go server against the current repo code during
   `npm run test:e2e`.
 - If you need to target a proxied or remote environment, override
   `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
-- Current browser smoke coverage has been exercised against the live local app flow:
-  - fresh signup
-  - password login
-  - onboarding / PIN setup
-  - vault open
-  - settings trust surfaces render
-  - committed owner trust flow proof
-  - committed public sender proof (file request + secure drop coverage target)
 
 ## Key Files
 
@@ -116,15 +108,5 @@ npm run preview
 - `src/components/onboarding/OnboardingWizard.tsx` - trust briefing + PIN setup
 - `src/pages/drop-upload.tsx` - public Secure Drop sender flow
 - `src/pages/FileRequestPage.tsx` - public File Request sender flow
- - `playwright.config.ts` - self-hosted Playwright trust proof harness
- - `e2e/` - committed end-to-end owner and sender flow proofs
 - `playwright.config.ts` - Playwright trust proof harness
 - `e2e/` - committed trust proof end-to-end specs
-
-## Documentation
-
-- Root product docs: `../README.md`
-- Docs index: `../docs/INDEX.md`
-- Trust UX hardening: `../docs/13_TRUST_UX_HARDENING.md`
-- Trust proof harness checkpoint: `../docs/15_TRUST_PROOF_HARNESS.md`
-- Latest session context: `../docs/SESSION_MEMORY_2026-03-16-trust-proof-harness.md`

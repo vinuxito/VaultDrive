@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-const configuredBaseURL = process.env.ABRN_E2E_BASE_URL ?? "http://127.0.0.1:8090/abrn";
+const configuredBaseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/quantix";
 const baseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
 
 export default defineConfig({

@@ -464,10 +464,10 @@ func main() {
 
 	// SPA catch-all handler - must be registered AFTER API routes.
 	// Handles any non-API route that doesn't match a file. The base path
-	// comes from ProductConfig so a QuantiX deployment serves under
-	// /quantix/ while an ABRN deployment serves under /abrn/.
-	basePath := productCfg.BasePath                // "/abrn/" or "/quantix/"
-	basePathNoSlash := productCfg.BasePathTrimmed() // "/abrn" or "/quantix"
+	// comes from ProductConfig so deployments can serve under any prefix
+	// (e.g. "/quantix/") via PRODUCT_BASE_PATH.
+	basePath := productCfg.BasePath                // e.g. "/quantix/"
+	basePathNoSlash := productCfg.BasePathTrimmed() // e.g. "/quantix"
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 

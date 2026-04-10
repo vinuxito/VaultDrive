@@ -1,12 +1,33 @@
 # Root-only env file (Go backend secrets). The vaultdrive_client/.env*
 # files are frontend branding config, not secrets, and are committed.
 /.env
+
+# Go build output
+quantix-drive
 vaultdrive-frontend
+vaultdrive-backend
+vaultdrive
+
+# Runtime state
 uploads
 test
-abrndrive
 *.temp*.js
+
+# Playwright
 vaultdrive_client/playwright-report/
-vaultdrive
 test-results/
 vaultdrive_client/test-results/
+
+# Session state from local agent tooling
+.omc/
+.sisyphus/
+.claude/
+.gnhf/
+
+# Node
+node_modules/
+vaultdrive_client/node_modules/
+
+# Editor/OS
+.DS_Store
+*.swp

@@ -1,5 +1,4 @@
 import { branding } from "../../config/branding";
-import ABRNLogo from "./abrn-logo";
 import QuantixLogo from "./quantix-logo";
 
 interface BrandLogoProps {
@@ -8,13 +7,12 @@ interface BrandLogoProps {
 }
 
 /**
- * Brand logo switcher — renders the logo variant selected in the branding
- * config. Use this instead of importing a specific logo directly.
+ * Brand logo — renders the QuantiX logo by default.
+ *
+ * Branded downstream deployments can replace this file in their overlay
+ * to render an alternate logo based on `branding.logoVariant`.
  */
 export default function BrandLogo({ className, alt }: BrandLogoProps) {
   const label = alt ?? branding.productName;
-  if (branding.logoVariant === "abrn") {
-    return <ABRNLogo className={className} alt={label} />;
-  }
   return <QuantixLogo className={className} alt={label} />;
 }

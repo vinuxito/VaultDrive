@@ -24,7 +24,7 @@ test("owner trust flow supports signup, onboarding, and PIN login", async ({ pag
 
   await clearLocalAuth(page);
   await loginWithPin(page, account);
-  await expect(page).toHaveURL(/abrn$/);
+  await expect(page).toHaveURL(/quantix$/);
 });
 
 test("owner action receipts expose the underlying API calls", async ({ page }) => {

@@ -1,9 +1,9 @@
 import { expect, type Page } from "@playwright/test";
 
-const configuredBaseURL = process.env.ABRN_E2E_BASE_URL ?? "http://127.0.0.1:8090/abrn";
+const configuredBaseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/quantix";
 const appBaseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
 const appOrigin = new URL(appBaseURL).origin;
-const configuredApiBaseURL = process.env.ABRN_E2E_API_BASE_URL ?? `${appOrigin}/api`;
+const configuredApiBaseURL = process.env.E2E_API_BASE_URL ?? `${appOrigin}/api`;
 const apiBaseURL = configuredApiBaseURL.endsWith("/") ? configuredApiBaseURL.slice(0, -1) : configuredApiBaseURL;
 
 export interface OwnerAccount {
@@ -39,13 +39,13 @@ export async function registerAccount(page: Page, account: OwnerAccount) {
   await page.locator("#register-email").fill(account.email);
   await page.locator("#register-password").fill(account.password);
   await page.getByRole("button", { name: "Create Account" }).click();
-  await expect(page.getByText("Welcome to ABRN Drive")).toBeVisible();
+  await expect(page.getByText("Welcome to QuantiX Drive")).toBeVisible();
 }
 
 export async function loginWithPassword(page: Page, account: OwnerAccount) {
   await page.locator("#login-email").fill(account.email);
   await page.locator("#login-password").fill(account.password);
-  await page.getByRole("button", { name: "Open ABRN Drive" }).click();
+  await page.getByRole("button", { name: "Open QuantiX Drive" }).click();
   await page.waitForURL((url) => !url.toString().includes("/login"));
 }
 
@@ -75,7 +75,7 @@ export async function loginWithPin(page: Page, account: OwnerAccount) {
   await page.getByRole("button", { name: "PIN" }).click();
   await page.locator("#login-email").fill(account.email);
   await page.locator("#login-pin").fill(account.pin);
-  await page.getByRole("button", { name: "Open ABRN Drive" }).click();
+  await page.getByRole("button", { name: "Open QuantiX Drive" }).click();
   await page.waitForURL((url) => !url.toString().includes("/login"));
 }
 

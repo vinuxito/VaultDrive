@@ -1,6 +1,6 @@
-export { ABRNClient } from "./client";
+export { QuantixClient } from "./client";
 export type {
-  ABRNClientOptions,
+  QuantixClientOptions,
   V1Response,
   PaginationMeta,
   FileRecord,

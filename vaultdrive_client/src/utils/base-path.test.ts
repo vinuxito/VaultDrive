@@ -6,10 +6,10 @@ describe("getBasePathForLocation", () => {
   it("uses the root basename for root-hosted production routes", () => {
     expect(
       getBasePathForLocation(
-        "abrndrive.filemonprime.net",
+        "app.quantixdrive.io",
         "/folder-share/token",
-        "/abrn",
-        ["abrndrive.filemonprime.net"],
+        "/quantix",
+        ["app.quantixdrive.io"],
       ),
     ).toBe("");
   });
@@ -17,41 +17,41 @@ describe("getBasePathForLocation", () => {
   it("keeps the configured base path for legacy prefixed routes on root-hosted hosts", () => {
     expect(
       getBasePathForLocation(
-        "abrndrive.filemonprime.net",
-        "/abrn/drop/token",
-        "/abrn",
-        ["abrndrive.filemonprime.net"],
+        "app.quantixdrive.io",
+        "/quantix/drop/token",
+        "/quantix",
+        ["app.quantixdrive.io"],
       ),
-    ).toBe("/abrn");
+    ).toBe("/quantix");
     expect(
       getBasePathForLocation(
-        "abrndrive.filemonprime.net",
-        "/abrn/request/token",
-        "/abrn",
-        ["abrndrive.filemonprime.net"],
+        "app.quantixdrive.io",
+        "/quantix/request/token",
+        "/quantix",
+        ["app.quantixdrive.io"],
       ),
-    ).toBe("/abrn");
+    ).toBe("/quantix");
   });
 
   it("uses the configured base path on non-root-hosted hosts", () => {
     expect(
-      getBasePathForLocation("localhost", "/drop/token", "/abrn", [
-        "abrndrive.filemonprime.net",
+      getBasePathForLocation("localhost", "/drop/token", "/quantix", [
+        "app.quantixdrive.io",
       ]),
-    ).toBe("/abrn");
+    ).toBe("/quantix");
     expect(
-      getBasePathForLocation("127.0.0.1", "/abrn/drop/token", "/abrn", [
-        "abrndrive.filemonprime.net",
+      getBasePathForLocation("127.0.0.1", "/quantix/drop/token", "/quantix", [
+        "app.quantixdrive.io",
       ]),
-    ).toBe("/abrn");
+    ).toBe("/quantix");
     expect(
       getBasePathForLocation(
         "staging.example.com",
         "/folder-share/token",
-        "/abrn",
-        ["abrndrive.filemonprime.net"],
+        "/quantix",
+        ["app.quantixdrive.io"],
       ),
-    ).toBe("/abrn");
+    ).toBe("/quantix");
   });
 
   it("honors a quantix base path with no root-hosted hosts (default QuantiX deployment)", () => {
@@ -68,17 +68,17 @@ describe("buildAppUrl", () => {
   it("builds root-hosted public URLs without duplicating the basename", () => {
     expect(
       buildAppUrl(
-        "https://abrndrive.filemonprime.net",
+        "https://app.quantixdrive.io",
         "",
         "/folder-share/token#key",
       ),
-    ).toBe("https://abrndrive.filemonprime.net/folder-share/token#key");
+    ).toBe("https://app.quantixdrive.io/folder-share/token#key");
   });
 
   it("builds base-path-hosted public URLs for local environments", () => {
     expect(
-      buildAppUrl("http://127.0.0.1:8091", "/abrn", "/folder-share/token#key"),
-    ).toBe("http://127.0.0.1:8091/abrn/folder-share/token#key");
+      buildAppUrl("http://127.0.0.1:8091", "/quantix", "/folder-share/token#key"),
+    ).toBe("http://127.0.0.1:8091/quantix/folder-share/token#key");
   });
 
   it("builds quantix-hosted public URLs", () => {

@@ -15,10 +15,11 @@ function brandManifestPlugin(env: Record<string, string>): Plugin {
   const basePathWithSlash = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
   const primaryColor = env.VITE_PRIMARY_COLOR || "#4f46e5";
   const backgroundColor = env.VITE_BACKGROUND_COLOR || "#0f172a";
-  const logoVariant = env.VITE_LOGO_VARIANT || "quantix";
-  const iconPath =
-    logoVariant === "abrn" ? `${basePathWithSlash}abrn-logo.png` : `${basePathWithSlash}vault.svg`;
-  const iconType = logoVariant === "abrn" ? "image/png" : "image/svg+xml";
+  // Icon path/type overridable via env so downstream brands can supply their own PWA icon.
+  const iconPath = env.VITE_BRAND_ICON_PATH
+    ? `${basePathWithSlash}${env.VITE_BRAND_ICON_PATH.replace(/^\//, "")}`
+    : `${basePathWithSlash}vault.svg`;
+  const iconType = env.VITE_BRAND_ICON_TYPE || "image/svg+xml";
   const manifest = {
     name: productName,
     short_name: productName,

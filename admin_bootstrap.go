@@ -10,9 +10,9 @@ import (
 
 // bootstrapAdmins promotes any emails listed in ProductConfig.AdminBootstrap
 // to admin. It runs once on server startup after the DB connection is live
-// and is fully idempotent — safe to run every boot. Historical migrations
-// 017 and 035 which hardcoded ABRN admin emails remain frozen; this hook is
-// the forward-looking replacement for new deployments.
+// and is fully idempotent — safe to run every boot. This hook is the
+// canonical way to grant admin access on new deployments; set
+// ADMIN_BOOTSTRAP_EMAILS in the environment.
 //
 // The function logs but does not fail the server on error: admin bootstrap
 // is a convenience, not a correctness requirement, and a transient DB

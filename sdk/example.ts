@@ -1,9 +1,9 @@
-import { ABRNClient } from "./client";
+import { QuantixClient } from "./client";
 
 async function main() {
-  const client = new ABRNClient({
-    baseUrl: "https://abrndrive.filemonprime.net/abrn/api",
-    apiKey: process.env.ABRN_KEY ?? "",
+  const client = new QuantixClient({
+    baseUrl: process.env.QUANTIX_BASE_URL ?? "https://app.quantixdrive.io/quantix/api",
+    apiKey: process.env.QUANTIX_KEY ?? "",
   });
 
   const whoami = await client.introspect();
