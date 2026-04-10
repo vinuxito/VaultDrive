@@ -20,6 +20,7 @@ interface TokenInfo {
   has_password: boolean;
   owner_display_name?: string;
   owner_organization?: string;
+  checklist_items?: string[];
   error?: string;
 }
 
@@ -55,6 +56,7 @@ export default function DropUpload() {
   const [delivered, setDelivered] = useState(false);
   const [deliveryRef, setDeliveryRef] = useState("");
   const [receiptCopied, setReceiptCopied] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
 
   const initializeDropLink = useCallback(async () => {
     try {
@@ -146,9 +148,9 @@ export default function DropUpload() {
       bytesTotal: f.size,
     })));
 
-    await Promise.allSettled(
-      files.map(f => uploadFile(f, isFolder))
-    );
+    for (const file of files) {
+      await uploadFile(file, isFolder);
+    }
 
     setUploading(false);
     setDelivered(true);
@@ -483,6 +485,40 @@ export default function DropUpload() {
             <p className="text-sm text-[#6b4345]">{tokenInfo.description}</p>
           </div>
         )}
+
+        {tokenInfo.checklist_items && tokenInfo.checklist_items.length > 0 && (() => {
+          const allChecked = tokenInfo.checklist_items!.every((_, i) => checkedItems[i]);
+          return (
+            <div className="rounded-xl border border-[#d4a5a6]/50 bg-[#fdf6f6] p-4 space-y-3">
+              <p className="text-sm font-semibold text-[#7d4f50]">Required documents</p>
+              <ul className="space-y-2">
+                {tokenInfo.checklist_items!.map((item, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id={`cl-${i}`}
+                      checked={!!checkedItems[i]}
+                      onChange={() => setCheckedItems((prev) => ({ ...prev, [i]: !prev[i] }))}
+                      className="w-4 h-4 rounded accent-[#7d4f50] cursor-pointer"
+                    />
+                    <label
+                      htmlFor={`cl-${i}`}
+                      className={`text-sm cursor-pointer select-none ${checkedItems[i] ? "line-through text-slate-400" : "text-slate-700"}`}
+                    >
+                      {item}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              {allChecked && (
+                <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium pt-1">
+                  <CheckCircle className="w-4 h-4" />
+                  Checklist complete — you&apos;re ready to send.
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <Card>
           <CardHeader>

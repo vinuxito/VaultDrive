@@ -19,6 +19,7 @@ describe("buildDropUploadFormData", () => {
     const uploadEntry = formData.get("files[]");
     expect(uploadEntry).toBeInstanceOf(File);
     expect((uploadEntry as File).name).toBe("client/sub/report.pdf");
+    expect(formData.get("relative_path")).toBe("client/sub/report.pdf");
     expect(formData.get("client/sub/report.pdf")).toBeNull();
     expect(formData.get("client_message")).toBe("Please review");
   });
@@ -38,5 +39,6 @@ describe("buildDropUploadFormData", () => {
     const uploadEntry = formData.get("files[]");
     expect(uploadEntry).toBeInstanceOf(File);
     expect((uploadEntry as File).name).toBe("report.pdf");
+    expect(formData.get("relative_path")).toBe("report.pdf");
   });
 });

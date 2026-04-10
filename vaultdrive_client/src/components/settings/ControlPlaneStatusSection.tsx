@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Bot, AlertTriangle } from "lucide-react";
 
-import { useSSE, type ActivityEvent } from "../../hooks";
+import { useSSE, type ActivityEvent } from "../../hooks/useSSE";
 import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
 import {

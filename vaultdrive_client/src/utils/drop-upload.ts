@@ -21,6 +21,7 @@ export function buildDropUploadFormData({
   const uploadedFilename = relativePath || file.name;
 
   formData.append("files[]", new Blob([encryptedData]), uploadedFilename);
+  formData.append("relative_path", uploadedFilename);
   formData.append("iv", bytesToBase64(iv));
   formData.append("salt", "");
   formData.append("algorithm", "AES-256-GCM");

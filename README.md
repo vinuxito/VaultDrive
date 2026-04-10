@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycle proof)**
+> **Last updated: April 10, 2026 (Security hardening, governance layer, Access Center, collection productization — 66/66 tests)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -12,97 +12,113 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ## What It Does
 
-**Store** — AES-256-GCM encrypted file vault. PIN-based access, session key cache, inline preview.
+**Store** — AES-256-GCM encrypted file vault. PIN-based access, session key cache, inline preview. Vault-wide search via `?q=` (pg_trgm GIN index).
 **Share** — Time-limited public links with AES key in URL fragment (never reaches the server). Expiry picker, access tracking, instant revoke.
-**Collect** — Secure Drop portal + File Requests system for receiving encrypted files from clients without accounts.
+**Collect** — Secure Drop portal with required-document checklist UI, reusable collection templates, and intake analytics (last upload, upload count). File Requests system for receiving encrypted files without accounts.
 **Collaborate** — Share files with users and groups via zero-knowledge RSA key exchange.
-**Control** — Stable versioned API (`/api/v1/`) for full programmatic control of all resources.
+**Access Center** — Unified owner-facing surface for all outbound access: file share links, folder share links, and drop routes — filtered by status (active / expired / revoked / never used / stale).
+**Control** — Stable versioned API (`/api/v1/`) with rate limiting (login 10/min, PIN 5/min, global 100/min), short-lived 30-min JWTs, refresh token flow, and one-time SSE tickets.
 **Delegate** — Per-user Agent API Keys with granular scopes, last-used tracking, and full revocability for AI agents and external systems.
-**Audit** — Complete audit trail for key lifecycle, access changes, and agent operations.
+**Audit** — Dynamic audit log filtering (action, resource, date range) + CSV/JSON export with 10,000 row cap. Governance settings: retention period, auto-expire stale links, failure alert threshold.
+**Govern** — Per-user governance settings: audit retention period, auto-expire inactive links after N days, failed-access alert threshold.
 
 ---
 
-## Current State (March 24, 2026)
+## Current State (April 10, 2026)
 
-This section reflects the actual state. Sections below are historical documentation.
+This section reflects the actual verified state. Sections below are historical documentation.
 
-### Verification Snapshot (March 24, 2026 — Drop full cycle E2E)
+### Verification Snapshot (April 10, 2026 — Security hardening, governance, productization)
 
 | Check | Result | Details |
 |-------|--------|---------|
-| `go build ./...` | CLEAN | 0 errors |
-| `tsc --noEmit` | CLEAN | 0 TypeScript errors |
-| `npx vitest run` | **27/27** | 10 test files, all pass (6.83s) |
-| `npx vite build` | SUCCESS | ~9.66s |
-| `npx playwright test` | **35/35** | All E2E specs (10 spec files, 2.0m runtime) |
+| `go build ./...` | **CLEAN** | 0 errors |
+| `go vet ./...` | **CLEAN** | 0 warnings |
+| `tsc --noEmit` | **CLEAN** | 0 TypeScript errors |
+| `npx vitest run` | **66/66** | 19 test files, all pass |
+| `go test -race ./...` | **PASS** | Race detector clean |
+| `npm run build` | **CLEAN** | Zero warnings, all chunks split correctly |
 
-**E2E coverage (35 tests across 10 spec files):**
-- Owner trust flow: signup, onboarding, PIN login, Settings (Security + Advanced tabs)
-- Owner action receipts: share link creation + file request creation API-call trace
-- Agent key lifecycle: create, introspect, scope denial, revoke, audit log, live stream, Filemon operator, denial timeline
-- Public sender flows: secure drop delivery, missing-key error page (amber "Incomplete upload link"), file request sender
-- File upload flow: browser encryption, AES-256-GCM metadata verification
-- Upload link lifecycle: UI link creation, anonymous sender delivery, 24h expiry verification
-- Share link lifecycle: create link, access tracking, instant revoke
-- Group CRUD: create via UI, add/remove members, delete group
-- Group file sharing: share file to group, member access, group-level revoke
-- Trust & safety UX: PIN setup, security tab, empty states, API call receipts, encryption footer
-- **Drop full cycle: create link → client upload → owner download+decrypt, key recovery + re-share, wrong PIN rejection**
+### DB Migration State
 
-**What changed since last commit:**
+Latest migration: **044** (`governance_settings` columns on `users` table)
 
-- **Drop full cycle E2E** (March 24) — see [docs/23_DROP_FULL_CYCLE_E2E.md](./docs/23_DROP_FULL_CYCLE_E2E.md)
-  - 3 new Playwright tests proving the complete drop link lifecycle end-to-end
-  - **Test 1 (the critical proof):** Owner creates link → anonymous client uploads → owner logs in → downloads + decrypts with PIN → success
-  - **Test 2:** Owner recovers encryption key via PIN API → reconstructs full URL → client uploads with recovered key
-  - **Test 3:** Wrong PIN rejected with 400+ status
-  - Fixed pre-existing `public-sender-flows` test for new "Incomplete upload link" UX
-  - **Result: 35/35 E2E tests pass** (was 32)
-- **Drop link key recovery** (March 24) — see [docs/22_DROP_KEY_RECOVERY.md](./docs/22_DROP_KEY_RECOVERY.md)
-  - **Bug:** Client upload links were broken — encryption key (`#key=` fragment) was only available at creation time and lost once the modal closed
-  - New `POST /api/drop/{token}/recover-key` endpoint: owner enters PIN, server unwraps `pin_wrapped_key` via `auth.UnwrapKey()`, returns raw hex key
-  - Full PIN validation with 5-attempt lockout, 15-min timeout, audit trail (`secure_drop.key_recovered`)
-  - `UploadLinkCard.tsx`: amber warning when key is missing, "Reveal full link with PIN" button with inline PIN input, auto-copy on success
-  - `drop-upload.tsx`: distinct amber "Incomplete upload link" page (vs red "no longer available"), missing-key detected on page load not on upload attempt
-  - Dead code removed: `isLegacyKey()` function and code path calling deleted `/api/drop/{token}/encryption-key` endpoint
-  - **Critical fix:** `files_with_drop_source.sql` was reading `upload_tokens.password_hash` instead of `upload_tokens.pin_wrapped_key` — owner could never decrypt drop-uploaded files
-  - **Critical fix:** Frontend download logic skipped `X-Wrapped-Key` header for owner users — added fallback for drop files
-  - 7 files changed, no new migration required
-- **Force password change** (March 23) — see [docs/21_FORCE_PASSWORD_CHANGE.md](./docs/21_FORCE_PASSWORD_CHANGE.md)
-  - Admin can flag any non-self user to force password change on next login
-  - 3-layer defense: backend middleware gate (blocks all endpoints except change-password), frontend ProtectedRoute guard, login redirect
-  - Private key re-encryption: client-side decrypt with old password, encrypt with new password, backend saves
-  - SessionVault initialization after change so file decryption works immediately on dashboard
-  - Auto-flagged when admin resets a user's password (with proper error handling)
-  - Full-screen gate page: no escape, no navigation — only submit or sign out
-  - Admin dashboard: ShieldAlert force button per user row, disabled when already flagged
-  - Self-flag prevention on both frontend (hidden button) and backend (403)
-  - New `encryptPrivateKeyWithPassword()` in crypto.ts mirrors Go's server-side encryption format
-  - Migration 037: `force_password_change BOOLEAN NOT NULL DEFAULT FALSE`
-  - 3 new sqlc queries + 1 new backend handler file + 1 new frontend page
-  - 2 code reviews resolved 6 issues (2 CRITICAL, 3 HIGH, 1 MEDIUM)
-- **Luxury design token system** (March 23) — Plan 1 Step 1 of luxury UI polish
-  - `luxury-tokens.css`: burgundy palette (50-900), warm neutrals, glassmorphism tokens, layered shadow system, typography scale, spacing, timing
-  - `motion-presets.ts`: Framer Motion springs (gentle/snappy/dramatic/micro), tweens (fast/normal/slow), composite transitions, animation variants, hover/tap states, reduced motion fallbacks
-  - `usePrefersReducedMotion.ts`: React hook for `prefers-reduced-motion` media query
-  - `elegant-complete.css`: bridged legacy CSS variables to luxury tokens, fixed dark mode selectors (`.dark` class instead of `@media`)
-  - `index.css`: Inter font import, luxury token integration, antialiased rendering, heading typography rules
-  - 6 new unit tests for motion presets (spring physics, tween durations, variant shapes)
-- **FK cascade fix** (March 23)
-  - Migration 036: `group_file_shares.created_by` → `ON DELETE CASCADE`, `file_versions.created_by` → `ON DELETE SET NULL`
-  - Root cause of admin DELETE user 500 errors (2 of ~20 FK references had no cascade rules)
-- Admin user management (March 23) — see [docs/18_ADMIN_USER_MANAGEMENT.md](./docs/18_ADMIN_USER_MANAGEMENT.md)
-  - 4 existing admin handlers (list, edit, reset password, delete) were dead code — routes now registered in `main.go`
-  - 4 new endpoints: create user, reset PIN, toggle admin role, bulk delete
-  - Frontend admin dashboard: user table with create/edit/delete/password-reset/PIN-reset/admin-toggle + bulk selection with select-all and floating action bar
-  - Migration 035: `v.cazares@abrn.mx` promoted to admin alongside `filemon@abrn.mx`
-- File sharing E2E suite (March 23) — see [docs/19_FILE_SHARING_E2E_SUITE.md](./docs/19_FILE_SHARING_E2E_SUITE.md)
-  - 18 new Playwright tests across 6 spec files: file upload, upload links, share links, group CRUD, group sharing, trust UX
-  - Bug fix: `removeFileFromGroupHandler` path param `"groupId"` → `"id"` (was silently failing all group file removals)
-- Admin polish (March 23) — see [docs/20_ADMIN_POLISH.md](./docs/20_ADMIN_POLISH.md)
-  - Error feedback on all admin operations (was silent failures)
-  - Password validation aligned: 8-char minimum everywhere (frontend had 6 in admin create user)
-  - Bulk delete limit raised from 100 to 500
+| Migration | Description |
+|-----------|-------------|
+| 041 | pg_trgm extension + GIN index on `files.filename` for vault search |
+| 042 | `upload_link_templates` table (collection templates with JSONB checklist) |
+| 043 | `checklist_items JSONB` column on `upload_tokens` |
+| 044 | `audit_retention_days`, `auto_expire_stale_days`, `failure_alert_threshold` on `users` |
+
+### Go Module
+
+`github.com/vinuxito/VaultDrive` (renamed from `github.com/Pranay0205/VaultDrive` across all 41 Go files)
+
+### What Changed Since Last Verified Commit (April 10, 2026)
+
+See full details: [docs/24_SECURITY_GOVERNANCE_PRODUCTIZATION.md](./docs/24_SECURITY_GOVERNANCE_PRODUCTIZATION.md)
+
+**Security hardening:**
+- JWT lifetime: 30 days → **30 minutes**. Refresh token flow: `POST /api/auth/refresh` + `POST /api/auth/revoke`
+- Sliding window rate limiting: login (10/min/IP), PIN (5/min/IP), global (100/min/IP) — in-process, no Redis dependency
+- SSE one-time ticket: `POST /api/events/ticket` exchanges JWT for a 30-second UUID ticket — JWT never appears in the EventSource URL
+- `protected-route.tsx`: decodes JWT `exp` claim client-side, clears localStorage immediately on expiry (10s clock skew buffer)
+- `useSSE.ts`: rewired to use ticket system + tab visibility API (pauses on hidden, resumes on visible) + exponential backoff (5s/10s/20s… cap 30s)
+
+**CI gates (both pipelines):**
+- Backend deploy: `go test -race ./...` + `go vet ./...` + `go build` run before Docker image build
+- Frontend deploy: `npm ci` + `npx vitest run` + `npm run build` run before Azure Static Web Apps deploy
+
+**Audit & governance:**
+- Audit log: dynamic SQL filtering (action, resource_type, resource_id, date range, pagination) + CSV/JSON export (10k row cap, `X-Export-Truncated` header)
+- Security posture endpoint extended: stale agent keys count + never-used links count
+- **Governance settings** — `GET/PUT /api/v1/governance/settings` — per-user retention period, auto-expire stale links, failure alert threshold. Settings page now has a 4th tab: "Governance".
+
+**Performance:**
+- 8 authenticated pages lazy-loaded via `React.lazy` + Suspense layout route pattern (Dashboard, Files, Shared, Profile, Settings, Groups, Admin, AdminTests, AccessCenter)
+- Bundle: each page gets its own JS chunk — initial load no longer includes Settings (85kB) or Files (183kB)
+- SSE burst toast: 800ms debounce — N rapid events collapse into one "N new activities" toast
+- Rollup circular dependency fix in settings components (direct import instead of barrel re-export)
+
+**Product — Vault search:**
+- `GET /api/files?q=term` — case-insensitive substring match across all owned files
+- pg_trgm GIN index (migration 041) for scale
+
+**Product — Access Center:**
+- New page `/access-center` — unified owner-facing surface for all outbound access
+- Shows file share links + folder share links in one tabbed view
+- Status filter bar: All / Active / Expired / Revoked / Never used / Stale
+- Per-item: resource name, type badge, access count, last accessed, copy link, open link
+- Sidebar nav entry with ShieldCheck icon
+
+**Product — Collection workflow:**
+- `upload_link_templates` CRUD: `GET/POST/PUT/DELETE /api/v1/collection-templates`
+  - Template fields: name, description, default_message, checklist_items (JSONB array), branding_tag
+- `checklist_items` column on `upload_tokens` — included in `GET /api/drop/{token}` response
+- Sender page (`/drop/:token`) shows required-document checklist with checkboxes + "Checklist complete" confirmation when all items are ticked
+- Drop token list (`GET /api/drop/tokens`) now returns `link_name`, `description`, `last_upload_at` (via single JOIN aggregation)
+
+**Unified shares list:**
+- `GET /api/v1/shares` — returns file share links + folder share links with status, access_count, last_accessed_at
+
+### Architecture Notes
+
+- **SSE ticket:** stateless `sync.Map`, 30s TTL, single-use. No DB or Redis. Auto-cleaned by goroutine.
+- **Collection templates vs drop tokens:** templates are reusable blueprints. `checklist_items` is copied to the token at creation time — not a live reference.
+- **Governance settings:** stored as columns on `users` (not a join table). COALESCE defaults handle rolling migrations safely.
+- **Access Center:** reads `/api/v1/shares` + `/api/drop/tokens`. Status is derived client-side to keep the endpoint lean.
+- **Rate limiting:** sliding window in-process (sync.Mutex + []time.Time per IP). Background goroutine purges stale entries every 5 minutes.
+
+### Known Gaps (Not Yet Implemented)
+
+| Gap | Notes |
+|-----|-------|
+| Collection template UI | Backend CRUD done; "Load from template" dropdown in CreateUploadLinkModal not yet wired |
+| Governance enforcement | Settings persisted; no background job for audit pruning or auto-expiry yet |
+| File request intake analytics | `last_response_at`, `total_responses`, "Mark complete" action not built |
+| Virtual scrolling | Large vaults (1000+ files) may feel slow; no windowed list yet |
+| Developer ecosystem | Webhooks, OpenAPI spec, MCP server — not started |
+| UI polish pass | Glass panels, micro-interactions, luxury dashboard tokens — deferred |
 
 ### Enterprise Polish UX State (March 20, 2026)
 

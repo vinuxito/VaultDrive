@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Pranay0205/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/google/uuid"
 )
 

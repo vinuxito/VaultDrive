@@ -5,6 +5,7 @@ import {
   LogOut,
   Users,
   LayoutDashboard,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -23,6 +24,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { icon: FolderOpen, label: "Files", path: "/files" },
     { icon: Users, label: "Groups", path: "/groups" },
     { icon: Link2, label: "Shared with Me", path: "/shared" },
+    { icon: ShieldCheck, label: "Access Center", path: "/access-center" },
   ];
 
   const handleLogout = () => {

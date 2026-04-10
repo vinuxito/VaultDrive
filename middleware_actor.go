@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/auth"
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
 )
 

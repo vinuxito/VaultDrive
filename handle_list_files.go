@@ -2,9 +2,10 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/google/uuid"
 )
 
@@ -50,8 +51,14 @@ func (cfg *ApiConfig) handlerListFiles(w http.ResponseWriter, r *http.Request) {
 		FolderID       *string   `json:"folder_id"`
 	}
 
+	// Optional filename search — case-insensitive substring match.
+	searchQuery := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q")))
+
 	fileResponses := []FileResponse{}
 	for _, f := range files {
+		if searchQuery != "" && !strings.Contains(strings.ToLower(f.Filename), searchQuery) {
+			continue
+		}
 		meta := ""
 		if f.EncryptedMetadata.Valid {
 			meta = f.EncryptedMetadata.String

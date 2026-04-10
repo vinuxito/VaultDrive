@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
 )
 

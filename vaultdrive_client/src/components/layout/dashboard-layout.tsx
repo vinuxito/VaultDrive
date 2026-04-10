@@ -1,6 +1,6 @@
 
 
-import { useState, type ReactNode, useEffect } from "react";
+import { useState, useRef, type ReactNode, useEffect } from "react";
 import { Menu, Search, Bell, Command } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
@@ -102,21 +102,42 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => clearTimeout(timer);
   }, [toasts]);
 
+  // Burst consolidation: events arriving within 800 ms are grouped into one toast.
+  const burstCount = useRef(0);
+  const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firstBurstEvent = useRef<typeof events[number] | null>(null);
+
   useSSE((event) => {
     setEvents((prev) => [event, ...prev].slice(0, 50));
     setUnreadCount((prev) => prev + 1);
-    const message =
-      event.event_type === "file_shared"
-        ? "A file was shared with you"
-        : event.event_type === "drop_upload"
-        ? "New file received via drop link"
-        : `New activity: ${event.event_type}`;
-    const newToast: ToastMessage = {
-      id: crypto.randomUUID(),
-      message,
-      type: "info",
-    };
-    setToasts((prev) => [...prev, newToast]);
+
+    burstCount.current += 1;
+    if (firstBurstEvent.current === null) {
+      firstBurstEvent.current = event;
+    }
+
+    if (burstTimer.current !== null) {
+      clearTimeout(burstTimer.current);
+    }
+
+    burstTimer.current = setTimeout(() => {
+      burstTimer.current = null;
+      const count = burstCount.current;
+      const first = firstBurstEvent.current;
+      burstCount.current = 0;
+      firstBurstEvent.current = null;
+
+      const message =
+        count > 1
+          ? `${count} new activities`
+          : first?.event_type === "file_shared"
+          ? "A file was shared with you"
+          : first?.event_type === "drop_upload"
+          ? "New file received via drop link"
+          : `New activity: ${first?.event_type ?? ""}`;
+
+      setToasts((prev) => [...prev, { id: crypto.randomUUID(), message, type: "info" } as ToastMessage]);
+    }, 800);
   });
 
   const handleLogout = () => {

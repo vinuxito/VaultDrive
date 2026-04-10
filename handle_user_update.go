@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 func (cfg *ApiConfig) handlerUpdateOrganization(w http.ResponseWriter, r *http.Request, user database.User) {

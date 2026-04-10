@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Pranay0205/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/auth"
 )
 
 func (cfg *ApiConfig) getUserMeHandler(w http.ResponseWriter, r *http.Request) {

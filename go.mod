@@ -1,4 +1,4 @@
-module github.com/Pranay0205/VaultDrive
+module github.com/vinuxito/VaultDrive
 
 go 1.24.4
 

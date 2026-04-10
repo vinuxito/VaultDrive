@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 func (cfg *ApiConfig) handlerGetActivity(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -55,8 +55,8 @@ func (cfg *ApiConfig) handlerGetActivity(w http.ResponseWriter, r *http.Request,
 
 func (cfg *ApiConfig) handlerGetSecurityPosture(w http.ResponseWriter, r *http.Request, user database.User) {
 	type ExpiringToken struct {
-		ID       string `json:"id"`
-		LinkName string `json:"link_name"`
+		ID        string `json:"id"`
+		LinkName  string `json:"link_name"`
 		ExpiresAt string `json:"expires_at"`
 	}
 	type StaleLink struct {
@@ -65,8 +65,9 @@ func (cfg *ApiConfig) handlerGetSecurityPosture(w http.ResponseWriter, r *http.R
 		CreatedAt string `json:"created_at"`
 	}
 
+	// Drop links expiring within 48 hours.
 	expiringTokens := []ExpiringToken{}
-	rows, err := cfg.db.QueryContext(r.Context(),
+	if rows, err := cfg.db.QueryContext(r.Context(),
 		`SELECT id::text, COALESCE(link_name,''), expires_at
 		 FROM upload_tokens
 		 WHERE owner_user_id = $1
@@ -74,8 +75,7 @@ func (cfg *ApiConfig) handlerGetSecurityPosture(w http.ResponseWriter, r *http.R
 		   AND expires_at IS NOT NULL
 		   AND expires_at > NOW()
 		   AND expires_at < NOW() + INTERVAL '48 hours'
-		 ORDER BY expires_at ASC`, user.ID)
-	if err == nil {
+		 ORDER BY expires_at ASC`, user.ID); err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var t ExpiringToken
@@ -87,8 +87,9 @@ func (cfg *ApiConfig) handlerGetSecurityPosture(w http.ResponseWriter, r *http.R
 		}
 	}
 
+	// Public share links not accessed in 30+ days.
 	staleLinks := []StaleLink{}
-	rows2, err := cfg.db.QueryContext(r.Context(),
+	if rows2, err := cfg.db.QueryContext(r.Context(),
 		`SELECT id::text, token, created_at
 		 FROM public_share_links
 		 WHERE owner_id = $1
@@ -96,8 +97,7 @@ func (cfg *ApiConfig) handlerGetSecurityPosture(w http.ResponseWriter, r *http.R
 		   AND created_at < NOW() - INTERVAL '30 days'
 		   AND (last_accessed_at IS NULL OR last_accessed_at < NOW() - INTERVAL '30 days')
 		 ORDER BY created_at ASC
-		 LIMIT 10`, user.ID)
-	if err == nil {
+		 LIMIT 10`, user.ID); err == nil {
 		defer rows2.Close()
 		for rows2.Next() {
 			var l StaleLink
@@ -109,12 +109,33 @@ func (cfg *ApiConfig) handlerGetSecurityPosture(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	attentionCount := len(expiringTokens) + len(staleLinks)
+	// Agent keys unused for 30+ days.
+	staleAgentKeys := 0
+	if row := cfg.db.QueryRowContext(r.Context(),
+		`SELECT COUNT(*) FROM agent_api_keys
+		 WHERE user_id = $1 AND status = 'active'
+		   AND (last_used_at IS NULL OR last_used_at < NOW() - INTERVAL '30 days')`, user.ID); row != nil {
+		_ = row.Scan(&staleAgentKeys)
+	}
+
+	// Drop links created 7+ days ago with zero uploads.
+	neverUsedLinks := 0
+	if row := cfg.db.QueryRowContext(r.Context(),
+		`SELECT COUNT(*) FROM upload_tokens
+		 WHERE owner_user_id = $1
+		   AND used = FALSE
+		   AND created_at < NOW() - INTERVAL '7 days'`, user.ID); row != nil {
+		_ = row.Scan(&neverUsedLinks)
+	}
+
+	attentionCount := len(expiringTokens) + len(staleLinks) + staleAgentKeys + neverUsedLinks
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"status":          "healthy",
-		"attention_count": attentionCount,
-		"expiring_tokens": expiringTokens,
-		"stale_links":     staleLinks,
+		"status":            "healthy",
+		"attention_count":   attentionCount,
+		"expiring_tokens":   expiringTokens,
+		"stale_links":       staleLinks,
+		"stale_agent_keys":  staleAgentKeys,
+		"never_used_links":  neverUsedLinks,
 	})
 }

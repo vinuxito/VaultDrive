@@ -78,6 +78,33 @@ export default function Settings() {
   const [pinSuccess, setPinSuccess] = useState("");
   const [pinLoading, setPinLoading] = useState(false);
 
+  // Governance settings state.
+  const [govRetentionDays, setGovRetentionDays] = useState(365);
+  const [govStaleEnabled, setGovStaleEnabled] = useState(false);
+  const [govStaleDays, setGovStaleDays] = useState(30);
+  const [govAlertThreshold, setGovAlertThreshold] = useState(3);
+  const [govSaving, setGovSaving] = useState(false);
+  const [govSaved, setGovSaved] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("/abrn/api/v1/governance/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setGovRetentionDays(data.audit_retention_days ?? 365);
+        setGovAlertThreshold(data.failure_alert_threshold ?? 3);
+        if (data.auto_expire_stale_days != null) {
+          setGovStaleEnabled(true);
+          setGovStaleDays(data.auto_expire_stale_days);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token || !userData) {
@@ -176,7 +203,29 @@ export default function Settings() {
     { id: "account", label: "Account" },
     { id: "security", label: "Security" },
     { id: "advanced", label: "Advanced" },
+    { id: "governance", label: "Governance" },
   ];
+
+  async function saveGovernanceSettings() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setGovSaving(true);
+    try {
+      await fetch("/abrn/api/v1/governance/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          audit_retention_days: govRetentionDays,
+          auto_expire_stale_days: govStaleEnabled ? govStaleDays : null,
+          failure_alert_threshold: govAlertThreshold,
+        }),
+      });
+      setGovSaved(true);
+      setTimeout(() => setGovSaved(false), 2500);
+    } finally {
+      setGovSaving(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -604,6 +653,96 @@ export default function Settings() {
         >
           <AuditLogSection />
         </CollapsibleSection>
+        </TabPanel>
+
+        {/* Governance Tab */}
+        <TabPanel id="governance" activeTab={activeTab} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-[#7d4f50]" />
+                Retention &amp; governance
+              </CardTitle>
+              <CardDescription>
+                Control how long audit data is kept and when stale access is automatically revoked.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Audit retention */}
+              <div className="space-y-2">
+                <Label htmlFor="gov-retention">Audit log retention period</Label>
+                <select
+                  id="gov-retention"
+                  value={govRetentionDays}
+                  onChange={(e) => setGovRetentionDays(Number(e.target.value))}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7d4f50]/40"
+                >
+                  <option value={30}>30 days</option>
+                  <option value={90}>90 days</option>
+                  <option value={365}>1 year</option>
+                  <option value={3650}>Forever (10 years)</option>
+                </select>
+                <p className="text-xs text-muted-foreground">Audit events older than this period are pruned on the next export cycle.</p>
+              </div>
+
+              {/* Auto-expire stale links */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="gov-stale-toggle">Auto-expire stale links</Label>
+                  <Switch
+                    id="gov-stale-toggle"
+                    checked={govStaleEnabled}
+                    onCheckedChange={setGovStaleEnabled}
+                  />
+                </div>
+                {govStaleEnabled && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">Revoke links inactive for</span>
+                    <input
+                      type="number"
+                      min={7}
+                      max={365}
+                      value={govStaleDays}
+                      onChange={(e) => setGovStaleDays(Number(e.target.value))}
+                      className="w-20 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7d4f50]/40"
+                    />
+                    <span className="text-sm text-muted-foreground">days</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Failure alert threshold */}
+              <div className="space-y-2">
+                <Label htmlFor="gov-threshold">Failed access alert threshold</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="gov-threshold"
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={govAlertThreshold}
+                    onChange={(e) => setGovAlertThreshold(Number(e.target.value))}
+                    className="w-24 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7d4f50]/40"
+                  />
+                  <span className="text-sm text-muted-foreground">failed attempts before surfacing in governance alerts</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => void saveGovernanceSettings()}
+                disabled={govSaving}
+                className="bg-[#7d4f50] hover:bg-[#6b4345] text-white"
+              >
+                {govSaving ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</>
+                ) : govSaved ? (
+                  <><CheckCircle2 className="w-4 h-4 mr-2" />Saved</>
+                ) : (
+                  "Save governance settings"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         </TabPanel>
     </div>
   );

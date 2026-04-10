@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/auth"
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -106,6 +106,14 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 		expiresAt = uploadToken.ExpiresAt.Time.Format(time.RFC3339)
 	}
 
+	// Fetch checklist_items from the new column (added in migration 043).
+	var checklistItems json.RawMessage
+	if err := cfg.db.QueryRowContext(r.Context(),
+		`SELECT COALESCE(checklist_items, '[]'::jsonb) FROM upload_tokens WHERE token = $1`, tokenStr,
+	).Scan(&checklistItems); err != nil {
+		checklistItems = json.RawMessage("[]")
+	}
+
 	response := map[string]interface{}{
 		"valid":              true,
 		"folder_name":        folder.Name,
@@ -116,6 +124,7 @@ func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Reques
 		"expires_at":         expiresAt,
 		"owner_display_name": ownerDisplayName,
 		"owner_organization": ownerOrg,
+		"checklist_items":    checklistItems,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -246,12 +255,18 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 
 	var results []FileResult
 	createdFiles := 0
+	explicitRelativePath := ""
+	if relativePaths := r.MultipartForm.Value["relative_path"]; len(relativePaths) > 0 {
+		explicitRelativePath = relativePaths[0]
+	}
 
 	for _, handler := range fileHeaders {
-		// Extract relative path from filename (preserves folder structure)
-		originalPath := handler.Filename
-		safeFilename := filepath.Base(originalPath)
-		relativeDir := filepath.Dir(originalPath)
+		originalPath, safeFilename, relativeDir, err := resolveUploadRelativePath(explicitRelativePath, handler.Filename)
+		if err != nil {
+			log.Printf("Rejected invalid upload path %q: %v", handler.Filename, err)
+			results = append(results, FileResult{FileName: handler.Filename, Error: "Invalid file path"})
+			continue
+		}
 
 		// Generate unique filename with UUID
 		fileUUID := uuid.New().String()
@@ -260,19 +275,8 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 
 		// Create nested directory structure if needed
 		var storagePath string
-		if relativeDir != "." && relativeDir != "" {
-			// Clean the relative path to prevent directory traversal
-			relativeDir = filepath.Clean(relativeDir)
-			// Reject any ".." components to prevent path traversal
-			if strings.Contains(relativeDir, "..") {
-				log.Printf("Rejected path traversal attempt: %s", originalPath)
-				results = append(results, FileResult{
-					FileName: originalPath,
-					Error:    "Invalid file path",
-				})
-				continue
-			}
-			targetDir := filepath.Join(uploadDir, relativeDir)
+		if relativeDir != "" {
+			targetDir := filepath.Join(uploadDir, filepath.FromSlash(relativeDir))
 			if err := os.MkdirAll(targetDir, 0755); err != nil {
 				log.Printf("Failed to create directory %s: %v", targetDir, err)
 				results = append(results, FileResult{
@@ -342,9 +346,17 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		}
 
 		// Create database entry
+		folderID, err := ensureUploadFolderPath(cfg.dbQueries, r.Context(), uploadToken.OwnerUserID, uuid.NullUUID{UUID: uploadToken.TargetFolderID, Valid: true}, relativeDir)
+		if err != nil {
+			os.Remove(storagePath)
+			log.Printf("Failed to ensure folder path %s: %v", relativeDir, err)
+			results = append(results, FileResult{FileName: originalPath, Error: "Could not create folder structure"})
+			continue
+		}
+
 		dbfile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
 			OwnerID:           uuid.NullUUID{UUID: uploadToken.OwnerUserID, Valid: true},
-			Filename:          originalPath,
+			Filename:          safeFilename,
 			FilePath:          storagePath,
 			FileSize:          handler.Size,
 			EncryptedMetadata: sql.NullString{String: string(metadataJSON), Valid: true},
@@ -352,7 +364,7 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
 			DropSourceID:      uuid.NullUUID{UUID: uploadToken.ID, Valid: true},
-			FolderID:          uuid.NullUUID{},
+			FolderID:          folderID,
 		})
 
 		if err != nil {
@@ -755,34 +767,83 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Build response with upload URLs
+	// Fetch last upload timestamp per token in a single query.
+	lastUploadAt := map[string]time.Time{}
+	if rows, err := cfg.db.QueryContext(r.Context(),
+		`SELECT u.id::text, MAX(f.created_at) AS last_upload_at
+		 FROM files f
+		 INNER JOIN upload_tokens u ON f.drop_source_id = u.id
+		 WHERE u.owner_user_id = $1
+		 GROUP BY u.id`, ownerID); err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id string
+			var ts time.Time
+			if rows.Scan(&id, &ts) == nil {
+				lastUploadAt[id] = ts
+			}
+		}
+	}
+
+	// Build response with upload URLs and intake analytics.
 	type TokenResponse struct {
-		ID             string        `json:"id"`
-		Token          string        `json:"token"`
-		UploadURL      string        `json:"upload_url,omitempty"`
-		TargetFolderID string        `json:"target_folder_id"`
-		FolderName     string        `json:"folder_name,omitempty"`
-		ExpiresAt      sql.NullTime  `json:"expires_at,omitempty"`
-		MaxFiles       sql.NullInt32 `json:"max_files,omitempty"`
-		FilesUploaded  sql.NullInt32 `json:"files_uploaded,omitempty"`
-		Used           sql.NullBool  `json:"used,omitempty"`
-		CreatedAt      time.Time     `json:"created_at"`
-		HasPassword    bool          `json:"has_password"`
+		ID             string     `json:"id"`
+		Token          string     `json:"token"`
+		LinkName       *string    `json:"link_name,omitempty"`
+		Description    *string    `json:"description,omitempty"`
+		UploadURL      string     `json:"upload_url,omitempty"`
+		TargetFolderID string     `json:"target_folder_id"`
+		FolderName     string     `json:"folder_name,omitempty"`
+		ExpiresAt      *time.Time `json:"expires_at,omitempty"`
+		MaxFiles       *int32     `json:"max_files,omitempty"`
+		FilesUploaded  int32      `json:"files_uploaded"`
+		LastUploadAt   *time.Time `json:"last_upload_at,omitempty"`
+		Used           bool       `json:"used"`
+		CreatedAt      time.Time  `json:"created_at"`
+		HasPassword    bool       `json:"has_password"`
 	}
 
 	response := []TokenResponse{}
 	for _, t := range tokens {
 		uploadURL := fmt.Sprintf("/abrn/drop/%s", t.Token)
 
+		var expiresAt *time.Time
+		if t.ExpiresAt.Valid {
+			expiresAt = &t.ExpiresAt.Time
+		}
+		var maxFiles *int32
+		if t.MaxFiles.Valid {
+			maxFiles = &t.MaxFiles.Int32
+		}
+		filesUploaded := int32(0)
+		if t.FilesUploaded.Valid {
+			filesUploaded = t.FilesUploaded.Int32
+		}
+		var linkName *string
+		if t.LinkName.Valid && t.LinkName.String != "" {
+			linkName = &t.LinkName.String
+		}
+		var description *string
+		if t.Description.Valid && t.Description.String != "" {
+			description = &t.Description.String
+		}
+		var lastUpload *time.Time
+		if ts, ok := lastUploadAt[t.ID.String()]; ok {
+			lastUpload = &ts
+		}
+
 		response = append(response, TokenResponse{
 			ID:             t.ID.String(),
 			Token:          t.Token,
+			LinkName:       linkName,
+			Description:    description,
 			UploadURL:      uploadURL,
 			TargetFolderID: t.TargetFolderID.String(),
-			ExpiresAt:      t.ExpiresAt,
-			MaxFiles:       t.MaxFiles,
-			FilesUploaded:  t.FilesUploaded,
-			Used:           t.Used,
+			ExpiresAt:      expiresAt,
+			MaxFiles:       maxFiles,
+			FilesUploaded:  filesUploaded,
+			LastUploadAt:   lastUpload,
+			Used:           t.Used.Valid && t.Used.Bool,
 			CreatedAt:      t.CreatedAt.Time,
 			HasPassword:    t.PasswordHash.Valid && t.PasswordHash.String != "",
 		})

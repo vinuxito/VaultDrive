@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/auth"
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +62,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	accessToken, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Hour*24*30)
+	accessToken, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Minute*30)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create access JWT", err)
 		return

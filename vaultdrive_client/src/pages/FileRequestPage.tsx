@@ -36,6 +36,7 @@ import {
 } from "../utils/crypto";
 import ABRNLogo from "../components/branding/abrn-logo";
 import { API_URL } from "../utils/api";
+import { buildFileRequestUploadFormData } from "../utils/file-request-upload";
 
 interface RequestInfo {
   description: string;
@@ -48,6 +49,7 @@ interface RequestInfo {
 }
 
 interface UploadProgress {
+  id: string;
   fileName: string;
   status: "pending" | "uploading" | "success" | "error";
   progress: number;
@@ -170,17 +172,25 @@ export default function FileRequestPage() {
 
     setUploading(true);
     setError("");
+    const uploadQueue = selectedFiles.map((file) => ({
+      id: Math.random().toString(36).slice(2),
+      file,
+      fileName: (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name,
+    }));
     setUploadProgress(
-      selectedFiles.map((f) => ({
-        fileName: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
+      uploadQueue.map(({ id, file, fileName }) => ({
+        id,
+        fileName,
         status: "pending",
         progress: 0,
         bytesUploaded: 0,
-        bytesTotal: f.size,
+        bytesTotal: file.size,
       }))
     );
 
-    await Promise.allSettled(selectedFiles.map((f) => uploadFile(f)));
+    for (const { id, file } of uploadQueue) {
+      await uploadFile(id, file);
+    }
 
     setUploading(false);
     setDelivered(true);
@@ -195,9 +205,8 @@ export default function FileRequestPage() {
     e.target.value = "";
   };
 
-  const uploadFile = (file: File): Promise<void> => {
+  const uploadFile = (progressId: string, file: File): Promise<void> => {
     const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || "";
-    const fileName = relativePath || file.name;
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -207,7 +216,7 @@ export default function FileRequestPage() {
           const percent = Math.round((event.loaded / event.total) * 100);
           setUploadProgress((prev) =>
             prev.map((p) =>
-              p.fileName === fileName
+              p.id === progressId
                 ? {
                     ...p,
                     progress: percent,
@@ -225,7 +234,7 @@ export default function FileRequestPage() {
         if (xhr.status >= 200 && xhr.status < 300) {
           setUploadProgress((prev) =>
             prev.map((p) =>
-              p.fileName === fileName
+              p.id === progressId
                 ? { ...p, status: "success", progress: 100, bytesUploaded: file.size }
                 : p
             )
@@ -241,7 +250,7 @@ export default function FileRequestPage() {
           }
           setUploadProgress((prev) =>
             prev.map((p) =>
-              p.fileName === fileName ? { ...p, status: "error", error: errMsg } : p
+              p.id === progressId ? { ...p, status: "error", error: errMsg } : p
             )
           );
           reject(new Error(errMsg));
@@ -251,7 +260,7 @@ export default function FileRequestPage() {
       xhr.onerror = () => {
         setUploadProgress((prev) =>
           prev.map((p) =>
-            p.fileName === fileName
+            p.id === progressId
               ? { ...p, status: "error", error: "Network error" }
               : p
           )
@@ -262,7 +271,7 @@ export default function FileRequestPage() {
       xhr.ontimeout = () => {
         setUploadProgress((prev) =>
           prev.map((p) =>
-            p.fileName === fileName
+            p.id === progressId
               ? { ...p, status: "error", error: "Upload timed out" }
               : p
           )
@@ -296,18 +305,20 @@ export default function FileRequestPage() {
             // 5. Build multipart form
             // pin_wrapped_key stores the salt (base64) so the owner can
             // re-derive the key once they know the passphrase (shared out-of-band)
-            const formData = new FormData();
-            formData.append("file", new Blob([encryptedData]), fileName);
-            formData.append("iv", arrayBufferToBase64(iv));
-            formData.append("algorithm", "AES-256-GCM");
-            formData.append("pin_wrapped_key", arrayBufferToBase64(salt));
+            const formData = buildFileRequestUploadFormData({
+              encryptedData,
+              ivBase64: arrayBufferToBase64(iv),
+              saltBase64: arrayBufferToBase64(salt),
+              relativePath,
+              fallbackName: file.name,
+            });
 
             xhr.open("POST", `${API_URL}/file-requests/${token}/upload`);
             xhr.send(formData);
           } catch (err) {
             setUploadProgress((prev) =>
               prev.map((p) =>
-                p.fileName === fileName
+                p.id === progressId
                   ? {
                       ...p,
                       status: "error",

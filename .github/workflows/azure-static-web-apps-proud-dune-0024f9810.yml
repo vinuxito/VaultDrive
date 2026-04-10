@@ -23,6 +23,20 @@ jobs:
           submodules: true
           lfs: false
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        run: cd vaultdrive_client && npm ci
+
+      - name: Run frontend tests
+        run: cd vaultdrive_client && npx vitest run
+
+      - name: Verify frontend build
+        run: cd vaultdrive_client && npm run build
+
       - name: Create .env file
         run: echo "VITE_API_URL=https://vaultdrive-backend.mangodesert-0d3ef58a.eastus.azurecontainerapps.io" > vaultdrive_client/.env
 

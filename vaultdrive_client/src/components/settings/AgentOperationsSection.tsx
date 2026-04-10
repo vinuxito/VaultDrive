@@ -3,8 +3,7 @@ import { Radio, RefreshCw, ShieldAlert, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
-import type { ActivityEvent } from "../../hooks";
-import { useSSE } from "../../hooks";
+import { useSSE, type ActivityEvent } from "../../hooks/useSSE";
 import { explainAgentOperation, groupAgentOperations } from "./agent-operations";
 
 interface AuditEntry {

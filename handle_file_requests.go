@@ -14,21 +14,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 )
 
 type fileRequestResponse struct {
-	ID           string     `json:"id"`
-	Token        string     `json:"token"`
-	Description  string     `json:"description"`
-	ExpiresAt    *time.Time `json:"expires_at"`
-	IsActive     bool       `json:"is_active"`
-	MaxFileSize  *int64     `json:"max_file_size"`
-	UploadedCount int       `json:"uploaded_count"`
-	RequestURL   string     `json:"request_url"`
-	CreatedAt    time.Time  `json:"created_at"`
+	ID            string     `json:"id"`
+	Token         string     `json:"token"`
+	Description   string     `json:"description"`
+	ExpiresAt     *time.Time `json:"expires_at"`
+	IsActive      bool       `json:"is_active"`
+	MaxFileSize   *int64     `json:"max_file_size"`
+	UploadedCount int        `json:"uploaded_count"`
+	RequestURL    string     `json:"request_url"`
+	CreatedAt     time.Time  `json:"created_at"`
 }
 
 func dbFileRequestToResponse(req database.FileRequest) fileRequestResponse {
@@ -143,8 +143,8 @@ func (cfg *ApiConfig) handlerRevokeFileRequest(w http.ResponseWriter, r *http.Re
 		return
 	}
 	_, err = cfg.dbQueries.RevokeFileRequest(r.Context(), database.RevokeFileRequestParams{
-		ID:      id,
-		OwnerID: user.ID,
+		ID:        id,
+		OwnerID:   user.ID,
 		UpdatedAt: time.Now(),
 	})
 	if err != nil {
@@ -198,13 +198,13 @@ func (cfg *ApiConfig) handlerGetFileRequestInfo(w http.ResponseWriter, r *http.R
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"description":         req.Description.String,
-		"expires_at":          expiresAt,
-		"is_expired":          false,
-		"owner_display_name":  ownerDisplayName,
-		"owner_organization":  ownerOrg,
-		"uploaded_count":      uploadedCount,
-		"max_file_size":       req.MaxFileSize.Int64,
+		"description":        req.Description.String,
+		"expires_at":         expiresAt,
+		"is_expired":         false,
+		"owner_display_name": ownerDisplayName,
+		"owner_organization": ownerOrg,
+		"uploaded_count":     uploadedCount,
+		"max_file_size":      req.MaxFileSize.Int64,
 	})
 }
 
@@ -243,12 +243,15 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 	}
 	var results []uploadResult
 
+	explicitRelativePath := ""
+	if relativePaths := r.MultipartForm.Value["relative_path"]; len(relativePaths) > 0 {
+		explicitRelativePath = relativePaths[0]
+	}
 	for _, fileHeaders := range r.MultipartForm.File {
 		for _, fh := range fileHeaders {
-			// Preserve relative path for folder uploads (e.g. "ProjectX/src/index.ts")
-			originalPath := fh.Filename
-			safeFilename := filepath.Base(originalPath)
-			if safeFilename == "" || safeFilename == "." {
+			originalPath, safeFilename, relativeDir, err := resolveUploadRelativePath(explicitRelativePath, fh.Filename)
+			if err != nil {
+				log.Printf("Rejected invalid file-request upload path %q: %v", fh.Filename, err)
 				continue
 			}
 
@@ -268,17 +271,9 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 			ext := filepath.Ext(safeFilename)
 			storedName := fileIDForPath.String() + ext
 
-			// Create nested directory structure if relative path present
-			relativeDir := filepath.Dir(originalPath)
 			var storagePath string
-			if relativeDir != "." && relativeDir != "" {
-				relativeDir = filepath.Clean(relativeDir)
-				// Prevent path traversal — reject any ".." components
-				if strings.Contains(relativeDir, "..") {
-					log.Printf("Rejected path traversal attempt: %s", originalPath)
-					continue
-				}
-				targetDir := filepath.Join(uploadDir, relativeDir)
+			if relativeDir != "" {
+				targetDir := filepath.Join(uploadDir, filepath.FromSlash(relativeDir))
 				if err := os.MkdirAll(targetDir, 0755); err != nil {
 					f.Close()
 					log.Printf("Failed to create directory %s: %v", targetDir, err)
@@ -322,15 +317,21 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 			}
 
 			pinWrappedKey := r.FormValue("pin_wrapped_key")
+			folderID, err := ensureUploadFolderPath(cfg.dbQueries, r.Context(), req.OwnerID, uuid.NullUUID{}, relativeDir)
+			if err != nil {
+				os.Remove(storagePath)
+				log.Printf("Failed to ensure file-request folder path %s: %v", relativeDir, err)
+				continue
+			}
 			createdFile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
 				OwnerID:           uuid.NullUUID{UUID: req.OwnerID, Valid: true},
-				Filename:          originalPath,
+				Filename:          safeFilename,
 				FilePath:          storagePath,
 				FileSize:          fileSize,
 				EncryptedMetadata: sql.NullString{String: string(metaJSON), Valid: true},
 				CreatedAt:         now,
 				UpdatedAt:         now,
-				FolderID:          uuid.NullUUID{},
+				FolderID:          folderID,
 			})
 			if err != nil {
 				os.Remove(storagePath)
@@ -383,4 +384,3 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 		"count":    len(results),
 	})
 }
-

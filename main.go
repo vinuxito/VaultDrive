@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Pranay0205/VaultDrive/internal/database"
+	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -106,7 +106,12 @@ func main() {
 
 	mux.Handle("POST /api/register", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler)))
 
-	mux.Handle("POST /api/login", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin)))
+	mux.Handle("POST /api/login", middlewareRateLimitLogin(apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin))))
+
+	// Auth token lifecycle
+	mux.HandleFunc("POST /api/auth/refresh", apiConfig.handlerRefreshToken)
+	mux.HandleFunc("POST /api/auth/revoke", apiConfig.handlerRevokeRefreshToken)
+
 
 	mux.Handle("GET /api/user-by-username",
 		apiConfig.middlewareMetricsInc(
@@ -242,8 +247,8 @@ func main() {
 			apiConfig.middlewareAuth(apiConfig.handleChangePassword)))
 
 	mux.Handle("POST /api/users/pin",
-		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerSetUserPIN)))
+		middlewareRateLimitPIN(apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerSetUserPIN))))
 	mux.Handle("GET /api/users/pin/status",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerGetPINStatus)))
@@ -376,6 +381,36 @@ func main() {
 	mux.Handle("GET /api/v1/audit",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("activity:read")(apiConfig.handlerGetAuditLogs)))
+	mux.Handle("GET /api/v1/audit/export",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("activity:read")(apiConfig.handlerExportAuditLogs)))
+
+	// Governance settings.
+	mux.Handle("GET /api/v1/governance/settings",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetGovernanceSettings)))
+	mux.Handle("PUT /api/v1/governance/settings",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerUpdateGovernanceSettings)))
+
+	// Unified access center — all outbound share links for the owner.
+	mux.Handle("GET /api/v1/shares",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListShares)))
+
+	// Collection templates CRUD.
+	mux.Handle("GET /api/v1/collection-templates",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListCollectionTemplates)))
+	mux.Handle("POST /api/v1/collection-templates",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerCreateCollectionTemplate)))
+	mux.Handle("PUT /api/v1/collection-templates/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerUpdateCollectionTemplate)))
+	mux.Handle("DELETE /api/v1/collection-templates/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerDeleteCollectionTemplate)))
 
 	// Admin routes
 	mux.Handle("GET /api/admin/users",
@@ -415,6 +450,7 @@ func main() {
 			apiConfig.middlewareAuth(apiConfig.requireAdmin(apiConfig.deleteUserAsAdminHandler))))
 
 	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
+	mux.HandleFunc("POST /api/events/ticket", apiConfig.handlerSSETicket)
 
 	fmt.Printf("Starting server on port %s...\n", port)
 
