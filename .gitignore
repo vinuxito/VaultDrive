@@ -31,3 +31,27 @@ vaultdrive_client/node_modules/
 # Editor/OS
 .DS_Store
 *.swp
+.~lock.*
+
+# Secrets — NEVER commit private keys, deploy keys, or credentials.
+# These patterns are deliberately broad.
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+id_dsa
+id_dsa.pub
+*.pem
+*.key
+*_rsa
+*_rsa.pub
+*_ed25519
+*_ed25519.pub
+*_ecdsa
+*_ecdsa.pub
+quantixgithub*
+quantixdrivegithub*
+*github
+*github.pub
