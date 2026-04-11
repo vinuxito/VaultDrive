@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git add vaultdrive_client/.env vaultdrive_client/.env.abrn vaultdrive_client/.env.example vaultdrive_client/.gitignore vaultdrive_client/README.md vaultdrive_client/index.html vaultdrive_c...",
-  "error": "Exit code 1\nThe following paths are ignored by one of your .gitignore files:\nvaultdrive_client/.env\nhint: Use -f if you really want to add them.\nhint: Turn this message off by running\nhint: \"git config advice.addIgnoredFile false\"\n[rerun: b196]",
-  "timestamp": "2026-04-10T20:26:56.252Z",
+  "tool_input_preview": "{\"command\":\"cd /lamp/www/ABRN-Drive-overlay && git status --porcelain --untracked-files=all && echo \\\"---check-ignore---\\\" && git check-ignore -v vaultdrive_client/public/abrn-logo.png vaultdrive_clie...",
+  "error": "Exit code 1\n M vaultdrive_client/.env\n M vaultdrive_client/.env.production\n M vaultdrive_client/src/components/branding/brand-logo.tsx\n M vaultdrive_client/src/components/branding/index.ts\n?? .env.abrn.example\n?? vaultdrive_client/src/components/branding/abrn-logo.tsx\n---check-ignore---\n[rerun: b287]",
+  "timestamp": "2026-04-11T00:29:14.566Z",
   "retry_count": 1
 }
