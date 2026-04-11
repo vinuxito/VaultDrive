@@ -2,11 +2,13 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: April 10, 2026 (Security hardening, governance layer, Access Center, collection productization — 66/66 tests)**
+> **Last updated: April 11, 2026 (QuantiX Drive sibling deploy + `AGENT_KEY_PREFIX` validator bug fix — 68/68 tests)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
 Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · PostgreSQL · Apache
+
+**Sibling product:** The same core now ships under a second brand, **QuantiX Drive**, at `https://quantixdrive.filemonprime.net`, sharing the same VPS, Apache instance, and PostgreSQL cluster. See [docs/25_QUANTIXDRIVE_PRODUCTION_DEPLOY.md](./docs/25_QUANTIXDRIVE_PRODUCTION_DEPLOY.md) for the deploy write-up.
 
 ---
 
@@ -24,20 +26,54 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (April 10, 2026)
+## Current State (April 11, 2026)
 
 This section reflects the actual verified state. Sections below are historical documentation.
 
-### Verification Snapshot (April 10, 2026 — Security hardening, governance, productization)
+### Verification Snapshot (April 11, 2026 — QuantiX Drive sibling deploy + config validator fix)
 
 | Check | Result | Details |
 |-------|--------|---------|
-| `go build ./...` | **CLEAN** | 0 errors |
+| `go build ./...` (ABRN-Drive) | **CLEAN** | 0 errors |
+| `go build ./...` (QuantiX-Drive) | **CLEAN** | 0 errors, 8.1 MB binary |
 | `go vet ./...` | **CLEAN** | 0 warnings |
 | `tsc --noEmit` | **CLEAN** | 0 TypeScript errors |
-| `npx vitest run` | **66/66** | 19 test files, all pass |
-| `go test -race ./...` | **PASS** | Race detector clean |
+| `npx vitest run` | **68/68** | 19 test files, all pass (9.46 s) |
 | `npm run build` | **CLEAN** | Zero warnings, all chunks split correctly |
+| `apachectl configtest` | **Syntax OK** | 2 new `Include` lines for QuantiX vhost |
+| `abrndrive.filemonprime.net/` | **302** | Healthy (signin redirect) |
+| `quantixdrive.filemonprime.net/` | **503 → fix pending** | Single sudo away from 200 — see below |
+
+### QuantiX Drive Deployment Status (April 11, 2026)
+
+| Component | Status |
+|---|---|
+| Go binary (`/lamp/www/QuantiX-Drive/quantix-drive`) | Built, 8.1 MB, `-ldflags="-w -s"` |
+| Frontend dist (`vaultdrive_client/dist/`) | Built, includes Q-mark favicon |
+| Apache HTTP vhost (`/lamp/apache2/conf/extra/quantixdrive.conf`) | **Live** (port 80, ACME + 301→HTTPS) |
+| Apache HTTPS vhost (`/lamp/apache2/conf/extra/quantixdrive-ssl.conf`) | **Live** (port 443, `<IfFile>`-guarded, proxies to :8083) |
+| Let's Encrypt cert | **Issued**, expires 2026-07-10, auto-renew scheduled |
+| Postgres role `quantix` + db `quantixdrive` | **Created**, password stored in `/etc/quantix/quantixdrive-db-password` (600) |
+| `/etc/quantix/quantixdrive.env` | **Installed** (600 root:root); still has the stale `AGENT_KEY_PREFIX=qx_ak` value, run `fix.sh` to patch |
+| `/etc/systemd/system/quantixdrive.service` | **Installed + enabled**; currently crash-looping until env fix applied |
+| Port 8083 backend responding | **Not yet** — blocked by env file value, ~3 s away once `fix.sh` runs |
+
+**Single command to finish the deploy** (the assistant sandbox can't invoke sudo):
+```bash
+sudo bash /tmp/quantix-deploy/fix.sh
+```
+
+That script `sed`-patches the env file, `reset-failed`s the service, restarts, and runs curl verification against :8083, the public URL, and the favicon.
+
+### `AGENT_KEY_PREFIX` validator bug — fixed in source
+
+Both `QuantiX-Drive/config.go` and `ABRN-Drive/config.go` had a default of `"qx_ak"` for `AgentKeyPrefix`, but the `validate()` method in the same file rejects any prefix containing an underscore (`config.go:89-95` in ABRN, `config.go:91-95` in QuantiX). **An unconfigured deploy could never boot.** ABRN production was fine only because `/etc/quantix/secrets.env` overrides the default.
+
+Fixed in this commit:
+- `QuantiX-Drive/config.go:51` — `"qx_ak"` → `"qxak"`
+- `ABRN-Drive/config.go:53` — same
+
+Rebuilt `/lamp/www/QuantiX-Drive/quantix-drive` against the patched source. Full write-up at [docs/25_QUANTIXDRIVE_PRODUCTION_DEPLOY.md](./docs/25_QUANTIXDRIVE_PRODUCTION_DEPLOY.md).
 
 ### DB Migration State
 
