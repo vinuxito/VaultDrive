@@ -13,11 +13,12 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 - **Store** — AES-256-GCM encrypted file vault. PIN-based access, session key cache, inline preview, vault-wide search via pg_trgm.
 - **Share** — Time-limited public links with the AES key in the URL fragment (never reaches the server). Expiry, access tracking, instant revoke.
 - **Collect** — Public drop portals with required-document checklists, reusable collection templates, and intake analytics. File Requests for per-recipient secure intake.
-- **Collaborate** — Share files and folders with users and groups via zero-knowledge RSA key exchange.
+- **Collaborate** — Share files and folders with users and groups via zero-knowledge RSA key exchange. Group management with member-level access control.
 - **Access Center** — Unified owner surface for all outbound access: file share links, folder share links, and drop routes, filtered by status.
-- **Delegate** — Per-user Agent API Keys with granular scopes, last-used tracking, and full revocability for AI agents and external systems.
+- **Delegate** — Per-user Agent API Keys with granular scopes (`files:list`, `files:read_metadata`, `activity:read`, etc.), last-used tracking, and full revocability for AI agents and external systems.
 - **Audit** — Filterable audit log with CSV/JSON export; governance settings for retention, stale-link auto-expiry, and failed-access alerting.
 - **Control** — Stable `/api/v1/` surface, short-lived JWTs with refresh flow, per-route rate limiting, and one-time SSE tickets.
+- **Trust UX** — Every action the server takes is surfaced to the owner. Receipts show exact API calls, timestamps, and key events. No hidden operations.
 
 ---
 
@@ -38,15 +39,15 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 ```
 
 - **Backend** — Go 1.24 HTTP server in a single binary. JWT auth, per-user RSA key envelopes, pg_trgm search, per-route rate limiting, SSE ticketing.
-- **Frontend** — React + TypeScript + Vite SPA. All crypto in-browser via Web Crypto; backend never sees plaintext.
-- **Database** — PostgreSQL 16, schema managed by [goose](https://github.com/pressly/goose) migrations in `sql/schema/`.
+- **Frontend** — React + TypeScript + Vite SPA. All crypto in-browser via Web Crypto API; backend never sees plaintext keys or file content.
+- **Database** — PostgreSQL 16, schema managed by [goose](https://github.com/pressly/goose) migrations in `sql/schema/` (44 migrations as of 2026-04-12).
 - **Deployment** — Multi-stage Dockerfile produces a single static binary with embedded frontend assets. CI publishes OCI images to GHCR.
 
 ---
 
 ## Quickstart (Local Dev)
 
-The fastest path is Docker Compose. It boots Postgres, runs migrations, and starts the server under `/quantix/`.
+The fastest path is Docker Compose. It boots Postgres, runs migrations, creates the uploads directory, and starts the server under `/quantix/`.
 
 ```bash
 # 1. Clone
@@ -81,16 +82,26 @@ npm install
 npm run build
 cd ..
 
-# 4. Run the backend
+# 4. Create the uploads directory (required — the server will not create it automatically
+#    if the process user lacks write access to the working directory)
+mkdir -p uploads
+
+# 5. Run the backend
 DB_URL="postgres://postgres:postgres@localhost:5432/vaultdrive?sslmode=disable" \
 JWT_SECRET="local-dev-secret-minimum-32-characters-long" \
 PRODUCT_NAME="QuantiX Drive" \
 PRODUCT_SLUG=quantix-drive \
 BASE_PATH=/quantix/ \
-AGENT_KEY_PREFIX=qx_ak \
+AGENT_KEY_PREFIX=qxak_ \
 PORT=8090 \
 go run .
 ```
+
+> **Note on `uploads/`:** The server stores encrypted file blobs under `uploads/` relative to its working directory. In production, the process user (e.g. `daemon`) may not have write access to the working directory — pre-create the directory and set ownership before starting the service.
+> ```bash
+> sudo mkdir -p /srv/quantix-drive/uploads
+> sudo chown <service-user>:<service-user> /srv/quantix-drive/uploads
+> ```
 
 ---
 
@@ -113,7 +124,7 @@ All runtime configuration is env-driven — there is no baked-in product identit
 | `PRODUCT_NAME` | `QuantiX Drive` | Display name used in email, audit, and UI copy |
 | `PRODUCT_SLUG` | `quantix-drive` | URL-safe identifier used in manifest and internal keys |
 | `BASE_PATH` | `/quantix/` | URL prefix the SPA is served under (must match frontend build) |
-| `AGENT_KEY_PREFIX` | `qx_ak` | Prefix for newly minted agent API keys |
+| `AGENT_KEY_PREFIX` | `qxak_` | Prefix for newly minted agent API keys (no underscores inside the prefix — the separator before the random part is `_`) |
 | `AGENT_KEY_LEGACY_PREFIXES` | *(empty)* | Comma-separated list of legacy prefixes kept valid for verification |
 | `PUBLIC_BASE_URL` | *(derived)* | Absolute URL advertised in outbound email and OAuth redirects |
 | `CORS_ALLOWED_ORIGINS` | *(empty)* | Comma-separated list of CORS origins |
@@ -154,22 +165,81 @@ To run in production, pull the image and feed it a populated environment:
 docker run -d \
   --name quantix-drive \
   -p 8090:8090 \
+  -v /srv/quantix-drive/uploads:/app/uploads \
   -e DB_URL="postgres://..." \
   -e JWT_SECRET="$(openssl rand -base64 32)" \
   -e PRODUCT_NAME="QuantiX Drive" \
   -e BASE_PATH=/quantix/ \
-  -e AGENT_KEY_PREFIX=qx_ak \
+  -e AGENT_KEY_PREFIX=qxak_ \
   -e PUBLIC_BASE_URL="https://quantixdrive.example.com" \
   -e CORS_ALLOWED_ORIGINS="https://quantixdrive.example.com" \
   -e ADMIN_BOOTSTRAP_EMAILS="admin@example.com" \
   ghcr.io/vinuxito/quantix-drive:latest
 ```
 
+> Mount a host volume for `uploads/` so encrypted blobs survive container restarts.
+
 Run `goose -dir sql/schema postgres "$DB_URL" up` once against your Postgres instance before first boot. Front the container with a TLS-terminating reverse proxy (Caddy, nginx, Cloudflare Tunnel) on `BASE_PATH`.
 
 ---
 
 ## Testing & CI
+
+### Backend
+
+```bash
+cd /lamp/www/QuantiX-Drive
+go test -race ./...
+go vet ./...
+go build -o quantix-drive
+```
+
+### Frontend unit tests
+
+```bash
+cd vaultdrive_client
+npm test          # vitest
+npx tsc --noEmit  # type-check src/ (tsconfig.app.json)
+```
+
+### End-to-End (Playwright)
+
+The E2E suite covers 38 user flows across 10 spec files. It tests against a live running server. **38/38 pass as of 2026-04-12.**
+
+```bash
+# Prerequisites: server running at http://127.0.0.1:8083/quantix
+cd vaultdrive_client
+
+# Run against the live local deployment
+E2E_BASE_URL=http://127.0.0.1:8083/quantix npx playwright test
+
+# Run a single spec
+E2E_BASE_URL=http://127.0.0.1:8083/quantix npx playwright test agent-key-lifecycle
+
+# Run with UI (headed)
+E2E_BASE_URL=http://127.0.0.1:8083/quantix npx playwright test --headed
+```
+
+E2E spec files live in `vaultdrive_client/e2e/`. Helper functions (account creation, login, onboarding) are in `vaultdrive_client/e2e/helpers/trust.ts`.
+
+**Important:** The E2E suite creates real accounts in the database. Each run registers fresh accounts using unique `qa-{timestamp}-{suffix}@example.com` addresses. The loopback rate-limiter bypass (`isLoopbackIP()` in `middleware_ratelimit.go`) ensures parallel workers from `127.x.x.x` never hit the 5/min PIN or 10/min login limits.
+
+#### E2E Coverage
+
+| Spec | What it tests |
+|------|--------------|
+| `owner-trust-flow.spec.ts` | Signup, onboarding, PIN login, action receipts |
+| `file-upload-flow.spec.ts` | Browser-side AES-256-GCM encryption, vault display, metadata |
+| `drop-full-cycle.spec.ts` | Drop link creation, anonymous upload, owner download, PIN recovery |
+| `share-link-lifecycle.spec.ts` | Share link create/access/revoke, AES key stays in fragment |
+| `upload-link-lifecycle.spec.ts` | Upload link creation, anonymous delivery, expiry |
+| `group-crud.spec.ts` | Group create, member management, delete |
+| `group-sharing.spec.ts` | File sharing with groups, access revocation |
+| `public-sender-flows.spec.ts` | Drop sender routes, folder uploads, file requests |
+| `agent-key-lifecycle.spec.ts` | Agent key create/introspect/scope-deny/revoke/audit, Filemon operator |
+| `trust-safety-ux.spec.ts` | PIN UX, empty states, upload link trace receipts, encryption footer |
+
+### CI
 
 The `ci` workflow runs on every push and PR against `main`:
 
@@ -178,16 +248,38 @@ The `ci` workflow runs on every push and PR against `main`:
 - **Migrations**: goose runs against a real Postgres 16 service container
 - **Build verification**: asserts `dist/index.html` contains the `/quantix/` base path
 
-Run the same checks locally:
+---
 
-```bash
-# Backend
-go test -race ./... && go vet ./...
+## Rate Limiting
 
-# Frontend
-cd vaultdrive_client
-npm test && npx tsc --noEmit && npm run build
-```
+Per-route rate limits enforced in `middleware_ratelimit.go` using a sliding window per client IP:
+
+| Route group | Limit | Middleware |
+|-------------|-------|-----------|
+| Login (`POST /api/login`) | 10 req/min | `middlewareRateLimitLogin` |
+| PIN (`POST /api/users/pin`, `PUT /api/users/pin`) | 5 req/min | `middlewareRateLimitPIN` |
+| All other routes | 100 req/min | `middlewareRateLimit` |
+
+**Loopback bypass:** `127.0.0.0/8` and `::1` are exempt from the login and PIN rate limiters. This allows parallel E2E test workers running locally to complete without hitting 429 errors. The global 100 req/min limit still applies to loopback (the test suite stays well under it).
+
+In production, set `X-Forwarded-For` or `X-Real-IP` headers correctly in your reverse proxy so the correct client IP is rate-limited.
+
+---
+
+## Agent API Keys
+
+Agent keys let external systems (AI agents, automation tools, webhooks) access the API with scoped, revocable credentials.
+
+Keys are created per-user from the Settings > Advanced tab or via `POST /api/v1/agent-keys`. Each key has:
+- A human-readable name
+- One or more permission scopes (`files:list`, `files:read_metadata`, `activity:read`, `api_keys:read`, etc.)
+- Optional notes
+- Status (`active` / `revoked`)
+- A `last_used_at` timestamp updated on every authenticated request
+
+Keys are prefixed with `AGENT_KEY_PREFIX` (default: `qxak_`). The plaintext key is shown once at creation and never stored — only the hash is persisted.
+
+Use the **Filemon operator** in Settings > Advanced to test a key interactively: paste the raw key, pick an endpoint, click Run, and see the exact HTTP request and response the key produces.
 
 ---
 
@@ -212,10 +304,26 @@ Downstream overlays should:
 - All file content is AES-256-GCM encrypted in the browser before upload. The server stores ciphertext only.
 - Per-user RSA key envelopes protect symmetric keys; the server never sees plaintext keys.
 - Short-lived JWTs (30 min) with refresh token rotation. SSE connections use one-time tickets.
-- Per-route rate limiting: login 10/min, PIN 5/min, global 100/min.
+- Per-route rate limiting: login 10/min, PIN 5/min, global 100/min. Loopback IPs exempt from login/PIN limits (dev/CI only).
+- All error responses from API handlers return JSON — no plain-text error leakage.
 - Admin promotion is env-driven (`ADMIN_BOOTSTRAP_EMAILS`) — no hardcoded grants in source or migrations.
 
 Report security issues privately to the repository owner.
+
+---
+
+## Docs
+
+Detailed session logs and feature documentation live in `docs/`:
+
+| Doc | Contents |
+|-----|---------|
+| `docs/INDEX.md` | Full index of all feature docs |
+| `docs/11_TRUST_API_AGENT_KEYS.md` | Agent API key design and scopes |
+| `docs/15_TRUST_PROOF_HARNESS.md` | E2E test harness design |
+| `docs/22_DROP_KEY_RECOVERY.md` | Drop link PIN-based key recovery |
+| `docs/24_SECURITY_GOVERNANCE_PRODUCTIZATION.md` | Audit log, governance settings |
+| `docs/25_QA_SESSION_2026-04-12.md` | Full QA pass log — 38/38 E2E green |
 
 ---
 

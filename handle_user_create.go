@@ -31,14 +31,14 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 
 	err := json.NewDecoder(r.Body).Decode(&newUser)
 	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload", err)
 		return
 	}
 
 	hashedPassword, err := auth.HashPassword(newUser.Password)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Error creating user", err)
 		return
 	}
 
@@ -46,7 +46,7 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 	privKeyPEM, pubKeyPEM, err := generateRSAKeys()
 	if err != nil {
 		log.Printf("Error generating keys: %v", err)
-		http.Error(w, "Error creating user keys", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Error creating user keys", err)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 	encryptedPrivKey, err := encryptPrivateKey(privKeyPEM, newUser.Password)
 	if err != nil {
 		log.Printf("Error encrypting private key: %v", err)
-		http.Error(w, "Error securing user keys", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, "Error securing user keys", err)
 		return
 	}
 
