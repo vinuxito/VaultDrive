@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775852403752,
+  "lastScanned": 1775949015398,
   "projectRoot": "/lamp/www/ABRN-Drive/vaultdrive_client",
   "techStack": {
     "languages": [
@@ -87,23 +87,11 @@
   },
   "customNotes": [],
   "directoryMap": {
-    "dist": {
-      "path": "dist",
-      "purpose": "Distribution/build output",
-      "fileCount": 4,
-      "lastAccessed": 1775852403680,
-      "keyFiles": [
-        "abrn-logo.png",
-        "index.html",
-        "manifest.json",
-        "vault.svg"
-      ]
-    },
     "e2e": {
       "path": "e2e",
       "purpose": null,
       "fileCount": 10,
-      "lastAccessed": 1775852403688,
+      "lastAccessed": 1775949015377,
       "keyFiles": [
         "agent-key-lifecycle.spec.ts",
         "drop-full-cycle.spec.ts",
@@ -116,7 +104,7 @@
       "path": "playwright-report",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775852403698,
+      "lastAccessed": 1775949015378,
       "keyFiles": [
         "index.html"
       ]
@@ -125,7 +113,7 @@
       "path": "public",
       "purpose": "Public files",
       "fileCount": 3,
-      "lastAccessed": 1775852403704,
+      "lastAccessed": 1775949015387,
       "keyFiles": [
         "abrn-logo.png",
         "manifest.json",
@@ -136,7 +124,7 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 5,
-      "lastAccessed": 1775852403708,
+      "lastAccessed": 1775949015390,
       "keyFiles": [
         "App.css",
         "App.tsx",
@@ -149,25 +137,14 @@
       "path": "test-results",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775852403713,
+      "lastAccessed": 1775949015394,
       "keyFiles": []
-    },
-    "dist/assets": {
-      "path": "dist/assets",
-      "purpose": "Static assets",
-      "fileCount": 19,
-      "lastAccessed": 1775852403720,
-      "keyFiles": [
-        "FileWidget-CwhFN5hW.js",
-        "abrn-logo-DH9lVmZK.png",
-        "access-center-CaefRMv8.js"
-      ]
     },
     "e2e/helpers": {
       "path": "e2e/helpers",
       "purpose": "Helper functions",
       "fileCount": 1,
-      "lastAccessed": 1775852403724,
+      "lastAccessed": 1775949015394,
       "keyFiles": [
         "trust.ts"
       ]
@@ -176,7 +153,7 @@
       "path": "src/assets",
       "purpose": "Static assets",
       "fileCount": 3,
-      "lastAccessed": 1775852403727,
+      "lastAccessed": 1775949015395,
       "keyFiles": [
         "abrn-logo.png",
         "filemon-avatar.png",
@@ -187,7 +164,7 @@
       "path": "src/components",
       "purpose": "UI components",
       "fileCount": 5,
-      "lastAccessed": 1775852403728,
+      "lastAccessed": 1775949015395,
       "keyFiles": [
         "navbar.tsx",
         "protected-route.tsx",
@@ -198,7 +175,7 @@
       "path": "src/config",
       "purpose": "Configuration files",
       "fileCount": 1,
-      "lastAccessed": 1775852403730,
+      "lastAccessed": 1775949015395,
       "keyFiles": [
         "branding.ts"
       ]
@@ -207,7 +184,7 @@
       "path": "src/lib",
       "purpose": "Library code",
       "fileCount": 3,
-      "lastAccessed": 1775852403732,
+      "lastAccessed": 1775949015395,
       "keyFiles": [
         "motion-presets.test.ts",
         "motion-presets.ts",

@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /lamp/www/ABRN-Drive-overlay && git status --porcelain --untracked-files=all && echo \\\"---check-ignore---\\\" && git check-ignore -v vaultdrive_client/public/abrn-logo.png vaultdrive_clie...",
-  "error": "Exit code 1\n M vaultdrive_client/.env\n M vaultdrive_client/.env.production\n M vaultdrive_client/src/components/branding/brand-logo.tsx\n M vaultdrive_client/src/components/branding/index.ts\n?? .env.abrn.example\n?? vaultdrive_client/src/components/branding/abrn-logo.tsx\n---check-ignore---\n[rerun: b287]",
-  "timestamp": "2026-04-11T00:29:14.566Z",
-  "retry_count": 1
-}
