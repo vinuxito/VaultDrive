@@ -15,6 +15,7 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 - **Collect** — Public drop portals with required-document checklists, reusable collection templates, and intake analytics. File Requests for per-recipient secure intake.
 - **Collaborate** — Share files and folders with users and groups via zero-knowledge RSA key exchange. Group management with member-level access control.
 - **Access Center** — Unified owner surface for all outbound access: file share links, folder share links, and drop routes, filtered by status.
+- **Skin** — Six built-in interface skins (QuantiX, Light, Dark, Cyberpunk, Elegant, Business) selectable per user. Default is the dark neon QuantiX aesthetic. Preference persisted in `localStorage`.
 - **Delegate** — Per-user Agent API Keys with granular scopes (`files:list`, `files:read_metadata`, `activity:read`, etc.), last-used tracking, and full revocability for AI agents and external systems.
 - **Audit** — Filterable audit log with CSV/JSON export; governance settings for retention, stale-link auto-expiry, and failed-access alerting.
 - **Control** — Stable `/api/v1/` surface, short-lived JWTs with refresh flow, per-route rate limiting, and one-time SSE tickets.
@@ -283,6 +284,48 @@ Use the **Filemon operator** in Settings > Advanced to test a key interactively:
 
 ---
 
+## Theming & Skins
+
+QuantiX Drive ships six built-in interface skins. The default is **QuantiX** — a dark neon aesthetic matching the quantixmexico.net landing page.
+
+### Available skins
+
+| Skin | Background | Primary accent | Mode |
+|------|-----------|---------------|------|
+| **QuantiX** (default) | `#0a0a1a` deep navy | `#01fff7` cyan + `#ea12ff` magenta | Dark |
+| **Light** | `#faf8f5` warm cream | `#7d4f50` burgundy | Light |
+| **Dark** | `#1e2330` slate | `#c4999b` light burgundy | Dark |
+| **Cyberpunk** | `#0d0d0d` near-black | `#f0ff00` neon yellow + `#ff0090` hot pink | Dark |
+| **Elegant** | `#1a1208` deep warm dark | `#b8860b` gold | Dark (serif headings) |
+| **Business** | `#f8fafc` clean white | `#1e40af` corporate blue | Light |
+
+### How it works
+
+- **CSS custom properties** (`[data-theme="X"]` selectors on `<html>`) override all shadcn/ui tokens, so every component rethemes without code changes.
+- **Dark skins** also add the `.dark` class so Tailwind `dark:` utilities work.
+- **FOUC prevention** — an inline `<script>` in `index.html` sets `data-theme` before React mounts, eliminating the flash of unstyled content.
+- **Preference** is stored in `localStorage` under key `quantixdrive-skin`. Migrates old `vaultdrive-ui-theme` values automatically.
+
+### Changing the skin
+
+Users pick a skin from **Settings → Account → Appearance** (6-swatch visual grid). The nav bar theme-toggle button cycles through all skins and shows a gradient dot matching the active palette.
+
+### QuantiX-specific visuals
+
+- Ambient background orbs: three overlapping `radial-gradient` ellipses (cyan + magenta) with `background-attachment: fixed`, visible through glassmorphic cards.
+- Gradient scrollbar: cyan → magenta (WebKit) + `scrollbar-color` (Firefox).
+- `--glass-border-strong: 1px solid rgba(1, 255, 247, 0.20)` for cyan-tinted glass borders.
+
+### Adding a new skin
+
+1. Add a block `[data-theme="myname"] { ... }` to `vaultdrive_client/src/styles/skins.css` defining all shadcn CSS variables.
+2. Add a `SkinMeta` entry to the `SKINS` array in `src/components/theme-provider.tsx`.
+3. Add `"myname"` to the `VALID` and (if dark) `DARK` arrays in `vaultdrive_client/index.html`.
+
+No component code changes required.
+
+---
+
 ## Upstream / Downstream Model
 
 QuantiX Drive is designed to be deployed two ways:
@@ -324,6 +367,7 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/22_DROP_KEY_RECOVERY.md` | Drop link PIN-based key recovery |
 | `docs/24_SECURITY_GOVERNANCE_PRODUCTIZATION.md` | Audit log, governance settings |
 | `docs/25_QA_SESSION_2026-04-12.md` | Full QA pass log — 38/38 E2E green |
+| `docs/26_SKIN_SYSTEM_2026-04-12.md` | Skin system design, all 6 themes, FOUC fix, verification |
 
 ---
 

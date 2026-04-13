@@ -6,76 +6,10 @@
 
 @import "tailwindcss";
 
+@import "./styles/skins.css";
 @import "./styles/luxury-tokens.css";
 @import "./styles/elegant-complete.css";
 
-@layer base {
-  :root {
-    /* Brand Color Palette - Light Mode */
-    /* Burgundy primary color: #7d4f50 */
-    --background: 36 33% 97%;           /* #faf8f5 - Warm cream/beige */
-    --foreground: 214 15% 29%;          /* #3d4451 - Dark slate text */
-
-    --card: 0 0% 100%;                  /* #ffffff - White cards */
-    --card-foreground: 214 15% 29%;     /* #3d4451 - Dark slate text */
-
-    --popover: 0 0% 100%;               /* #ffffff */
-    --popover-foreground: 214 15% 29%;  /* #3d4451 */
-
-    --primary: 358 24% 40%;             /* #7d4f50 - Primary Burgundy */
-    --primary-foreground: 0 0% 100%;    /* #ffffff */
-
-    --secondary: 36 15% 94%;            /* #f2f0ed - Light warm gray */
-    --secondary-foreground: 214 15% 29%; /* #3d4451 */
-
-    --muted: 36 15% 94%;                /* #f2f0ed */
-    --muted-foreground: 220 9% 46%;     /* #6b7280 - Medium gray */
-
-    --accent: 358 24% 40%;              /* #7d4f50 - Burgundy accent */
-    --accent-foreground: 0 0% 100%;     /* #ffffff */
-
-    --destructive: 0 84% 60%;           /* #ef4444 - Red */
-    --destructive-foreground: 0 0% 100%; /* #ffffff */
-
-    --border: 214 15% 29% / 0.08;       /* #3d4451 with 8% opacity */
-    --input: 0 0% 100%;                 /* #ffffff */
-    --ring: 358 24% 40%;                /* #7d4f50 - Burgundy focus ring */
-
-    --radius: 0.5rem;                   /* 8px border radius */
-  }
-
-  .dark {
-    /* Brand Color Palette - Dark Mode */
-    /* Adapted with Dark backgrounds and lighter burgundy accents */
-    --background: 225 23% 16%;          /* #1e2330 - Dark background */
-    --foreground: 36 15% 94%;           /* #f2f0ed - Light text */
-
-    --card: 225 18% 22%;                /* #2c3240 - Medium dark */
-    --card-foreground: 36 15% 94%;      /* #f2f0ed */
-
-    --popover: 225 18% 22%;             /* #2c3240 */
-    --popover-foreground: 36 15% 94%;   /* #f2f0ed */
-
-    --primary: 357 23% 68%;             /* #c4999b - Lighter burgundy for dark mode */
-    --primary-foreground: 225 23% 16%;  /* #1e2330 - Dark text on light burgundy */
-
-    --secondary: 214 15% 29%;           /* #3d4451 - Dark slate */
-    --secondary-foreground: 36 15% 94%; /* #f2f0ed */
-
-    --muted: 214 15% 29%;               /* #3d4451 */
-    --muted-foreground: 220 9% 46%;     /* #6b7280 */
-
-    --accent: 357 23% 68%;              /* #c4999b - Light burgundy */
-    --accent-foreground: 225 23% 16%;   /* #1e2330 */
-
-    --destructive: 0 84% 60%;           /* #ef4444 */
-    --destructive-foreground: 0 0% 100%; /* #ffffff */
-
-    --border: 0 0% 90% / 0.08;          /* Light border with opacity */
-    --input: 214 15% 29%;               /* #3d4451 */
-    --ring: 357 23% 68%;                /* #c4999b */
-  }
-}
 
 @layer base {
   * {

@@ -18,7 +18,6 @@ import {
   Calendar,
   Lock,
   Key,
-  Sun,
   Moon,
   Fingerprint,
   CheckCircle2,
@@ -27,7 +26,8 @@ import {
   Building2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../components/theme-provider";
+import { useTheme, SKINS } from "../components/theme-provider";
+import { cn } from "../lib/utils";
 import { getPINStatus, setPIN } from "../utils/api";
 import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection";
 import { AgentDeveloperPortalSection } from "../components/settings/AgentDeveloperPortalSection";
@@ -48,7 +48,7 @@ import { branding } from "../config/branding";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
+  const { skin, setSkin } = useTheme();
   const { setCredential } = useSessionVault();
   const [userData] = useState(() => {
     const storedUser = localStorage.getItem("user");
@@ -256,35 +256,64 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {theme === "dark" ? (
-                <Moon className="w-5 h-5" />
-              ) : (
-                <Sun className="w-5 h-5" />
-              )}
+              <span
+                className="w-5 h-5 rounded-full ring-1 ring-border"
+                style={{
+                  background: `linear-gradient(135deg, ${SKINS.find(s => s.id === skin)?.swatchPrimary}, ${SKINS.find(s => s.id === skin)?.swatchAccent})`,
+                }}
+              />
               Appearance
             </CardTitle>
             <CardDescription>
-              Customize your workspace preferences
+              Choose your interface skin
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Theme</Label>
-                <p className="text-sm text-muted-foreground">
-                  Choose between light and dark mode
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sun className="w-4 h-4" />
-                <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) =>
-                    setTheme(checked ? "dark" : "light")
-                  }
-                />
-                <Moon className="w-4 h-4" />
-              </div>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {SKINS.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSkin(s.id)}
+                  aria-pressed={skin === s.id}
+                  className={cn(
+                    "relative rounded-xl border-2 p-3 text-left transition-all duration-200",
+                    "hover:scale-[1.03] hover:-translate-y-0.5",
+                    skin === s.id
+                      ? "border-primary shadow-md"
+                      : "border-border hover:border-primary/40"
+                  )}
+                  style={{ background: s.swatchBg }}
+                >
+                  <div className="flex gap-1.5 mb-2 items-center">
+                    <span
+                      className="w-4 h-4 rounded-full ring-1 ring-white/20 flex-shrink-0"
+                      style={{ background: s.swatchPrimary }}
+                    />
+                    <span
+                      className="w-4 h-4 rounded-full ring-1 ring-white/20 flex-shrink-0"
+                      style={{ background: s.swatchAccent }}
+                    />
+                    {s.isDark && (
+                      <Moon
+                        className="w-3 h-3 ml-auto opacity-60"
+                        style={{ color: s.swatchPrimary }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className="text-xs font-semibold tracking-wide"
+                    style={{ color: s.isDark ? "#ffffff" : "#1a1a1a" }}
+                  >
+                    {s.label}
+                  </span>
+                  {skin === s.id && (
+                    <CheckCircle2
+                      className="absolute top-1.5 right-1.5 w-4 h-4"
+                      style={{ color: s.swatchPrimary }}
+                    />
+                  )}
+                </button>
+              ))}
             </div>
           </CardContent>
         </Card>

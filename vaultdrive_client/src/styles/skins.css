@@ -1,0 +1,320 @@
+/* ──────────────────────────────────────────────────────────────────
+   QuantiX Drive — Skin System
+   Each [data-theme="X"] block overrides all shadcn CSS variables.
+   Dark skins also get .dark on <html> via ThemeProvider.
+   ────────────────────────────────────────────────────────────────── */
+
+/* ── 1. QuantiX (default) — dark neon, matches quantixmexico.net ── */
+[data-theme="quantix"] {
+  --background:             240 44% 7%;    /* #0a0a1a deep navy-black */
+  --foreground:             0 0% 95%;      /* #f2f2f2 */
+
+  --card:                   240 35% 11%;   /* slightly lighter navy */
+  --card-foreground:        0 0% 95%;
+
+  --popover:                240 35% 11%;
+  --popover-foreground:     0 0% 95%;
+
+  --primary:                178 100% 50%;  /* #01fff7 cyan */
+  --primary-foreground:     240 44% 7%;    /* dark on cyan */
+
+  --secondary:              295 94% 54%;   /* #ea12ff magenta */
+  --secondary-foreground:   0 0% 100%;
+
+  --muted:                  240 30% 15%;
+  --muted-foreground:       220 15% 55%;
+
+  --accent:                 295 94% 54%;   /* magenta */
+  --accent-foreground:      0 0% 100%;
+
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 240 35% 20%;
+  --input:                  240 30% 15%;
+  --ring:                   178 100% 50%;
+
+  --radius:                 0.5rem;
+
+  /* Luxury token overrides */
+  --glass-bg:               rgba(255, 255, 255, 0.04);
+  --glass-bg-hover:         rgba(255, 255, 255, 0.08);
+  --glass-bg-heavy:         rgba(255, 255, 255, 0.07);
+  --glass-bg-subtle:        rgba(255, 255, 255, 0.02);
+  --glass-border:           1px solid rgba(255, 255, 255, 0.10);
+  --glass-border-subtle:    1px solid rgba(255, 255, 255, 0.06);
+  --glass-border-strong:    1px solid rgba(1, 255, 247, 0.20);
+  --glass-blur-md:          blur(24px);
+  --glass-blur-lg:          blur(32px);
+
+  --shadow-glow-primary:    0 0 30px rgba(1, 255, 247, 0.40);
+  --shadow-glow-accent:     0 0 30px rgba(234, 18, 255, 0.35);
+
+  --gradient-page:
+    linear-gradient(180deg, hsl(240 44% 7%) 0%, hsl(240 40% 8%) 100%);
+
+  scrollbar-color: #01fff7 hsl(240 44% 7%);
+
+  --font-display: "Inter", -apple-system, sans-serif;
+}
+
+/* QuantiX ambient orbs baked into body background */
+[data-theme="quantix"] body {
+  background-image:
+    radial-gradient(ellipse 80vw 70vh at   5%   5%, rgba(  1, 255, 247, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 70vw 60vh at  95%  95%, rgba(234,  18, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50vw 40vh at  70%  15%, rgba(234,  18, 255, 0.04) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* QuantiX custom scrollbar */
+[data-theme="quantix"] ::-webkit-scrollbar         { width: 6px; height: 6px; }
+[data-theme="quantix"] ::-webkit-scrollbar-track   { background: hsl(240 44% 7%); }
+[data-theme="quantix"] ::-webkit-scrollbar-thumb   {
+  background: linear-gradient(180deg, #01fff7 0%, #ea12ff 100%);
+  border-radius: 9999px;
+}
+
+/* ── 2. Light ─────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --background:             36 33% 97%;    /* #faf8f5 warm cream */
+  --foreground:             214 15% 29%;   /* #3d4451 dark slate */
+
+  --card:                   0 0% 100%;
+  --card-foreground:        214 15% 29%;
+
+  --popover:                0 0% 100%;
+  --popover-foreground:     214 15% 29%;
+
+  --primary:                358 24% 40%;   /* #7d4f50 burgundy */
+  --primary-foreground:     0 0% 100%;
+
+  --secondary:              36 15% 94%;
+  --secondary-foreground:   214 15% 29%;
+
+  --muted:                  36 15% 94%;
+  --muted-foreground:       220 9% 46%;
+
+  --accent:                 358 24% 40%;
+  --accent-foreground:      0 0% 100%;
+
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 214 15% 29% / 0.08;
+  --input:                  0 0% 100%;
+  --ring:                   358 24% 40%;
+
+  --radius:                 0.5rem;
+
+  --glass-bg:               rgba(255, 255, 255, 0.72);
+  --glass-border:           1px solid rgba(255, 255, 255, 0.55);
+  --gradient-page:          linear-gradient(180deg, #fdfcfb 0%, #faf8f5 100%);
+}
+
+/* ── 3. Dark ──────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --background:             225 23% 16%;   /* #1e2330 */
+  --foreground:             36 15% 94%;    /* #f2f0ed */
+
+  --card:                   225 18% 22%;   /* #2c3240 */
+  --card-foreground:        36 15% 94%;
+
+  --popover:                225 18% 22%;
+  --popover-foreground:     36 15% 94%;
+
+  --primary:                357 23% 68%;   /* #c4999b light burgundy */
+  --primary-foreground:     225 23% 16%;
+
+  --secondary:              214 15% 29%;
+  --secondary-foreground:   36 15% 94%;
+
+  --muted:                  214 15% 29%;
+  --muted-foreground:       220 9% 46%;
+
+  --accent:                 357 23% 68%;
+  --accent-foreground:      225 23% 16%;
+
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 0 0% 90% / 0.08;
+  --input:                  214 15% 29%;
+  --ring:                   357 23% 68%;
+
+  --radius:                 0.5rem;
+
+  --glass-bg:               rgba(44, 50, 64, 0.65);
+  --glass-border:           1px solid rgba(255, 255, 255, 0.10);
+  --gradient-page:          linear-gradient(180deg, #1e2330 0%, #181d2a 100%);
+}
+
+/* ── 4. Cyberpunk ─────────────────────────────────────────────────── */
+[data-theme="cyberpunk"] {
+  --background:             0 0% 5%;       /* #0d0d0d near-black */
+  --foreground:             0 0% 96%;
+
+  --card:                   0 0% 9%;
+  --card-foreground:        0 0% 96%;
+
+  --popover:                0 0% 9%;
+  --popover-foreground:     0 0% 96%;
+
+  --primary:                66 100% 50%;   /* #f0ff00 neon yellow */
+  --primary-foreground:     0 0% 5%;
+
+  --secondary:              322 100% 50%;  /* #ff0090 hot pink */
+  --secondary-foreground:   0 0% 100%;
+
+  --muted:                  0 0% 12%;
+  --muted-foreground:       0 0% 55%;
+
+  --accent:                 322 100% 50%;
+  --accent-foreground:      0 0% 100%;
+
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 66 100% 50% / 0.15;
+  --input:                  0 0% 12%;
+  --ring:                   66 100% 50%;
+
+  --radius:                 0.125rem;      /* sharp corners — cyberpunk */
+
+  --glass-bg:               rgba(255, 255, 255, 0.03);
+  --glass-bg-hover:         rgba(255, 255, 255, 0.06);
+  --glass-border:           1px solid rgba(240, 255, 0, 0.15);
+  --glass-border-strong:    1px solid rgba(240, 255, 0, 0.30);
+  --shadow-glow-primary:    0 0 20px rgba(240, 255, 0, 0.50);
+  --shadow-glow-accent:     0 0 20px rgba(255, 0, 144, 0.45);
+  --gradient-page:          linear-gradient(180deg, #0d0d0d 0%, #111108 100%);
+
+  scrollbar-color: #f0ff00 #0d0d0d;
+  --font-display: "Inter", monospace;
+}
+
+[data-theme="cyberpunk"] body {
+  background-image:
+    radial-gradient(ellipse 70vw 60vh at   5%   5%, rgba(240, 255,   0, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(255,   0, 144, 0.06) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+[data-theme="cyberpunk"] ::-webkit-scrollbar         { width: 6px; height: 6px; }
+[data-theme="cyberpunk"] ::-webkit-scrollbar-track   { background: #0d0d0d; }
+[data-theme="cyberpunk"] ::-webkit-scrollbar-thumb   {
+  background: linear-gradient(180deg, #f0ff00 0%, #ff0090 100%);
+  border-radius: 0;
+}
+
+/* ── 5. Elegant ───────────────────────────────────────────────────── */
+[data-theme="elegant"] {
+  --background:             35 50% 7%;     /* #1a1208 deep warm dark */
+  --foreground:             40 25% 90%;    /* warm off-white */
+
+  --card:                   35 40% 11%;
+  --card-foreground:        40 25% 90%;
+
+  --popover:                35 40% 11%;
+  --popover-foreground:     40 25% 90%;
+
+  --primary:                43 87% 38%;    /* #b8860b gold */
+  --primary-foreground:     35 50% 7%;
+
+  --secondary:              35 30% 18%;
+  --secondary-foreground:   40 25% 90%;
+
+  --muted:                  35 30% 15%;
+  --muted-foreground:       40 15% 55%;
+
+  --accent:                 41 80% 47%;    /* #d4a017 lighter gold */
+  --accent-foreground:      35 50% 7%;
+
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 43 87% 38% / 0.20;
+  --input:                  35 30% 15%;
+  --ring:                   43 87% 38%;
+
+  --radius:                 0.375rem;
+
+  --glass-bg:               rgba(184, 134, 11, 0.06);
+  --glass-bg-hover:         rgba(184, 134, 11, 0.10);
+  --glass-border:           1px solid rgba(184, 134, 11, 0.20);
+  --glass-border-strong:    1px solid rgba(212, 160, 23, 0.35);
+  --shadow-glow-primary:    0 0 20px rgba(184, 134, 11, 0.35);
+  --gradient-page:          linear-gradient(180deg, #1a1208 0%, #1e1609 100%);
+
+  scrollbar-color: #b8860b #1a1208;
+  --font-display: "Libre Baskerville", Baskerville, Georgia, serif;
+}
+
+[data-theme="elegant"] body {
+  background-image:
+    radial-gradient(ellipse 70vw 60vh at   5%   5%, rgba(184, 134,  11, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(139,  90,  43, 0.06) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+[data-theme="elegant"] ::-webkit-scrollbar         { width: 6px; height: 6px; }
+[data-theme="elegant"] ::-webkit-scrollbar-track   { background: #1a1208; }
+[data-theme="elegant"] ::-webkit-scrollbar-thumb   {
+  background: linear-gradient(180deg, #b8860b 0%, #d4a017 100%);
+  border-radius: 9999px;
+}
+
+/* ── 6. Business ──────────────────────────────────────────────────── */
+[data-theme="business"] {
+  --background:             210 40% 98%;   /* #f8fafc clean white-blue */
+  --foreground:             222 47% 11%;   /* #0f172a near-black */
+
+  --card:                   0 0% 100%;
+  --card-foreground:        222 47% 11%;
+
+  --popover:                0 0% 100%;
+  --popover-foreground:     222 47% 11%;
+
+  --primary:                224 71% 40%;   /* #1e40af corporate blue */
+  --primary-foreground:     0 0% 100%;
+
+  --secondary:              214 32% 91%;   /* light blue-gray */
+  --secondary-foreground:   222 47% 11%;
+
+  --muted:                  214 32% 91%;
+  --muted-foreground:       215 16% 47%;   /* #64748b */
+
+  --accent:                 213 94% 68%;   /* #3b82f6 */
+  --accent-foreground:      0 0% 100%;
+
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 214 32% 91%;
+  --input:                  0 0% 100%;
+  --ring:                   224 71% 40%;
+
+  --radius:                 0.5rem;
+
+  --glass-bg:               rgba(255, 255, 255, 0.85);
+  --glass-border:           1px solid rgba(30, 64, 175, 0.12);
+  --gradient-page:          linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+
+  scrollbar-color: #1e40af #f8fafc;
+}
+
+[data-theme="business"] ::-webkit-scrollbar         { width: 6px; height: 6px; }
+[data-theme="business"] ::-webkit-scrollbar-track   { background: #f8fafc; }
+[data-theme="business"] ::-webkit-scrollbar-thumb   {
+  background: linear-gradient(180deg, #1e40af 0%, #3b82f6 100%);
+  border-radius: 9999px;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="quantix"] body,
+  [data-theme="cyberpunk"] body,
+  [data-theme="elegant"] body {
+    background-attachment: scroll;
+  }
+}

@@ -11,6 +11,20 @@
 </head>
 
 <body>
+  <!-- Skin bootstrap: sets data-theme before React mounts to prevent FOUC -->
+  <script>
+    (function () {
+      var VALID = ["quantix", "light", "dark", "cyberpunk", "elegant", "business"];
+      var DARK  = ["quantix", "dark", "cyberpunk", "elegant"];
+      var skin  = localStorage.getItem("quantixdrive-skin");
+      if (!skin || VALID.indexOf(skin) < 0) {
+        var legacy = localStorage.getItem("vaultdrive-ui-theme");
+        skin = legacy === "dark" ? "dark" : legacy === "light" ? "light" : "quantix";
+      }
+      document.documentElement.setAttribute("data-theme", skin);
+      if (DARK.indexOf(skin) >= 0) document.documentElement.classList.add("dark");
+    })();
+  </script>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>

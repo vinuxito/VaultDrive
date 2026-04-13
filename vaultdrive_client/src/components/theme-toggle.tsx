@@ -1,19 +1,30 @@
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "./theme-provider";
+import { SKINS, useTheme } from "./theme-provider";
 import { Button } from "./ui/button";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { skin, setSkin } = useTheme();
+  const meta = SKINS.find((s) => s.id === skin)!;
 
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+  const cycleNext = () => {
+    const idx = SKINS.findIndex((s) => s.id === skin);
+    setSkin(SKINS[(idx + 1) % SKINS.length].id);
   };
 
-  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-
   return (
-    <Button variant="outline" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-      {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={cycleNext}
+      aria-label={`Current skin: ${meta.label}. Click to cycle.`}
+      title={meta.label}
+    >
+      <span
+        style={{
+          background: `linear-gradient(135deg, ${meta.swatchPrimary}, ${meta.swatchAccent})`,
+          boxShadow: `0 0 6px ${meta.swatchPrimary}55`,
+        }}
+        className="w-3.5 h-3.5 rounded-full"
+      />
     </Button>
   );
 }
