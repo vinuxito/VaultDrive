@@ -15,7 +15,7 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 - **Collect** — Public drop portals with required-document checklists, reusable collection templates, and intake analytics. File Requests for per-recipient secure intake.
 - **Collaborate** — Share files and folders with users and groups via zero-knowledge RSA key exchange. Group management with member-level access control.
 - **Access Center** — Unified owner surface for all outbound access: file share links, folder share links, and drop routes, filtered by status.
-- **Skin** — Six built-in interface skins (QuantiX, Light, Dark, Cyberpunk, Elegant, Business) selectable per user. Default is the dark neon QuantiX aesthetic. Preference persisted in `localStorage`.
+- **Skin** — Six built-in interface skins (QuantiX, Light, Dark, Cyberpunk, Elegant, Business) selectable per user. Default is the dark neon QuantiX aesthetic. All UI elements (buttons, borders, panels, dropdowns, shadows) are fully theme-aware via CSS custom properties — no hardcoded hex anywhere. Preference persisted in `localStorage`.
 - **Delegate** — Per-user Agent API Keys with granular scopes (`files:list`, `files:read_metadata`, `activity:read`, etc.), last-used tracking, and full revocability for AI agents and external systems.
 - **Audit** — Filterable audit log with CSV/JSON export; governance settings for retention, stale-link auto-expiry, and failed-access alerting.
 - **Control** — Stable `/api/v1/` surface, short-lived JWTs with refresh flow, per-route rate limiting, and one-time SSE tickets.
@@ -39,8 +39,8 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
                                     └─────────────────────┘
 ```
 
-- **Backend** — Go 1.24 HTTP server in a single binary. JWT auth, per-user RSA key envelopes, pg_trgm search, per-route rate limiting, SSE ticketing.
-- **Frontend** — React + TypeScript + Vite SPA. All crypto in-browser via Web Crypto API; backend never sees plaintext keys or file content.
+- **Backend** — Go 1.24 HTTP server in a single binary. JWT auth, per-user RSA key envelopes, pg_trgm search, per-route rate limiting, SSE ticketing. `DB_URL` and `JWT_SECRET` validated at startup with explicit fatal errors.
+- **Frontend** — React 18 + TypeScript + Vite SPA. All crypto in-browser via Web Crypto API; backend never sees plaintext keys or file content. Styled with Tailwind CSS v4 + shadcn/ui, fully themed via CSS custom properties (`[data-theme]` on `<html>`).
 - **Database** — PostgreSQL 16, schema managed by [goose](https://github.com/pressly/goose) migrations in `sql/schema/` (44 migrations as of 2026-04-12).
 - **Deployment** — Multi-stage Dockerfile produces a single static binary with embedded frontend assets. CI publishes OCI images to GHCR.
 
@@ -303,6 +303,7 @@ QuantiX Drive ships six built-in interface skins. The default is **QuantiX** —
 
 - **CSS custom properties** (`[data-theme="X"]` selectors on `<html>`) override all shadcn/ui tokens, so every component rethemes without code changes.
 - **Dark skins** also add the `.dark` class so Tailwind `dark:` utilities work.
+- **Full color consistency** — all 70+ component and page files use semantic Tailwind classes (`bg-primary`, `border-border`, `bg-card`, `bg-muted`, `bg-popover`, `text-muted-foreground`) rather than hardcoded hex values. No `bg-[#hex]` arbitrary values in application code.
 - **FOUC prevention** — an inline `<script>` in `index.html` sets `data-theme` before React mounts, eliminating the flash of unstyled content.
 - **Preference** is stored in `localStorage` under key `quantixdrive-skin`. Migrates old `vaultdrive-ui-theme` values automatically.
 
@@ -368,6 +369,7 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/24_SECURITY_GOVERNANCE_PRODUCTIZATION.md` | Audit log, governance settings |
 | `docs/25_QA_SESSION_2026-04-12.md` | Full QA pass log — 38/38 E2E green |
 | `docs/26_SKIN_SYSTEM_2026-04-12.md` | Skin system design, all 6 themes, FOUC fix, verification |
+| `docs/27_THEME_COLOR_CONSISTENCY_2026-04-12.md` | Full color consistency fix — 70 files, 3 Python scripts, replacement map, main.go panic fix |
 
 ---
 

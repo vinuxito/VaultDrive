@@ -402,7 +402,7 @@ export default function Admin() {
           </button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-sm text-gray-600 hover:text-gray-800 ml-auto"
+            className="text-sm text-muted-foreground hover:text-foreground ml-auto"
           >
             Clear selection
           </button>
@@ -410,39 +410,39 @@ export default function Admin() {
       )}
 
       <div className="bg-card rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
               <th className="px-4 py-3 w-10">
                 <input
                   type="checkbox"
                   checked={allSelectableSelected}
                   onChange={toggleSelectAll}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                   title="Select all"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Username
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Role
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Joined
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {users.map((user) => {
               const isSelf = user.id === currentUser?.id;
               const isSelected = selected.has(user.id);
@@ -459,20 +459,20 @@ export default function Admin() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(user.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-foreground">
                       {user.first_name} {user.last_name}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.username}</div>
+                    <div className="text-sm text-muted-foreground">{user.username}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.email}</div>
+                    <div className="text-sm text-muted-foreground">{user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {user.is_admin ? (
@@ -496,7 +496,7 @@ export default function Admin() {
                     ) : (
                       <button
                         onClick={() => handleToggleAdmin(user)}
-                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 cursor-pointer"
+                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-muted text-muted-foreground hover:bg-muted cursor-pointer"
                         title="Click to grant admin"
                       >
                         <ShieldOff className="h-3 w-3 mr-1 mt-0.5" />
@@ -504,7 +504,7 @@ export default function Admin() {
                       </button>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -581,7 +581,7 @@ export default function Admin() {
                   setNewUser(emptyNewUser);
                   setError("");
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -594,7 +594,7 @@ export default function Admin() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     First Name
                   </label>
                   <input
@@ -603,11 +603,11 @@ export default function Admin() {
                     onChange={(e) =>
                       setNewUser({ ...newUser, first_name: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-border rounded-md"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Last Name
                   </label>
                   <input
@@ -616,12 +616,12 @@ export default function Admin() {
                     onChange={(e) =>
                       setNewUser({ ...newUser, last_name: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-border rounded-md"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Username
                 </label>
                 <input
@@ -630,11 +630,11 @@ export default function Admin() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, username: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Email
                 </label>
                 <input
@@ -643,11 +643,11 @@ export default function Admin() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Password
                 </label>
                 <input
@@ -656,7 +656,7 @@ export default function Admin() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, password: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                   placeholder="Min. 6 characters"
                 />
               </div>
@@ -680,14 +680,14 @@ export default function Admin() {
               <h2 className="text-xl font-bold">Edit User</h2>
               <button
                 onClick={() => setEditingUser(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   First Name
                 </label>
                 <input
@@ -699,11 +699,11 @@ export default function Admin() {
                       first_name: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Last Name
                 </label>
                 <input
@@ -715,11 +715,11 @@ export default function Admin() {
                       last_name: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Username
                 </label>
                 <input
@@ -731,11 +731,11 @@ export default function Admin() {
                       username: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Email
                 </label>
                 <input
@@ -744,7 +744,7 @@ export default function Admin() {
                   onChange={(e) =>
                     setEditingUser({ ...editingUser, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <button
@@ -770,21 +770,21 @@ export default function Admin() {
                   setResetPasswordUser(null);
                   setNewPassword("");
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   New Password
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                   placeholder="Enter new password"
                 />
               </div>
