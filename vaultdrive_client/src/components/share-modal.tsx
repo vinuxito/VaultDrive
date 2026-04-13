@@ -251,7 +251,7 @@ export default function ShareModal({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -283,7 +283,7 @@ export default function ShareModal({
                 }}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   tab === t
-                    ? "bg-white text-[#7d4f50]"
+                    ? "bg-white text-primary"
                     : "text-white/70 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -444,7 +444,7 @@ export default function ShareModal({
               <Button
                 onClick={handleShare}
                  disabled={!recipient || sharing || (!hasCachedCred && (credentialMode === "pin" ? !pinInput : !passwordInput))}
-                 className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                 className="bg-white text-primary hover:bg-primary/10 font-semibold"
                >
                 {sharing ? (
                   <span className="flex items-center gap-2">

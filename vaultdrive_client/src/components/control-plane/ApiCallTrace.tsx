@@ -12,10 +12,10 @@ export function ApiCallTrace({ method, path, scope, note }: ApiCallTraceProps) {
         Underlying API call
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[#6b4345]">
+        <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-bold text-primary/90">
           {method}
         </span>
-        <code className="rounded-md bg-[#2a1f1f] px-2 py-1 text-[11px] text-[#f7ecec]">
+        <code className="rounded-md bg-card px-2 py-1 text-[11px] text-[#f7ecec]">
           {`${method} ${path}`}
         </code>
         {scope ? (

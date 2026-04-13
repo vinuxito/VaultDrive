@@ -138,7 +138,7 @@ function FolderTreeNode({
                 key={file.id}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors group"
               >
-                <FileIcon className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                <FileIcon className="w-4 h-4 text-primary-foreground shrink-0" />
                 <span className="flex-1 text-sm text-white/80 truncate" title={file.filename}>
                   {file.filename}
                 </span>
@@ -453,7 +453,7 @@ export default function PublicFolderSharePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#2a1f1f] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-card flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-4">
         <div className="text-center mb-2">
           <div className="flex justify-center mb-3">
@@ -463,10 +463,10 @@ export default function PublicFolderSharePage() {
           <p className="text-white/70 text-sm">Secure Folder Share</p>
         </div>
 
-        <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] rounded-2xl shadow-2xl border border-white/10 p-6 text-white">
+        <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl shadow-2xl border border-white/10 p-6 text-white">
           {state === "loading" && (
             <div className="flex flex-col items-center gap-4 py-4">
-              <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
               <p className="text-white/85">Verifying folder share link…</p>
             </div>
           )}
@@ -507,7 +507,7 @@ export default function PublicFolderSharePage() {
               )}
 
               <div className="flex items-center gap-2 px-3 py-2.5 bg-white/5 rounded-lg border border-white/10">
-                <Shield className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                <Shield className="w-4 h-4 text-primary-foreground shrink-0" />
                 <p className="text-xs text-white/80">
                   End-to-end encrypted · Keys never leave your browser
                 </p>
@@ -516,7 +516,7 @@ export default function PublicFolderSharePage() {
               {ownedLink && (
                 <div className="rounded-xl border border-white/10 bg-white/6 px-4 py-3 space-y-3">
                   <div className="flex items-start gap-3">
-                    <RefreshCw className="w-4 h-4 mt-0.5 text-[#f2d7d8] shrink-0" />
+                    <RefreshCw className="w-4 h-4 mt-0.5 text-primary-foreground shrink-0" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-white">Owner tools</p>
                       <p className="text-xs text-white/70">
@@ -551,7 +551,7 @@ export default function PublicFolderSharePage() {
                         type="button"
                         onClick={() => void handleRepairLink()}
                         disabled={repairing || (!sessionVault.getCredential() && !ownerCredentialInput.trim())}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-white text-[#6b4345] font-semibold px-4 py-2 hover:bg-[#f2d7d8] transition-colors disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-white text-primary/90 font-semibold px-4 py-2 hover:bg-primary/10 transition-colors disabled:opacity-60"
                       >
                         {repairing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                         {repairing ? "Repairing…" : getFolderShareRepairLabel(ownedLink)}
@@ -577,7 +577,7 @@ export default function PublicFolderSharePage() {
               <button
                 type="button"
                 onClick={() => void handleDownloadAll()}
-                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-white text-[#6b4345] font-semibold rounded-xl hover:bg-[#f2d7d8] transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-white text-primary/90 font-semibold rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 <Package className="w-5 h-5" />
                 Download All as ZIP
@@ -587,7 +587,7 @@ export default function PublicFolderSharePage() {
 
           {state === "downloading" && (
             <div className="flex flex-col items-center gap-4 py-4 text-center">
-              <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
               <div>
                 <p className="text-white/80 font-medium">
                   {zipProgress.total > 0
@@ -601,7 +601,7 @@ export default function PublicFolderSharePage() {
               {zipProgress.total > 0 && (
                 <div className="w-full bg-white/10 rounded-full h-1.5">
                   <div
-                    className="bg-[#f2d7d8] h-1.5 rounded-full transition-all"
+                    className="bg-primary/10 h-1.5 rounded-full transition-all"
                     style={{ width: `${Math.round((zipProgress.current / zipProgress.total) * 100)}%` }}
                   />
                 </div>

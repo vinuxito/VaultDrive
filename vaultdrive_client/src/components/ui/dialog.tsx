@@ -4,7 +4,7 @@ export const Dialog: React.FC<{ open: boolean; onOpenChange: (open: boolean) => 
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={() => onOpenChange(false)}>
-      <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] rounded-lg shadow-lg p-6 w-full max-w-md border border-white/10 text-white" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-gradient-to-br from-primary to-primary/90 rounded-lg shadow-lg p-6 w-full max-w-md border border-white/10 text-white" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>

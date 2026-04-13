@@ -72,7 +72,7 @@ function formatRelativeTime(dateStr: string): string {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/60 p-5 animate-pulse">
+    <div className="rounded-2xl border border-primary/10 bg-white/60 p-5 animate-pulse">
       <div className="flex items-center justify-between mb-4">
         <div className="w-10 h-10 rounded-xl bg-slate-200" />
         <div className="w-8 h-4 rounded bg-slate-200" />
@@ -157,8 +157,8 @@ export default function Dashboard() {
       label: "Total Files",
       value: stats.files,
       icon: Files,
-      color: "text-[#7d4f50]",
-      bg: "bg-[#f2d7d8]",
+      color: "text-primary",
+      bg: "bg-primary/10",
     },
     {
       label: "Active Links",
@@ -188,7 +188,7 @@ export default function Dashboard() {
       label: "Upload File",
       description: "Add encrypted files to your vault",
       icon: Upload,
-      color: "bg-[#7d4f50] hover:bg-[#6b4345] text-white",
+      color: "bg-primary hover:bg-primary/90 text-white",
       onClick: () => navigate("/files"),
     },
     {
@@ -214,7 +214,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
             Good {getGreeting()}, {firstName}.
           </h1>
-          <p className="text-slate-500 flex items-center gap-1.5 text-sm">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <Shield className="w-4 h-4 text-emerald-500" />
             Your vault is secure.
           </p>
@@ -225,12 +225,12 @@ export default function Dashboard() {
             <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
               Attention
             </h2>
-            <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm p-5">
+            <div className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5">
               {posture.attention_count === 0 ? (
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-slate-700">Everything looks healthy</p>
+                    <p className="text-sm font-medium text-foreground">Everything looks healthy</p>
                     <p className="text-xs text-slate-400 mt-0.5">No active links expiring soon, no stale shares</p>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                    <p className="text-sm font-medium text-slate-700">{posture.attention_count} item{posture.attention_count > 1 ? "s" : ""} need attention</p>
+                    <p className="text-sm font-medium text-foreground">{posture.attention_count} item{posture.attention_count > 1 ? "s" : ""} need attention</p>
                   </div>
                   {posture.expiring_tokens.map((t) => (
                     <div key={t.id} className="flex items-start gap-2 pl-6">
@@ -249,7 +249,7 @@ export default function Dashboard() {
                   ))}
                   {posture.stale_links.map((l) => (
                     <div key={l.id} className="flex items-start gap-2 pl-6">
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         Share link {l.token.slice(0, 8)}… was created {formatRelativeTime(l.created_at)} and has never been accessed
                       </p>
                     </div>
@@ -270,7 +270,7 @@ export default function Dashboard() {
               : statCards.map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-[#7d4f50]/5 transition-all duration-200 cursor-default"
+                    className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 cursor-default"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center`}>
@@ -280,7 +280,7 @@ export default function Dashboard() {
                     <p className="text-3xl font-bold text-slate-900">
                       {card.value ?? "—"}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1 font-medium">{card.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium">{card.label}</p>
                   </div>
                 ))}
           </div>
@@ -310,7 +310,7 @@ export default function Dashboard() {
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
             Activity
           </h2>
-          <div className="rounded-2xl border border-[#7d4f50]/10 bg-white/70 backdrop-blur-sm overflow-hidden">
+          <div className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm overflow-hidden">
             {activityLoading ? (
               <div className="divide-y divide-slate-100">
                 {["a1","a2","a3"].map((k) => (
@@ -329,16 +329,16 @@ export default function Dashboard() {
                   <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
                     <Activity className="w-5 h-5 text-slate-400" />
                   </div>
-                  <p className="text-sm font-medium text-slate-700 mb-4">Get started with your vault</p>
+                  <p className="text-sm font-medium text-foreground mb-4">Get started with your vault</p>
                   <div className="w-full max-w-xs space-y-2 text-left">
                     {[
                       { step: "1", text: "Upload a file to your vault" },
                       { step: "2", text: "Create a client upload link" },
                       { step: "3", text: "Share a file with a colleague" },
                     ].map(({ step, text }) => (
-                      <div key={step} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                        <span className="w-6 h-6 rounded-full bg-[#f2d7d8] text-[#7d4f50] text-xs font-semibold flex items-center justify-center shrink-0">{step}</span>
-                        <p className="text-xs text-slate-600">{text}</p>
+                      <div key={step} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted border border-slate-100">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center shrink-0">{step}</span>
+                        <p className="text-xs text-muted-foreground">{text}</p>
                       </div>
                     ))}
                   </div>
@@ -348,7 +348,7 @@ export default function Dashboard() {
                   <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
                     <Clock className="w-5 h-5 text-slate-400" />
                   </div>
-                  <p className="text-sm font-medium text-slate-600">No activity yet</p>
+                  <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
                   <p className="text-xs text-slate-400 mt-1">Upload or share a file to begin.</p>
                 </div>
               )
@@ -358,9 +358,9 @@ export default function Dashboard() {
                   const IconComp = getActivityIcon(item.event_type);
                   const timestamp = item.created_at || item.timestamp || "";
                   return (
-                    <div key={item.id} className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50/60 transition-colors">
-                      <div className="w-8 h-8 rounded-lg bg-[#f2d7d8] flex items-center justify-center shrink-0">
-                        <IconComp className="w-4 h-4 text-[#7d4f50]" />
+                    <div key={item.id} className="flex items-center gap-3 px-5 py-4 hover:bg-muted/60 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <IconComp className="w-4 h-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-slate-800 truncate">

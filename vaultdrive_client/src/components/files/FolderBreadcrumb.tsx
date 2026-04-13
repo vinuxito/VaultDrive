@@ -46,7 +46,7 @@ export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
         size="sm"
         onClick={() => onNavigate(null)}
         className={`gap-1 h-8 px-2 ${
-          !currentFolderId ? "text-[#7d4f50]" : "text-muted-foreground hover:text-foreground"
+          !currentFolderId ? "text-primary" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         <Home className="w-4 h-4" />
@@ -64,7 +64,7 @@ export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
               size="sm"
               onClick={() => onNavigate(folder.id)}
               className={`h-8 px-2 ${
-                isLast ? "text-[#7d4f50] font-medium" : "text-muted-foreground hover:text-foreground"
+                isLast ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
               }`}
               disabled={isLast}
             >

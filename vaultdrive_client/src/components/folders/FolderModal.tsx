@@ -77,11 +77,11 @@ export default function FolderModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-4"
+            className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-4"
           >
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Folder className="h-5 w-5 text-[#f2d7d8]" />
+                <Folder className="h-5 w-5 text-primary-foreground" />
                 <h2 className="text-xl font-semibold text-white">{getTitle()}</h2>
               </div>
               <button
@@ -112,9 +112,9 @@ export default function FolderModal({
                 </div>
 
                 {error && (
-                  <div className="flex items-start gap-2 p-3 bg-[#6b4345]/30 border border-[#d4a5a6]/40 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-[#d4a5a6] flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-[#f2d7d8]">{error}</p>
+                  <div className="flex items-start gap-2 p-3 bg-primary/20 border border-primary/30 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-primary/60 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-primary-foreground">{error}</p>
                   </div>
                 )}
 
@@ -131,7 +131,7 @@ export default function FolderModal({
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                    className="bg-white text-primary hover:bg-primary/10 font-semibold"
                   >
                     {loading ? (
                       <>

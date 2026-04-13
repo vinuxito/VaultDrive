@@ -127,11 +127,11 @@ export function UpdateFolderShareLinkModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-2xl mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+      <Card className="w-full max-w-2xl mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
         <CardHeader className="border-b border-white/10">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
-              <RefreshCw className="w-5 h-5 text-[#f2d7d8]" />
+              <RefreshCw className="w-5 h-5 text-primary-foreground" />
               Update Shared Link
             </CardTitle>
             <button
@@ -179,7 +179,7 @@ export function UpdateFolderShareLinkModal({
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 text-sm font-medium text-white/90">
-                          <FolderOpen className="w-4 h-4 text-[#f2d7d8]" />
+                          <FolderOpen className="w-4 h-4 text-primary-foreground" />
                           <span className="truncate">{link.token.slice(0, 12)}…</span>
                         </div>
                         <div className="text-xs text-white/60">
@@ -193,7 +193,7 @@ export function UpdateFolderShareLinkModal({
                         type="button"
                         onClick={() => void handleSync(link)}
                         disabled={syncingId === link.id || !canSync}
-                        className="bg-white text-[#6b4345] hover:bg-white/90"
+                        className="bg-white text-primary/90 hover:bg-white/90"
                       >
                         {syncingId === link.id ? (
                           <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating…</>

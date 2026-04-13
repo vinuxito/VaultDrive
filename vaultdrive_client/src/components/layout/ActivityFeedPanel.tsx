@@ -34,17 +34,17 @@ export function ActivityFeedPanel({ isOpen, onClose, events }: ActivityFeedPanel
       )}
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-80 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-50 w-80 bg-card border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-[#2a1f1f]">
-          <span className="font-semibold text-[#f2d7d8] text-sm tracking-wide">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-card">
+          <span className="font-semibold text-primary-foreground text-sm tracking-wide">
             Activity Feed
           </span>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[#7d4f50]/40 transition-colors text-[#f2d7d8]"
+            className="p-1 rounded-lg hover:bg-primary/40 transition-colors text-primary-foreground"
             aria-label="Close activity feed"
           >
             <X className="w-4 h-4" />
@@ -59,7 +59,7 @@ export function ActivityFeedPanel({ isOpen, onClose, events }: ActivityFeedPanel
           ) : (
             <ul className="divide-y divide-slate-100">
               {events.map((event) => (
-                <li key={event.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                <li key={event.id} className="flex items-start gap-3 px-4 py-3 hover:bg-muted transition-colors">
                   <div className="mt-0.5">
                     <EventIcon eventType={event.event_type} />
                   </div>

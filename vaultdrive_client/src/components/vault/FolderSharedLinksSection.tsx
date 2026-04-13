@@ -33,7 +33,7 @@ function formatDate(value?: string | null): string {
 
 function getLinkLifecycleStatus(link: SyncableFolderShareLink): { label: string; tone: string; active: boolean } {
   if (!link.is_active) {
-    return { label: "Revoked", tone: "bg-slate-100 text-slate-500", active: false };
+    return { label: "Revoked", tone: "bg-slate-100 text-muted-foreground", active: false };
   }
   if (link.expires_at && new Date(link.expires_at).getTime() <= Date.now()) {
     return { label: "Expired", tone: "bg-amber-100 text-amber-700", active: false };
@@ -230,11 +230,11 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">Shared Links</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Manage every public folder link for <span className="font-medium text-slate-700">{folder.name}</span>.
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage every public folder link for <span className="font-medium text-foreground">{folder.name}</span>.
             </p>
           </div>
-          <Button type="button" onClick={onCreateLink} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white">
+          <Button type="button" onClick={onCreateLink} className="bg-primary hover:bg-primary/90 text-white">
             <Plus className="w-4 h-4 mr-2" />
             Create New Link
           </Button>
@@ -251,23 +251,23 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
 
         {loading ? (
           <Card>
-            <CardContent className="py-12 flex flex-col items-center gap-3 text-slate-500">
+            <CardContent className="py-12 flex flex-col items-center gap-3 text-muted-foreground">
               <Loader2 className="w-6 h-6 animate-spin" />
               <span>Loading shared links…</span>
             </CardContent>
           </Card>
         ) : visibleLinks.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-sm text-slate-500">
+            <CardContent className="py-10 text-sm text-muted-foreground">
               No shared links exist for this folder yet.
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {!sessionVault.getCredential() && (
-              <Card className="border-slate-200/80 shadow-sm">
+              <Card className="border-border/80 shadow-sm">
                 <CardContent className="py-4 space-y-2">
-                  <label htmlFor="folder-share-owner-credential" className="text-sm font-medium text-slate-700">
+                  <label htmlFor="folder-share-owner-credential" className="text-sm font-medium text-foreground">
                     {currentUser?.pin_set ? "Enter your current PIN" : "Enter your current password"}
                   </label>
                   <input
@@ -278,9 +278,9 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                     value={ownerCredentialInput}
                     onChange={(event) => setOwnerCredentialInput(event.target.value)}
                     placeholder={currentUser?.pin_set ? "••••" : "Current password"}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7d4f50]/40 focus:outline-none"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/40 focus:outline-none"
                   />
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Use your current {getFolderShareOwnerCredentialType(currentUser) === "pin" ? "PIN" : "password"} once here, then update or open links from this panel.
                   </p>
                 </CardContent>
@@ -293,15 +293,15 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
               const canSync = status.active && (!needsLegacyUrl || Boolean(legacyUrls[link.id]?.trim()));
 
               return (
-                <Card key={link.id} className="border-slate-200/80 shadow-sm">
+                <Card key={link.id} className="border-border/80 shadow-sm">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 min-w-0">
                         <CardTitle className="text-base flex items-center gap-2 text-slate-900">
-                          <FolderOpen className="w-4 h-4 text-[#7d4f50]" />
+                          <FolderOpen className="w-4 h-4 text-primary" />
                           <span className="truncate">{link.token.slice(0, 12)}…</span>
                         </CardTitle>
-                        <CardDescription className="text-sm text-slate-500 flex flex-wrap items-center gap-3">
+                        <CardDescription className="text-sm text-muted-foreground flex flex-wrap items-center gap-3">
                           <span>{needsLegacyUrl ? "Legacy link" : "Owner-recoverable"}</span>
                           <span>Created {formatDate(link.created_at)}</span>
                           <span>Expires {formatDate(link.expires_at)}</span>
@@ -317,8 +317,8 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                   <CardContent className="space-y-4">
                     {needsLegacyUrl && (
                       <div className="space-y-2">
-                        <label htmlFor={`legacy-share-url-${link.id}`} className="text-xs font-medium text-slate-700 flex items-center gap-2">
-                          <Link2 className="w-3.5 h-3.5 text-[#7d4f50]" />
+                        <label htmlFor={`legacy-share-url-${link.id}`} className="text-xs font-medium text-foreground flex items-center gap-2">
+                          <Link2 className="w-3.5 h-3.5 text-primary" />
                           Paste original share URL once to repair this older link
                         </label>
                         <textarea
@@ -327,13 +327,13 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                           onChange={(event) => setLegacyUrls((prev) => ({ ...prev, [link.id]: event.target.value }))}
                           rows={3}
                           placeholder={`${branding.publicBaseURL}/folder-share/...#...`}
-                          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7d4f50]/40 focus:outline-none"
+                          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/40 focus:outline-none"
                         />
                       </div>
                     )}
 
                     <div className="flex flex-wrap gap-2">
-                      <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white">
+                      <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-primary hover:bg-primary/90 text-white">
                         {busyId === link.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                         Update Link
                       </Button>

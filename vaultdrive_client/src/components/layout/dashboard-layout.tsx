@@ -179,12 +179,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 brand-glass-nav px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-[#7d4f50]/5">
+        <header className="sticky top-0 z-30 brand-glass-nav px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors hidden md:block"
+              className="p-2 rounded-lg hover:bg-primary/10 transition-colors hidden md:block"
               aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5" />
@@ -192,7 +192,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button
               type="button"
               onClick={() => setShowMobileMenu(true)}
-              className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors md:hidden"
+              className="p-2 rounded-lg hover:bg-primary/10 transition-colors md:hidden"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
@@ -201,11 +201,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button 
               type="button"
               onClick={() => setShowCommandPalette(true)}
-              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-[#7d4f50]/5 transition-colors"
+              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
             >
                 <Search className="w-4 h-4" />
                 <span>Search...</span>
-                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-[#7d4f50]/20 rounded-md bg-[#7d4f50]/5 flex items-center gap-1">
+                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-primary/20 rounded-md bg-primary/5 flex items-center gap-1">
                     <Command className="w-2.5 h-2.5" />K
                 </kbd>
             </button>
@@ -215,7 +215,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button 
               type="button"
               onClick={() => setShowCommandPalette(true)}
-              className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors sm:hidden" aria-label="Search"
+              className="p-2 rounded-full hover:bg-primary/10 transition-colors sm:hidden" aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -223,7 +223,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button
               type="button"
               onClick={() => { setActivityFeedOpen(true); setUnreadCount(0); }}
-              className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors relative"
+              className="p-2 rounded-full hover:bg-primary/10 transition-colors relative"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
@@ -245,7 +245,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] backdrop-blur-2xl border-white/20 shadow-xl text-white">
+              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-primary to-primary/90 backdrop-blur-2xl border-white/20 shadow-xl text-white">
                 <DropdownMenuLabel>
                   <p className="font-semibold">{user.first_name} {user.last_name}</p>
                   <p className="text-xs text-muted-foreground font-normal">{user.email}</p>

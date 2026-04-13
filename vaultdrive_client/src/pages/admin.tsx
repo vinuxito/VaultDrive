@@ -371,7 +371,7 @@ export default function Admin() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Shield className="h-8 w-8 text-[#7d4f50]" />
+          <Shield className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         </div>
         <button
@@ -379,7 +379,7 @@ export default function Admin() {
             setShowCreateUser(true);
             setError("");
           }}
-          className="bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center gap-2"
+          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2"
         >
           <UserPlus className="h-4 w-4" />
           New User
@@ -409,7 +409,7 @@ export default function Admin() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-card rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -418,7 +418,7 @@ export default function Admin() {
                   type="checkbox"
                   checked={allSelectableSelected}
                   onChange={toggleSelectAll}
-                  className="h-4 w-4 rounded border-gray-300 text-[#7d4f50] focus:ring-[#7d4f50]"
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   title="Select all"
                 />
               </th>
@@ -459,7 +459,7 @@ export default function Admin() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(user.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-[#7d4f50] focus:ring-[#7d4f50]"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
                     )}
                   </td>
@@ -478,7 +478,7 @@ export default function Admin() {
                     {user.is_admin ? (
                       <button
                         onClick={() => !isSelf && handleToggleAdmin(user)}
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#e2b9bb] text-[#7d4f50] ${
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/20 text-primary ${
                           isSelf
                             ? "cursor-default"
                             : "hover:bg-[#d4a3a5] cursor-pointer"
@@ -510,7 +510,7 @@ export default function Admin() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => setEditingUser(user)}
-                      className="text-[#7d4f50] hover:text-[#6b4345] mr-3"
+                      className="text-primary hover:text-primary/90 mr-3"
                       title="Edit user"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -572,7 +572,7 @@ export default function Admin() {
       {/* Create User Modal */}
       {showCreateUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Create New User</h2>
               <button
@@ -662,7 +662,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleCreateUser}
-                className="w-full bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2"
               >
                 <UserPlus className="h-4 w-4" />
                 Create User
@@ -675,7 +675,7 @@ export default function Admin() {
       {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit User</h2>
               <button
@@ -749,7 +749,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleUpdateUser}
-                className="w-full bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 Save Changes
@@ -762,7 +762,7 @@ export default function Admin() {
       {/* Reset Password Modal */}
       {resetPasswordUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Reset Password</h2>
               <button

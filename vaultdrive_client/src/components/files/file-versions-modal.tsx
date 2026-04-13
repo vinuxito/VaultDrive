@@ -78,7 +78,7 @@ export function FileVersionsModal({
     <ElegantModal isOpen={isOpen} onClose={onClose} title={`Version History: ${filename}`}>
       <div className="space-y-4">
         {error && (
-          <div className="p-3 bg-[#6b4345]/30 border border-[#d4a5a6]/40 rounded-md text-[#f2d7d8] text-sm">
+          <div className="p-3 bg-primary/20 border border-primary/30 rounded-md text-primary-foreground text-sm">
             {error}
           </div>
         )}

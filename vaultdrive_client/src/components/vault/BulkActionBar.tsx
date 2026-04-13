@@ -35,7 +35,7 @@ export function BulkActionBar({
         <Button
           size="sm"
           onClick={onDownload}
-          className="rounded-full bg-[#7d4f50] hover:bg-[#9a6163] text-white border-0 gap-1.5 px-4 h-8 text-sm font-medium"
+          className="rounded-full bg-primary hover:bg-[#9a6163] text-white border-0 gap-1.5 px-4 h-8 text-sm font-medium"
         >
           <Download className="w-3.5 h-3.5" />
           Download {selectedCount}

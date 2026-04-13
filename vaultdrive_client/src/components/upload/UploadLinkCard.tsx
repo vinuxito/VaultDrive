@@ -105,21 +105,21 @@ export function UploadLinkCard({
       case "destructive":
         return "bg-rose-100 text-rose-700 border border-rose-200";
       case "secondary":
-        return "bg-slate-100 text-slate-700 border border-slate-200";
+        return "bg-slate-100 text-foreground border border-border";
       default:
-        return "bg-slate-100 text-slate-700 border border-slate-200";
+        return "bg-slate-100 text-foreground border border-border";
     }
   };
 
   const hasKey = revealedKey || baseUrl.includes("#key=");
 
   return (
-    <div className="rounded-[1.4rem] border border-slate-200 overflow-hidden bg-white shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
+    <div className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7d4f50] via-[#9f7475] to-[#d7bbbc] flex items-center justify-center text-white shadow-[0_12px_24px_rgba(125,79,80,0.22)]">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 flex items-center justify-center text-white shadow-[0_12px_24px_rgba(0,0,0,0.22)]">
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div className="flex-1">
@@ -133,7 +133,7 @@ export function UploadLinkCard({
                     {status.label}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-muted-foreground dark:text-slate-400">
                   Client delivery route into the selected folder, with status and uploaded files visible here.
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -143,8 +143,8 @@ export function UploadLinkCard({
             </div>
 
             <div className="mt-3 space-y-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-950/40">
-                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+              <div className="rounded-2xl border border-border bg-muted px-3 py-3 dark:border-slate-700 dark:bg-slate-950/40">
+                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">
                   <span>Sender route</span>
                   <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
                     <ShieldCheck className="w-3 h-3" />
@@ -152,7 +152,7 @@ export function UploadLinkCard({
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-sm">
-                  <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded text-xs flex-1 min-w-0 overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded text-xs flex-1 min-w-0 overflow-hidden border border-border">
                     {displayUrl}
                   </code>
                   <Button
@@ -170,7 +170,7 @@ export function UploadLinkCard({
                   <button
                     type="button"
                     onClick={() => { setShowPinPrompt(true); setRecoverError(""); }}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-[#7d4f50] hover:text-[#5a3436] transition-colors cursor-pointer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-[#5a3436] transition-colors cursor-pointer"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                     Reveal full link with PIN
@@ -188,14 +188,14 @@ export function UploadLinkCard({
                         onChange={(e) => { setPinInput(e.target.value); setRecoverError(""); }}
                         onKeyDown={(e) => { if (e.key === "Enter") handleRecoverKey(); }}
                         placeholder="Enter PIN"
-                        className="w-28 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#7d4f50]/40 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                        className="w-28 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground placeholder-slate-400 focus:border-primary/40 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                         autoFocus
                       />
                       <Button
                         size="sm"
                         onClick={handleRecoverKey}
                         disabled={recovering}
-                        className="h-8 bg-[#7d4f50] hover:bg-[#5a3436] text-white"
+                        className="h-8 bg-primary hover:bg-[#5a3436] text-white"
                       >
                         {recovering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Reveal"}
                       </Button>
@@ -227,7 +227,7 @@ export function UploadLinkCard({
                 )}
 
                 {hasKey && !revealedKey && (
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  <p className="mt-2 text-xs text-muted-foreground dark:text-slate-400">
                     Share this route with a client when you want them to deliver files into the folder you selected.
                   </p>
                 )}
@@ -273,7 +273,7 @@ export function UploadLinkCard({
         <div className="border-t bg-muted/20 dark:bg-slate-950/20">
           <div className="p-4">
             <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-slate-100">
-              <FileIcon className="w-4 h-4 text-[#7d4f50]" />
+              <FileIcon className="w-4 h-4 text-primary" />
               Files uploaded through this route ({token.files?.length || 0})
             </h4>
 
@@ -282,10 +282,10 @@ export function UploadLinkCard({
                 {token.files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-background border border-slate-200 dark:border-slate-700"
+                    className="flex items-center justify-between p-3 rounded-xl bg-background border border-border"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded-xl bg-[#7d4f50]/10 flex items-center justify-center text-[#7d4f50]">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <FileIcon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">

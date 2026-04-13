@@ -53,10 +53,10 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     <div
       className={`group flex items-center gap-2 rounded-lg transition-colors relative ${
         active
-          ? "bg-[#f2d7d8] text-[#6b4345]"
+          ? "bg-primary/10 text-primary/90"
           : isSidebar
-            ? "text-slate-600 hover:bg-[#7d4f50]/8 hover:text-[#7d4f50]"
-            : "hover:bg-[#7d4f50]/5"
+            ? "text-muted-foreground hover:bg-primary/8 hover:text-primary"
+            : "hover:bg-primary/5"
       } ${isSidebar ? "px-2.5 py-1.5" : "px-3 py-2"}`}
       style={{ paddingLeft: `${indentPx}px` }}
     >
@@ -64,13 +64,13 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-[#7d4f50]/10"
+          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-primary/10"
           aria-label={folder.isExpanded ? "Collapse folder" : "Expand folder"}
         >
           {folder.isExpanded ? (
-            <ChevronDown className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-slate-500"}`} />
+            <ChevronDown className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
           ) : (
-            <ChevronRight className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-slate-500"}`} />
+            <ChevronRight className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
           )}
         </button>
       ) : (
@@ -84,9 +84,9 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         aria-label={`Navigate to ${folder.name}`}
       >
         {folder.isExpanded ? (
-          <FolderOpen className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-amber-500"}`} />
+          <FolderOpen className={`w-4 h-4 ${active ? "text-primary" : "text-amber-500"}`} />
         ) : (
-          <Folder className={`w-4 h-4 ${active ? "text-[#7d4f50]" : "text-[#7d4f50]"}`} />
+          <Folder className={`w-4 h-4 ${active ? "text-primary" : "text-primary"}`} />
         )}
       </button>
 
@@ -94,7 +94,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         type="button"
         onClick={onNavigate}
         className={`flex-1 text-left truncate transition-colors ${isSidebar ? "text-sm" : "text-sm"} ${
-          active ? "font-medium text-[#6b4345]" : ""
+          active ? "font-medium text-primary/90" : ""
         }`}
       >
         {folder.name}
@@ -104,10 +104,10 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         <span
           className={`flex-shrink-0 px-2 py-0.5 text-xs rounded-full ${
             active
-              ? "bg-[#7d4f50]/15 text-[#7d4f50]"
+              ? "bg-primary/15 text-primary"
               : isSidebar
-                ? "bg-slate-100 text-slate-500"
-                : "bg-[#7d4f50]/8 text-muted-foreground"
+                ? "bg-slate-100 text-muted-foreground"
+                : "bg-primary/8 text-muted-foreground"
           }`}
         >
           {folder.fileCount}
@@ -120,7 +120,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setShowMenu((prev) => !prev)}
-            className={`h-7 w-7 p-0 ${isSidebar ? "text-slate-500 hover:text-slate-700 hover:bg-slate-100" : ""}`}
+            className={`h-7 w-7 p-0 ${isSidebar ? "text-muted-foreground hover:text-foreground hover:bg-slate-100" : ""}`}
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
@@ -134,14 +134,14 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                 onClick={() => setShowMenu(false)}
               />
 
-              <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-slate-200 bg-white shadow-lg z-20 overflow-hidden">
+              <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border bg-popover shadow-lg z-20 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => {
                     onCreateSubfolder();
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
                 >
                   <FolderPlus className="w-4 h-4" />
                   Create Subfolder
@@ -153,7 +153,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                       onShare();
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
                   >
                     <Share2 className="w-4 h-4" />
                     Share Folder
@@ -166,7 +166,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                       onManageShares();
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
                   >
                     <Link2 className="w-4 h-4" />
                     Manage Shared Links
@@ -178,7 +178,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                     onRename();
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
                 >
                   <Edit2 className="w-4 h-4" />
                   Rename

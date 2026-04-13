@@ -152,7 +152,7 @@ export default function Login() {
 
   return (
     <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
-      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
+      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <span className="brand-badge">Private access</span>
@@ -168,7 +168,7 @@ export default function Login() {
               ? "A calm, encrypted control plane for files you need to trust at a glance"
               : "Create your account and set up the trust-first vault experience"}
           </CardDescription>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-slate-600">
+          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-muted-foreground">
             <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">Encryption happens in your browser</div>
             <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">One PIN after setup for normal owner flows</div>
             <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">Access stays visible and revocable</div>
@@ -184,7 +184,7 @@ export default function Login() {
 
           {isLogin ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <div className="flex rounded-xl border border-border overflow-hidden bg-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
                 <button
                   type="button"
                   onClick={() => switchLoginMode("password")}
@@ -211,11 +211,11 @@ export default function Login() {
                 </button>
               </div>
 
-              <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-3 text-sm text-slate-600 shadow-[0_10px_24px_rgba(125,79,80,0.06)]">
+              <div className="rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground shadow-[0_10px_24px_rgba(0,0,0,0.06)]">
                 <p className="font-medium text-slate-800">
                   {loginMode === "password" ? "Use your account password to enter and finish setup." : "Use your 4-digit PIN when your trusted owner session is already set up."}
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   {loginMode === "password"
                     ? "{`Once your PIN is enrolled, ${branding.productName} can reuse that trust across the vault, secure links, and protected handoffs.`}"
                     : "Your PIN unlocks the owner trust path without reintroducing normal per-action friction."}
@@ -303,7 +303,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#7d4f50] hover:bg-[#6b4345] text-white shadow-[0_12px_28px_rgba(125,79,80,0.25)]"
+                className="w-full bg-primary hover:bg-primary/90 text-white shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
                 disabled={
                   loading ||
                   (loginMode === "pin" && pinValue.length !== 4)

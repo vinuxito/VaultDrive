@@ -131,7 +131,7 @@ const EmailPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-[#1e2330] via-[#2c3240] to-[#6b4345]">
+    <div className="flex h-screen bg-gradient-to-br from-[#1e2330] via-[#2c3240] to-primary/90">
       <EditEmailAccountModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -149,7 +149,7 @@ const EmailPage: React.FC = () => {
                 onClick={() => setSelectedAccount(account)}
                 className={`flex-1 text-left px-4 py-2 text-sm rounded-md transition-colors ${
   selectedAccount?.id === account.id
-    ? 'bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50'
+    ? 'bg-primary/30 text-primary border border-primary/50'
     : 'text-white/70 hover:bg-white/5 hover:text-white'
 }`}
               >

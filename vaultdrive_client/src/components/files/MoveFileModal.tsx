@@ -79,7 +79,7 @@ export function MoveFileModal({ open, onOpenChange, file, folders, moving, onMov
               type="button"
               onClick={() => void onMove(targetFolderId)}
               disabled={!targetFolderId || moving}
-              className="bg-[#7d4f50] hover:bg-[#6b4345] text-white"
+              className="bg-primary hover:bg-primary/90 text-white"
             >
               {moving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Moving…</> : "Move file"}
             </Button>

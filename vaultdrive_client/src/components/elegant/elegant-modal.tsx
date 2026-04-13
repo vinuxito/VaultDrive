@@ -36,7 +36,7 @@ export function ElegantModal({
       <div
         className={cn(
           // Burgundy gradient background
-          "bg-gradient-to-br from-[#7d4f50] to-[#6b4345]",
+          "bg-gradient-to-br from-primary to-primary/90",
           // Border and shadow
           "border border-white/10 rounded-2xl shadow-2xl",
           // Text colors

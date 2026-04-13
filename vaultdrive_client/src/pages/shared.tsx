@@ -239,8 +239,8 @@ export default function SharedFiles() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/20 flex items-center justify-center">
-              <Share2 className="w-6 h-6 text-[#c4999b]" />
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Share2 className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold">Shared With Me</h1>
@@ -283,8 +283,8 @@ export default function SharedFiles() {
               </div>
             ) : sharedFiles.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/20 flex items-center justify-center">
-                  <Share2 className="w-8 h-8 text-[#c4999b]" />
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Share2 className="w-8 h-8 text-primary" />
                 </div>
                 <p className="text-muted-foreground font-medium">No shared files yet</p>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
@@ -332,10 +332,10 @@ export default function SharedFiles() {
 
         {showPinModal && pendingDownload && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+            <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
               <CardHeader className="border-b border-white/10">
                 <CardTitle className="flex items-center gap-2 text-white">
-                  <Lock className="w-5 h-5 text-[#f2d7d8]" />
+                  <Lock className="w-5 h-5 text-primary-foreground" />
                   Decrypt Shared File
                 </CardTitle>
                 <CardDescription className="text-white/70">
@@ -385,7 +385,7 @@ export default function SharedFiles() {
                   <Button
                     onClick={handlePinSubmit}
                     disabled={pinValue.length !== 4}
-                    className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                    className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                   >
                     Decrypt & Download
                   </Button>

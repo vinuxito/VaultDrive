@@ -172,7 +172,7 @@ export default function PublicSharePage() {
   const FileIconComponent = shareInfo ? getFileIcon(shareInfo.filename) : File;
 
   return (
-    <div className="min-h-screen bg-[#2a1f1f] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-card flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center mb-2">
           <div className="flex justify-center mb-3">
@@ -182,10 +182,10 @@ export default function PublicSharePage() {
           <p className="text-white/70 text-sm">Secure File Share</p>
         </div>
 
-        <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] rounded-2xl shadow-2xl border border-white/10 p-8 text-white">
+        <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl shadow-2xl border border-white/10 p-8 text-white">
           {state === "loading" && (
             <div className="flex flex-col items-center gap-4 py-4">
-              <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
               <p className="text-white/85">Verifying share link…</p>
             </div>
           )}
@@ -194,7 +194,7 @@ export default function PublicSharePage() {
             <div className="space-y-5">
               <div className="flex items-start gap-4">
                 <div className="shrink-0 w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center border border-white/15">
-                  <FileIconComponent className="w-7 h-7 text-[#f2d7d8]" />
+                  <FileIconComponent className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p
@@ -233,7 +233,7 @@ export default function PublicSharePage() {
               )}
 
               <div className="flex items-center gap-2 px-3 py-2.5 bg-white/5 rounded-lg border border-white/10">
-                <Shield className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                <Shield className="w-4 h-4 text-primary-foreground shrink-0" />
                 <p className="text-xs text-white/80">
                   End-to-end encrypted · Key never leaves your browser
                 </p>
@@ -242,7 +242,7 @@ export default function PublicSharePage() {
               <button
                 type="button"
                 onClick={() => void handleDownload()}
-                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-white text-[#6b4345] font-semibold rounded-xl hover:bg-[#f2d7d8] transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-white text-primary/90 font-semibold rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 <Download className="w-5 h-5" />
                 Download File
@@ -252,7 +252,7 @@ export default function PublicSharePage() {
 
           {state === "downloading" && (
             <div className="flex flex-col items-center gap-4 py-4 text-center">
-              <Loader2 className="w-10 h-10 animate-spin text-[#f2d7d8]" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
               <div>
                 <p className="text-white/80 font-medium">Decrypting…</p>
                 <p className="text-xs text-white/65 mt-1">

@@ -178,7 +178,7 @@ export function UploadLinksSection() {
           <Button
             onClick={handleOpenCreateModal}
             size="sm"
-            className="gap-2 bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0"
+            className="gap-2 bg-primary hover:bg-primary/90 text-white border-0"
           >
             <Plus className="w-4 h-4" />
             Create New Link
@@ -186,7 +186,7 @@ export function UploadLinksSection() {
         </div>
       </div>
 
-      <div className="rounded-[1.6rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfa_0%,#f8f2ee_100%)] px-4 py-4 text-sm text-slate-600 shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.94)_0%,rgba(15,23,42,0.9)_100%)] dark:text-slate-300">
+      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:text-slate-300">
         <p className="font-medium text-slate-900 dark:text-slate-100">Controlled sender routes</p>
         <p className="mt-1 leading-relaxed">
           Each upload link is a bounded route into your vault. You can see its status, seal it after use, or remove it without affecting the files already delivered.
@@ -209,7 +209,7 @@ export function UploadLinksSection() {
       {tokens.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
           <UploadCloud className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-slate-700 dark:text-slate-200 font-medium mb-2">
+          <p className="text-foreground dark:text-slate-200 font-medium mb-2">
             No upload links created yet
           </p>
           <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">

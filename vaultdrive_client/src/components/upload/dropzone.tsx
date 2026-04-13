@@ -140,7 +140,7 @@ export function Dropzone({
         // Glassmorphism
         'glass border-2 border-dashed',
         // Default state
-        'border-[#7d4f50]/25 hover:border-[#7d4f50]/45 hover:bg-[#7d4f50]/5',
+        'border-primary/25 hover:border-primary/45 hover:bg-primary/5',
         // Focus state
         'focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-transparent',
         // Dragging state

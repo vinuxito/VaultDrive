@@ -348,7 +348,7 @@ export default function FileRequestPage() {
   if (loading) {
     return (
       <div className="brand-page-bg flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-[#7d4f50]" />
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
       </div>
     );
   }
@@ -409,7 +409,7 @@ export default function FileRequestPage() {
             <h1 className="text-2xl font-bold text-slate-800">
               Files sent securely
             </h1>
-            <p className="text-slate-500">
+            <p className="text-muted-foreground">
               {completedCount} file{completedCount > 1 ? "s" : ""} encrypted
               and delivered to{" "}
               {info.owner_display_name || "the recipient"}.
@@ -423,33 +423,33 @@ export default function FileRequestPage() {
             </p>
           </div>
 
-          <div className="text-left bg-white/80 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
+          <div className="text-left bg-white/80 rounded-2xl border border-border p-4 space-y-2 text-sm">
             {info.owner_display_name && (
-              <p className="font-medium text-slate-700">
+              <p className="font-medium text-foreground">
                 {info.owner_display_name}
                 {info.owner_organization && (
-                  <span className="text-slate-500 font-normal">
+                  <span className="text-muted-foreground font-normal">
                     {" "}
                     · {info.owner_organization}
                   </span>
                 )}
               </p>
             )}
-            <p className="text-slate-600">
+            <p className="text-muted-foreground">
               {completedCount} file{completedCount > 1 ? "s" : ""} received
             </p>
-            <p className="text-slate-500 text-xs">{new Date().toLocaleString()}</p>
+            <p className="text-muted-foreground text-xs">{new Date().toLocaleString()}</p>
             {deliveryRef && (
-              <p className="text-slate-500 text-xs">Ref: {deliveryRef}</p>
+              <p className="text-muted-foreground text-xs">Ref: {deliveryRef}</p>
             )}
           </div>
 
-          <div className="text-left bg-white/70 rounded-2xl border border-slate-200 p-4 space-y-2 text-sm">
+          <div className="text-left bg-white/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
             <p className="font-medium text-slate-800">What happened</p>
-            <p className="text-slate-600 leading-relaxed">
+            <p className="text-muted-foreground leading-relaxed">
               {`Your files were encrypted in this browser using the password you chose. ${branding.productName} stored only the protected files and request metadata.`}
             </p>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               The recipient can review the delivery now, but they will still need the separate download password to open the files.
             </p>
           </div>
@@ -472,7 +472,7 @@ export default function FileRequestPage() {
               setReceiptCopied(true);
               setTimeout(() => setReceiptCopied(false), 2000);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-600 text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-white text-muted-foreground text-sm hover:bg-muted transition-colors cursor-pointer"
           >
             {receiptCopied ? (
               <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
@@ -482,7 +482,7 @@ export default function FileRequestPage() {
             {receiptCopied ? "Copied!" : "Copy receipt"}
           </button>
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7d4f50]/10 text-[#7d4f50] text-sm font-medium">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             <Lock className="w-3.5 h-3.5" />
             AES-256-GCM encrypted · Zero-knowledge storage
           </div>
@@ -501,10 +501,10 @@ export default function FileRequestPage() {
 
         {/* Owner identity banner */}
         {(info.owner_display_name || info.owner_organization) && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-slate-200/60">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-border/60">
             <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
             <div className="text-sm">
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-foreground">
                 {info.owner_display_name
                   ? `Sending files to ${info.owner_display_name}`
                   : "File Request"}
@@ -521,7 +521,7 @@ export default function FileRequestPage() {
         )}
 
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7d4f50] to-[#c4999b]">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary">
             Secure File Request
           </h1>
           <p className="text-muted-foreground">
@@ -536,7 +536,7 @@ export default function FileRequestPage() {
               {`Your files are encrypted in this browser with the password you choose. ${branding.productName} stores only the protected upload and request metadata.`}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white/75 px-4 py-4 text-sm text-slate-600 shadow-[0_12px_28px_rgba(125,79,80,0.06)]">
+          <div className="rounded-2xl border border-border bg-card/75 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_28px_rgba(0,0,0,0.06)]">
             <p className="font-medium text-slate-900">What the recipient needs</p>
             <p className="mt-1.5 leading-relaxed">
               They can see the upload arrived, but they still need the separate password you share with them to decrypt and open the files.
@@ -546,9 +546,9 @@ export default function FileRequestPage() {
 
         {/* Description / instructions */}
         {info.description && (
-          <div className="flex gap-3 px-4 py-3 rounded-xl bg-[#f2d7d8]/60 border border-[#d4a5a6]/40">
-            <AlertCircle className="w-4 h-4 text-[#7d4f50] shrink-0 mt-0.5" />
-            <p className="text-sm text-[#6b4345]">{info.description}</p>
+          <div className="flex gap-3 px-4 py-3 rounded-xl bg-primary-foreground/60 border border-primary/30">
+            <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p className="text-sm text-primary/90">{info.description}</p>
           </div>
         )}
 
@@ -578,13 +578,13 @@ export default function FileRequestPage() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Enter a secure password…"
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 pr-10 text-sm text-slate-700 placeholder-slate-400 focus:border-[#7d4f50]/40 focus:bg-white focus:outline-none transition-all"
+                className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-10 text-sm text-foreground placeholder-slate-400 focus:border-primary/40 focus:bg-white focus:outline-none transition-all"
                 disabled={uploading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassphrase((v) => !v)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-muted-foreground cursor-pointer"
               >
                 {showPassphrase ? (
                   <EyeOff className="w-4 h-4" />
@@ -631,17 +631,17 @@ export default function FileRequestPage() {
 
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <label htmlFor="file-input-req" className="group relative cursor-pointer">
-                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 text-center">
-                      <FileIcon className="w-7 h-7 mx-auto mb-2 text-slate-600 group-hover:text-[#7d4f50] transition-colors duration-300" />
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-[#7d4f50] transition-colors duration-300">
+                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
+                      <FileIcon className="w-7 h-7 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                         Select Files
                       </span>
                     </div>
                   </label>
                   <label htmlFor="folder-input-req" className="group relative cursor-pointer">
-                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-[#7d4f50] group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-[#7d4f50]/10 group-hover:to-[#c4999b]/10 text-center">
-                      <FolderOpen className="w-7 h-7 mx-auto mb-2 text-slate-600 group-hover:text-[#7d4f50] transition-colors duration-300" />
-                      <span className="text-sm font-semibold text-slate-700 group-hover:text-[#7d4f50] transition-colors duration-300">
+                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
+                      <FolderOpen className="w-7 h-7 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                         Select Folder
                       </span>
                     </div>
@@ -652,8 +652,8 @@ export default function FileRequestPage() {
                   type="button"
                   className={`w-full border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 cursor-pointer ${
                     dragOver
-                      ? "border-[#7d4f50] bg-gradient-to-br from-[#7d4f50]/5 to-[#c4999b]/5"
-                      : "border-[#7d4f50]/30 hover:border-[#7d4f50] hover:bg-gradient-to-br hover:from-[#7d4f50]/5 hover:to-[#c4999b]/5"
+                      ? "border-primary bg-gradient-to-br from-primary/5 to-primary/5"
+                      : "border-primary/30 hover:border-primary hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/5"
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -663,10 +663,10 @@ export default function FileRequestPage() {
                   }
                 >
                   <Upload className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-                  <p className="text-base font-medium text-slate-700">
+                  <p className="text-base font-medium text-foreground">
                     Drag &amp; drop files or folders here
                   </p>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     or use the buttons above
                   </p>
                 </button>
@@ -674,18 +674,18 @@ export default function FileRequestPage() {
                 {/* Selected file list */}
                 {selectedFiles.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-slate-700">
+                    <p className="text-sm font-medium text-foreground">
                       {selectedFiles.length} file
                       {selectedFiles.length > 1 ? "s" : ""} selected
                     </p>
                     {selectedFiles.map((file, idx) => (
                       <div
                         key={`${file.name}-${file.size}-${file.lastModified}`}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm"
+                        className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted border border-border text-sm"
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <FileIcon className="w-4 h-4 text-slate-400 shrink-0" />
-                          <span className="truncate text-slate-700">
+                          <span className="truncate text-foreground">
                             {(file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name}
                           </span>
                           <span className="text-slate-400 shrink-0 text-xs">
@@ -709,7 +709,7 @@ export default function FileRequestPage() {
             {/* Uploading indicator */}
             {uploading && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center py-4">
-                <Loader2 className="w-4 h-4 animate-spin text-[#7d4f50]" />
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
                 Encrypting and uploading…
               </div>
             )}
@@ -726,7 +726,7 @@ export default function FileRequestPage() {
                 {uploadProgress.map((progress) => (
                   <div
                     key={progress.fileName}
-                    className="space-y-1.5 p-3 bg-slate-50 rounded-lg"
+                    className="space-y-1.5 p-3 bg-muted rounded-lg"
                   >
                     <div className="flex items-center justify-between text-sm">
                       <span className="truncate flex-1 mr-2">
@@ -744,12 +744,12 @@ export default function FileRequestPage() {
                         <XCircle className="w-4 h-4 text-red-500 ml-2 shrink-0" />
                       )}
                       {progress.status === "uploading" && (
-                        <Loader2 className="w-4 h-4 text-[#7d4f50] animate-spin ml-2 shrink-0" />
+                        <Loader2 className="w-4 h-4 text-primary animate-spin ml-2 shrink-0" />
                       )}
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                       <div
-                        className="bg-[#7d4f50] transition-all duration-300 h-full"
+                        className="bg-primary transition-all duration-300 h-full"
                         style={{ width: `${progress.progress}%` }}
                       />
                     </div>
@@ -777,7 +777,7 @@ export default function FileRequestPage() {
               disabled={
                 uploading || selectedFiles.length === 0 || !passphrase.trim()
               }
-              className="w-full bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0"
+              className="w-full bg-primary hover:bg-primary/90 text-white border-0"
             >
               {uploading ? (
                 <>
@@ -795,10 +795,10 @@ export default function FileRequestPage() {
         </Card>
 
         {/* Trust indicator */}
-        <Card className="bg-[#f2d7d8] dark:bg-[#7d4f50]/10 border-[#d4a5a6] dark:border-[#7d4f50]">
+        <Card className="bg-primary/10 dark:bg-primary/10 border-primary/40 dark:border-primary">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <Lock className="w-5 h-5 text-[#7d4f50] dark:text-[#c4999b] flex-shrink-0 mt-0.5" />
+              <Lock className="w-5 h-5 text-primary dark:text-primary flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
                 <p className="font-medium">End-to-end encrypted</p>
                 <p className="text-muted-foreground">

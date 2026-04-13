@@ -14,8 +14,8 @@ interface OriginBadgeProps {
 const configs: Record<FileOrigin["type"], { bg: string; text: string; border: string }> = {
   "my-upload": {
     bg: "bg-slate-100",
-    text: "text-slate-700",
-    border: "border-slate-200",
+    text: "text-foreground",
+    border: "border-border",
   },
   drop: {
     bg: "bg-violet-50",

@@ -48,7 +48,7 @@ export function PasswordModal({
     <ElegantModal isOpen={isOpen} onClose={onClose} className="w-full max-w-md">
       <CardHeader className="border-b-0">
         <CardTitle className="flex items-center gap-2 text-white">
-          <Lock className="w-5 h-5 text-[#f2d7d8]" />
+          <Lock className="w-5 h-5 text-primary-foreground" />
           {title}
         </CardTitle>
         <CardDescription className="text-white/70">{description}</CardDescription>
@@ -64,8 +64,8 @@ export function PasswordModal({
         ) : (
           <>
             {error && (
-              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-[#d4a5a6]" />
+              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-primary/60" />
                 <span>{error}</span>
               </div>
             )}
@@ -92,7 +92,7 @@ export function PasswordModal({
               <Button variant="outline" onClick={onClose} className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent">
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!password || isLoading} className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold">
+              <Button onClick={handleSubmit} disabled={!password || isLoading} className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

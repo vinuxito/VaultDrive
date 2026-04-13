@@ -151,55 +151,55 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-border">
         <div className="flex items-start justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#7d4f50] shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
               <h2 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Access Control</h2>
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate max-w-64">{filename}</p>
+            <p className="text-xs text-slate-400 dark:text-muted-foreground mt-0.5 truncate max-w-64">{filename}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors mt-0.5"
+            className="text-slate-400 hover:text-muted-foreground dark:hover:text-slate-300 transition-colors mt-0.5"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="px-5 py-4 space-y-3">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-[linear-gradient(180deg,#fcfbf9_0%,#f7f3ef_100%)] dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.9)_0%,rgba(15,23,42,0.82)_100%)] px-4 py-4 shadow-[0_10px_30px_rgba(125,79,80,0.08)]">
+          <div className="rounded-2xl border border-border bg-card px-4 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Current visibility</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">Current visibility</p>
                 <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">{accessHeadline}</p>
               </div>
-              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+              <span className="inline-flex items-center rounded-full border border-border bg-white/90 px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
                 {activeEntries.length === 0 ? "Owner only" : `${activeEntries.length} live route${activeEntries.length !== 1 ? "s" : ""}`}
               </span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground dark:text-slate-400">
               See every link, share, or sender route in one place so you can confirm exactly who can reach this file right now.
             </p>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Active</p>
+            <div className="rounded-xl border border-border bg-muted dark:bg-slate-800/60 px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Active</p>
               <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{activeEntries.length}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Routes you may want to review</p>
+              <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">Routes you may want to review</p>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Inactive</p>
+            <div className="rounded-xl border border-border bg-muted dark:bg-slate-800/60 px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Inactive</p>
               <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{inactiveEntries.length}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Expired or already revoked</p>
+              <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">Expired or already revoked</p>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Trust note</p>
+            <div className="rounded-xl border border-border bg-muted dark:bg-slate-800/60 px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Trust note</p>
               <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">Always reviewable</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">You can inspect or remove external access at any time.</p>
+              <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">You can inspect or remove external access at any time.</p>
             </div>
           </div>
 
@@ -229,19 +229,19 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
             </div>
           ) : error ? (
             <div className="px-1 py-2">
-              <p className="text-sm text-slate-700 dark:text-slate-200">Access data is temporarily unavailable.</p>
-              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">You can keep working; the visibility feed just could not be refreshed.</p>
+              <p className="text-sm text-foreground dark:text-slate-200">Access data is temporarily unavailable.</p>
+              <p className="mt-1 text-xs text-slate-400 dark:text-muted-foreground">You can keep working; the visibility feed just could not be refreshed.</p>
             </div>
           ) : !data || data.entries.length === 0 ? (
             <div className="px-1 py-2">
-              <p className="text-sm text-slate-700 dark:text-slate-200">No external access is active.</p>
-              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
+              <p className="text-sm text-foreground dark:text-slate-200">No external access is active.</p>
+              <p className="mt-1 text-xs text-slate-400 dark:text-muted-foreground">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
             </div>
           ) : (
             orderedEntries.map((entry) => (
               <div
                 key={`${entry.kind}-${entry.since}`}
-                className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-4 shadow-sm"
+                className="rounded-2xl border border-border bg-muted dark:bg-slate-800/70 px-4 py-4 shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-8 h-8 rounded-2xl border flex items-center justify-center shrink-0 mt-0.5 ${kindTone(entry.kind)}`}>
@@ -261,23 +261,23 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                           </span>
                         </div>
                         <p className="mt-2 text-sm font-medium text-slate-800 dark:text-slate-100">{entry.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{kindDescription(entry)}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground dark:text-slate-400">{kindDescription(entry)}</p>
                       </div>
-                      <span className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                      <span className="rounded-full border border-border bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-muted-foreground dark:text-slate-300 whitespace-nowrap">
                         {relativeTime(entry.since)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400 dark:text-muted-foreground leading-relaxed">
                       <span>{new Date(entry.since).toLocaleString()}</span>
                       {entry.expires_at && (
                         <>
-                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span className="text-slate-300 dark:text-muted-foreground">•</span>
                           <span>expires {new Date(entry.expires_at).toLocaleDateString()}</span>
                         </>
                       )}
                       {typeof entry.access_count === "number" && (
                         <>
-                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span className="text-slate-300 dark:text-muted-foreground">•</span>
                           <span>opened {entry.access_count}×</span>
                         </>
                       )}
@@ -302,7 +302,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     type="button"
                     onClick={() => setConfirmRevoke(false)}
                     disabled={revoking}
-                    className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium transition-colors"
+                    className="flex-1 py-2 rounded-lg border border-border dark:border-slate-600 text-sm text-foreground dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 font-medium transition-colors"
                   >
                     Keep access
                   </button>

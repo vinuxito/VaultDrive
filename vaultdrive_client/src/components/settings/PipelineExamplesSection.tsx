@@ -144,16 +144,16 @@ export function PipelineExamplesSection() {
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Workflow className="w-5 h-5 text-[#7d4f50]" />
+          <Workflow className="w-5 h-5 text-primary" />
           File fetch pipeline
         </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
           Copy-paste the full search &rarr; download &rarr; decrypt workflow. Agents move ciphertext; owners decrypt.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#e8d9d0] dark:border-slate-700 bg-[linear-gradient(180deg,#fffdfb_0%,#f8f3ef_100%)] dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.96)_0%,rgba(15,23,42,0.92)_100%)] px-4 py-3">
-        <div className="grid gap-2 sm:grid-cols-3 text-[11px] text-slate-600 dark:text-slate-300">
+      <div className="rounded-2xl border border-border bg-card px-4 py-3">
+        <div className="grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground dark:text-slate-300">
           <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2">
             <span className="font-medium text-emerald-700 dark:text-emerald-400">Step 1</span> — Search files by name or metadata
           </div>
@@ -166,8 +166,8 @@ export function PipelineExamplesSection() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+      <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="flex border-b border-border bg-muted dark:bg-slate-800/60">
           {snippets.map((s) => (
             <button
               key={s.lang}
@@ -175,8 +175,8 @@ export function PipelineExamplesSection() {
               onClick={() => setActiveLang(s.lang)}
               className={`px-4 py-2 text-xs font-medium transition-colors ${
                 activeLang === s.lang
-                  ? "bg-white dark:bg-slate-900 text-[#7d4f50] border-b-2 border-[#7d4f50]"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  ? "bg-white dark:bg-slate-900 text-primary border-b-2 border-primary"
+                  : "text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-slate-200"
               }`}
             >
               {s.label}

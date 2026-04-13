@@ -11,7 +11,7 @@ export function CollapsibleSection({ title, description, children }: Collapsible
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-[1.6rem] border border-slate-200 bg-white shadow-[0_16px_34px_rgba(15,23,42,0.05)] dark:border-slate-700 dark:bg-slate-900/70">
+    <div className="rounded-[1.6rem] border border-border bg-white shadow-[0_16px_34px_rgba(15,23,42,0.05)] dark:border-slate-700 dark:bg-slate-900/70">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -19,11 +19,11 @@ export function CollapsibleSection({ title, description, children }: Collapsible
       >
         <div>
           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
-          {description ? <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{description}</p> : null}
+          {description ? <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">{description}</p> : null}
         </div>
         {open ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
       </button>
-      {open ? <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-700">{children}</div> : null}
+      {open ? <div className="border-t border-border px-5 py-4 dark:border-slate-700">{children}</div> : null}
     </div>
   );
 }

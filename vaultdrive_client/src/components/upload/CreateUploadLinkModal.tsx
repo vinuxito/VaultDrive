@@ -200,10 +200,10 @@ export function CreateUploadLinkModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
+      <div className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2 text-white">
-            <Plus className="w-5 h-5 text-[#f2d7d8]" />
+            <Plus className="w-5 h-5 text-primary-foreground" />
             {createdLink ? "Upload Link Created" : "Create Client Upload Link"}
           </h2>
           <Button
@@ -260,7 +260,7 @@ export function CreateUploadLinkModal({
                 />
                 <Button
                   onClick={() => copyToClipboard(createdLink.url)}
-                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                  className="bg-white text-primary hover:bg-primary/10 font-semibold"
                   title="Copy URL"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -276,7 +276,7 @@ export function CreateUploadLinkModal({
 
             <div className="p-3 rounded-xl bg-white/8 border border-white/15">
               <p className="text-white/80 text-sm flex items-center gap-2">
-                <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                <Fingerprint className="w-4 h-4 text-primary-foreground shrink-0" />
                 Files uploaded through this route stay bound to your app-wide <strong>4-digit PIN</strong> so the route feels delegated, not detached.
               </p>
             </div>
@@ -284,7 +284,7 @@ export function CreateUploadLinkModal({
             <div className="flex justify-end gap-3 pt-2">
               <Button
                 onClick={onClose}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                className="bg-white text-primary hover:bg-primary/10 font-semibold"
               >
                 Done
               </Button>
@@ -344,7 +344,7 @@ export function CreateUploadLinkModal({
                       type="button"
                       onClick={handleCreateFolder}
                       disabled={creatingFolder || !newFolderName.trim()}
-                      className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                      className="bg-white text-primary hover:bg-primary/10 font-semibold"
                     >
                       {creatingFolder ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -392,7 +392,7 @@ export function CreateUploadLinkModal({
                 )}
               </div>
               {folders.length === 0 && !showCreateFolder && (
-                <div className="mt-1 text-sm text-[#f2d7d8]">
+                <div className="mt-1 text-sm text-primary-foreground">
                   ↑ Click folder icon to create your first folder
                 </div>
               )}
@@ -448,7 +448,7 @@ export function CreateUploadLinkModal({
             {cachedPin ? (
               <div className="p-3 rounded-lg bg-white/10 border border-white/20">
                 <p className="text-white/90 text-sm flex items-center gap-2">
-                  <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+                  <Fingerprint className="w-4 h-4 text-primary-foreground shrink-0" />
                   Your vault PIN is already trusted for this session. This link will use the same app-wide PIN automatically.
                 </p>
               </div>
@@ -476,7 +476,7 @@ export function CreateUploadLinkModal({
             )}
 
             {error && (
-              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
+              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm">
                 {error}
               </div>
             )}
@@ -494,7 +494,7 @@ export function CreateUploadLinkModal({
               <Button
                 type="submit"
                 disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId || activePin.length !== 4}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                className="bg-white text-primary hover:bg-primary/10 font-semibold"
               >
                 {loading ? (
                   <>

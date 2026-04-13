@@ -226,7 +226,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         <p className="text-lg">Preview not available for this file type</p>
         <Button
           onClick={handleDownloadDecrypted}
-          className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+          className="bg-white text-primary hover:bg-primary/10 font-semibold"
         >
           <Download className="w-4 h-4 mr-2" />
           Download
@@ -323,7 +323,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
             <div className="flex items-center justify-center min-h-[200px]">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 w-full max-w-sm space-y-4">
                 <div className="flex items-center gap-2 text-white">
-                  <Lock className="w-5 h-5 text-[#f2d7d8]" />
+                  <Lock className="w-5 h-5 text-primary-foreground" />
                   <span className="font-medium">
                     {credType === "password" ? "Enter your file credential" : "Enter your 4-digit PIN"}
                   </span>
@@ -352,7 +352,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                 <Button
                   onClick={handleCredentialSubmit}
                   disabled={!credential || (credType !== "password" && credential.length !== 4)}
-                  className="w-full bg-[#7d4f50] hover:bg-[#6b4345] text-white"
+                  className="w-full bg-primary hover:bg-primary/90 text-white"
                 >
                   Decrypt & Preview
                 </Button>

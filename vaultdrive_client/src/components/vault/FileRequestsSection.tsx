@@ -109,10 +109,10 @@ function CreateRequestModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
+      <div className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2 text-white">
-            <Plus className="w-5 h-5 text-[#f2d7d8]" />
+            <Plus className="w-5 h-5 text-primary-foreground" />
             New File Request
           </h2>
           <Button
@@ -150,7 +150,7 @@ function CreateRequestModal({
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                  className="bg-white text-primary hover:bg-primary/10 font-semibold"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
@@ -179,7 +179,7 @@ function CreateRequestModal({
                   setExpiryDays("7");
                   onClose();
                 }}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                className="bg-white text-primary hover:bg-primary/10 font-semibold"
               >
                 Done
               </Button>
@@ -215,7 +215,7 @@ function CreateRequestModal({
                     onClick={() => setExpiryDays(opt.value)}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                       expiryDays === opt.value
-                        ? "bg-white text-[#7d4f50]"
+                        ? "bg-white text-primary"
                         : "bg-white/10 text-white hover:bg-white/20"
                     }`}
                   >
@@ -226,7 +226,7 @@ function CreateRequestModal({
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
+              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm">
                 {error}
               </div>
             )}
@@ -244,7 +244,7 @@ function CreateRequestModal({
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                className="bg-white text-primary hover:bg-primary/10 font-semibold"
               >
                 {loading ? (
                   <>
@@ -358,7 +358,7 @@ export function FileRequestsSection() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Inbox className="w-5 h-5 text-[#7d4f50]" />
+            <Inbox className="w-5 h-5 text-primary" />
             File Requests ({requests.length})
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -381,7 +381,7 @@ export function FileRequestsSection() {
           <Button
             onClick={() => setShowCreateModal(true)}
             size="sm"
-            className="gap-2 bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0"
+            className="gap-2 bg-primary hover:bg-primary/90 text-white border-0"
           >
             <Plus className="w-4 h-4" />
             New Request
@@ -389,7 +389,7 @@ export function FileRequestsSection() {
         </div>
       </div>
 
-      <div className="rounded-[1.6rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfa_0%,#f8f2ee_100%)] px-4 py-4 text-sm text-slate-600 shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.94)_0%,rgba(15,23,42,0.9)_100%)] dark:text-slate-300">
+      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:text-slate-300">
         <p className="font-medium text-slate-900 dark:text-slate-100">Request only what you need</p>
         <p className="mt-1 leading-relaxed">
           File requests keep the sender journey obvious: who they are sending to, what they should provide, and how you can track or revoke the route after it is shared.
@@ -412,7 +412,7 @@ export function FileRequestsSection() {
       {requests.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
           <Inbox className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-slate-700 dark:text-slate-200 font-medium mb-2">No file requests yet</p>
+          <p className="text-foreground dark:text-slate-200 font-medium mb-2">No file requests yet</p>
           <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
             Create a request when you want a sender to upload documents under a clearly framed set of instructions and a route you can revoke later.
           </p>
@@ -433,13 +433,13 @@ export function FileRequestsSection() {
             return (
               <div
                 key={req.id}
-                className="rounded-[1.4rem] border border-slate-200 overflow-hidden bg-white shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-slate-900/70"
+                className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:bg-slate-900/70"
               >
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white shrink-0">
                           <Inbox className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -454,7 +454,7 @@ export function FileRequestsSection() {
                             </span>
                           </div>
                           {req.description && (
-                            <p className="text-sm text-slate-600 mt-0.5 truncate">
+                            <p className="text-sm text-muted-foreground mt-0.5 truncate">
                               {req.description}
                             </p>
                           )}

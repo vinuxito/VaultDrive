@@ -218,8 +218,8 @@ export default function Groups() {
             <AnimatePresence mode="wait">
               {filteredGroups.length === 0 ? (
                 <div className="text-center col-span-full py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/10 flex items-center justify-center">
-                    <Users className="w-8 h-8 text-[#c4999b]" />
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-primary" />
                   </div>
                   <p className="text-muted-foreground text-lg font-medium">
                     {searchQuery ? "No groups found" : "No groups yet"}
@@ -240,7 +240,7 @@ export default function Groups() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white font-semibold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold text-lg">
                           {group.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -307,7 +307,7 @@ export default function Groups() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl p-6 max-w-md w-full text-white"
+              className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl p-6 max-w-md w-full text-white"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-white">Create Group</h2>
@@ -702,7 +702,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col text-white"
+              className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col text-white"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -795,7 +795,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                 onChange={() => {}}
                                 className="w-4 h-4 rounded border-white/20"
                               />
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white font-semibold">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 text-left">
@@ -869,7 +869,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                               key={userId}
                               className="flex items-center gap-2 p-2 bg-white/50 rounded-lg border border-black/5"
                             >
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7d4f50] to-[#c4999b] flex items-center justify-center text-white text-sm font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white text-sm font-semibold">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">

@@ -179,11 +179,11 @@ export function CreateShareLinkModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+      <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
         <CardHeader className="border-b border-white/10">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
-              <Link2 className="w-5 h-5 text-[#f2d7d8]" />
+              <Link2 className="w-5 h-5 text-primary-foreground" />
               Create Share Link
             </CardTitle>
             <button
@@ -219,7 +219,7 @@ export function CreateShareLinkModal({
                       onClick={() => setExpiryDays(value)}
                       className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                         expiryDays === value
-                          ? "bg-white text-[#6b4345]"
+                          ? "bg-white text-primary/90"
                           : "bg-white/10 text-white/80 hover:bg-white/20"
                       }`}
                     >
@@ -231,7 +231,7 @@ export function CreateShareLinkModal({
                     onClick={() => setExpiryDays("custom")}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                       expiryDays === "custom"
-                        ? "bg-white text-[#6b4345]"
+                        ? "bg-white text-primary/90"
                         : "bg-white/10 text-white/80 hover:bg-white/20"
                     }`}
                   >
@@ -297,7 +297,7 @@ export function CreateShareLinkModal({
                      (!hasCachedCred && (fileCredentialMode === "pin" ? credential.length !== 4 : credential.length === 0)) ||
                      (expiryDays === "custom" && customDate === "")
                    }
-                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                 >
                   Generate Link
                 </Button>
@@ -307,7 +307,7 @@ export function CreateShareLinkModal({
 
           {step === "generating" && (
             <div className="flex flex-col items-center gap-3 py-4">
-              <Loader2 className="w-8 h-8 animate-spin text-[#f2d7d8]" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
               <p className="text-sm text-white/80">Generating share link…</p>
             </div>
           )}
@@ -349,7 +349,7 @@ export function CreateShareLinkModal({
               />
               {expiryDisplay && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
-                  <Calendar className="w-3.5 h-3.5 text-[#f2d7d8] shrink-0" />
+                  <Calendar className="w-3.5 h-3.5 text-primary-foreground shrink-0" />
                   <p className="text-xs text-white/80">
                     Link expires:{" "}
                     <span className="font-medium text-white">{expiryDisplay}</span>
@@ -384,7 +384,7 @@ export function CreateShareLinkModal({
                 </Button>
                 <Button
                   onClick={handleCopy}
-                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold gap-1.5"
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold gap-1.5"
                 >
                   {copied ? (
                     <>
@@ -418,7 +418,7 @@ export function CreateShareLinkModal({
                 </Button>
                 <Button
                   onClick={() => setStep("credential")}
-                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                 >
                   Try Again
                 </Button>
