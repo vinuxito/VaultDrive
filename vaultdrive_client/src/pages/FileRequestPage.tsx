@@ -397,7 +397,7 @@ export default function FileRequestPage() {
       .join("\n");
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f2ece9] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/90 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <BrandLogo className="h-14 mx-auto" />
 

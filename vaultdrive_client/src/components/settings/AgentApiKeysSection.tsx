@@ -317,7 +317,7 @@ function CreateKeyModal({
                         onClick={() => setSelectedScopes([...tmpl.scopes])}
                         className={`text-left rounded-xl border px-3 py-2 text-sm transition-colors ${
                           isActive
-                            ? "border-primary bg-[#f8efea] text-primary/90"
+                            ? "border-primary bg-muted text-primary/90"
                             : "border-border bg-white text-foreground hover:bg-muted"
                         }`}
                       >
@@ -354,7 +354,7 @@ function CreateKeyModal({
               ))}
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -471,9 +471,9 @@ export function AgentApiKeysSection() {
       )}
 
       {error && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-4 text-sm text-destructive">
           <p className="font-medium">Action could not be completed.</p>
-          <p className="mt-1 text-rose-700">{error}</p>
+          <p className="mt-1 text-destructive">{error}</p>
         </div>
       )}
 
@@ -498,7 +498,7 @@ export function AgentApiKeysSection() {
                         key.status === "active"
                           ? "bg-emerald-100 text-emerald-700"
                           : key.status === "revoked"
-                          ? "bg-rose-100 text-rose-700"
+                          ? "bg-destructive/10 text-destructive"
                           : "bg-amber-100 text-amber-700"
                       }`}
                     >
@@ -525,7 +525,7 @@ export function AgentApiKeysSection() {
                         size="sm"
                         onClick={() => void revokeKey(key.id)}
                         disabled={revokingId === key.id}
-                        className="text-rose-700 border-rose-200 hover:bg-rose-50"
+                        className="text-destructive border-destructive/20 hover:bg-destructive/10"
                       >
                         {revokingId === key.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm revoke"}
                       </Button>
@@ -534,7 +534,7 @@ export function AgentApiKeysSection() {
                     <Button
                       variant="outline"
                       onClick={() => setConfirmRevokeId(key.id)}
-                      className="text-rose-700 border-rose-200 hover:bg-rose-50 shrink-0"
+                      className="text-destructive border-destructive/20 hover:bg-destructive/10 shrink-0"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Revoke

@@ -103,7 +103,7 @@ export function UploadLinkCard({
       case "default":
         return "bg-emerald-100 text-emerald-700 border border-emerald-200";
       case "destructive":
-        return "bg-rose-100 text-rose-700 border border-rose-200";
+        return "bg-destructive/10 text-destructive border border-destructive/20";
       case "secondary":
         return "bg-slate-100 text-foreground border border-border";
       default:
@@ -170,7 +170,7 @@ export function UploadLinkCard({
                   <button
                     type="button"
                     onClick={() => { setShowPinPrompt(true); setRecoverError(""); }}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-[#5a3436] transition-colors cursor-pointer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                     Reveal full link with PIN
@@ -195,7 +195,7 @@ export function UploadLinkCard({
                         size="sm"
                         onClick={handleRecoverKey}
                         disabled={recovering}
-                        className="h-8 bg-primary hover:bg-[#5a3436] text-white"
+                        className="h-8 bg-primary hover:bg-primary/80 text-white"
                       >
                         {recovering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Reveal"}
                       </Button>
@@ -209,7 +209,7 @@ export function UploadLinkCard({
                       </Button>
                     </div>
                     {recoverError && (
-                      <p className="text-xs text-red-600 dark:text-red-400">{recoverError}</p>
+                      <p className="text-xs text-destructive">{recoverError}</p>
                     )}
                   </div>
                 )}

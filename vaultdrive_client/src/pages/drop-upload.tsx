@@ -367,7 +367,7 @@ export default function DropUpload() {
     ].filter(Boolean).join("\n");
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-[#f2ece9] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/90 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <BrandLogo className="h-14 mx-auto" />
           <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center mx-auto">
@@ -490,7 +490,7 @@ export default function DropUpload() {
         {tokenInfo.checklist_items && tokenInfo.checklist_items.length > 0 && (() => {
           const allChecked = tokenInfo.checklist_items!.every((_, i) => checkedItems[i]);
           return (
-            <div className="rounded-xl border border-primary/40 bg-[#fdf6f6] p-4 space-y-3">
+            <div className="rounded-xl border border-primary/40 bg-muted p-4 space-y-3">
               <p className="text-sm font-semibold text-primary">Required documents</p>
               <ul className="space-y-2">
                 {tokenInfo.checklist_items!.map((item, i) => (
@@ -699,7 +699,7 @@ export default function DropUpload() {
             <div className="flex gap-3">
               <Lock className="w-5 h-5 text-primary dark:text-primary flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
-                <p className="font-medium text-[#5a3436]">End-to-end encrypted</p>
+                <p className="font-medium text-primary">End-to-end encrypted</p>
                 <p className="text-primary/90">
                   Your files are encrypted in your browser before being sent. Only {tokenInfo.owner_display_name || "the owner"} can decrypt them with their own trusted owner flow.
                 </p>

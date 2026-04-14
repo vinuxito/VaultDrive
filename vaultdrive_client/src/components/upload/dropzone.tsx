@@ -146,7 +146,7 @@ export function Dropzone({
         // Dragging state
         isDragging && [
           'border-primary bg-primary/10',
-          'shadow-[0_0_30px_rgba(99,102,241,0.3)]',
+          'shadow-primary/30',
           'scale-[1.02]',
         ],
         // Disabled state

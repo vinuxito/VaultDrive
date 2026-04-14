@@ -85,9 +85,10 @@ export default function FolderModal({
                 <h2 className="text-xl font-semibold text-white">{getTitle()}</h2>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="text-white/70 hover:text-white transition-colors"
+                className="text-white/80 hover:text-white transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -96,10 +97,11 @@ export default function FolderModal({
             <form onSubmit={handleSubmit} className="p-4">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white/90 mb-2">
+                  <label htmlFor="folder-name" className="block text-sm font-medium text-white mb-2">
                     Folder Name
                   </label>
                   <Input
+                    id="folder-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -107,7 +109,7 @@ export default function FolderModal({
                     disabled={loading}
                     autoFocus
                     placeholder="Enter folder name"
-                    className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+                    className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
                   />
                 </div>
 
@@ -121,17 +123,16 @@ export default function FolderModal({
                 <div className="flex gap-2 justify-end pt-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="modal-cancel"
                     onClick={onClose}
                     disabled={loading}
-                    className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-white text-primary hover:bg-primary/10 font-semibold"
+                    className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                   >
                     {loading ? (
                       <>

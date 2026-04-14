@@ -115,11 +115,11 @@ function CreateRequestModal({
             <Plus className="w-5 h-5 text-primary-foreground" />
             New File Request
           </h2>
-          <Button
+            <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white/70 hover:text-white hover:bg-white/10"
+            className="text-white/80 hover:text-white hover:bg-white/15"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -141,7 +141,7 @@ function CreateRequestModal({
                   id="req-created-url"
                   value={requestUrl}
                   readOnly
-                  className="flex-1 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 px-3 py-2 text-sm"
+                  className="flex-1 rounded-md bg-white/15 border border-white/20 text-white placeholder-white/60 px-3 py-2 text-sm"
                 />
                 <Button
                   type="button"
@@ -150,16 +150,16 @@ function CreateRequestModal({
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="bg-white text-primary hover:bg-primary/10 font-semibold"
+                  className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
 
-            <div className="rounded-xl bg-white/8 border border-white/15 p-3 text-sm text-white/85 space-y-1">
+            <div className="rounded-xl bg-white/12 border border-white/15 p-3 text-sm text-white/85 space-y-1">
               <p className="font-medium">Trust receipt</p>
-              <p className="text-xs text-white/70 leading-relaxed">
+              <p className="text-xs text-white/80 leading-relaxed">
                 The request stays under your control: you can copy it again, track uploads, or revoke it any time from the File Requests view.
               </p>
             </div>
@@ -179,7 +179,7 @@ function CreateRequestModal({
                   setExpiryDays("7");
                   onClose();
                 }}
-                className="bg-white text-primary hover:bg-primary/10 font-semibold"
+                className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
               >
                 Done
               </Button>
@@ -193,7 +193,7 @@ function CreateRequestModal({
                 className="block text-white/90 text-sm mb-1"
               >
                 Instructions for sender{" "}
-                <span className="text-white/50 font-normal">(optional)</span>
+                <span className="text-white/75 font-normal">(optional)</span>
               </label>
               <textarea
                 id="req-description"
@@ -201,7 +201,7 @@ function CreateRequestModal({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Please upload your Q1 financial statements here."
                 rows={3}
-                className="w-full rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 focus:outline-none px-3 py-2 text-sm resize-none"
+                className="w-full rounded-md bg-white/15 border border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20 focus:outline-none px-3 py-2 text-sm resize-none"
               />
             </div>
 
@@ -215,8 +215,8 @@ function CreateRequestModal({
                     onClick={() => setExpiryDays(opt.value)}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                       expiryDays === opt.value
-                        ? "bg-white text-primary"
-                        : "bg-white/10 text-white hover:bg-white/20"
+                        ? "bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))]"
+                        : "bg-white/15 text-white hover:bg-white/25"
                     }`}
                   >
                     {opt.label}
@@ -234,17 +234,16 @@ function CreateRequestModal({
             <div className="flex items-center justify-end gap-3 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="modal-cancel"
                 onClick={onClose}
                 disabled={loading}
-                className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-white text-primary hover:bg-primary/10 font-semibold"
+                className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
               >
                 {loading ? (
                   <>
@@ -410,7 +409,7 @@ export function FileRequestsSection() {
       )}
 
       {requests.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
+          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-slate-900/60 dark:border-slate-700">
           <Inbox className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-foreground dark:text-slate-200 font-medium mb-2">No file requests yet</p>
           <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">

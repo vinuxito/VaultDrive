@@ -101,14 +101,14 @@ export function BulkDownloadModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="text-white/50 hover:text-white/80 transition-colors"
+                className="text-white/75 hover:text-white/85 transition-colors"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <CardDescription className="text-white/70">
+          <CardDescription className="text-white/80">
             {done
               ? "All downloads processed."
               : credentialsReady
@@ -122,10 +122,10 @@ export function BulkDownloadModal({
             <div className="space-y-3">
               {needsPin && pinCredential.length < 4 && (
                 <div className="space-y-1.5">
-                  <label htmlFor="bulk-download-pin" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                  <label htmlFor="bulk-download-pin" className="text-sm font-medium flex items-center gap-1.5 text-white">
                     <Key className="w-3.5 h-3.5" />
                     4-digit PIN
-                    <span className="text-xs text-white/68">(used across your vault)</span>
+                    <span className="text-xs text-white/75">(used across your vault)</span>
                   </label>
                   <input
                     id="bulk-download-pin"
@@ -137,17 +137,17 @@ export function BulkDownloadModal({
                       setPinCredential(e.target.value.replace(/\D/g, "").slice(0, 4))
                     }
                     placeholder="••••"
-                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 text-center tracking-widest text-xl"
+                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 text-center tracking-widest text-xl"
                   />
                 </div>
               )}
 
               {needsPassword && passwordCredential.length === 0 && (
                 <div className="space-y-1.5">
-                  <label htmlFor="bulk-download-password" className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                  <label htmlFor="bulk-download-password" className="text-sm font-medium flex items-center gap-1.5 text-white">
                     <Key className="w-3.5 h-3.5" />
                     File credential
-                    <span className="text-xs text-white/68">(only for older non-PIN files)</span>
+                    <span className="text-xs text-white/75">(only for older non-PIN files)</span>
                   </label>
                   <input
                     id="bulk-download-password"
@@ -155,7 +155,7 @@ export function BulkDownloadModal({
                     value={passwordCredential}
                     onChange={(e) => setPasswordCredential(e.target.value)}
                     placeholder="Enter password"
-                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40"
+                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                   />
                 </div>
               )}
@@ -168,11 +168,11 @@ export function BulkDownloadModal({
               return (
                 <div
                   key={file.id}
-                  className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 border border-white/10"
+                  className="flex items-center gap-3 p-2.5 rounded-lg bg-white/12 border border-white/10"
                 >
                   <div className="shrink-0">
                     {status === "pending" && (
-                      <div className="w-4 h-4 rounded-full border-2 border-white/20" />
+                      <div className="w-4 h-4 rounded-full border-2 border-white/30" />
                     )}
                     {status === "downloading" && (
                       <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
@@ -185,7 +185,7 @@ export function BulkDownloadModal({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-white/90">
+                    <p className="text-sm font-medium truncate text-white">
                       {file.filename}
                     </p>
                     {status === "error" && fileErrors[file.id] && (
@@ -207,24 +207,24 @@ export function BulkDownloadModal({
           {done ? (
             <Button
               onClick={onClose}
-              className="w-full bg-white text-primary hover:bg-primary/10 font-semibold"
+              className="w-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
             >
               Done
             </Button>
           ) : (
             <>
               <Button
-                variant="outline"
+                variant="modal-cancel"
                 onClick={onClose}
                 disabled={running}
-                className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                className="flex-1"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleStart}
                 disabled={!credentialsReady || running}
-                className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold gap-1.5"
+                className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold gap-1.5"
               >
                 {running ? (
                   <>

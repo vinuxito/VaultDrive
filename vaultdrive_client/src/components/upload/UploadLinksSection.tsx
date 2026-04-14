@@ -207,7 +207,7 @@ export function UploadLinksSection() {
       )}
 
       {tokens.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
+          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-slate-900/60 dark:border-slate-700">
           <UploadCloud className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-foreground dark:text-slate-200 font-medium mb-2">
             No upload links created yet
@@ -239,18 +239,18 @@ export function UploadLinksSection() {
                   <p className="mt-1 text-amber-700">No more files can be uploaded, but anything already delivered stays in your vault.</p>
                   <div className="mt-3 flex gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => setConfirmDeactivateId(null)}>Keep active</Button>
-                    <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-amber-600 hover:bg-amber-700 text-white">Seal link</Button>
+                    <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-[hsl(var(--destructive)/0.8)] hover:bg-[hsl(var(--destructive)/0.9)] dark:bg-[hsl(var(--destructive)/0.6)] dark:hover:bg-[hsl(var(--destructive)/0.7)] text-white border-0">Seal link</Button>
                   </div>
                 </div>
               )}
 
               {confirmDeleteId === tokenData.id && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 px-4 py-4 text-sm text-rose-800 dark:text-rose-200">
                   <p className="font-medium">Remove this upload link?</p>
-                  <p className="mt-1 text-rose-700">The link disappears immediately, but previously uploaded files remain available in your vault.</p>
+                  <p className="mt-1 text-rose-700 dark:text-rose-300">The link disappears immediately, but previously uploaded files remain available in your vault.</p>
                   <div className="mt-3 flex gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>Keep link</Button>
-                    <Button size="sm" onClick={() => void handleDelete(tokenData.id)} className="bg-rose-600 hover:bg-rose-700 text-white">Delete link</Button>
+                    <Button variant="destructive" size="sm" onClick={() => void handleDelete(tokenData.id)}>Delete link</Button>
                   </div>
                 </div>
               )}

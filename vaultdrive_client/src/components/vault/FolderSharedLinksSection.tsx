@@ -345,7 +345,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Open Link
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => void handleRevoke(link)} disabled={busyId === link.id || !status.active} className="text-red-600 border-red-200 hover:bg-red-50">
+                      <Button type="button" variant="outline" onClick={() => void handleRevoke(link)} disabled={busyId === link.id || !status.active} className="text-destructive border-destructive/20 hover:bg-destructive/5 dark:border-destructive/40 dark:hover:bg-destructive/10">
                         <ShieldOff className="w-4 h-4 mr-2" />
                         Revoke
                       </Button>

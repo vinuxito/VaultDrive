@@ -45,10 +45,11 @@ export default function DeleteFolderModal({
             {/* Header with red accent for delete action */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Trash2 className="h-5 w-5 text-[#ef4444]" />
+                <Trash2 className="h-5 w-5 text-destructive" />
                 <h2 className="text-xl font-semibold text-white">Delete Folder</h2>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 disabled={loading}
                 className="text-white/70 hover:text-white transition-colors"
@@ -84,10 +85,9 @@ export default function DeleteFolderModal({
                 <div className="flex gap-2 justify-end pt-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="modal-cancel"
                     onClick={onClose}
                     disabled={loading}
-                    className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
                   >
                     Cancel
                   </Button>
@@ -95,7 +95,7 @@ export default function DeleteFolderModal({
                     type="button"
                     onClick={handleConfirm}
                     disabled={loading}
-                    className="bg-[#ef4444] hover:bg-[#dc2626] text-white border-0"
+                    className="bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-white border-0"
                   >
                     {loading ? (
                       <>
