@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
 import { BrandLogo, PoweredByBadge } from "../branding";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ interface NavLinkProps {
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = getStoredUserFromLocalStorage() ?? {};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -88,7 +89,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           <div className="p-4 border-b border-primary/15">
             <Link to="/profile" onClick={onClose} className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={user.avatar_url} />
+                <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
                 <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                   {getInitials(user.first_name) || "?"}
                 </AvatarFallback>

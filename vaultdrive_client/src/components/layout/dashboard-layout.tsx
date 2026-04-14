@@ -27,6 +27,7 @@ import type { ToastMessage } from "./Toast";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { requiresPinSetup } from "../../utils/pin-trust";
 import { API_URL } from "../../utils/api";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,7 +44,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = getStoredUserFromLocalStorage() ?? {};
   const [showOnboarding, setShowOnboarding] = useState(() => requiresPinSetup(user));
 
   // Verify PIN status from server to handle stale localStorage
@@ -58,7 +59,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .then((data) => {
         if (data?.pin_set) {
           // PIN already set server-side — update localStorage and dismiss onboarding
-          const stored = JSON.parse(localStorage.getItem("user") || "{}");
+          const stored = getStoredUserFromLocalStorage() ?? {};
           localStorage.setItem("user", JSON.stringify({ ...stored, pin_set: true }));
           setShowOnboarding(false);
         }
@@ -73,7 +74,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      const latestUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const latestUser = getStoredUserFromLocalStorage() ?? {};
       if (requiresPinSetup(latestUser)) {
         setShowOnboarding(true);
       }
@@ -160,8 +161,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
 
   return (
-    <div className="min-h-screen w-full bg-background text-foreground flex">
-      <div className="fixed inset-0 z-[-1]" style={{background: "linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%)"}} />
+    <div className="min-h-screen w-full text-foreground flex">
+      <div className="fixed inset-0 z-[-1]" style={{background: "var(--gradient-page)"}} />
 
         {showOnboarding && (
           <OnboardingWizard onComplete={handleOnboardingComplete} />
@@ -179,7 +180,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 brand-glass-nav px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5">
+        <header className="sticky top-0 z-30 lux-navbar px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -238,7 +239,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <button type="button" className="flex items-center gap-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={user.avatar_url} />
+                  <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
                   <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                     {getInitials(user.first_name) || "?"}
                   </AvatarFallback>
