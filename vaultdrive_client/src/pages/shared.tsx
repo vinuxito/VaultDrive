@@ -27,6 +27,7 @@ import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { restorePrivateKeyFromSessionPin } from "../utils/shared-session";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 interface SharedFile {
   id: string;
@@ -109,8 +110,7 @@ export default function SharedFiles() {
       }
     }
 
-    const stored = localStorage.getItem("user");
-    const userObj = stored ? JSON.parse(stored) : null;
+    const userObj = getStoredUserFromLocalStorage();
     const restoredKey = await restorePrivateKeyFromSessionPin({
       credential: getCredential(),
       privateKeyPinEncrypted: userObj?.private_key_pin_encrypted ?? null,
@@ -192,8 +192,7 @@ export default function SharedFiles() {
         throw new Error("No wrapped key in response. The file owner must re-share this file.");
       }
 
-      const stored = localStorage.getItem("user");
-      const userObj = stored ? JSON.parse(stored) : null;
+      const userObj = getStoredUserFromLocalStorage();
       const privateKeyPinEncrypted: string | null = userObj?.private_key_pin_encrypted ?? null;
 
       if (!privateKeyPinEncrypted) {
@@ -338,7 +337,7 @@ export default function SharedFiles() {
                   <Lock className="w-5 h-5 text-primary-foreground" />
                   Decrypt Shared File
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription className="text-white/80">
                   Enter your 4-digit PIN to decrypt this file
                 </CardDescription>
               </CardHeader>
@@ -363,7 +362,7 @@ export default function SharedFiles() {
                     value={pinValue}
                     onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
                     placeholder="4-digit PIN"
-                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
                     }}
@@ -372,20 +371,20 @@ export default function SharedFiles() {
 
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="modal-cancel"
                     onClick={() => {
                       setShowPinModal(false);
                       setPinValue("");
                       setPendingDownload(null);
                     }}
-                    className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                    className="flex-1"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handlePinSubmit}
                     disabled={pinValue.length !== 4}
-                    className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                    className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                   >
                     Decrypt & Download
                   </Button>

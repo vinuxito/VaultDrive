@@ -43,6 +43,7 @@ import {
   createPinProtectedPrivateKey,
   getPinEnrollmentErrorMessage,
 } from "../utils/pin-enrollment";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { mergeUserPinState } from "../utils/pin-trust";
 import { branding } from "../config/branding";
 
@@ -50,10 +51,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const { skin, setSkin } = useTheme();
   const { setCredential } = useSessionVault();
-  const [userData] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [userData] = useState(() => getStoredUserFromLocalStorage());
   const [orgName, setOrgName] = useState<string>("");
   const [orgSaving, setOrgSaving] = useState(false);
   const [orgSaved, setOrgSaved] = useState(false);
@@ -139,8 +137,7 @@ export default function Settings() {
     setPinLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
-      const stored = localStorage.getItem("user");
-      const userObj = stored ? JSON.parse(stored) : null;
+      const userObj = getStoredUserFromLocalStorage();
       const privateKeyEncrypted: string | null = userObj?.private_key_encrypted ?? null;
 
       const { privateKeyPinEncrypted, reEncryptedPrivateKey } = await createPinProtectedPrivateKey({
@@ -160,7 +157,7 @@ export default function Settings() {
       setOldPinInput("");
       setPasswordInput("");
       setPreviousPasswordInput("");
-      if (stored && userObj) {
+      if (userObj) {
         const updatedUser = mergeUserPinState(userObj, privateKeyPinEncrypted);
         if (reEncryptedPrivateKey) {
           updatedUser.private_key_encrypted = reEncryptedPrivateKey;
@@ -272,6 +269,7 @@ export default function Settings() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {SKINS.map((s) => (
                 <button
+                  type="button"
                   key={s.id}
                   onClick={() => setSkin(s.id)}
                   aria-pressed={skin === s.id}
@@ -301,8 +299,10 @@ export default function Settings() {
                     )}
                   </div>
                   <span
-                    className="text-xs font-semibold tracking-wide"
-                    style={{ color: s.isDark ? "#ffffff" : "#1a1a1a" }}
+                    className={cn(
+                      "text-xs font-semibold tracking-wide",
+                      s.isDark ? "text-white/90" : "text-slate-900"
+                    )}
                   >
                     {s.label}
                   </span>
@@ -452,7 +452,7 @@ export default function Settings() {
               <Button
                 variant="outline"
                 onClick={() => { setShowPinForm(true); setPinError(""); setPinSuccess(""); setPinInput(""); setOldPinInput(""); }}
-                className="border-primary/40 bg-white/80 text-primary hover:bg-[#f8efea] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+                className="border-primary/40 bg-white/80 text-primary hover:bg-muted dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
               >
                 {pinSet ? "Change PIN" : "Set PIN"}
               </Button>

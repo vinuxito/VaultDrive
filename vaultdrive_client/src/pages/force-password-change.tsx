@@ -11,6 +11,7 @@ import {
   encryptPrivateKeyWithPassword,
   importRSAPrivateKey,
 } from "../utils/crypto";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 /**
  * Full-screen password change gate.
@@ -33,7 +34,7 @@ export default function ForcePasswordChange() {
   // Guard: must be logged in with force_password_change flag
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = getStoredUserFromLocalStorage() ?? {};
     if (!token) {
       navigate("/login", { replace: true });
     } else if (!user.force_password_change) {
@@ -63,7 +64,7 @@ export default function ForcePasswordChange() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const storedUser = getStoredUserFromLocalStorage() ?? {};
 
       // Re-encrypt private key with new password so file decryption continues to work
       let reEncryptedKey = "";

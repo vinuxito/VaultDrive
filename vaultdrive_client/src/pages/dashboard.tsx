@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardLayout } from "../components/layout/dashboard-layout";
 import { API_URL } from "../utils/api";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import {
-  Files,
+  FolderOpen,
   Link2,
   Share2,
   Users,
@@ -12,7 +12,7 @@ import {
   Clock,
   FileUp,
   UserPlus,
-  Shield,
+  ShieldCheck,
   Activity,
   AlertTriangle,
   CheckCircle2,
@@ -72,20 +72,19 @@ function formatRelativeTime(dateStr: string): string {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-primary/10 bg-white/60 p-5 animate-pulse">
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-10 h-10 rounded-xl bg-slate-200" />
-        <div className="w-8 h-4 rounded bg-slate-200" />
+    <div className="rounded-2xl border border-primary/10 bg-white/60 p-5 animate-pulse flex flex-col h-full">
+      <div className="w-10 h-10 rounded-xl bg-slate-200 mb-4" />
+      <div className="mt-auto">
+        <div className="w-16 h-8 rounded bg-slate-200 mb-1" />
+        <div className="w-24 h-3 rounded bg-slate-100 mt-2" />
       </div>
-      <div className="w-16 h-8 rounded bg-slate-200 mb-1" />
-      <div className="w-24 h-3 rounded bg-slate-100 mt-2" />
     </div>
   );
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = getStoredUserFromLocalStorage() ?? {};
   const firstName = user.first_name || user.email?.split("@")[0] || "there";
 
   const [stats, setStats] = useState<{
@@ -156,7 +155,7 @@ export default function Dashboard() {
     {
       label: "Total Files",
       value: stats.files,
-      icon: Files,
+      icon: FolderOpen,
       color: "text-primary",
       bg: "bg-primary/10",
     },
@@ -208,14 +207,13 @@ export default function Dashboard() {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-8 pb-8">
+    <div className="max-w-5xl mx-auto space-y-8 pb-8">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
             Good {getGreeting()}, {firstName}.
           </h1>
           <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
-            <Shield className="w-4 h-4 text-emerald-500" />
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
             Your vault is secure.
           </p>
         </div>
@@ -261,7 +259,7 @@ export default function Dashboard() {
         )}
 
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
             Vault Overview
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -270,17 +268,17 @@ export default function Dashboard() {
               : statCards.map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 cursor-default"
+                    className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 cursor-default flex flex-col h-full"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center`}>
-                        <card.icon className={`w-5 h-5 ${card.color}`} />
-                      </div>
+                    <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mb-4`}>
+                      <card.icon className={`w-5 h-5 ${card.color}`} />
                     </div>
-                    <p className="text-3xl font-bold text-slate-900">
-                      {card.value ?? "—"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 font-medium">{card.label}</p>
+                    <div className="mt-auto">
+                      <p className="text-3xl font-bold text-foreground">
+                        {card.value ?? "—"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">{card.label}</p>
+                    </div>
                   </div>
                 ))}
           </div>
@@ -327,7 +325,7 @@ export default function Dashboard() {
               stats.files === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
                   <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
-                    <Activity className="w-5 h-5 text-slate-400" />
+                    <Activity className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-foreground mb-4">Get started with your vault</p>
                   <div className="w-full max-w-xs space-y-2 text-left">
@@ -346,7 +344,7 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                   <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
-                    <Clock className="w-5 h-5 text-slate-400" />
+                    <Clock className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
                   <p className="text-xs text-slate-400 mt-1">Upload or share a file to begin.</p>
@@ -360,7 +358,7 @@ export default function Dashboard() {
                   return (
                     <div key={item.id} className="flex items-center gap-3 px-5 py-4 hover:bg-muted/60 transition-colors">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <IconComp className="w-4 h-4 text-primary" />
+                        <IconComp className="w-4 h-4 text-primary shrink-0" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-slate-800 truncate">
@@ -378,7 +376,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

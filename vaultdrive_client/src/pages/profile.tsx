@@ -12,6 +12,7 @@ import { User, Mail, Calendar, AlertCircle, CheckCircle2, Lock, Eye, EyeOff } fr
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/api";
 import { DashboardLayout } from "../components/layout/dashboard-layout";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -26,10 +27,7 @@ export default function Profile() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Get user data from localStorage
-  const [userData, setUserData] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [userData, setUserData] = useState(() => getStoredUserFromLocalStorage());
 
   // Form state
   const [formData, setFormData] = useState({

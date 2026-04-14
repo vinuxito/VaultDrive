@@ -75,6 +75,7 @@ import { buildMoveTargetOptions } from "../utils/file-move";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import type { DragDataTransferItem } from "../utils/drop-drag";
 import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 interface FileData {
   id: string;
@@ -923,8 +924,7 @@ export default function Files() {
         if (sessionKey) {
           rsaPrivateKey = sessionKey;
         } else {
-          const stored = localStorage.getItem("user");
-          const userObj: { private_key_pin_encrypted?: string } | null = stored ? JSON.parse(stored) : null;
+          const userObj = getStoredUserFromLocalStorage();
           const privateKeyPinEncrypted = userObj?.private_key_pin_encrypted ?? null;
           if (!privateKeyPinEncrypted) {
             throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings.");
@@ -1375,8 +1375,8 @@ export default function Files() {
   };
 
   const isSharedView = selectedNode.type === "shared";
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const ownerUsesPin = Boolean(currentUser.pin_set);
+  const currentUser = getStoredUserFromLocalStorage();
+  const ownerUsesPin = Boolean(currentUser?.pin_set);
 
   async function handlePasswordSubmit() {
     if (!encryptionPassword) return;
@@ -1640,11 +1640,11 @@ export default function Files() {
             )}
 
             {error && (
-              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm shrink-0">
-                <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
+              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-destructive/10 border border-destructive/20 rounded-xl text-sm shrink-0">
+                <div className="w-7 h-7 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-4 h-4 text-destructive" />
                 </div>
-                <span className="text-red-800">{error}</span>
+                <span className="text-destructive font-medium">{error}</span>
               </div>
             )}
 
@@ -1848,7 +1848,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleDeleteClick(file.id, file.filename)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-destructive hover:bg-destructive/10 transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1945,7 +1945,7 @@ export default function Files() {
                                  <button
                                     type="button"
                                     onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
-                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
                                  >
                                    <Trash2 className="w-3.5 h-3.5" /> Delete
                                  </button>
@@ -2095,21 +2095,21 @@ export default function Files() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="modal-cancel"
                   onClick={() => {
                     setShowPasswordModal(false);
                     setEncryptionPassword("");
                     setPasswordAction(null);
                     setPendingDownload(null);
                   }}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handlePasswordSubmit}
                   disabled={!encryptionPassword || uploading || downloading}
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                  className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                 >
                   {uploading || downloading ? (
                     <>
@@ -2214,7 +2214,7 @@ export default function Files() {
                           variant="outline"
                           onClick={() => handleRevokeAccess(user.user_id)}
                           disabled={revoking === user.user_id}
-                          className="gap-2 border-2 border-[#ef4444]/60 text-white hover:bg-[#ef4444]/20 bg-transparent"
+                          className="gap-2 border-2 border-destructive/60 text-white hover:bg-destructive/20 bg-transparent"
                         >
                           <X className="w-4 h-4" />
                           {revoking === user.user_id ? "Revoking…" : "Revoke"}
@@ -2240,7 +2240,7 @@ export default function Files() {
           <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
             <CardHeader className="border-b border-white/10">
               <CardTitle className="flex items-center gap-2 text-white">
-                <Trash2 className="w-5 h-5 text-[#ef4444]" />
+                <Trash2 className="w-5 h-5 text-destructive" />
                 Delete File
               </CardTitle>
               <CardDescription className="text-white/70">
@@ -2259,10 +2259,10 @@ export default function Files() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="modal-cancel"
                   onClick={() => { setShowDeleteModal(false); setFileToDelete(null); }}
                   disabled={deleting}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
@@ -2270,7 +2270,7 @@ export default function Files() {
                   variant="destructive"
                   onClick={handleDeleteConfirm}
                   disabled={deleting}
-                  className="flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white border-0"
+                  className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-white border-0"
                 >
                   {deleting ? "Deleting…" : "Delete File"}
                 </Button>
@@ -2285,7 +2285,7 @@ export default function Files() {
           <Card className="w-full max-w-lg mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
             <CardHeader className="border-b border-white/10">
               <CardTitle className="flex items-center gap-2 text-white">
-                <Trash2 className="w-5 h-5 text-[#ef4444]" />
+                <Trash2 className="w-5 h-5 text-destructive" />
                 Delete {bulkDeleteCandidates.length} File{bulkDeleteCandidates.length !== 1 ? "s" : ""}
               </CardTitle>
               <CardDescription className="text-white/70">
@@ -2313,10 +2313,10 @@ export default function Files() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="modal-cancel"
                   onClick={() => setShowBulkDeleteModal(false)}
                   disabled={bulkDeleting}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
@@ -2324,7 +2324,7 @@ export default function Files() {
                   variant="destructive"
                   onClick={handleBulkDeleteConfirm}
                   disabled={bulkDeleting}
-                  className="flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white border-0"
+                  className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-white border-0"
                 >
                   {bulkDeleting ? "Deleting..." : `Delete ${bulkDeleteCandidates.length}`}
                 </Button>

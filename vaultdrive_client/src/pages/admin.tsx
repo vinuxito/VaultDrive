@@ -13,6 +13,7 @@ import {
   ShieldOff,
 } from "lucide-react";
 import { API_URL } from "../utils/api";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 interface User {
   id: string;
@@ -56,7 +57,7 @@ export default function Admin() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUser = getStoredUserFromLocalStorage() ?? {};
 
   // Users that can be selected for bulk delete (not self)
   const selectableUsers = users.filter(
@@ -388,14 +389,15 @@ export default function Admin() {
 
       {/* Bulk Action Bar */}
       {selected.size > 0 && (
-        <div className="mb-4 flex items-center gap-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <span className="text-sm font-medium text-red-800">
+        <div className="mb-4 flex items-center gap-4 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-3">
+          <span className="text-sm font-medium text-destructive">
             {selected.size} user{selected.size > 1 ? "s" : ""} selected
           </span>
           <button
+            type="button"
             onClick={handleBulkDelete}
             disabled={bulkDeleting}
-            className="bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 text-sm"
+            className="bg-destructive text-white px-3 py-1.5 rounded-md hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2 text-sm"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {bulkDeleting ? "Deleting..." : "Delete Selected"}
@@ -449,7 +451,7 @@ export default function Admin() {
               return (
                 <tr
                   key={user.id}
-                  className={isSelected ? "bg-red-50" : undefined}
+                  className={isSelected ? "bg-destructive/10" : undefined}
                 >
                   <td className="px-4 py-4 w-10">
                     {isSelf ? (
@@ -481,7 +483,7 @@ export default function Admin() {
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/20 text-primary ${
                           isSelf
                             ? "cursor-default"
-                            : "hover:bg-[#d4a3a5] cursor-pointer"
+                            : "hover:bg-primary/20 cursor-pointer"
                         }`}
                         title={
                           isSelf
@@ -539,8 +541,8 @@ export default function Admin() {
                         onClick={() => handleForcePasswordChange(user)}
                         className={`mr-3 ${
                           user.force_password_change
-                            ? "text-amber-600"
-                            : "text-amber-400 hover:text-amber-600"
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-amber-400 hover:text-amber-600 dark:text-amber-500 dark:hover:text-amber-400"
                         }`}
                         title={
                           user.force_password_change
@@ -555,7 +557,7 @@ export default function Admin() {
                     {!isSelf && (
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-destructive hover:text-destructive/80"
                         title="Delete user"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -587,7 +589,7 @@ export default function Admin() {
               </button>
             </div>
             {error && (
-              <div className="mb-4 p-2 bg-red-50 text-red-600 text-sm rounded">
+              <div className="mb-4 p-2 bg-destructive/10 text-destructive text-sm rounded">
                 {error}
               </div>
             )}
