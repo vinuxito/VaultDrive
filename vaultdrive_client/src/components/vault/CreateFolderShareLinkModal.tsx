@@ -29,6 +29,10 @@ import {
 } from "../../utils/crypto";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { resolveFolderShareFileKey } from "../../utils/folder-share";
+import {
+  getNormalizedErrorMessage,
+  getStoredUserFromLocalStorage,
+} from "../../utils/browser-storage";
 
 export interface CreateFolderShareLinkModalProps {
   isOpen: boolean;
@@ -82,7 +86,14 @@ export function CreateFolderShareLinkModal({
 }: CreateFolderShareLinkModalProps) {
   const { getCredential } = useSessionVault();
   const cached = getCredential();
-  const hasCachedPin = cached && cached.type === "pin";
+  const [allowCachedPin, setAllowCachedPin] = useState(
+    Boolean(cached && cached.type === "pin" && /^\d{4}$/.test(cached.value)),
+  );
+
+  const cachedPin = allowCachedPin && cached?.type === "pin" && /^\d{4}$/.test(cached.value)
+    ? cached.value
+    : null;
+  const hasCachedPin = Boolean(cachedPin);
 
   const [pin, setPin] = useState("");
   const [step, setStep] = useState<Step>("credential");
@@ -97,23 +108,45 @@ export function CreateFolderShareLinkModal({
   const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
   async function handleGenerate() {
-    const userPin = hasCachedPin ? cached!.value : pin;
+    const userPin = cachedPin ?? pin;
     if (!userPin) return;
     setStep("generating");
     setErrorMsg("");
 
     try {
       const authToken = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const storedUser = getStoredUserFromLocalStorage();
+      if (!storedUser) {
+        throw new Error("Your saved session data is invalid. Sign in again and try again.");
+      }
+      const user = storedUser;
 
       // 1. Decrypt owner's RSA private key with PIN
       if (!user.private_key_pin_encrypted) {
         throw new Error("PIN-encrypted private key not found. Set your PIN in Settings first.");
       }
-      const privateKeyPem = await decryptPrivateKeyWithPIN(
-        userPin,
-        user.private_key_pin_encrypted
-      );
+      let privateKeyPem: string;
+      try {
+        privateKeyPem = await decryptPrivateKeyWithPIN(
+          userPin,
+          user.private_key_pin_encrypted,
+        );
+      } catch (error) {
+        if (hasCachedPin) {
+          setAllowCachedPin(false);
+          setPin("");
+          setErrorMsg("Your cached PIN could not unlock this folder share. Enter your current PIN and try again.");
+          setStep("credential");
+          return;
+        }
+
+        throw new Error(
+          getNormalizedErrorMessage(
+            error,
+            "The current PIN could not unlock your key. Check your PIN and try again.",
+          ),
+        );
+      }
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
 
       // 2. Get all files in the folder subtree
@@ -213,7 +246,7 @@ export function CreateFolderShareLinkModal({
         const errData = (await createRes.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(errData.error ?? "Failed to create folder share link");
+        throw new Error(errData.error || "Failed to create folder share link");
       }
 
       const data = (await createRes.json()) as { token: string };
@@ -226,9 +259,7 @@ export function CreateFolderShareLinkModal({
       setStep("done");
       onCreated?.();
     } catch (err) {
-      setErrorMsg(
-        err instanceof Error ? err.message : "Failed to generate folder share link"
-      );
+      setErrorMsg(getNormalizedErrorMessage(err, "Failed to generate folder share link"));
       setStep("error");
     }
   }
@@ -245,6 +276,7 @@ export function CreateFolderShareLinkModal({
 
   function handleClose() {
     setPin("");
+    setAllowCachedPin(Boolean(cached && cached.type === "pin" && /^\d{4}$/.test(cached.value)));
     setStep("credential");
     setShareUrl("");
     setErrorMsg("");
@@ -287,6 +319,13 @@ export function CreateFolderShareLinkModal({
         </CardHeader>
 
         <CardContent className="space-y-4 py-4">
+          {errorMsg && step !== "done" && step !== "generating" && (
+            <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
+              <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-200">{errorMsg}</p>
+            </div>
+          )}
+
           {step === "credential" && (
             <>
               <div className="space-y-2">
@@ -500,10 +539,6 @@ export function CreateFolderShareLinkModal({
 
           {step === "error" && (
             <>
-              <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
-                <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-200">{errorMsg}</p>
-              </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

@@ -19,6 +19,7 @@ import {
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
+import { getNormalizedErrorMessage } from "../../utils/browser-storage";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -142,7 +143,7 @@ export function CreateShareLinkModal({
         const errData = (await response.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(errData.error ?? "Failed to create share link");
+        throw new Error(errData.error || "Failed to create share link");
       }
 
       const data = (await response.json()) as { token: string };
@@ -151,7 +152,7 @@ export function CreateShareLinkModal({
       setExpiryDisplay(displayDate);
       setStep("done");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Failed to generate share link");
+      setErrorMsg(getNormalizedErrorMessage(err, "Failed to generate share link"));
       setStep("error");
     }
   }
