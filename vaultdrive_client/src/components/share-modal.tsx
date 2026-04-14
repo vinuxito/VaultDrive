@@ -13,6 +13,10 @@ import {
   deriveKeyFromPassword,
   base64ToArrayBuffer,
 } from "../utils/crypto";
+import {
+  getNormalizedErrorMessage,
+  getStoredUserFromLocalStorage,
+} from "../utils/browser-storage";
 
 interface UserResult {
   id: string;
@@ -202,8 +206,7 @@ export default function ShareModal({
           }
         }
 
-        const stored = localStorage.getItem("user");
-        const userObj = stored ? JSON.parse(stored) : null;
+        const userObj = getStoredUserFromLocalStorage();
         if (!userObj?.public_key) {
           throw new Error("Your public key is missing. Please log out and log in again before sharing to a group.");
         }
@@ -224,7 +227,7 @@ export default function ShareModal({
       onShareComplete();
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to share file");
+      setError(getNormalizedErrorMessage(err, "Failed to share file"));
     } finally {
       setSharing(false);
     }
@@ -256,9 +259,9 @@ export default function ShareModal({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold text-white">Share File</h2>
-              <p className="text-sm text-white/70">{fileName}</p>
+              <p className="text-sm text-white/80">{fileName}</p>
             </div>
-            <button type="button" onClick={handleClose} className="text-white/70 hover:text-white transition-colors">
+            <button type="button" onClick={handleClose} className="text-white/80 hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -270,7 +273,7 @@ export default function ShareModal({
             </div>
           )}
 
-          <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-6">
+          <div className="flex gap-2 p-1 bg-white/12 rounded-lg mb-6">
             {(["users", "groups"] as const).map((t) => (
               <button
                 type="button"
@@ -283,8 +286,8 @@ export default function ShareModal({
                 }}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   tab === t
-                    ? "bg-white text-primary"
-                    : "text-white/70 hover:text-white hover:bg-white/5"
+                    ? "bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))]"
+                    : "text-white/80 hover:text-white hover:bg-white/15"
                 }`}
               >
                 {t === "users" ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
@@ -296,7 +299,7 @@ export default function ShareModal({
           <div className="space-y-4">
             {!recipient && (
               <div>
-                <label htmlFor="share-search" className="block text-sm font-medium text-white/90 mb-2">
+                <label htmlFor="share-search" className="block text-sm font-medium text-white mb-2">
                   {tab === "users" ? "Search users by username" : "Select a group"}
                 </label>
                 <Input
@@ -304,12 +307,12 @@ export default function ShareModal({
                   placeholder={tab === "users" ? "Type at least 2 characters..." : "Search groups..."}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                  className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                 />
               </div>
             )}
 
-            {loading && <p className="text-sm text-white/70">Searching...</p>}
+            {loading && <p className="text-sm text-white/80">Searching...</p>}
 
             {!recipient && tab === "users" && searchResults.length > 0 && (
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -318,7 +321,7 @@ export default function ShareModal({
                     type="button"
                     key={u.id}
                     onClick={() => setRecipient(u)}
-                    className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-colors"
+                    className="w-full flex items-center gap-3 p-3 bg-white/12 hover:bg-white/20 rounded-lg text-left transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
                       {u.username.charAt(0).toUpperCase()}
@@ -327,7 +330,7 @@ export default function ShareModal({
                       <p className="text-sm text-white font-medium">
                         {u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.username}
                       </p>
-                      <p className="text-xs text-white/70">{u.email}</p>
+                      <p className="text-xs text-white/80">{u.email}</p>
                     </div>
                   </button>
                 ))}
@@ -343,14 +346,14 @@ export default function ShareModal({
                       type="button"
                       key={g.id}
                       onClick={() => setRecipient(g)}
-                      className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-white/12 hover:bg-white/20 rounded-lg text-left transition-colors"
                     >
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                         <Users className="w-4 h-4" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-white font-medium">{g.name}</p>
-                        <p className="text-xs text-white/70">{g.member_count} members</p>
+                        <p className="text-xs text-white/80">{g.member_count} members</p>
                       </div>
                     </button>
                   ))}
@@ -372,7 +375,7 @@ export default function ShareModal({
                             : recipient.username
                           : recipient.name}
                       </p>
-                      <p className="text-xs text-white/70">
+                      <p className="text-xs text-white/80">
                         {isUser(recipient) ? recipient.email : `${recipient.member_count} members`}
                       </p>
                     </div>
@@ -383,12 +386,12 @@ export default function ShareModal({
                 </div>
 
                 {hasCachedCred ? (
-                  <div className="p-3 bg-white/5 rounded-lg flex items-center gap-2 text-sm text-white/70">
+                  <div className="p-3 bg-white/12 rounded-lg flex items-center gap-2 text-sm text-white/80">
                     <Lock className="w-4 h-4 text-green-400 shrink-0" />
                     <span>Credential cached — sharing will proceed automatically.</span>
                   </div>
                 ) : (
-                  <div className="p-4 bg-white/5 rounded-lg space-y-3">
+                  <div className="p-4 bg-white/12 rounded-lg space-y-3">
                     <p className="text-sm font-medium text-white flex items-center gap-2">
                       <Lock className="w-4 h-4" />
                       Your credential to authorize sharing
@@ -396,7 +399,7 @@ export default function ShareModal({
 
                     {credentialMode === "pin" ? (
                       <div>
-                        <label htmlFor="share-pin" className="block text-xs text-white/70 mb-1">Your PIN</label>
+                        <label htmlFor="share-pin" className="block text-xs text-white/80 mb-1">Your PIN</label>
                         <Input
                           id="share-pin"
                           type="password"
@@ -405,24 +408,24 @@ export default function ShareModal({
                           placeholder="4-digit PIN"
                           value={pinInput}
                           onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
-                          className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                          className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                         />
-                        <p className="text-xs text-white/68 mt-1">
+                        <p className="text-xs text-white/75 mt-1">
                           Used to authorize this share without asking for a separate file password
                         </p>
                       </div>
                     ) : (
                       <div>
-                        <label htmlFor="share-credential" className="block text-xs text-white/70 mb-1">File credential</label>
+                        <label htmlFor="share-credential" className="block text-xs text-white/80 mb-1">File credential</label>
                         <Input
                           id="share-credential"
                           type="password"
                           placeholder="Credential used for this file"
                           value={passwordInput}
                           onChange={(e) => setPasswordInput(e.target.value)}
-                          className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                          className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                         />
-                        <p className="text-xs text-white/68 mt-1">
+                        <p className="text-xs text-white/75 mt-1">
                            Used to derive the file key and wrap it with the recipient's RSA public key
                         </p>
                       </div>
@@ -435,16 +438,15 @@ export default function ShareModal({
             <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
               <Button
                 type="button"
-                variant="outline"
+                variant="modal-cancel"
                 onClick={handleClose}
-                className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleShare}
                  disabled={!recipient || sharing || (!hasCachedCred && (credentialMode === "pin" ? !pinInput : !passwordInput))}
-                 className="bg-white text-primary hover:bg-primary/10 font-semibold"
+                 className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                >
                 {sharing ? (
                   <span className="flex items-center gap-2">
