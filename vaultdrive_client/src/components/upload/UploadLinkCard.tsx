@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Copy, X, ChevronDown, ChevronUp, Trash2, UploadCloud, FileIcon, ShieldCheck, KeyRound, Check, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { X, ChevronDown, ChevronUp, Trash2, UploadCloud, FileIcon, ShieldCheck } from "lucide-react";
+
 import { Button } from "../ui/button";
+import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 import type { UploadTokenWithFiles } from "./types";
 import { API_URL, BASE_PATH } from "../../utils/api";
 
@@ -22,73 +24,26 @@ export function UploadLinkCard({
   onDelete,
 }: UploadLinkCardProps) {
   const [revealedKey, setRevealedKey] = useState("");
-  const [pinInput, setPinInput] = useState("");
-  const [showPinPrompt, setShowPinPrompt] = useState(false);
-  const [recovering, setRecovering] = useState(false);
-  const [recoverError, setRecoverError] = useState("");
-  const [copied, setCopied] = useState(false);
 
-  const baseUrl = token.upload_url?.startsWith('http')
+  const baseUrl = token.upload_url?.startsWith("http")
     ? token.upload_url
     : `${window.location.origin}${token.upload_url || `${BASE_PATH}/drop/${token.token}`}`;
-
-  // Strip any existing fragment from the base URL before appending recovered key
   const baseWithoutFragment = baseUrl.split("#")[0];
-  const displayUrl = revealedKey
-    ? `${baseWithoutFragment}#key=${revealedKey}`
-    : baseUrl;
 
-  const copyUrl = async () => {
-    await navigator.clipboard.writeText(displayUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleRecoverKey = async () => {
-    if (!pinInput || pinInput.length < 4) {
-      setRecoverError("Enter your 4-digit PIN");
-      return;
+  const copyUnavailableReason = useMemo(() => {
+    if (status.label === "Expired") {
+      return "This upload link has expired, so there is no full URL to copy.";
     }
-
-    setRecovering(true);
-    setRecoverError("");
-
-    try {
-      const authToken = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/drop/${token.token}/recover-key`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ pin: pinInput }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json() as { error?: string };
-        throw new Error(data.error || "Failed to recover key");
-      }
-
-      const data = await response.json() as { encryption_key: string };
-      setRevealedKey(data.encryption_key);
-      setShowPinPrompt(false);
-      setPinInput("");
-
-      // Auto-copy the full URL
-      const fullUrl = `${baseWithoutFragment}#key=${data.encryption_key}`;
-      await navigator.clipboard.writeText(fullUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      setRecoverError(err instanceof Error ? err.message : "Failed to recover key");
-    } finally {
-      setRecovering(false);
+    if (status.label === "Inactive") {
+      return "This upload link is sealed and can no longer accept files.";
     }
-  };
+    if (status.label === "Full") {
+      return "This upload link already reached its file limit and should not be shared again.";
+    }
+    return undefined;
+  }, [status.label]);
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString();
-  };
+  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString();
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -111,7 +66,30 @@ export function UploadLinkCard({
     }
   };
 
-  const hasKey = revealedKey || baseUrl.includes("#key=");
+  const handleResolveCopyUrl = async (pin: string) => {
+    if (revealedKey) {
+      return `${baseWithoutFragment}#key=${revealedKey}`;
+    }
+
+    const authToken = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/drop/${token.token}/recover-key`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ pin }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(data.error || "Wrong PIN. Try again.");
+    }
+
+    const data = await response.json() as { encryption_key: string };
+    setRevealedKey(data.encryption_key);
+    return `${baseWithoutFragment}#key=${data.encryption_key}`;
+  };
 
   return (
     <div className="rounded-[1.4rem] border border-slate-200 overflow-hidden bg-white shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
@@ -127,9 +105,7 @@ export function UploadLinkCard({
                   <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">
                     {token.folder_name || "Files Upload Link"}
                   </h3>
-                  <span
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${getStatusColor(status.variant)}`}
-                  >
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${getStatusColor(status.variant)}`}>
                     {status.label}
                   </span>
                 </div>
@@ -151,87 +127,22 @@ export function UploadLinkCard({
                     Reviewable
                   </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-sm">
-                  <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded text-xs flex-1 min-w-0 overflow-hidden border border-slate-200 dark:border-slate-700">
-                    {displayUrl}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={copyUrl}
-                    className="h-8 px-2 shrink-0"
-                    title={hasKey ? "Copy full link" : "Copy link (missing key)"}
-                  >
-                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                  </Button>
+
+                <div className="mt-2">
+                  <ProtectedLinkCopyField
+                    label="Sender route"
+                    rawUrl={revealedKey ? `${baseWithoutFragment}#key=${revealedKey}` : `${baseWithoutFragment}#key=missing`}
+                    expectedPath={new URL(baseWithoutFragment).pathname}
+                    kind="upload-link"
+                    variant="light"
+                    copyButtonLabel="Copy full upload link"
+                    guidanceText="Enter your 4-digit PIN to copy the full URL."
+                    onResolveUrl={handleResolveCopyUrl}
+                    unavailableReason={copyUnavailableReason}
+                  />
                 </div>
-
-                {!hasKey && !showPinPrompt && (
-                  <button
-                    type="button"
-                    onClick={() => { setShowPinPrompt(true); setRecoverError(""); }}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-[#7d4f50] hover:text-[#5a3436] transition-colors cursor-pointer"
-                  >
-                    <KeyRound className="w-3.5 h-3.5" />
-                    Reveal full link with PIN
-                  </button>
-                )}
-
-                {showPinPrompt && (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={8}
-                        value={pinInput}
-                        onChange={(e) => { setPinInput(e.target.value); setRecoverError(""); }}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleRecoverKey(); }}
-                        placeholder="Enter PIN"
-                        className="w-28 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#7d4f50]/40 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-                        autoFocus
-                      />
-                      <Button
-                        size="sm"
-                        onClick={handleRecoverKey}
-                        disabled={recovering}
-                        className="h-8 bg-[#7d4f50] hover:bg-[#5a3436] text-white"
-                      >
-                        {recovering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Reveal"}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { setShowPinPrompt(false); setPinInput(""); setRecoverError(""); }}
-                        className="h-8 px-2"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                    {recoverError && (
-                      <p className="text-xs text-red-600 dark:text-red-400">{recoverError}</p>
-                    )}
-                  </div>
-                )}
-
-                {revealedKey && (
-                  <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    Full link recovered and copied to clipboard. Share this URL with your client.
-                  </p>
-                )}
-
-                {!hasKey && !showPinPrompt && !revealedKey && (
-                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                    The encryption key is not in this URL. Use "Reveal full link with PIN" to recover it.
-                  </p>
-                )}
-
-                {hasKey && !revealedKey && (
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    Share this route with a client when you want them to deliver files into the folder you selected.
-                  </p>
-                )}
               </div>
+
               <div className="flex items-center gap-2 text-sm">
                 <code className="bg-muted px-2 py-0.5 rounded text-xs flex-1 min-w-0 overflow-hidden">
                   {token.token}
@@ -241,30 +152,17 @@ export function UploadLinkCard({
 
             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground flex-wrap">
               {token.max_files && (
-              <span className="flex items-center gap-1">
-                Files Uploaded: <strong>{token.files_uploaded || 0}</strong> / {token.max_files}
-              </span>
+                <span className="flex items-center gap-1">
+                  Files Uploaded: <strong>{token.files_uploaded || 0}</strong> / {token.max_files}
+                </span>
               )}
-              {token.expires_at && (
-                <span>Expires: {formatDate(token.expires_at)}</span>
-              )}
-              {!token.max_files && !token.expires_at && (
-                <span>No expiration or file limits</span>
-              )}
+              {token.expires_at && <span>Expires: {formatDate(token.expires_at)}</span>}
+              {!token.max_files && !token.expires_at && <span>No expiration or file limits</span>}
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onExpand}
-            className="ml-2 shrink-0"
-          >
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
+          <Button variant="ghost" size="sm" onClick={onExpand} className="ml-2 shrink-0">
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </Button>
         </div>
       </div>
@@ -305,10 +203,7 @@ export function UploadLinkCard({
                   {token.files.length > 0 && (
                     <>
                       {" "}
-                      • Last upload:{" "}
-                      {formatDate(
-                        token.files[token.files.length - 1].created_at
-                      )}
+                      • Last upload: {formatDate(token.files[token.files.length - 1].created_at)}
                     </>
                   )}
                 </div>
@@ -316,30 +211,18 @@ export function UploadLinkCard({
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No files uploaded yet</p>
-                <p className="text-xs mt-1">
-                  Share this link to let external users upload files
-                </p>
+                <p className="text-xs mt-1">Share this link to let external users upload files</p>
               </div>
             )}
 
             <div className="flex gap-2 mt-4 pt-4 border-t">
               {!token.used && status.variant !== "destructive" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDeactivate}
-                  className="flex-1 gap-1"
-                >
+                <Button variant="outline" size="sm" onClick={onDeactivate} className="flex-1 gap-1">
                   <X className="w-4 h-4" />
                   Seal route
                 </Button>
               )}
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onDelete}
-                className="flex-1 gap-1"
-              >
+              <Button variant="destructive" size="sm" onClick={onDelete} className="flex-1 gap-1">
                 <Trash2 className="w-4 h-4" />
                 Remove route
               </Button>
