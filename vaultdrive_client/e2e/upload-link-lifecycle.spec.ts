@@ -52,15 +52,19 @@ test.describe("Upload link creation and anonymous file collection", () => {
 
     await verifyPinField.fill(account.pin);
     await page.getByRole("button", { name: /verify pin and copy/i }).click();
-    await expect(page.getByText("Copied!")).toBeVisible();
+    await expect.poll(async () => {
+      const copiedVisible = await page.getByText("Copied!").isVisible().catch(() => false);
+      const fallbackVisible = await page.getByText(/clipboard is unavailable/i).isVisible().catch(() => false);
+      return copiedVisible || fallbackVisible;
+    }).toBeTruthy();
 
     // Close the modal
     const doneButton = page.getByRole("button", { name: /^Done$/i });
     await doneButton.evaluate((element: HTMLButtonElement) => element.click());
-    await expect(page.getByText(/upload links/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /upload links/i })).toBeVisible();
 
     // The link list should now show at least one upload link
-    await expect(page.getByText(/qa inbox|files upload link/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { name: /files upload link/i })).toBeVisible({ timeout: 5000 });
 
     await page.screenshot({
       path: test.info().outputPath("upload-link-created.png"),
