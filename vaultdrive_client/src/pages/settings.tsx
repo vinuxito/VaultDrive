@@ -227,10 +227,10 @@ export default function Settings() {
 
   return (
     <div className="max-w-4xl space-y-6">
-        <div className="rounded-[1.8rem] border border-border bg-card px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:border-slate-700">
+        <div className="rounded-[1.8rem] border border-border bg-card px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="brand-badge">Owner control</span>
-            <span className="inline-flex items-center rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300">
+            <span className="inline-flex items-center rounded-full border border-border bg-muted/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Trust stays visible
             </span>
           </div>
@@ -238,10 +238,10 @@ export default function Settings() {
           <p className="text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
             Keep the vault calm and predictable: one PIN, clear privacy boundaries, and delegated access you can inspect or revoke whenever needed.
           </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-muted-foreground dark:text-slate-300">
-            <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">PIN trust flows across the vault, sharing, and Secure Drop</div>
-            <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">The server stores ciphertext, metadata, and reviewable access events</div>
-            <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">Agent credentials stay scoped, visible, and revocable</div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-muted-foreground">
+            <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">PIN trust flows across the vault, sharing, and Secure Drop</div>
+            <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">The server stores ciphertext, metadata, and reviewable access events</div>
+            <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">Agent credentials stay scoped, visible, and revocable</div>
           </div>
         </div>
 
@@ -301,7 +301,7 @@ export default function Settings() {
                   <span
                     className={cn(
                       "text-xs font-semibold tracking-wide",
-                      s.isDark ? "text-white/90" : "text-slate-900"
+                      "text-foreground"
                     )}
                   >
                     {s.label}
@@ -408,12 +408,12 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">One PIN for everything</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground dark:text-slate-300">
-                <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/50">Set once, then reuse it across normal owner flows</div>
-                <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/50">Protect your encrypted private key without rewrapping every action</div>
-                <div className="rounded-xl border border-white/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/50">Keep trust visible without adding daily friction</div>
+            <div className="rounded-2xl border border-border bg-card px-4 py-4">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">One PIN for everything</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground">
+                <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">Set once, then reuse it across normal owner flows</div>
+                <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">Protect your encrypted private key without rewrapping every action</div>
+                <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">Keep trust visible without adding daily friction</div>
               </div>
             </div>
 
@@ -452,12 +452,12 @@ export default function Settings() {
               <Button
                 variant="outline"
                 onClick={() => { setShowPinForm(true); setPinError(""); setPinSuccess(""); setPinInput(""); setOldPinInput(""); }}
-                className="border-primary/40 bg-white/80 text-primary hover:bg-muted dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+                className="border-primary/40 bg-white/80 text-primary hover:bg-muted"
               >
                 {pinSet ? "Change PIN" : "Set PIN"}
               </Button>
             ) : (
-              <div className="space-y-3 max-w-sm rounded-2xl border border-border bg-card p-4 dark:border-slate-700 dark:bg-slate-900/60">
+              <div className="space-y-3 max-w-sm rounded-2xl border border-border bg-card p-4">
                 {pinSet && (
                   <div className="space-y-1">
                     <Label>Current PIN</Label>
@@ -576,18 +576,18 @@ export default function Settings() {
               </div>
 
               <div className="grid gap-2.5 sm:grid-cols-2">
-                <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted dark:bg-slate-800/50 px-3 py-2.5">
+                <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted px-3 py-2.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-medium text-foreground dark:text-slate-200">Server never decrypts</p>
-                    <p className="text-xs text-muted-foreground dark:text-slate-400 mt-0.5">All operations happen in your browser</p>
+                    <p className="text-xs font-medium text-foreground">Server never decrypts</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">All operations happen in your browser</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted dark:bg-slate-800/50 px-3 py-2.5">
+                <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted px-3 py-2.5">
                   <Users className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-medium text-foreground dark:text-slate-200">Sharing uses key exchange</p>
-                    <p className="text-xs text-muted-foreground dark:text-slate-400 mt-0.5">RSA wrapping, revocable anytime</p>
+                    <p className="text-xs font-medium text-foreground">Sharing uses key exchange</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">RSA wrapping, revocable anytime</p>
                   </div>
                 </div>
               </div>
@@ -606,16 +606,16 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div className="rounded-[1.6rem] border border-border bg-card px-5 py-5 shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:border-slate-700">
+            <div className="rounded-[1.6rem] border border-border bg-card px-5 py-5 shadow-[0_16px_36px_rgba(0,0,0,0.08)]">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-200">Ciphertext only</span>
-                <span className="inline-flex items-center rounded-full border border-border bg-white/90 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-300">Reviewable control</span>
+                <span className="inline-flex items-center rounded-full border border-border bg-white/90 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Reviewable control</span>
               </div>
-              <p className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">How your files are protected</p>
-              <p className="mt-2 leading-relaxed text-foreground dark:text-slate-300">
+              <p className="mt-4 text-base font-semibold text-foreground">How your files are protected</p>
+              <p className="mt-2 leading-relaxed text-foreground">
                 {`Files are encrypted in your browser before upload. ${branding.productName} stores the locked version, delivery metadata, and a record of access events so you can understand what happened without giving up control.`}
               </p>
-              <p className="mt-3 text-xs leading-relaxed text-muted-foreground dark:text-slate-400">
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 If the server is breached, your files remain unreadable without the key material that never leaves your control.
               </p>
             </div>
@@ -637,15 +637,15 @@ export default function Settings() {
                 </ul>
               </div>
             </div>
-            <div className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-slate-700 dark:bg-slate-900/55">
-              <p className="font-medium text-slate-900 dark:text-slate-100">Sharing and agent delegation</p>
-              <p className="mt-1.5 leading-relaxed text-foreground dark:text-slate-300">
+            <div className="rounded-2xl border border-border bg-card px-4 py-4">
+              <p className="font-medium text-foreground">Sharing and agent delegation</p>
+              <p className="mt-1.5 leading-relaxed text-foreground">
                 Every link, request, and agent key you create is reviewable and revocable. Agent keys carry explicit scopes for metadata and ciphertext operations, so delegation feels bounded instead of blind.
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground dark:text-slate-300">
-                <div className="rounded-xl border border-white/70 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/45">Scope what an outside system can do</div>
-                <div className="rounded-xl border border-white/70 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/45">Review when it was last used</div>
-                <div className="rounded-xl border border-white/70 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/45">Revoke it instantly when the job is done</div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground">
+                <div className="rounded-xl border border-border bg-muted/90 px-3 py-2">Scope what an outside system can do</div>
+                <div className="rounded-xl border border-border bg-muted/90 px-3 py-2">Review when it was last used</div>
+                <div className="rounded-xl border border-border bg-muted/90 px-3 py-2">Revoke it instantly when the job is done</div>
               </div>
             </div>
           </CardContent>

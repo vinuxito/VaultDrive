@@ -127,7 +127,7 @@ function CopyButton({ text }: { text: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+      className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
     >
       <Copy className="w-3 h-3" />
       {copied ? "Copied" : "Copy"}
@@ -143,31 +143,31 @@ export function PipelineExamplesSection() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
           <Workflow className="w-5 h-5 text-primary" />
           File fetch pipeline
         </h2>
-        <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Copy-paste the full search &rarr; download &rarr; decrypt workflow. Agents move ciphertext; owners decrypt.
         </p>
       </div>
 
       <div className="rounded-2xl border border-border bg-card px-4 py-3">
-        <div className="grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground dark:text-slate-300">
-          <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2">
+        <div className="grid gap-2 sm:grid-cols-3 text-[11px] text-muted-foreground">
+          <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">
             <span className="font-medium text-emerald-700 dark:text-emerald-400">Step 1</span> — Search files by name or metadata
           </div>
-          <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2">
+          <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">
             <span className="font-medium text-sky-700 dark:text-sky-400">Step 2</span> — Download ciphertext + wrapped key
           </div>
-          <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2">
+          <div className="rounded-xl border border-border bg-muted/80 px-3 py-2">
             <span className="font-medium text-amber-700 dark:text-amber-400">Step 3</span> — Owner decrypts with PIN in browser
           </div>
         </div>
       </div>
 
       <div className="rounded-2xl border border-border overflow-hidden">
-        <div className="flex border-b border-border bg-muted dark:bg-slate-800/60">
+        <div className="flex border-b border-border bg-muted">
           {snippets.map((s) => (
             <button
               key={s.lang}
@@ -175,15 +175,15 @@ export function PipelineExamplesSection() {
               onClick={() => setActiveLang(s.lang)}
               className={`px-4 py-2 text-xs font-medium transition-colors ${
                 activeLang === s.lang
-                  ? "bg-white dark:bg-slate-900 text-primary border-b-2 border-primary"
-                  : "text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-slate-200"
+                  ? "bg-background text-primary border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {s.label}
             </button>
           ))}
         </div>
-        <div className="bg-slate-900 dark:bg-slate-950 px-4 py-3">
+        <div className="bg-muted px-4 py-3">
           <div className="flex justify-end mb-2">
             <CopyButton text={activeSnippet.code} />
           </div>

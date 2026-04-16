@@ -203,7 +203,7 @@ const EmailPage: React.FC = () => {
           ))}
         </ul>
         {accounts.length === 0 && !isLoading && !error && (
-          <p className="text-sm text-gray-500 mt-2">No email accounts configured</p>
+          <p className="text-sm text-muted-foreground mt-2">No email accounts configured</p>
         )}
         <h2 className="mt-4 text-lg font-semibold">Mailboxes</h2>
         <MailboxList

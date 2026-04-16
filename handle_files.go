@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 	defer file.Close()
 
 	// Create uploads directory if it doesn't exist
-	uploadDir := "uploads"
+	uploadDir := uploadStorageDir()
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, 0755)
 		if err != nil {

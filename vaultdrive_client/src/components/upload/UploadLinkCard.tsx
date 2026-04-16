@@ -105,16 +105,16 @@ export function UploadLinkCard({
       case "destructive":
         return "bg-destructive/10 text-destructive border border-destructive/20";
       case "secondary":
-        return "bg-slate-100 text-foreground border border-border";
+        return "bg-muted text-foreground border border-border";
       default:
-        return "bg-slate-100 text-foreground border border-border";
+        return "bg-muted text-foreground border border-border";
     }
   };
 
   const hasKey = revealedKey || baseUrl.includes("#key=");
 
   return (
-    <div className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
+    <div className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:bg-muted/60">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -124,7 +124,7 @@ export function UploadLinkCard({
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">
+                  <h3 className="font-semibold text-lg text-foreground">
                     {token.folder_name || "Files Upload Link"}
                   </h3>
                   <span
@@ -133,7 +133,7 @@ export function UploadLinkCard({
                     {status.label}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground dark:text-slate-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Client delivery route into the selected folder, with status and uploaded files visible here.
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -143,8 +143,8 @@ export function UploadLinkCard({
             </div>
 
             <div className="mt-3 space-y-2">
-              <div className="rounded-2xl border border-border bg-muted px-3 py-3 dark:border-slate-700 dark:bg-slate-950/40">
-                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">
+              <div className="rounded-2xl border border-border bg-muted px-3 py-3 dark:bg-muted/40">
+                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   <span>Sender route</span>
                   <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
                     <ShieldCheck className="w-3 h-3" />
@@ -152,7 +152,7 @@ export function UploadLinkCard({
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-sm">
-                  <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded text-xs flex-1 min-w-0 overflow-hidden border border-border">
+                  <code className="bg-background px-2 py-1 rounded text-xs flex-1 min-w-0 overflow-hidden border border-border">
                     {displayUrl}
                   </code>
                   <Button
@@ -188,7 +188,7 @@ export function UploadLinkCard({
                         onChange={(e) => { setPinInput(e.target.value); setRecoverError(""); }}
                         onKeyDown={(e) => { if (e.key === "Enter") handleRecoverKey(); }}
                         placeholder="Enter PIN"
-                        className="w-28 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground placeholder-slate-400 focus:border-primary/40 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                        className="w-28 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none dark:bg-muted"
                         autoFocus
                       />
                       <Button
@@ -227,7 +227,7 @@ export function UploadLinkCard({
                 )}
 
                 {hasKey && !revealedKey && (
-                  <p className="mt-2 text-xs text-muted-foreground dark:text-slate-400">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     Share this route with a client when you want them to deliver files into the folder you selected.
                   </p>
                 )}
@@ -270,9 +270,9 @@ export function UploadLinkCard({
       </div>
 
       {isExpanded && (
-        <div className="border-t bg-muted/20 dark:bg-slate-950/20">
+        <div className="border-t bg-muted/20 dark:bg-muted/20">
           <div className="p-4">
-            <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-slate-100">
+            <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-foreground">
               <FileIcon className="w-4 h-4 text-primary" />
               Files uploaded through this route ({token.files?.length || 0})
             </h4>

@@ -72,7 +72,7 @@ const getFileIconColor = (filename: string) => {
     case 'rar':
       return 'bg-yellow-500/20 text-yellow-500';
     default:
-      return 'bg-gray-500/20 text-gray-500';
+      return 'bg-muted/20 text-muted-foreground';
   }
 }
 
@@ -120,7 +120,7 @@ export function FileCard({
             >
               <FileIcon size={14} /> View Details
             </button>
-            <div className="my-1 border-t border-slate-100" />
+            <div className="my-1 border-t border-border" />
             <button
               className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
               onClick={() => { onDelete(file.id, file.filename); setMenuOpen(false); }}
@@ -189,7 +189,7 @@ export function FileCard({
               "transition-all rounded-full",
               file.starred
                 ? "text-yellow-400"
-                : "text-slate-400/70 hover:text-yellow-400"
+                : "text-muted-foreground hover:text-yellow-400"
             )}
           >
             <Star className={cn("w-5 h-5", file.starred && "fill-current")} />

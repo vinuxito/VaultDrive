@@ -20,7 +20,7 @@ import {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setPrivateKey, setCredential } = useSessionVault();
+  const { setPrivateKey, setCredential, clearVault } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
   const [loginMode, setLoginMode] = useState<"password" | "pin">(
     localStorage.getItem(`${branding.productSlug}_pin_hint`) === "1" ? "pin" : "password"
@@ -62,6 +62,8 @@ export default function Login() {
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
       }
+
+      clearVault();
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("refresh_token", data.refresh_token);

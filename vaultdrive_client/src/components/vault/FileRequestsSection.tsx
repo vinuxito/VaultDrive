@@ -338,7 +338,7 @@ export function FileRequestsSection() {
     new Date(dateStr).toLocaleDateString();
 
   const getStatus = (req: FileRequest) => {
-    if (!req.is_active) return { label: "Revoked", color: "bg-gray-500" };
+    if (!req.is_active) return { label: "Revoked", color: "bg-muted text-muted-foreground" };
     if (req.expires_at && new Date(req.expires_at) < new Date())
       return { label: "Expired", color: "bg-red-500" };
     return { label: "Active", color: "bg-green-500" };
@@ -388,8 +388,8 @@ export function FileRequestsSection() {
         </div>
       </div>
 
-      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:text-slate-300">
-        <p className="font-medium text-slate-900 dark:text-slate-100">Request only what you need</p>
+      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)]">
+        <p className="font-medium text-foreground">Request only what you need</p>
         <p className="mt-1 leading-relaxed">
           File requests keep the sender journey obvious: who they are sending to, what they should provide, and how you can track or revoke the route after it is shared.
         </p>
@@ -409,9 +409,9 @@ export function FileRequestsSection() {
       )}
 
       {requests.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-slate-900/60 dark:border-slate-700">
+          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-muted/60">
           <Inbox className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-foreground dark:text-slate-200 font-medium mb-2">No file requests yet</p>
+          <p className="text-foreground font-medium mb-2">No file requests yet</p>
           <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
             Create a request when you want a sender to upload documents under a clearly framed set of instructions and a route you can revoke later.
           </p>
@@ -432,7 +432,7 @@ export function FileRequestsSection() {
             return (
               <div
                 key={req.id}
-                className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:bg-slate-900/70"
+                className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:bg-muted/60"
               >
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">

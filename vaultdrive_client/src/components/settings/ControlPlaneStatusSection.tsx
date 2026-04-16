@@ -70,12 +70,12 @@ export function ControlPlaneStatusSection() {
   const latestAt = entries[0]?.created_at ?? "";
 
   return (
-    <div className="rounded-[1.8rem] border border-border bg-card shadow-[0_20px_45px_rgba(0,0,0,0.08)] dark:border-slate-700">
+    <div className="rounded-[1.8rem] border border-border bg-card shadow-[0_20px_45px_rgba(0,0,0,0.08)]">
       <div className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">Control plane at a glance</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">Calm, live, and reviewable</h2>
-          <p className="mt-1 text-sm text-muted-foreground dark:text-slate-300">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Control plane at a glance</p>
+          <h2 className="mt-2 text-xl font-semibold text-foreground">Calm, live, and reviewable</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             The system is live when the stream is connected, receipts name the call, and trust reasons are readable without opening docs.
           </p>
         </div>
@@ -85,28 +85,28 @@ export function ControlPlaneStatusSection() {
         </div>
       </div>
       <div className="grid gap-3 px-6 pb-6 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Latest event</p>
-          <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">{summary.latestEvent}</p>
-          <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">{latestAt ? relativeTime(latestAt) : "Waiting for first live event"}</p>
+        <div className="rounded-2xl border border-border bg-muted/85 px-4 py-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Latest event</p>
+          <p className="mt-2 text-sm font-medium text-foreground">{summary.latestEvent}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{latestAt ? relativeTime(latestAt) : "Waiting for first live event"}</p>
         </div>
-        <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Active keys</p>
-          <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div className="rounded-2xl border border-border bg-muted/85 px-4 py-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Active keys</p>
+          <p className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             {summary.activeKeys} live credential{summary.activeKeys === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Agents in view</p>
-          <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div className="rounded-2xl border border-border bg-muted/85 px-4 py-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Agents in view</p>
+          <p className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <Bot className="h-4 w-4 text-primary" />
             {summary.activeAgents} operator lane{summary.activeAgents === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-4 dark:border-slate-700 dark:bg-slate-950/40">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Attention</p>
-          <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div className="rounded-2xl border border-border bg-muted/85 px-4 py-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Attention</p>
+          <p className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             {summary.attention}
           </p>

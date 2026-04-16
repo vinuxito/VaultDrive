@@ -118,6 +118,12 @@ All runtime configuration is env-driven — there is no baked-in product identit
 | `JWT_SECRET` | HS256 signing secret (minimum 32 characters) |
 | `PORT` | HTTP listen port (defaults to `8090`) |
 
+### Runtime storage
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `UPLOAD_DIR` | `uploads` | Directory where encrypted upload blobs are written. Useful for dev, CI, and Playwright runs where the repo-local `uploads/` directory is not the right writable target. |
+
 ### Product branding
 
 | Variable | Default | Purpose |
@@ -205,25 +211,36 @@ npx tsc --noEmit  # type-check src/ (tsconfig.app.json)
 
 ### End-to-End (Playwright)
 
-The E2E suite covers 38 user flows across 10 spec files. It tests against a live running server. **38/38 pass as of 2026-04-12.**
+The E2E suite covers 38 user flows across 10 spec files. It now self-boots a local Go server, migrates an isolated Playwright database, and writes encrypted test uploads into a dedicated temporary upload directory so local verification does not depend on a preconfigured shell or a writable repo-owned `uploads/` folder. **38/38 pass as of 2026-04-16.**
 
 ```bash
-# Prerequisites: server running at http://127.0.0.1:8083/quantix
+# Self-bootstrapped local harness (recommended)
 cd vaultdrive_client
 
-# Run against the live local deployment
-E2E_BASE_URL=http://127.0.0.1:8083/quantix npx playwright test
+# Default local run. Bootstraps its own database + Go server.
+npm run test:e2e
 
 # Run a single spec
-E2E_BASE_URL=http://127.0.0.1:8083/quantix npx playwright test agent-key-lifecycle
+npx playwright test agent-key-lifecycle
 
 # Run with UI (headed)
-E2E_BASE_URL=http://127.0.0.1:8083/quantix npx playwright test --headed
+npx playwright test --headed
+
+# Override if you want a custom database or target URL
+E2E_DB_NAME=vaultdrive_playwright_alt \
+E2E_UPLOAD_DIR=/tmp/quantix-e2e-alt-uploads \
+npx playwright test
 ```
 
 E2E spec files live in `vaultdrive_client/e2e/`. Helper functions (account creation, login, onboarding) are in `vaultdrive_client/e2e/helpers/trust.ts`.
 
-**Important:** The E2E suite creates real accounts in the database. Each run registers fresh accounts using unique `qa-{timestamp}-{suffix}@example.com` addresses. The loopback rate-limiter bypass (`isLoopbackIP()` in `middleware_ratelimit.go`) ensures parallel workers from `127.x.x.x` never hit the 5/min PIN or 10/min login limits.
+**Important:**
+
+- The E2E harness uses an isolated local Postgres database by default: `vaultdrive_playwright`.
+- On startup, Playwright runs the full goose migration set against that database before it launches `go run .`.
+- Test uploads are written to `E2E_UPLOAD_DIR` (default `/tmp/quantix-playwright-uploads`) instead of the repo-local `uploads/` directory.
+- Each run creates real accounts using unique `qa-{timestamp}-{suffix}@example.com` addresses.
+- The loopback rate-limiter bypass (`isLoopbackIP()` in `middleware_ratelimit.go`) ensures parallel workers from `127.x.x.x` never hit the 5/min PIN or 10/min login limits.
 
 #### E2E Coverage
 
@@ -370,6 +387,9 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/25_QA_SESSION_2026-04-12.md` | Full QA pass log — 38/38 E2E green |
 | `docs/26_SKIN_SYSTEM_2026-04-12.md` | Skin system design, all 6 themes, FOUC fix, verification |
 | `docs/27_THEME_COLOR_CONSISTENCY_2026-04-12.md` | Full color consistency fix — 70 files, 3 Python scripts, replacement map, main.go panic fix |
+| `docs/28_BUILD_VERIFICATION_2026-04-16.md` | End-to-end build verification pass, session-vault cleanup fix, cached-PIN recovery fix, Playwright isolated-db harness update |
+| `docs/SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md` | Durable checkpoint for this session, including what changed, what was verified, risks, and why the branch is safe to continue |
+| `docs/qa-report-2026-04-16.html` | Visual verification report covering backend, frontend, unit, and end-to-end validation |
 
 ---
 

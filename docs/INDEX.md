@@ -1,6 +1,6 @@
-# ABRN Drive — Documentation Index
+# QuantiX Drive — Documentation Index
 
-Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycle proof)
+Last updated: April 16, 2026 (Build verification, session-vault safety fix, cached-PIN recovery, Playwright harness isolation)
 
 ## Task Documentation
 
@@ -29,6 +29,11 @@ Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycl
 | 21 | [Force Password Change](./21_FORCE_PASSWORD_CHANGE.md) | Admin security gate — force users to change password on next login, 3-layer defense, private key re-encryption |
 | 22 | [Drop Key Recovery](./22_DROP_KEY_RECOVERY.md) | Fix broken drop links — PIN-unwrap endpoint, reveal-key UI, missing-key error page, dead code cleanup |
 | 23 | [Drop Full Cycle E2E](./23_DROP_FULL_CYCLE_E2E.md) | Full lifecycle proof — create link, client upload, owner download+decrypt, key recovery, wrong PIN |
+| 24 | [Security Governance Productization](./24_SECURITY_GOVERNANCE_PRODUCTIZATION.md) | Governance settings, audit retention, stale-link automation, alert thresholds |
+| 25 | [QA Session 2026-04-12](./25_QA_SESSION_2026-04-12.md) | QA-led evidence pass before the latest verification improvements |
+| 26 | [Skin System 2026-04-12](./26_SKIN_SYSTEM_2026-04-12.md) | Six-skin theming system, FOUC prevention, and visual rules |
+| 27 | [Theme Color Consistency 2026-04-12](./27_THEME_COLOR_CONSISTENCY_2026-04-12.md) | Semantic-token migration strategy and replacement rules |
+| 28 | [Build Verification 2026-04-16](./28_BUILD_VERIFICATION_2026-04-16.md) | Session-vault reset fix, cached-PIN recovery fix, isolated Playwright DB/upload harness, and fresh verification results |
 
 ## Feature Docs (pre-existing)
 
@@ -63,6 +68,16 @@ Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycl
 | [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md) | Force password change + luxury design tokens + FK cascade fix |
 | [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md) | Drop link key recovery — PIN-unwrap endpoint, reveal UI, error UX |
 | [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md) | Drop full cycle E2E — 35/35 tests, full lifecycle verified |
+| [SESSION_MEMORY_2026-04-12-color-consistency.md](./SESSION_MEMORY_2026-04-12-color-consistency.md) | Theme color consistency across all six skins, script inventory, and verification notes |
+| [SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md](./SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md) | Current branch checkpoint: build/test/e2e verification, risk assessment, and commit-safe state |
+
+## HTML Reports
+
+| Report | Summary |
+|--------|---------|
+| [qa-report-2026-04-14.html](./qa-report-2026-04-14.html) | Earlier visual QA report before the latest harness fixes |
+| [agent-keys-improvement-report.html](./agent-keys-improvement-report.html) | Agent key and settings-related report artifact |
+| [qa-report-2026-04-16.html](./qa-report-2026-04-16.html) | Fresh verification report for the current branch: backend, frontend, unit tests, and full Playwright pass |
 
 ## Quick Navigation
 
@@ -104,4 +119,4 @@ Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycl
 
 **I want the drop full cycle E2E proof →** [23_DROP_FULL_CYCLE_E2E.md](./23_DROP_FULL_CYCLE_E2E.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md](./SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md)

@@ -1433,16 +1433,16 @@ export default function Files() {
     <>
       <div className="h-full flex flex-col">
         <div className="px-6 pt-6 pb-4 border-b border-border/60">
-          <h1 className="text-2xl font-bold text-slate-900">Vault</h1>
+          <h1 className="text-2xl font-bold text-foreground">Vault</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Encrypted, visible, revocable
           </p>
         </div>
 
-        <div className="px-6 py-3 border-b border-border/60 bg-white shrink-0">
+        <div className="px-6 py-3 border-b border-border/60 bg-background shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
@@ -1454,7 +1454,7 @@ export default function Files() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-muted-foreground"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1469,7 +1469,7 @@ export default function Files() {
                   className={`text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap ${
                     typeFilter === type
                       ? "bg-primary text-white"
-                      : "bg-slate-100 text-muted-foreground hover:bg-slate-200"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                 >
                   {TYPE_FILTER_LABELS[type]}
@@ -1540,20 +1540,20 @@ export default function Files() {
               />
             ) : (
             <>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-white shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-background shrink-0">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setSidebarOpen(true)}
-                  className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:bg-slate-100 transition-colors mr-1"
+                  className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors mr-1"
                 >
                   <Menu className="w-4 h-4" />
                 </button>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="text-slate-400">Vault</span>
+                  <span className="text-muted-foreground">Vault</span>
                   <ChevronRight className="w-3.5 h-3.5" />
-                  <span className="font-medium text-slate-800">{panelTitle}</span>
-                  <span className="ml-1 text-xs text-slate-400">
+                  <span className="font-medium text-foreground">{panelTitle}</span>
+                  <span className="ml-1 text-xs text-muted-foreground">
                     ({visibleFiles.length})
                   </span>
                 </div>
@@ -1569,7 +1569,7 @@ export default function Files() {
                       className={`text-xs px-2 py-1 rounded-md border transition-colors ${
                         sortBy === field
                           ? "bg-primary/10 border-primary/30 text-primary"
-                          : "border-border text-muted-foreground hover:border-slate-300"
+                          : "border-border text-muted-foreground hover:border-border"
                       }`}
                     >
                       {field.charAt(0).toUpperCase() + field.slice(1)}{" "}
@@ -1659,16 +1659,16 @@ export default function Files() {
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {loading && (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <Loader2 className="w-6 h-6 animate-spin mb-3" />
                   <p className="text-sm">Loading your vault…</p>
                 </div>
               )}
 
               {!loading && visibleFiles.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                    <Lock className="w-6 h-6 text-slate-300" />
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                    <Lock className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">
                     {selectedNode.type === "starred" ? "No starred files" :
@@ -1676,7 +1676,7 @@ export default function Files() {
                      "No files here yet"}
                   </p>
                   {selectedNode.type === "all" && !isSharedView && (
-                    <p className="text-xs mt-1.5 text-slate-400 max-w-xs text-center">
+                    <p className="text-xs mt-1.5 text-muted-foreground max-w-xs text-center">
                       Upload a file to start your encrypted vault. Files are locked in your browser before they leave your device.
                     </p>
                   )}
@@ -1685,14 +1685,14 @@ export default function Files() {
 
               {!loading && visibleFiles.length > 0 && (
                 <div className="space-y-1">
-                  <div className="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <div className="w-4 shrink-0 flex items-center justify-center">
                       <input
                         ref={headerCheckboxRef}
                         type="checkbox"
                         checked={allVisibleSelected}
                         onChange={toggleSelectAllVisible}
-                        className="w-4 h-4 rounded border-slate-300 accent-primary cursor-pointer"
+                        className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
                         aria-label={allVisibleSelected ? "Clear current view selection" : "Select current view"}
                       />
                     </div>
@@ -1714,7 +1714,7 @@ export default function Files() {
                           group flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-default
                           ${isSelected
                             ? "bg-primary-foreground/60 border-primary/40"
-                            : "bg-white border-border/60 hover:border-slate-300 hover:shadow-sm"
+                            : "bg-background border-border/60 hover:border-border hover:shadow-sm"
                           }
                         `}
                       >
@@ -1722,7 +1722,7 @@ export default function Files() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleFileSelection(file.id)}
-                          className="w-4 h-4 rounded border-slate-300 accent-primary shrink-0 cursor-pointer"
+                          className="w-4 h-4 rounded border-border accent-primary shrink-0 cursor-pointer"
                         />
 
                         <button
@@ -1740,8 +1740,8 @@ export default function Files() {
                           }}
                           onClick={() => setPreviewFile(file)}
                         >
-                          <File className="w-4 h-4 text-slate-400 shrink-0" />
-                          <span className="text-sm font-medium text-slate-800 truncate hover:text-primary transition-colors">
+                          <File className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
                             {file.filename}
                           </span>
                         </button>
@@ -1750,11 +1750,11 @@ export default function Files() {
                           <OriginBadge origin={origin} />
                         </div>
 
-                        <div className="w-16 text-right text-xs text-slate-400 hidden md:block shrink-0">
+                        <div className="w-16 text-right text-xs text-muted-foreground hidden md:block shrink-0">
                           {formatBytes(file.file_size)}
                         </div>
 
-                        <div className="w-24 text-right text-xs text-slate-400 hidden lg:block shrink-0">
+                        <div className="w-24 text-right text-xs text-muted-foreground hidden lg:block shrink-0">
                           {formatDate(file.created_at)}
                         </div>
 
@@ -1763,7 +1763,7 @@ export default function Files() {
                           <button
                             type="button"
                             onClick={() => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary-foreground/60 transition-colors"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/60 transition-colors"
                             title="Download"
                           >
                             <Download className="w-3.5 h-3.5" />
@@ -1773,7 +1773,7 @@ export default function Files() {
                             <button
                               type="button"
                               onClick={() => handleCreateShareLink(file)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                               title="Create share link"
                             >
                               <Link2 className="w-3.5 h-3.5" />
@@ -1787,7 +1787,7 @@ export default function Files() {
                               className={`p-1.5 rounded-lg transition-colors ${
                                 file.starred
                                   ? "text-amber-400 hover:text-amber-500"
-                                  : "text-slate-400 hover:text-amber-400 hover:bg-amber-50"
+                                  : "text-muted-foreground hover:text-amber-400 hover:bg-amber-50"
                               }`}
                               title={file.starred ? "Unstar" : "Star"}
                             >
@@ -1802,7 +1802,7 @@ export default function Files() {
                             <button
                               type="button"
                               onClick={() => setAccessPanelFile({ id: file.id, filename: file.filename })}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary-foreground/40 transition-colors"
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/40 transition-colors"
                               title="Who can access this file?"
                             >
                               <Shield className="w-3.5 h-3.5" />
@@ -1815,7 +1815,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-500 hover:bg-blue-50 transition-colors"
                                 title="Share with user"
                               >
                                 <Share2 className="w-3.5 h-3.5" />
@@ -1826,7 +1826,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleQuickShare(file.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-600 hover:bg-violet-50 transition-colors"
                                 title="Quick Share (7-day link, copied to clipboard)"
                               >
                                 <Zap className="w-3.5 h-3.5" />
@@ -1837,7 +1837,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => { void handleMoveClick(file); }}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary-foreground/40 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/40 transition-colors"
                                 title="Move to folder"
                               >
                                 <FolderOpen className="w-3.5 h-3.5" />
@@ -1848,7 +1848,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleDeleteClick(file.id, file.filename)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1859,7 +1859,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleManageSharesClick(file.id, file.filename)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-muted-foreground hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                                 title="Manage shares"
                               >
                                 <MoreHorizontal className="w-3.5 h-3.5" />
@@ -1875,7 +1875,7 @@ export default function Files() {
                               e.stopPropagation();
                               setOpenActionMenu(openActionMenu === file.id ? null : file.id);
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-muted-foreground hover:bg-slate-100 transition-colors"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                             title="Actions"
                           >
                             <MoreHorizontal className="w-4 h-4" />
@@ -2073,7 +2073,7 @@ export default function Files() {
                 </div>
               )}
               <div className="space-y-2">
-                <label htmlFor="vault-credential" className="text-sm font-medium flex items-center gap-2 text-white/90">
+                <label htmlFor="vault-credential" className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Key className="w-4 h-4" />
                   {usePin ? "4-digit PIN" : "File Credential"}
                 </label>
@@ -2187,23 +2187,23 @@ export default function Files() {
                   </p>
                 </div>
                 {loadingShares ? (
-                  <div className="text-center py-8 text-white/70">Loading shared users…</div>
+                  <div className="text-center py-8 text-muted-foreground">Loading shared users…</div>
                 ) : sharedUsers.length === 0 ? (
                   <div className="text-center py-8">
-                    <Users className="w-12 h-12 mx-auto mb-4 text-white/70" />
-                    <p className="text-white/90">This file hasn't been shared yet</p>
-                    <p className="text-sm text-white/70 mt-2">Use the Share button to give others access to this file</p>
+                    <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-foreground">This file hasn't been shared yet</p>
+                    <p className="text-sm text-muted-foreground mt-2">Use the Share button to give others access to this file</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-white/90">
+                    <p className="text-sm font-medium text-foreground">
                       Shared with {sharedUsers.length} user{sharedUsers.length !== 1 ? "s" : ""}
                     </p>
                     {sharedUsers.map((user) => (
-                      <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-white/20 bg-white/5">
+                      <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-border/20 bg-muted/5">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate text-white">{user.username}</p>
-                          <div className="flex gap-3 text-sm text-white/70">
+                          <p className="font-medium truncate text-foreground">{user.username}</p>
+                          <div className="flex gap-3 text-sm text-muted-foreground">
                             <span>{user.email}</span>
                             <span>•</span>
                             <span>Shared {new Date(user.shared_at).toLocaleString()}</span>
@@ -2214,7 +2214,7 @@ export default function Files() {
                           variant="outline"
                           onClick={() => handleRevokeAccess(user.user_id)}
                           disabled={revoking === user.user_id}
-                          className="gap-2 border-2 border-destructive/60 text-white hover:bg-destructive/20 bg-transparent"
+                          className="gap-2 border-2 border-destructive/60 text-foreground hover:bg-destructive/20 bg-transparent"
                         >
                           <X className="w-4 h-4" />
                           {revoking === user.user_id ? "Revoking…" : "Revoke"}
@@ -2223,8 +2223,8 @@ export default function Files() {
                     ))}
                   </div>
                 )}
-                <div className="p-3 bg-white/5 border border-white/20 rounded-md">
-                  <p className="text-xs text-white/90 flex items-start gap-2">
+                <div className="p-3 bg-muted/5 border border-border/20 rounded-md">
+                  <p className="text-xs text-foreground flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>Revoking access will immediately prevent the user from downloading this file.</span>
                   </p>

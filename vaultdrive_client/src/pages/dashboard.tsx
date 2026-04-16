@@ -73,10 +73,10 @@ function formatRelativeTime(dateStr: string): string {
 function SkeletonCard() {
   return (
     <div className="rounded-2xl border border-primary/10 bg-white/60 p-5 animate-pulse flex flex-col h-full">
-      <div className="w-10 h-10 rounded-xl bg-slate-200 mb-4" />
+      <div className="w-10 h-10 rounded-xl bg-muted mb-4" />
       <div className="mt-auto">
-        <div className="w-16 h-8 rounded bg-slate-200 mb-1" />
-        <div className="w-24 h-3 rounded bg-slate-100 mt-2" />
+        <div className="w-16 h-8 rounded bg-muted mb-1" />
+        <div className="w-24 h-3 rounded bg-muted mt-2" />
       </div>
     </div>
   );
@@ -220,7 +220,7 @@ export default function Dashboard() {
 
         {posture && (
           <section>
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
               Attention
             </h2>
             <div className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5">
@@ -229,7 +229,7 @@ export default function Dashboard() {
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-foreground">Everything looks healthy</p>
-                    <p className="text-xs text-slate-400 mt-0.5">No active links expiring soon, no stale shares</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">No active links expiring soon, no stale shares</p>
                   </div>
                 </div>
               ) : (
@@ -285,7 +285,7 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
             Start Here
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -305,18 +305,18 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
             Activity
           </h2>
           <div className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm overflow-hidden">
             {activityLoading ? (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-border">
                 {["a1","a2","a3"].map((k) => (
                   <div key={k} className="flex items-center gap-3 px-5 py-4 animate-pulse">
-                    <div className="w-8 h-8 rounded-lg bg-slate-200 shrink-0" />
+                    <div className="w-8 h-8 rounded-lg bg-muted shrink-0" />
                     <div className="flex-1 space-y-1.5">
-                      <div className="h-3 bg-slate-200 rounded w-3/4" />
-                      <div className="h-2.5 bg-slate-100 rounded w-1/3" />
+                      <div className="h-3 bg-muted rounded w-3/4" />
+                      <div className="h-2.5 bg-muted rounded w-1/3" />
                     </div>
                   </div>
                 ))}
@@ -324,7 +324,7 @@ export default function Dashboard() {
             ) : activityUnavailable || activity.length === 0 ? (
               stats.files === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
                     <Activity className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-foreground mb-4">Get started with your vault</p>
@@ -334,7 +334,7 @@ export default function Dashboard() {
                       { step: "2", text: "Create a client upload link" },
                       { step: "3", text: "Share a file with a colleague" },
                     ].map(({ step, text }) => (
-                      <div key={step} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted border border-slate-100">
+                      <div key={step} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted border border-border">
                         <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center shrink-0">{step}</span>
                         <p className="text-xs text-muted-foreground">{text}</p>
                       </div>
@@ -343,15 +343,15 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
                     <Clock className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
-                  <p className="text-xs text-slate-400 mt-1">Upload or share a file to begin.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Upload or share a file to begin.</p>
                 </div>
               )
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-border">
                 {activity.map((item) => {
                   const IconComp = getActivityIcon(item.event_type);
                   const timestamp = item.created_at || item.timestamp || "";
@@ -361,11 +361,11 @@ export default function Dashboard() {
                         <IconComp className="w-4 h-4 text-primary shrink-0" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-800 truncate">
+                        <p className="text-sm text-foreground truncate">
                           {item.message || item.description || item.event_type}
                         </p>
                         {timestamp && (
-                          <p className="text-xs text-slate-400 mt-0.5">{formatRelativeTime(timestamp)}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{formatRelativeTime(timestamp)}</p>
                         )}
                       </div>
                     </div>

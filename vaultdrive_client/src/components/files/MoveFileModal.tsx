@@ -55,9 +55,9 @@ export function MoveFileModal({ open, onOpenChange, file, folders, moving, onMov
             onChange={(event) => setTargetFolderId(event.target.value)}
             className="w-full rounded-md border border-white/15 bg-white/15 px-3 py-2 text-sm text-white focus:border-white/40 focus:outline-none"
           >
-            <option value="" className="text-slate-900">Select a folder…</option>
+            <option value="" className="text-foreground">Select a folder…</option>
             {options.map((option) => (
-              <option key={option.id} value={option.id} className="text-slate-900">
+              <option key={option.id} value={option.id} className="text-foreground">
                 {`${"• ".repeat(option.depth)}${option.name}`}
               </option>
             ))}

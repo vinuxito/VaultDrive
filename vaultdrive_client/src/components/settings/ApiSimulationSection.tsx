@@ -116,34 +116,34 @@ export function ApiSimulationSection() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
           <Bot className="w-5 h-5 text-primary" />
           Filemon operator
         </h2>
-        <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Paste a real agent key, run a real control-plane request, and inspect the exact result Filemon gets back.
         </p>
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-border bg-white dark:bg-slate-900/60 px-4 py-6 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
           Loading keys...
         </div>
       ) : keys.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-4 py-6 text-center text-sm text-muted-foreground dark:text-slate-400">
+        <div className="rounded-2xl border border-dashed border-border bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
           No active agent keys. Create one first, then simulate requests here.
         </div>
       ) : (
         <>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
-              <label htmlFor="sim-key" className="text-sm font-medium text-foreground dark:text-slate-200">Agent key</label>
+              <label htmlFor="sim-key" className="text-sm font-medium text-foreground">Agent key</label>
               <div className="relative">
                 <select
                   id="sim-key"
                   value={selectedKeyId}
                   onChange={(e) => setSelectedKeyId(e.target.value)}
-                  className="w-full appearance-none rounded-xl border border-border bg-white dark:bg-slate-800 px-3 py-2 pr-8 text-sm text-foreground dark:text-slate-200 focus:border-primary focus:outline-none"
+                  className="w-full appearance-none rounded-xl border border-border bg-muted px-3 py-2 pr-8 text-sm text-foreground focus:border-primary focus:outline-none"
                 >
                   {keys.map((k) => (
                     <option key={k.id} value={k.id}>
@@ -151,18 +151,18 @@ export function ApiSimulationSection() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="sim-endpoint" className="text-sm font-medium text-foreground dark:text-slate-200">Endpoint</label>
+              <label htmlFor="sim-endpoint" className="text-sm font-medium text-foreground">Endpoint</label>
               <div className="relative">
                 <select
                   id="sim-endpoint"
                   value={selectedEndpoint}
                   onChange={(e) => setSelectedEndpoint(Number(e.target.value))}
-                  className="w-full appearance-none rounded-xl border border-border bg-white dark:bg-slate-800 px-3 py-2 pr-8 text-sm text-foreground dark:text-slate-200 focus:border-primary focus:outline-none"
+                  className="w-full appearance-none rounded-xl border border-border bg-muted px-3 py-2 pr-8 text-sm text-foreground focus:border-primary focus:outline-none"
                 >
                   {ENDPOINTS.map((ep, idx) => (
                     <option key={`${ep.method}-${ep.path}`} value={idx}>
@@ -170,22 +170,22 @@ export function ApiSimulationSection() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="filemon-raw-key" className="text-sm font-medium text-foreground dark:text-slate-200">Raw key for Filemon</label>
+            <label htmlFor="filemon-raw-key" className="text-sm font-medium text-foreground">Raw key for Filemon</label>
             <textarea
               id="filemon-raw-key"
               value={rawKey}
               onChange={(e) => setRawKey(e.target.value)}
               rows={3}
               placeholder={`Paste the full ${branding.agentKeyPrefix}_... value you just copied`}
-              className="w-full rounded-xl border border-border bg-white dark:bg-slate-800 px-3 py-2 text-sm text-foreground dark:text-slate-200 focus:border-primary focus:outline-none"
+              className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
             />
-            <p className="text-xs text-muted-foreground dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               {`${branding.companyName} only shows the raw key once. Paste it here when you want Filemon to operate the real API surface.`}
             </p>
           </div>
@@ -207,12 +207,12 @@ export function ApiSimulationSection() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              <div className="rounded-xl border border-white/60 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground dark:text-slate-400">Required scope</p>
-                <code className="text-xs text-foreground dark:text-slate-200 font-mono">{scopeRequired}</code>
+              <div className="rounded-xl border border-border bg-muted/70 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Required scope</p>
+                <code className="text-xs text-foreground font-mono">{scopeRequired}</code>
               </div>
-              <div className="rounded-xl border border-white/60 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground dark:text-slate-400">Key scopes ({selectedKey?.scopes.length ?? 0})</p>
+              <div className="rounded-xl border border-border bg-muted/70 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Key scopes ({selectedKey?.scopes.length ?? 0})</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {selectedKey?.scopes.map((s) => (
                     <span
@@ -220,7 +220,7 @@ export function ApiSimulationSection() {
                       className={`rounded-full px-2 py-0.5 text-[10px] font-medium border ${
                         s === scopeRequired
                           ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800"
-                          : "bg-slate-100 text-muted-foreground border-border dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                          : "bg-muted text-muted-foreground border-border"
                       }`}
                     >
                       {s}
@@ -230,8 +230,8 @@ export function ApiSimulationSection() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-slate-900 dark:bg-slate-950 px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400 mb-1">Simulated response</p>
+            <div className="rounded-lg border border-border bg-muted px-3 py-2.5">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1">Simulated response</p>
               <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed">
                 {allGrantedForEndpoint ? (
                   <span className="text-emerald-400">{`{
@@ -267,24 +267,24 @@ export function ApiSimulationSection() {
           </div>
 
           {(selectedKey || resolvedScopes.length > 0 || authType || resultBody) && (
-            <div className="rounded-2xl border border-border bg-white dark:bg-slate-900/60 px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400 mb-2">Filemon execution</p>
-              <pre className="text-[11px] text-muted-foreground dark:text-slate-300 font-mono whitespace-pre-wrap break-all leading-relaxed">
+            <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-2">Filemon execution</p>
+              <pre className="text-[11px] text-muted-foreground font-mono whitespace-pre-wrap break-all leading-relaxed">
                 <span className={METHOD_COLORS[resultMethod || endpoint.method] ?? "text-muted-foreground"}>{resultMethod || endpoint.method}</span>
                 {` ${window.location.origin}${branding.apiBasePath.replace(/\/api$/, "")}${resultPath || `/api/v1${endpoint.path}`}\nAuth type: ${authType || "pending"}\nScope check: ${scopeRequired} → ${allGrantedForEndpoint ? "PASS" : "DENY"}${resultStatus !== null ? `\nHTTP ${resultStatus}` : ""}`}
               </pre>
               {resolvedScopes.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {resolvedScopes.map((scope) => (
-                    <span key={scope} className="rounded-full border border-border bg-muted dark:bg-slate-950/60 px-2 py-0.5 text-[10px] text-muted-foreground dark:text-slate-300">
+                    <span key={scope} className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       {scope}
                     </span>
                   ))}
                 </div>
               )}
               {resultBody && (
-                <div className="mt-3 rounded-lg border border-border bg-slate-900 dark:bg-slate-950 px-3 py-2.5">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400 mb-1">Returned payload</p>
+                <div className="mt-3 rounded-lg border border-border bg-muted px-3 py-2.5">
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1">Returned payload</p>
                   <pre className="text-[11px] text-emerald-400 font-mono whitespace-pre-wrap break-all leading-relaxed">{resultBody}</pre>
                 </div>
               )}

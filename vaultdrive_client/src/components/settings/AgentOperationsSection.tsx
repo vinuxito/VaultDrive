@@ -156,11 +156,11 @@ export function AgentOperationsSection() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Radio className="w-5 h-5 text-primary" />
             Agent operations
           </h2>
-          <p className="text-sm text-muted-foreground dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Live view of what your agent keys are doing. Every request, denial, and lifecycle event.
           </p>
           <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
@@ -175,39 +175,39 @@ export function AgentOperationsSection() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-border bg-white dark:bg-slate-900/60 px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Total events</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
+        <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Total events</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{stats.total}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-white dark:bg-slate-900/60 px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Requests served</p>
+        <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Requests served</p>
           <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.requests}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-white dark:bg-slate-900/60 px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground dark:text-slate-400">Scope denials</p>
+        <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Scope denials</p>
           <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.denied}</p>
         </div>
       </div>
 
       {loading && entries.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-white dark:bg-slate-900/60 px-4 py-6 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
           Loading agent operations...
         </div>
       ) : entries.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/60 px-4 py-8 text-center text-sm text-muted-foreground dark:text-slate-400">
+        <div className="rounded-2xl border border-dashed border-border bg-muted px-4 py-8 text-center text-sm text-muted-foreground">
           No agent operations yet. Events appear here when an agent key is used, created, or denied.
         </div>
       ) : (
         <>
           <div className="space-y-3">
             {groupedEntries.map((group) => (
-              <div key={group.agentName} className="rounded-[1.5rem] border border-border bg-card px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
+              <div key={group.agentName} className="rounded-[1.5rem] border border-border bg-card px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)]">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{group.agentName}</p>
-                    <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">Latest event {relativeTime(group.latestAt)}</p>
+                    <p className="text-sm font-semibold text-foreground">{group.agentName}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Latest event {relativeTime(group.latestAt)}</p>
                   </div>
-                  <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300">
+                  <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                     {group.entries.length} events
                   </span>
                 </div>
@@ -222,25 +222,25 @@ export function AgentOperationsSection() {
                           <span className={`flex h-8 w-8 items-center justify-center rounded-full border ${TONE_STYLES[actionDef.tone]}`}>
                             <ToneIcon className="w-3.5 h-3.5" />
                           </span>
-                          {index < group.entries.length - 1 ? <span className="mt-1 h-full w-px bg-slate-200 dark:bg-slate-700" /> : null}
+                          {index < group.entries.length - 1 ? <span className="mt-1 h-full w-px bg-border" /> : null}
                         </div>
-                        <div className="flex-1 rounded-2xl border border-border/80 bg-muted/80 px-3 py-3 dark:border-slate-700 dark:bg-slate-950/40">
+                        <div className="flex-1 rounded-2xl border border-border/80 bg-muted/80 px-3 py-3">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${TONE_STYLES[actionDef.tone]}`}>
                               <ToneIcon className="w-3 h-3" />
                               {actionDef.label}
                             </span>
-                            <span className="text-[11px] text-muted-foreground dark:text-slate-400" title={new Date(entry.created_at).toLocaleString()}>
+                            <span className="text-[11px] text-muted-foreground" title={new Date(entry.created_at).toLocaleString()}>
                               {relativeTime(entry.created_at)}
                             </span>
                           </div>
-                          <code className="mt-2 block text-xs text-foreground dark:text-slate-200 font-mono break-all">
+                          <code className="mt-2 block text-xs text-foreground font-mono break-all">
                             {extractResource(entry)}
                           </code>
-                          <p className="mt-2 text-xs font-medium text-foreground dark:text-slate-200">
+                          <p className="mt-2 text-xs font-medium text-foreground">
                             {explainAgentOperation(entry)}
                           </p>
-                          <p className="mt-2 text-xs text-muted-foreground dark:text-slate-300">
+                          <p className="mt-2 text-xs text-muted-foreground">
                             {extractResult(entry)}
                           </p>
                         </div>

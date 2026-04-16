@@ -39,7 +39,7 @@ const EmailView: React.FC<EmailViewProps> = ({ account, mailbox, email }) => {
   if (!email) {
     return (
       <div className="p-4 flex items-center justify-center h-full">
-        <p className="text-gray-500">Select an email to view</p>
+        <p className="text-muted-foreground">Select an email to view</p>
       </div>
     );
   }
@@ -58,14 +58,14 @@ const EmailView: React.FC<EmailViewProps> = ({ account, mailbox, email }) => {
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">{email.subject}</h2>
       <div className="flex items-center mb-4">
-        <div className="w-10 h-10 rounded-full bg-gray-300 mr-4" />
+        <div className="w-10 h-10 rounded-full bg-muted mr-4" />
         <div>
           <p className="font-semibold">{email.from.join(', ')}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">to: you@example.com</p>
+          <p className="text-sm text-muted-foreground">to: you@example.com</p>
         </div>
       </div>
       <div
-        className="prose dark:prose-invert max-w-none"
+        className="prose max-w-none"
         dangerouslySetInnerHTML={{ __html: sanitizedHtml || body?.text || '' }}
       />
     </div>

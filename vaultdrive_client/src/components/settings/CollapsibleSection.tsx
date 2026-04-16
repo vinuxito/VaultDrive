@@ -11,19 +11,19 @@ export function CollapsibleSection({ title, description, children }: Collapsible
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-[1.6rem] border border-border bg-white shadow-[0_16px_34px_rgba(15,23,42,0.05)] dark:border-slate-700 dark:bg-slate-900/70">
+    <div className="rounded-[1.6rem] border border-border bg-background shadow-[0_16px_34px_rgba(15,23,42,0.05)]">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
       >
         <div>
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
-          {description ? <p className="mt-1 text-xs text-muted-foreground dark:text-slate-400">{description}</p> : null}
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
         </div>
-        {open ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
       </button>
-      {open ? <div className="border-t border-border px-5 py-4 dark:border-slate-700">{children}</div> : null}
+      {open ? <div className="border-t border-border px-5 py-4">{children}</div> : null}
     </div>
   );
 }

@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *ApiConfig) handlerDropTokenInfo(w http.ResponseWriter, r *http.Request) {
@@ -234,7 +234,7 @@ func (cfg *ApiConfig) handlerDropUpload(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	uploadDir := "uploads"
+	uploadDir := uploadStorageDir()
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, 0755)
 		if err != nil {

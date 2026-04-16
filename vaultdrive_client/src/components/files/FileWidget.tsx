@@ -186,7 +186,7 @@ export function FileWidget({
                 size="sm"
                 variant="ghost"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="gap-1 text-muted-foreground hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                className="gap-1 text-muted-foreground hover:text-foreground dark:hover:text-foreground"
               >
                 {isExpanded ? (
                   <>

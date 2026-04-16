@@ -186,8 +186,8 @@ export function UploadLinksSection() {
         </div>
       </div>
 
-      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:border-slate-700 dark:text-slate-300">
-        <p className="font-medium text-slate-900 dark:text-slate-100">Controlled sender routes</p>
+      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)]">
+        <p className="font-medium text-foreground">Controlled sender routes</p>
         <p className="mt-1 leading-relaxed">
           Each upload link is a bounded route into your vault. You can see its status, seal it after use, or remove it without affecting the files already delivered.
         </p>
@@ -207,9 +207,9 @@ export function UploadLinksSection() {
       )}
 
       {tokens.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-slate-900/60 dark:border-slate-700">
+          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-muted/60">
           <UploadCloud className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-foreground dark:text-slate-200 font-medium mb-2">
+          <p className="text-foreground font-medium mb-2">
             No upload links created yet
           </p>
           <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">

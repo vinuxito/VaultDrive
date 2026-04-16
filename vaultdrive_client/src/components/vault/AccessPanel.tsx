@@ -151,19 +151,19 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-border">
-        <div className="flex items-start justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md border border-border">
+        <div className="flex items-start justify-between px-5 py-4 border-b border-border">
           <div>
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-              <h2 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Access Control</h2>
+              <h2 className="font-semibold text-sm text-foreground">Access Control</h2>
             </div>
-            <p className="text-xs text-slate-500 dark:text-white/75 mt-0.5 truncate max-w-64">{filename}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-64">{filename}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 dark:text-white/75 dark:hover:text-white/90 transition-colors mt-0.5"
+            className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"
           >
             <X className="w-4 h-4" />
           </button>
@@ -173,33 +173,33 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
           <div className="rounded-2xl border border-border bg-card px-4 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-white/75">Current visibility</p>
-                <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">{accessHeadline}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Current visibility</p>
+                <p className="mt-2 text-sm font-medium text-foreground">{accessHeadline}</p>
               </div>
-              <span className="inline-flex items-center rounded-full border border-border bg-white px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm">
                 {activeEntries.length === 0 ? "Owner only" : `${activeEntries.length} live route${activeEntries.length !== 1 ? "s" : ""}`}
               </span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-white/75">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               See every link, share, or sender route in one place so you can confirm exactly who can reach this file right now.
             </p>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border border-border bg-muted dark:bg-slate-800/75 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-white/75">Active</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{activeEntries.length}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-white/75">Routes you may want to review</p>
+            <div className="rounded-xl border border-border bg-muted px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Active</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{activeEntries.length}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Routes you may want to review</p>
             </div>
-            <div className="rounded-xl border border-border bg-muted dark:bg-slate-800/75 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-white/75">Inactive</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{inactiveEntries.length}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-white/75">Expired or already revoked</p>
+            <div className="rounded-xl border border-border bg-muted px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Inactive</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{inactiveEntries.length}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Expired or already revoked</p>
             </div>
-            <div className="rounded-xl border border-border bg-muted dark:bg-slate-800/75 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-white/75">Trust note</p>
-              <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">Always reviewable</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-white/75">You can inspect or remove external access at any time.</p>
+            <div className="rounded-xl border border-border bg-muted px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Trust note</p>
+              <p className="mt-1 text-sm font-medium text-foreground">Always reviewable</p>
+              <p className="mt-1 text-xs text-muted-foreground">You can inspect or remove external access at any time.</p>
             </div>
           </div>
 
@@ -209,7 +209,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
             </div>
             <div>
               <p className="text-sm font-semibold text-primary">You (owner)</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-white/75">
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Full access, always. This anchor remains constant even if every external path expires, is revoked, or fails closed.
               </p>
             </div>
@@ -223,25 +223,25 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
           )}
 
           {loading ? (
-            <div className="flex items-center gap-2 text-slate-500 dark:text-white/75 text-sm py-3 justify-center">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm py-3 justify-center">
               <Loader2 className="w-4 h-4 animate-spin" />
               Checking access…
             </div>
           ) : error ? (
             <div className="px-1 py-2">
-              <p className="text-sm text-foreground dark:text-slate-200">Access data is temporarily unavailable.</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-white/75">You can keep working; the visibility feed just could not be refreshed.</p>
+              <p className="text-sm text-foreground">Access data is temporarily unavailable.</p>
+              <p className="mt-1 text-xs text-muted-foreground">You can keep working; the visibility feed just could not be refreshed.</p>
             </div>
           ) : !data || data.entries.length === 0 ? (
             <div className="px-1 py-2">
-              <p className="text-sm text-foreground dark:text-slate-200">No external access is active.</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-white/75">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
+              <p className="text-sm text-foreground">No external access is active.</p>
+              <p className="mt-1 text-xs text-muted-foreground">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
             </div>
           ) : (
             orderedEntries.map((entry) => (
               <div
                 key={`${entry.kind}-${entry.since}`}
-                className="rounded-2xl border border-border bg-muted dark:bg-slate-800 px-4 py-4 shadow-sm"
+                className="rounded-2xl border border-border bg-muted px-4 py-4 shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-8 h-8 rounded-2xl border flex items-center justify-center shrink-0 mt-0.5 ${kindTone(entry.kind)}`}>
@@ -260,24 +260,24 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                             {entry.state}
                           </span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-slate-800 dark:text-slate-100">{entry.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-white/75">{kindDescription(entry)}</p>
+                        <p className="mt-2 text-sm font-medium text-foreground">{entry.label}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{kindDescription(entry)}</p>
                       </div>
-                      <span className="rounded-full border border-border bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:text-white/85 whitespace-nowrap">
+                      <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground whitespace-nowrap">
                         {relativeTime(entry.since)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap text-xs text-slate-500 dark:text-white/75 leading-relaxed">
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground leading-relaxed">
                       <span>{new Date(entry.since).toLocaleString()}</span>
                       {entry.expires_at && (
                         <>
-                          <span className="text-slate-400 dark:text-white/50">•</span>
+                          <span className="text-muted-foreground/60">•</span>
                           <span>expires {new Date(entry.expires_at).toLocaleDateString()}</span>
                         </>
                       )}
                       {typeof entry.access_count === "number" && (
                         <>
-                          <span className="text-slate-400 dark:text-white/50">•</span>
+                          <span className="text-muted-foreground/60">•</span>
                           <span>opened {entry.access_count}×</span>
                         </>
                       )}
@@ -302,7 +302,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     type="button"
                     onClick={() => setConfirmRevoke(false)}
                     disabled={revoking}
-                    className="flex-1 py-2 rounded-lg border border-border dark:border-slate-600 text-sm text-foreground dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 font-medium transition-colors"
+                    className="flex-1 py-2 rounded-lg border border-border text-sm text-foreground bg-background hover:bg-muted font-medium transition-colors"
                   >
                     Keep access
                   </button>

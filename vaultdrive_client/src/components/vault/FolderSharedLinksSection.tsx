@@ -33,7 +33,7 @@ function formatDate(value?: string | null): string {
 
 function getLinkLifecycleStatus(link: SyncableFolderShareLink): { label: string; tone: string; active: boolean } {
   if (!link.is_active) {
-    return { label: "Revoked", tone: "bg-slate-100 text-muted-foreground", active: false };
+    return { label: "Revoked", tone: "bg-muted text-muted-foreground", active: false };
   }
   if (link.expires_at && new Date(link.expires_at).getTime() <= Date.now()) {
     return { label: "Expired", tone: "bg-amber-100 text-amber-700", active: false };
@@ -229,7 +229,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Shared Links</h2>
+            <h2 className="text-2xl font-semibold text-foreground">Shared Links</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Manage every public folder link for <span className="font-medium text-foreground">{folder.name}</span>.
             </p>
@@ -278,7 +278,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                     value={ownerCredentialInput}
                     onChange={(event) => setOwnerCredentialInput(event.target.value)}
                     placeholder={currentUser?.pin_set ? "••••" : "Current password"}
-                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/40 focus:outline-none"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
                   />
                   <p className="text-xs text-muted-foreground">
                     Use your current {getFolderShareOwnerCredentialType(currentUser) === "pin" ? "PIN" : "password"} once here, then update or open links from this panel.
@@ -297,7 +297,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 min-w-0">
-                        <CardTitle className="text-base flex items-center gap-2 text-slate-900">
+                        <CardTitle className="text-base flex items-center gap-2 text-foreground">
                           <FolderOpen className="w-4 h-4 text-primary" />
                           <span className="truncate">{link.token.slice(0, 12)}…</span>
                         </CardTitle>
@@ -327,7 +327,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                           onChange={(event) => setLegacyUrls((prev) => ({ ...prev, [link.id]: event.target.value }))}
                           rows={3}
                           placeholder={`${branding.publicBaseURL}/folder-share/...#...`}
-                          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/40 focus:outline-none"
+                          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
                         />
                       </div>
                     )}

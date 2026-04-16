@@ -13,24 +13,24 @@ interface OriginBadgeProps {
 
 const configs: Record<FileOrigin["type"], { bg: string; text: string; border: string }> = {
   "my-upload": {
-    bg: "bg-slate-100",
+    bg: "bg-muted",
     text: "text-foreground",
     border: "border-border",
   },
   drop: {
-    bg: "bg-violet-50",
-    text: "text-violet-700",
-    border: "border-violet-200",
+    bg: "bg-violet-50 dark:bg-violet-950/40",
+    text: "text-violet-700 dark:text-violet-300",
+    border: "border-violet-200 dark:border-violet-800",
   },
   shared: {
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-    border: "border-blue-200",
+    bg: "bg-blue-50 dark:bg-blue-950/40",
+    text: "text-blue-700 dark:text-blue-300",
+    border: "border-blue-200 dark:border-blue-800",
   },
   group: {
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    border: "border-amber-200",
+    bg: "bg-amber-50 dark:bg-amber-950/40",
+    text: "text-amber-700 dark:text-amber-300",
+    border: "border-amber-200 dark:border-amber-800",
   },
 };
 

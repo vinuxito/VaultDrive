@@ -93,11 +93,13 @@ export function CreateFolderShareLinkModal({
   const [customDate, setCustomDate] = useState("");
   const [expiryDisplay, setExpiryDisplay] = useState("");
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [useCachedPin, setUseCachedPin] = useState(Boolean(hasCachedPin));
 
   const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
   async function handleGenerate() {
-    const userPin = hasCachedPin ? cached!.value : pin;
+    const usingCachedPin = Boolean(useCachedPin && cached?.type === "pin");
+    const userPin = usingCachedPin ? cached!.value : pin;
     if (!userPin) return;
     setStep("generating");
     setErrorMsg("");
@@ -110,10 +112,22 @@ export function CreateFolderShareLinkModal({
       if (!user.private_key_pin_encrypted) {
         throw new Error("PIN-encrypted private key not found. Set your PIN in Settings first.");
       }
-      const privateKeyPem = await decryptPrivateKeyWithPIN(
-        userPin,
-        user.private_key_pin_encrypted
-      );
+      let privateKeyPem: string;
+      try {
+        privateKeyPem = await decryptPrivateKeyWithPIN(
+          userPin,
+          user.private_key_pin_encrypted
+        );
+      } catch (err) {
+        if (usingCachedPin) {
+          setUseCachedPin(false);
+          setPin("");
+          setErrorMsg("Your cached PIN could not unlock this folder share. Enter your current PIN and try again.");
+          setStep("credential");
+          return;
+        }
+        throw err;
+      }
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
 
       // 2. Get all files in the folder subtree
@@ -253,6 +267,7 @@ export function CreateFolderShareLinkModal({
     setCustomDate("");
     setExpiryDisplay("");
     setProgress({ current: 0, total: 0 });
+    setUseCachedPin(Boolean(hasCachedPin));
     onClose();
   }
 
@@ -289,6 +304,13 @@ export function CreateFolderShareLinkModal({
         <CardContent className="space-y-4 py-4">
           {step === "credential" && (
             <>
+              {errorMsg && (
+                <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
+                  <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-200">{errorMsg}</p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <p className="text-sm font-medium flex items-center gap-1.5 text-white">
                   <Calendar className="w-3.5 h-3.5" />
@@ -332,7 +354,7 @@ export function CreateFolderShareLinkModal({
                 )}
               </div>
 
-              {!hasCachedPin && (
+              {!useCachedPin && (
                 <div className="space-y-1.5">
                   <label
                     htmlFor="fsl-pin"
@@ -374,7 +396,7 @@ export function CreateFolderShareLinkModal({
                 <Button
                   onClick={() => void handleGenerate()}
                   disabled={
-                    (!hasCachedPin && pin.length !== 4) ||
+                    (!useCachedPin && pin.length !== 4) ||
                     (expiryDays === "custom" && customDate === "")
                   }
                   className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
@@ -513,7 +535,12 @@ export function CreateFolderShareLinkModal({
                   Close
                 </Button>
                 <Button
-                  onClick={() => setStep("credential")}
+                  onClick={() => {
+                    setStep("credential");
+                    if (cached?.type === "pin") {
+                      setUseCachedPin(false);
+                    }
+                  }}
                   className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                 >
                   Try Again

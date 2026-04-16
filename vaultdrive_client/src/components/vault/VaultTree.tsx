@@ -103,13 +103,13 @@ function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: Tre
         ${depth > 0 ? "pl-7" : ""}
       `}
     >
-      <span className={`shrink-0 ${active ? "text-primary" : "text-slate-400"}`}>{icon}</span>
+      <span className={`shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`}>{icon}</span>
       <span className="flex-1 text-sm truncate">{label}</span>
       {badge}
       {count !== undefined && (
         <span
           className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
-            active ? "bg-primary/15 text-primary" : "bg-slate-100 text-muted-foreground"
+            active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
           }`}
         >
           {count}
@@ -210,7 +210,7 @@ export function VaultTree({
                 event.stopPropagation();
                 onCreateFolder();
               }}
-              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/8 transition-colors"
+              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/8 transition-colors"
               aria-label="Create folder"
               title="Create folder"
             >
@@ -267,7 +267,7 @@ export function VaultTree({
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-drops" })
                 ? "bg-primary/15 text-primary font-medium"
-                : "text-slate-400 hover:text-primary hover:bg-primary/8"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/8"
             }`}
           >
             Manage
@@ -286,7 +286,7 @@ export function VaultTree({
           const label = getDropLabel(token);
 
           const badge = inactive ? (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-muted-foreground shrink-0">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
               {used ? "sealed" : "expired"}
             </span>
           ) : expiringSoon ? (
@@ -337,7 +337,7 @@ export function VaultTree({
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-requests" })
                 ? "bg-primary/15 text-primary font-medium"
-                : "text-slate-400 hover:text-primary hover:bg-primary/8"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/8"
             }`}
           >
             Manage

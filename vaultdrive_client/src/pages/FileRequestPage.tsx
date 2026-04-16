@@ -406,7 +406,7 @@ export default function FileRequestPage() {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-2xl font-bold text-foreground">
               Files sent securely
             </h1>
             <p className="text-muted-foreground">
@@ -445,7 +445,7 @@ export default function FileRequestPage() {
           </div>
 
           <div className="text-left bg-white/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
-            <p className="font-medium text-slate-800">What happened</p>
+            <p className="font-medium text-foreground">What happened</p>
             <p className="text-muted-foreground leading-relaxed">
               {`Your files were encrypted in this browser using the password you chose. ${branding.productName} stored only the protected files and request metadata.`}
             </p>
@@ -502,7 +502,7 @@ export default function FileRequestPage() {
         {/* Owner identity banner */}
         {(info.owner_display_name || info.owner_organization) && (
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-border/60">
-            <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+            <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
             <div className="text-sm">
               <span className="font-medium text-foreground">
                 {info.owner_display_name
@@ -510,7 +510,7 @@ export default function FileRequestPage() {
                   : "File Request"}
               </span>
               {info.owner_organization && (
-                <span className="text-slate-400">
+                <span className="text-muted-foreground">
                   {" "}
                   · {info.owner_organization}
                 </span>
@@ -537,7 +537,7 @@ export default function FileRequestPage() {
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-card/75 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_28px_rgba(0,0,0,0.06)]">
-            <p className="font-medium text-slate-900">What the recipient needs</p>
+            <p className="font-medium text-foreground">What the recipient needs</p>
             <p className="mt-1.5 leading-relaxed">
               They can see the upload arrived, but they still need the separate password you share with them to decrypt and open the files.
             </p>
@@ -578,13 +578,13 @@ export default function FileRequestPage() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Enter a secure password…"
-                className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-10 text-sm text-foreground placeholder-slate-400 focus:border-primary/40 focus:bg-white focus:outline-none transition-all"
+                className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:bg-white focus:outline-none transition-all"
                 disabled={uploading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassphrase((v) => !v)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-muted-foreground cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 {showPassphrase ? (
                   <EyeOff className="w-4 h-4" />
@@ -593,7 +593,7 @@ export default function FileRequestPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-slate-400 mt-1.5">
+            <p className="text-xs text-muted-foreground mt-1.5">
               Files are encrypted with this password. Only someone who knows it
               can decrypt them.
             </p>
@@ -662,7 +662,7 @@ export default function FileRequestPage() {
                     document.getElementById("file-input-req")?.click()
                   }
                 >
-                  <Upload className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+                  <Upload className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                   <p className="text-base font-medium text-foreground">
                     Drag &amp; drop files or folders here
                   </p>
@@ -684,18 +684,18 @@ export default function FileRequestPage() {
                         className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted border border-border text-sm"
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <FileIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                          <FileIcon className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="truncate text-foreground">
                             {(file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name}
                           </span>
-                          <span className="text-slate-400 shrink-0 text-xs">
+                          <span className="text-muted-foreground shrink-0 text-xs">
                             {formatBytes(file.size)}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeFile(idx)}
-                          className="ml-2 text-slate-400 hover:text-red-500 cursor-pointer shrink-0"
+                          className="ml-2 text-muted-foreground hover:text-red-500 cursor-pointer shrink-0"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
@@ -747,7 +747,7 @@ export default function FileRequestPage() {
                         <Loader2 className="w-4 h-4 text-primary animate-spin ml-2 shrink-0" />
                       )}
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                       <div
                         className="bg-primary transition-all duration-300 h-full"
                         style={{ width: `${progress.progress}%` }}

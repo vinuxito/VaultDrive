@@ -106,7 +106,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
             active
               ? "bg-primary/15 text-primary"
               : isSidebar
-                ? "bg-slate-100 text-muted-foreground"
+                ? "bg-muted text-muted-foreground"
                 : "bg-primary/8 text-muted-foreground"
           }`}
         >
@@ -120,7 +120,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setShowMenu((prev) => !prev)}
-            className={`h-7 w-7 p-0 ${isSidebar ? "text-muted-foreground hover:text-foreground hover:bg-slate-100" : ""}`}
+            className={`h-7 w-7 p-0 ${isSidebar ? "text-muted-foreground hover:text-foreground hover:bg-muted" : ""}`}
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
