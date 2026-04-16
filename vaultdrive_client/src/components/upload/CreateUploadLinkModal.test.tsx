@@ -128,4 +128,22 @@ describe("CreateUploadLinkModal", () => {
     });
     expect(screen.getByText("Copied!")).toBeInTheDocument();
   });
+
+  it("falls back to manual copy when clipboard write is denied after PIN verification", async () => {
+    getCredential.mockReturnValue({ type: "pin", value: "1234" });
+    clipboardWriteText.mockRejectedValueOnce(new Error("Write permission denied"));
+
+    render(<CreateUploadLinkModal open={true} onClose={() => undefined} />);
+
+    await screen.findByText("Inbox");
+    await userEvent.click(screen.getByRole("button", { name: /create link/i }));
+
+    await screen.findByDisplayValue(/#key=••••••••/i);
+    await userEvent.click(screen.getByRole("button", { name: /copy full upload link/i }));
+    await userEvent.type(await screen.findByLabelText(/4-digit pin/i), "1234");
+    await userEvent.click(screen.getByRole("button", { name: /verify pin and copy/i }));
+
+    expect(await screen.findByText(/clipboard is unavailable/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue("/quantix/drop/abc#key=secret")).toBeInTheDocument();
+  });
 });

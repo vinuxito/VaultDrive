@@ -25,6 +25,10 @@ function looksLikePinError(message: string): boolean {
   return /pin/i.test(message) || /didn't match/i.test(message);
 }
 
+function looksLikeClipboardError(message: string): boolean {
+  return /clipboard|writetext|permission/i.test(message);
+}
+
 const variantStyles = {
   light: {
     field: "border-slate-200 bg-slate-50 text-slate-700",
@@ -86,6 +90,14 @@ export function ProtectedLinkCopyField({
     setManualCopyUrl("");
   };
 
+  const fallbackToManualCopy = (resolvedUrl: string) => {
+    setShowPinPrompt(false);
+    setPinValue("");
+    setManualCopyUrl(resolvedUrl);
+    setStatusMessage("");
+    setErrorMessage("Clipboard is unavailable. Select the full URL and copy it manually.");
+  };
+
   const openPinPrompt = () => {
     if (unavailableReason) {
       setShowPinPrompt(false);
@@ -127,15 +139,21 @@ export function ProtectedLinkCopyField({
       }
 
       if (!navigator.clipboard?.writeText) {
-        setShowPinPrompt(false);
-        setPinValue("");
-        setManualCopyUrl(validation.url);
-        setStatusMessage("");
-        setErrorMessage("Clipboard is unavailable. Select the full URL and copy it manually.");
+        fallbackToManualCopy(validation.url);
         return;
       }
 
-      await navigator.clipboard.writeText(validation.url);
+      try {
+        await navigator.clipboard.writeText(validation.url);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Clipboard is unavailable.";
+        if (looksLikeClipboardError(message)) {
+          fallbackToManualCopy(validation.url);
+          return;
+        }
+        throw error;
+      }
+
       setShowPinPrompt(false);
       setPinValue("");
       setManualCopyUrl("");
