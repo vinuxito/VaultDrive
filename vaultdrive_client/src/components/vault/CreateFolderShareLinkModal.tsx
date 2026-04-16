@@ -38,9 +38,10 @@ export interface CreateFolderShareLinkModalProps {
     name: string;
   };
   onCreated?: () => void;
+  onUseUploadLink?: () => void;
 }
 
-type Step = "credential" | "generating" | "done" | "error";
+type Step = "credential" | "generating" | "done" | "error" | "empty-folder";
 
 const EXPIRY_PRESETS = [
   { label: "1 day", value: 1 },
@@ -79,6 +80,7 @@ export function CreateFolderShareLinkModal({
   onClose,
   folder,
   onCreated,
+  onUseUploadLink,
 }: CreateFolderShareLinkModalProps) {
   const { getCredential } = useSessionVault();
   const cached = getCredential();
@@ -144,7 +146,11 @@ export function CreateFolderShareLinkModal({
       };
 
       if (filesData.total_count === 0) {
-        throw new Error("This folder has no files to share");
+        setErrorMsg(
+          `Folder Share only works after the folder already contains files. Use an upload link when you want someone else to send files into ${folder.name}.`,
+        );
+        setStep("empty-folder");
+        return;
       }
 
       setProgress({ current: 0, total: filesData.total_count });
@@ -269,6 +275,24 @@ export function CreateFolderShareLinkModal({
     setProgress({ current: 0, total: 0 });
     setUseCachedPin(Boolean(hasCachedPin));
     onClose();
+  }
+
+  function resetStateForHandoff() {
+    setPin("");
+    setUseCachedPin(Boolean(hasCachedPin));
+    setStep("credential");
+    setShareUrl("");
+    setErrorMsg("");
+    setCopied(false);
+    setExpiryDays(7);
+    setCustomDate("");
+    setExpiryDisplay("");
+    setProgress({ current: 0, total: 0 });
+  }
+
+  function handleUseUploadLink() {
+    resetStateForHandoff();
+    onUseUploadLink?.();
   }
 
   if (!isOpen) return null;
@@ -428,6 +452,40 @@ export function CreateFolderShareLinkModal({
                 </div>
               )}
             </div>
+          )}
+
+          {step === "empty-folder" && (
+            <>
+              <div className="rounded-2xl border border-amber-200/40 bg-amber-500/10 px-4 py-4 text-sm text-amber-50">
+                <p className="font-semibold text-white">This folder is empty right now</p>
+                <p className="mt-2 leading-relaxed text-white/80">
+                  Folder Share is for files that already exist in this folder. If your goal is to let someone upload into <strong>{folder.name}</strong>, create an upload link instead.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-white/8 border border-white/15 p-3 text-sm text-white/85 space-y-1">
+                <p className="font-medium">Use the upload flow instead</p>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  Upload Links create a bounded sender route into this folder. The sender can deliver files without getting access to anything else in your vault.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={handleUseUploadLink}
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                >
+                  Create Upload Link Instead
+                </Button>
+              </div>
+            </>
           )}
 
           {step === "done" && (

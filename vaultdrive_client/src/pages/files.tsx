@@ -68,7 +68,7 @@ import {
   type SyncableFolderShareLink,
 } from "../utils/folder-share-sync";
 import { FilePreviewModal } from "../components/vault/FilePreviewModal";
-import { UploadLinksSection } from "../components/upload";
+import { CreateUploadLinkModal, UploadLinksSection } from "../components/upload";
 import { FileRequestsSection } from "../components/vault/FileRequestsSection";
 import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksSection";
 import { buildMoveTargetOptions } from "../utils/file-move";
@@ -314,6 +314,8 @@ export default function Files() {
 
   const [showFolderShareModal, setShowFolderShareModal] = useState(false);
   const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
+  const [showCreateUploadLinkModal, setShowCreateUploadLinkModal] = useState(false);
+  const [uploadLinkTargetFolder, setUploadLinkTargetFolder] = useState<{ id: string; name: string } | null>(null);
   const [folderSharePanelVersion, setFolderSharePanelVersion] = useState(0);
   const initialFolderShareSyncAttemptedRef = useRef(false);
   const [moveFolders, setMoveFolders] = useState<Folder[]>([]);
@@ -1263,6 +1265,13 @@ export default function Files() {
     setShowFolderShareModal(true);
   };
 
+  const handleCreateUploadLinkForFolder = (folderId: string, folderName: string) => {
+    setUploadLinkTargetFolder({ id: folderId, name: folderName });
+    setShowCreateUploadLinkModal(true);
+    setShowFolderShareModal(false);
+    setFolderForShare(null);
+  };
+
   const handleManageFolderShares = (folderId: string, folderName: string) => {
     setSelectedNode({ type: "manage-folder-shares", folderId, folderName });
     setSidebarOpen(false);
@@ -1515,6 +1524,7 @@ export default function Files() {
               onRenameFolder={openRenameFolderModal}
               onDeleteFolder={openDeleteFolderModal}
               onShareFolder={handleShareFolder}
+              onCollectUploadsForFolder={handleCreateUploadLinkForFolder}
               onManageShareFolder={handleManageFolderShares}
             />
           </aside>
@@ -2362,9 +2372,26 @@ export default function Files() {
           isOpen={showFolderShareModal}
           onClose={() => { setShowFolderShareModal(false); setFolderForShare(null); }}
           onCreated={() => setFolderSharePanelVersion((value) => value + 1)}
+          onUseUploadLink={() => handleCreateUploadLinkForFolder(folderForShare.id, folderForShare.name)}
           folder={folderForShare}
         />
       )}
+      <CreateUploadLinkModal
+        open={showCreateUploadLinkModal}
+        onClose={() => {
+          setShowCreateUploadLinkModal(false);
+          setUploadLinkTargetFolder(null);
+        }}
+        onSuccess={() => {
+          setSelectedNode({ type: "manage-drops" });
+          setSidebarOpen(false);
+        }}
+        initialFolderId={uploadLinkTargetFolder?.id}
+        initialFolderName={uploadLinkTargetFolder?.name}
+        introMessage={uploadLinkTargetFolder
+          ? `Use this link when you want someone else to upload files into ${uploadLinkTargetFolder.name}.`
+          : undefined}
+      />
       {accessPanelFile && (
         <AccessPanel
           fileId={accessPanelFile.id}

@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Plus, X, Loader2, Folder as FolderIcon, Copy, Check, Link as LinkIcon, Fingerprint, CheckCircle2 } from "lucide-react";
+import { Plus, X, Loader2, Folder as FolderIcon, Fingerprint, CheckCircle2 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { getCachedPinValue } from "../../utils/pin-trust";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
+import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 
 interface Folder {
   id: string;
@@ -19,12 +20,18 @@ interface CreateUploadLinkModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void | Promise<void>;
+  initialFolderId?: string;
+  initialFolderName?: string;
+  introMessage?: string;
 }
 
 export function CreateUploadLinkModal({
   open,
   onClose,
-  onSuccess
+  onSuccess,
+  initialFolderId,
+  initialFolderName,
+  introMessage,
 }: CreateUploadLinkModalProps) {
   const { getCredential, setCredential } = useSessionVault();
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -40,7 +47,7 @@ export function CreateUploadLinkModal({
   const [pinInput, setPinInput] = useState("");
   const [linkName, setLinkName] = useState("");
   const [description, setDescription] = useState("");
-  const [createdLink, setCreatedLink] = useState<{ url: string } | null>(null);
+  const [createdLink, setCreatedLink] = useState<{ url: string; pin: string } | null>(null);
   const [sealAfterUpload, setSealAfterUpload] = useState(false);
   const cachedPin = getCachedPinValue(getCredential());
   const activePin = cachedPin ?? pinInput;
@@ -65,7 +72,10 @@ export function CreateUploadLinkModal({
       setFolders(data || []);
 
       if (data && data.length > 0) {
-        setSelectedFolderId(data[0].id);
+        const preferredFolder = initialFolderId
+          ? data.find((folder: Folder) => folder.id === initialFolderId)
+          : null;
+        setSelectedFolderId(preferredFolder?.id ?? data[0].id);
       }
     } catch (err) {
       console.error("Error fetching folders:", err);
@@ -73,13 +83,24 @@ export function CreateUploadLinkModal({
     } finally {
       setFetchingFolders(false);
     }
-  }, []);
+  }, [initialFolderId]);
 
   useEffect(() => {
     if (open) {
       void fetchFolders();
+      setCreatedLink(null);
+      setError("");
+      setLinkName("");
+      setDescription("");
+      setExpiresIn("7");
+      setMaxFiles(0);
+      setSealAfterUpload(false);
+      setPinInput("");
+      setShowCreateFolder(false);
+      setNewFolderName("");
+      setSelectedFolderId(initialFolderId ?? "");
     }
-  }, [open, fetchFolders]);
+  }, [open, fetchFolders, initialFolderId]);
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
@@ -175,7 +196,7 @@ export function CreateUploadLinkModal({
 
       const data = await response.json();
       setCredential(activePin, "pin");
-      setCreatedLink({ url: data.upload_url });
+      setCreatedLink({ url: data.upload_url, pin: activePin });
       await onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create upload link");
@@ -183,19 +204,6 @@ export function CreateUploadLinkModal({
       setLoading(false);
     }
   };
-
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
   if (!open) return null;
 
   return (
@@ -218,7 +226,7 @@ export function CreateUploadLinkModal({
 
         {!createdLink && (
           <div className="mb-4 rounded-2xl border border-white/10 bg-white/12 px-4 py-3 text-xs leading-relaxed text-white/85">
-            Create a sender route into a specific folder. You stay in control of the route, its expiry, and whether it should seal itself after a delivery.
+            {introMessage ?? `Create a sender route into a specific folder. You stay in control of the route, its expiry, and whether it should seal itself after a delivery.${initialFolderName ? ` This route will target ${initialFolderName}.` : ""}`}
           </div>
         )}
 
@@ -247,30 +255,26 @@ export function CreateUploadLinkModal({
               note={`${branding.productName} just created a bounded sender route tied to the folder and PIN trust you selected.`}
             />
 
-            <div>
-              <Label className="text-white text-sm flex items-center gap-1">
-                <LinkIcon className="w-4 h-4" />
-                Upload URL
-              </Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  value={createdLink.url}
-                  readOnly
-                  className="bg-white/15 border-white/20 text-white text-sm"
-                />
-                <Button
-                  onClick={() => copyToClipboard(createdLink.url)}
-                  className="bg-white text-primary hover:bg-primary/10 font-semibold"
-                  title="Copy URL"
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                </Button>
-              </div>
-            </div>
+            <ProtectedLinkCopyField
+              label="Upload URL"
+              rawUrl={createdLink.url}
+              expectedPath={new URL(createdLink.url, window.location.origin).pathname}
+              kind="upload-link"
+              variant="dark"
+              copyButtonLabel="Copy full upload link"
+              guidanceText="Enter your 4-digit PIN to copy the full URL."
+              onResolveUrl={async (pin) => {
+                if (pin !== createdLink.pin) {
+                  throw new Error("That PIN didn't match. Try again.");
+                }
+
+                return createdLink.url;
+              }}
+            />
 
             <div className="p-3 rounded-xl bg-white/12 border border-white/10">
               <p className="text-white/75 text-xs">
-                The encryption key travels in the URL fragment and never reaches the server. Copy the link now, or find it again later in Upload Links.
+                The encryption key travels in the URL fragment and never reaches the server. Verify your PIN when you need to copy the full route, or manage it later from Upload Links.
               </p>
             </div>
 
@@ -322,7 +326,7 @@ export function CreateUploadLinkModal({
 
             <div>
               <Label htmlFor="folder" className="text-white text-sm">
-                Target Folder
+                Destination Folder
               </Label>
               <div className="mt-1 flex gap-2">
                 {fetchingFolders ? (

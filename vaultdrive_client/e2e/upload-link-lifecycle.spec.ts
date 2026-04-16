@@ -43,7 +43,9 @@ test.describe("Upload link creation and anonymous file collection", () => {
     await expect(page.getByText("POST /api/drop/create")).toBeVisible();
 
     // Close the modal
-    await page.getByRole("button", { name: /^Done$/i }).click();
+    const doneButton = page.getByRole("button", { name: /^Done$/i });
+    await doneButton.scrollIntoViewIfNeeded();
+    await doneButton.evaluate((element: HTMLButtonElement) => element.click());
 
     // The link list should now show at least one upload link
     await expect(page.getByText("QA Intake Route").or(page.getByText("Client Upload Link"))).toBeVisible({ timeout: 5000 });
@@ -180,5 +182,46 @@ test.describe("Upload link creation and anonymous file collection", () => {
     // Should be roughly 24 hours (allow ±2 hours for test execution time)
     expect(diffHours).toBeGreaterThan(22);
     expect(diffHours).toBeLessThan(26);
+  });
+
+  test("empty folder share path redirects owners into the correct upload-link flow", async ({ page }) => {
+    const account = buildOwnerAccount();
+
+    await registerAccount(page, account);
+    await loginWithPassword(page, account);
+    await completeOnboarding(page, account);
+
+    const token = await getAuthToken(page);
+    const createFolderResponse = await page.request.post(resolveApiUrl("/api/folders"), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        name: "Empty Intake",
+      },
+    });
+    expect(createFolderResponse.ok()).toBeTruthy();
+    const emptyFolder = (await createFolderResponse.json()) as { id: string; name: string };
+
+    await gotoStable(page, "/files");
+
+    await page.getByRole("button", { name: /folder actions for Empty Intake/i }).click();
+    await expect(page.getByRole("button", { name: /create upload link/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /share folder/i })).toHaveCount(0);
+
+    await page.getByRole("button", { name: /create upload link/i }).click();
+
+    await expect(page.getByText(/someone else to upload files into Empty Intake/i)).toBeVisible();
+    await expect(page.locator("#folder")).toHaveValue(emptyFolder.id);
+
+    const uploadPinField = page.locator("#pin");
+    if (await uploadPinField.isVisible()) {
+      await uploadPinField.fill(account.pin);
+    }
+
+    await page.getByRole("button", { name: /^Create Link$/i }).click();
+    await expect(page.getByText("POST /api/drop/create")).toBeVisible();
+    await expect(page.getByText(/secure drop route ready/i)).toBeVisible();
   });
 });
