@@ -106,7 +106,7 @@ npx vitest run
 
 Result:
 
-- **Vitest:** `26` files, **88/88 passing**
+- **Vitest:** `26` files, **89/89 passing**
 
 Focused regressions now explicitly cover:
 
@@ -145,12 +145,15 @@ Result:
 Run in `vaultdrive_client/`:
 
 ```bash
-npm run build && npx playwright test e2e/upload-link-lifecycle.spec.ts
+npm run build
+npx playwright test e2e/upload-link-lifecycle.spec.ts
+npx playwright test e2e/share-link-lifecycle.spec.ts
 ```
 
 Result:
 
-- **Playwright:** `4/4 passing`
+- **Playwright upload-link lifecycle:** `4/4 passing`
+- **Playwright share-link lifecycle:** `3/3 passing`
 
 The focused browser proof now covers:
 
@@ -158,12 +161,16 @@ The focused browser proof now covers:
 2. anonymous sender can deliver a file through the upload link
 3. upload-link expiry is persisted correctly
 4. **empty folder share path redirects the owner into the correct upload-link flow**
+5. file share links still create correctly after the UX pass
+6. share access counts still increment correctly
+7. revoking a share link still makes it immediately inaccessible
 
-The end-to-end harness self-hosts the current Go app on `http://127.0.0.1:8090/abrn/`, so this result is against current repo code, not a stale manually running server.
+The end-to-end harness self-hosts the current Go app on `http://127.0.0.1:8090/abrn/`, so these results are against current repo code, not a stale manually running server.
 
 ## Risks / Notes
 
 - No blocking build or verification errors remain.
+- Headless clipboard permission can still force the manual-copy fallback path, and that path is now verified instead of leaking the raw browser exception.
 - The guarded path is now reliable in both the proactive menu surface and the modal fallback surface.
 - The remaining risk is mostly UX consistency outside the touched link surfaces. This pass did not redesign unrelated share/access panels.
 

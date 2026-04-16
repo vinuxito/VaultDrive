@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ABRN Drive Empty Folder Share Handoff Report</title>
+  <title>ABRN Drive Link Flow Verification Report</title>
   <style>
     :root {
       --bg: #f6f3f1;
@@ -92,18 +92,22 @@
 <body>
 <main>
   <header>
-    <h1>ABRN Drive Empty-Folder Share Handoff Report</h1>
+    <h1>ABRN Drive Link Flow Verification Report</h1>
     <div class="sub">Generated 2026-04-16 · Repository: <code>/lamp/www/ABRN-Drive</code> · Branch: <code>gnhf/make-sure-we-can-upl-56c5d2</code></div>
   </header>
 
   <section class="grid">
     <div class="metric">
       <div class="label">Frontend tests</div>
-      <div class="value ok">88 / 88</div>
+      <div class="value ok">89 / 89</div>
     </div>
     <div class="metric">
       <div class="label">Focused Playwright</div>
       <div class="value ok">4 / 4</div>
+    </div>
+    <div class="metric">
+      <div class="label">Share-link Playwright</div>
+      <div class="value ok">3 / 3</div>
     </div>
     <div class="metric">
       <div class="label">Frontend build</div>
@@ -118,11 +122,13 @@
   <section class="panel">
     <h2>What was tested</h2>
     <ul>
-      <li>The folder action menu no longer offers <strong>Share Folder</strong> for empty folders.</li>
+      <li>The folder action menu no longer offers the wrong empty-folder path.</li>
       <li>The selected-folder action panel still explains both directions, but disables outward sharing until files exist.</li>
       <li>The folder-share modal converts the empty-folder case into a guided handoff instead of a dead-end error.</li>
       <li>The upload-link modal opens with the same folder preselected after the handoff.</li>
       <li>The owner can create an upload link successfully after that handoff.</li>
+      <li>The protected copy flow stays masked until PIN verification and falls back to manual selectable text if clipboard permission is denied.</li>
+      <li>Share-link create, access-count, and revoke behavior still passes after the UX pass.</li>
       <li>An anonymous sender can still use the resulting upload link successfully.</li>
     </ul>
   </section>
@@ -149,7 +155,7 @@
           <td>Frontend unit/integration</td>
           <td><code>npx vitest run</code></td>
           <td>Verify all frontend tests, including new empty-folder regressions</td>
-          <td class="ok">26 files, 88/88 passing</td>
+          <td class="ok">26 files, 89/89 passing</td>
         </tr>
         <tr>
           <td>Frontend build</td>
@@ -165,9 +171,15 @@
         </tr>
         <tr>
           <td>Browser end-to-end</td>
-          <td><code>npm run build && npx playwright test e2e/upload-link-lifecycle.spec.ts</code></td>
-          <td>Run a self-hosted browser proof against the current repo code</td>
+          <td><code>npx playwright test e2e/upload-link-lifecycle.spec.ts</code></td>
+          <td>Run a self-hosted browser proof against the current repo code for upload-link creation, protected copy, anonymous sender delivery, expiry, and the empty-folder handoff</td>
           <td class="ok">4/4 passing</td>
+        </tr>
+        <tr>
+          <td>Share-link lifecycle</td>
+          <td><code>npx playwright test e2e/share-link-lifecycle.spec.ts</code></td>
+          <td>Verify that share-link create, access counting, and revoke behavior still works after the link-flow redesign</td>
+          <td class="ok">3/3 passing</td>
         </tr>
       </tbody>
     </table>
@@ -181,25 +193,26 @@
       <li>complete onboarding and create the first folder</li>
       <li>create a second, empty folder through the API</li>
       <li>open the folder actions for that empty folder</li>
-      <li>see <strong>Create Upload Link</strong> instead of <strong>Share Folder</strong></li>
+      <li>see both actions clearly, with <strong>Share Folder</strong> disabled until files exist</li>
       <li>open the upload-link modal with that empty folder preselected</li>
       <li>create the upload link successfully and confirm the API receipt</li>
+      <li>verify that the protected copy control stays masked until the owner enters the correct PIN</li>
     </ol>
-    <p>The same focused spec still also proves anonymous sender delivery and expiry persistence for upload links.</p>
+    <p>The same focused spec still also proves anonymous sender delivery and expiry persistence for upload links. A second focused lifecycle spec proves that outward file sharing still creates, tracks access, and revokes correctly.</p>
   </section>
 
   <section class="panel">
     <h2>Errors or risks found</h2>
     <ul>
-      <li>There was one real UX gap during verification: the sidebar folder kebab still exposed the wrong action for empty folders even after the modal fallback existed. That is fixed now.</li>
-      <li>There was one brittle Playwright interaction in the pre-existing upload-link lifecycle spec, the modal <code>Done</code> click could be outside the viewport. That was hardened and is now stable.</li>
+      <li>There was one real UX gap during verification: the protected copy field handled a missing clipboard API but not the equally real case where <code>writeText()</code> exists and then fails because permission is denied. That fallback is fixed now.</li>
+      <li>The focused Playwright proof also contained stale expectations from the pre-redesign flow. Those selectors and assertions were updated to match the shipped UX and now pass cleanly.</li>
       <li>No blocking build, type, or runtime issues remain from this pass.</li>
     </ul>
   </section>
 
   <section class="panel">
     <h2>Safe to continue?</h2>
-    <p class="ok"><strong>Yes.</strong> The current branch is safe to continue from. The owner-facing empty-folder path, the upload-link creation path, the browser proof, and the backend/frontend builds are all in a verified good state.</p>
+    <p class="ok"><strong>Yes.</strong> The current branch is safe to continue from. The owner-facing empty-folder path, the protected copy fallback, the share-link lifecycle, and the backend/frontend builds are all in a verified good state.</p>
   </section>
 </main>
 </body>

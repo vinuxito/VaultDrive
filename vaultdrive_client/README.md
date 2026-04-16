@@ -97,9 +97,10 @@ npm run preview
 - If you need to target a proxied or remote environment, override
   `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
 - Current verified state for ABRN Drive on this branch:
-  - `npx vitest run` → **88/88 passing**
+  - `npx vitest run` → **89/89 passing**
   - `npm run build` → **clean**
   - `npx playwright test e2e/upload-link-lifecycle.spec.ts` → **4/4 passing**
+  - `npx playwright test e2e/share-link-lifecycle.spec.ts` → **3/3 passing**
   - `go test ./...` + `go build ./...` from repo root → **clean**
 - The focused browser proof now explicitly covers the empty-folder owner path:
   - owner opens an empty folder
@@ -118,10 +119,10 @@ npm run preview
 - `src/components/folders/FolderActionEntryPanel.tsx` - explicit inbound vs outbound folder action chooser
 - `src/components/links/ProtectedLinkCopyField.tsx` - shared PIN-gated protected copy surface
 - `src/utils/protected-link-copy.ts` - copy validation and masked-link helpers
+- `e2e/upload-link-lifecycle.spec.ts` - self-hosted browser proof for upload-link creation, protected copy, anonymous sender delivery, expiry, and empty-folder handoff
+- `e2e/share-link-lifecycle.spec.ts` - self-hosted browser proof for share-link creation, access counting, and revoke behavior
 - `src/pages/drop-upload.tsx` - public Secure Drop sender flow
 - `src/pages/FileRequestPage.tsx` - public File Request sender flow
- - `playwright.config.ts` - self-hosted Playwright trust proof harness
- - `e2e/` - committed end-to-end owner and sender flow proofs
 - `playwright.config.ts` - Playwright trust proof harness
 - `e2e/` - committed trust proof end-to-end specs
 
@@ -132,5 +133,5 @@ npm run preview
 - Trust UX hardening: `../docs/13_TRUST_UX_HARDENING.md`
 - Trust proof harness checkpoint: `../docs/15_TRUST_PROOF_HARNESS.md`
 - Latest verification doc: `../docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md`
-- Latest session context: `../docs/SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md`
+- Latest session context: `../docs/SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md`
 - HTML verification report: `../docs/empty-folder-share-upload-handoff-report.html`

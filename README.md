@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: April 16, 2026 (link flow UX hardening + empty-folder upload-link handoff — 88/88 frontend tests, 4/4 focused Playwright, Go test/build clean)**
+> **Last updated: April 16, 2026 (link flow verification + protected copy hardening — 89/89 frontend tests, 4/4 upload-link Playwright, 3/3 share-link Playwright, Go test/build clean)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -30,18 +30,19 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 This section reflects the actual verified state. Sections below are historical documentation.
 
-### Verification Snapshot (April 16, 2026 — link flow UX hardening + empty-folder upload-link handoff)
+### Verification Snapshot (April 16, 2026 — link flow verification + protected copy hardening)
 
 | Check | Result | Details |
 |-------|--------|---------|
 | `go test ./...` | **CLEAN** | ABRN backend tests pass |
 | `go build ./...` | **CLEAN** | ABRN backend builds successfully |
 | `lsp_diagnostics` on changed frontend surfaces | **CLEAN** | 0 editor/type diagnostics |
-| `npx vitest run` | **88/88** | 26 frontend test files, all pass |
+| `npx vitest run` | **89/89** | 26 frontend test files, all pass |
 | `npm run build` | **CLEAN** | Production frontend bundle emits successfully |
 | `npx playwright test e2e/upload-link-lifecycle.spec.ts` | **4/4** | Focused self-hosted browser proof for upload links and empty-folder handoff |
+| `npx playwright test e2e/share-link-lifecycle.spec.ts` | **3/3** | Self-hosted browser proof that share-link create/access/revoke still works after the UX pass |
 | `abrndrive.filemonprime.net/` | **302** | Healthy signin redirect |
-| `quantixdrive.filemonprime.net/` | **Operational sibling** | See deployment write-up below |
+| `quantixdrive.filemonprime.net/` | **302** | Healthy sibling signin redirect |
 
 ### Link flow behavior now matches user intent
 
@@ -55,7 +56,7 @@ This section reflects the actual verified state. Sections below are historical d
 Latest supporting docs:
 
 - [docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md](./docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md)
-- [docs/SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./docs/SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md)
+- [docs/SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md](./docs/SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md)
 - [docs/empty-folder-share-upload-handoff-report.html](./docs/empty-folder-share-upload-handoff-report.html)
 
 ### QuantiX Drive Deployment Status (April 11, 2026)
@@ -68,9 +69,9 @@ Latest supporting docs:
 | Apache HTTPS vhost (`/lamp/apache2/conf/extra/quantixdrive-ssl.conf`) | **Live** (port 443, `<IfFile>`-guarded, proxies to :8083) |
 | Let's Encrypt cert | **Issued**, expires 2026-07-10, auto-renew scheduled |
 | Postgres role `quantix` + db `quantixdrive` | **Created**, password stored in `/etc/quantix/quantixdrive-db-password` (600) |
-| `/etc/quantix/quantixdrive.env` | **Installed** (600 root:root); still has the stale `AGENT_KEY_PREFIX=qx_ak` value, run `fix.sh` to patch |
-| `/etc/systemd/system/quantixdrive.service` | **Installed + enabled**; currently crash-looping until env fix applied |
-| Port 8083 backend responding | **Not yet** — blocked by env file value, ~3 s away once `fix.sh` runs |
+| `/etc/quantix/quantixdrive.env` | **Installed** (600 root:root) and serving the live sibling product |
+| `/etc/systemd/system/quantixdrive.service` | **Installed + enabled** and responding through the HTTPS vhost |
+| Port 8083 backend responding | **Operational** — public site now returns the normal signin redirect |
 
 **Single command to finish the deploy** (the assistant sandbox can't invoke sudo):
 ```bash

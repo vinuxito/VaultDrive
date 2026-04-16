@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: April 16, 2026 (Link flow UX redesign verification, empty-folder upload-link handoff, 88/88 frontend tests, 4/4 focused Playwright)
+Last updated: April 16, 2026 (Link flow verification and commit prep, 89/89 frontend tests, 4/4 upload-link Playwright, 3/3 share-link Playwright)
 
 ## Task Documentation
 
@@ -70,6 +70,7 @@ Last updated: April 16, 2026 (Link flow UX redesign verification, empty-folder u
 | [SESSION_MEMORY_2026-04-10-security-governance-productization.md](./SESSION_MEMORY_2026-04-10-security-governance-productization.md) | Security posture, governance settings, Access Center, and operator/productization pass |
 | [SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md](./SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md) | QuantiX Drive deploy, env validator bug, and finish-the-deploy runbook |
 | [SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md) | Empty-folder share handoff, latest verification sweep, and safe-to-continue checkpoint |
+| [SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md](./SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md) | Current-code inspection, clipboard fallback fix, refreshed E2E proof, README/report sync, and commit-ready checkpoint |
 
 ## Quick Navigation
 
@@ -111,4 +112,4 @@ Last updated: April 16, 2026 (Link flow UX redesign verification, empty-folder u
 
 **I want the drop full cycle E2E proof →** [23_DROP_FULL_CYCLE_E2E.md](./23_DROP_FULL_CYCLE_E2E.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md](./SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md)
