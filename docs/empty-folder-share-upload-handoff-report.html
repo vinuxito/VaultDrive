@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ABRN Drive Empty Folder Share Handoff Report</title>
+  <style>
+    :root {
+      --bg: #f6f3f1;
+      --panel: #ffffff;
+      --text: #2b1f20;
+      --muted: #6b5b5c;
+      --accent: #7d4f50;
+      --accent-soft: #f2d7d8;
+      --ok: #0f8a5f;
+      --warn: #b7791f;
+      --border: #e8d9d0;
+      --code: #fff8f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    header {
+      margin-bottom: 28px;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    h2 { margin: 34px 0 12px; font-size: 21px; }
+    p, li { font-size: 15px; }
+    .sub { color: var(--muted); font-size: 14px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin: 16px 0;
+      box-shadow: 0 8px 24px rgba(125,79,80,0.06);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .metric .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .metric .value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    code { padding: 1px 6px; font-size: 13px; }
+    pre { padding: 14px 16px; overflow: auto; font-size: 13px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th { background: #fbf7f4; }
+    tr:last-child td { border-bottom: none; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>ABRN Drive Empty-Folder Share Handoff Report</h1>
+    <div class="sub">Generated 2026-04-16 · Repository: <code>/lamp/www/ABRN-Drive</code> · Branch: <code>gnhf/make-sure-we-can-upl-56c5d2</code></div>
+  </header>
+
+  <section class="grid">
+    <div class="metric">
+      <div class="label">Frontend tests</div>
+      <div class="value ok">88 / 88</div>
+    </div>
+    <div class="metric">
+      <div class="label">Focused Playwright</div>
+      <div class="value ok">4 / 4</div>
+    </div>
+    <div class="metric">
+      <div class="label">Frontend build</div>
+      <div class="value ok">Pass</div>
+    </div>
+    <div class="metric">
+      <div class="label">Backend test + build</div>
+      <div class="value ok">Pass</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>What was tested</h2>
+    <ul>
+      <li>The folder action menu no longer offers <strong>Share Folder</strong> for empty folders.</li>
+      <li>The selected-folder action panel still explains both directions, but disables outward sharing until files exist.</li>
+      <li>The folder-share modal converts the empty-folder case into a guided handoff instead of a dead-end error.</li>
+      <li>The upload-link modal opens with the same folder preselected after the handoff.</li>
+      <li>The owner can create an upload link successfully after that handoff.</li>
+      <li>An anonymous sender can still use the resulting upload link successfully.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>How it was tested</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Command</th>
+          <th>Purpose</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Diagnostics</td>
+          <td><code>lsp_diagnostics</code> on changed frontend files</td>
+          <td>Catch local TypeScript/editor errors before runtime checks</td>
+          <td class="ok">0 errors</td>
+        </tr>
+        <tr>
+          <td>Frontend unit/integration</td>
+          <td><code>npx vitest run</code></td>
+          <td>Verify all frontend tests, including new empty-folder regressions</td>
+          <td class="ok">26 files, 88/88 passing</td>
+        </tr>
+        <tr>
+          <td>Frontend build</td>
+          <td><code>npm run build</code></td>
+          <td>Verify the production bundle compiles cleanly</td>
+          <td class="ok">Pass</td>
+        </tr>
+        <tr>
+          <td>Backend</td>
+          <td><code>go test ./...</code> and <code>go build ./...</code></td>
+          <td>Verify the Go app still passes and builds cleanly</td>
+          <td class="ok">Pass</td>
+        </tr>
+        <tr>
+          <td>Browser end-to-end</td>
+          <td><code>npm run build && npx playwright test e2e/upload-link-lifecycle.spec.ts</code></td>
+          <td>Run a self-hosted browser proof against the current repo code</td>
+          <td class="ok">4/4 passing</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Focused browser proof</h2>
+    <p>The Playwright lifecycle spec now proves this exact owner path:</p>
+    <ol>
+      <li>create a new owner account</li>
+      <li>complete onboarding and create the first folder</li>
+      <li>create a second, empty folder through the API</li>
+      <li>open the folder actions for that empty folder</li>
+      <li>see <strong>Create Upload Link</strong> instead of <strong>Share Folder</strong></li>
+      <li>open the upload-link modal with that empty folder preselected</li>
+      <li>create the upload link successfully and confirm the API receipt</li>
+    </ol>
+    <p>The same focused spec still also proves anonymous sender delivery and expiry persistence for upload links.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Errors or risks found</h2>
+    <ul>
+      <li>There was one real UX gap during verification: the sidebar folder kebab still exposed the wrong action for empty folders even after the modal fallback existed. That is fixed now.</li>
+      <li>There was one brittle Playwright interaction in the pre-existing upload-link lifecycle spec, the modal <code>Done</code> click could be outside the viewport. That was hardened and is now stable.</li>
+      <li>No blocking build, type, or runtime issues remain from this pass.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>Safe to continue?</h2>
+    <p class="ok"><strong>Yes.</strong> The current branch is safe to continue from. The owner-facing empty-folder path, the upload-link creation path, the browser proof, and the backend/frontend builds are all in a verified good state.</p>
+  </section>
+</main>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycle proof)
+Last updated: April 16, 2026 (Link flow UX redesign verification, empty-folder upload-link handoff, 88/88 frontend tests, 4/4 focused Playwright)
 
 ## Task Documentation
 
@@ -29,6 +29,9 @@ Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycl
 | 21 | [Force Password Change](./21_FORCE_PASSWORD_CHANGE.md) | Admin security gate — force users to change password on next login, 3-layer defense, private key re-encryption |
 | 22 | [Drop Key Recovery](./22_DROP_KEY_RECOVERY.md) | Fix broken drop links — PIN-unwrap endpoint, reveal-key UI, missing-key error page, dead code cleanup |
 | 23 | [Drop Full Cycle E2E](./23_DROP_FULL_CYCLE_E2E.md) | Full lifecycle proof — create link, client upload, owner download+decrypt, key recovery, wrong PIN |
+| 24 | [Security Governance Productization](./24_SECURITY_GOVERNANCE_PRODUCTIZATION.md) | Security posture, governance settings, audit export, Access Center, lazy-loaded operator surfaces |
+| 25 | [QuantiX Drive Production Deploy](./25_QUANTIXDRIVE_PRODUCTION_DEPLOY.md) | Second branded product deployment on the shared VPS and config validation hardening |
+| 26 | [Link Flow UX Redesign Verification](./26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md) | Protected link copy, explicit inbound vs outbound link UX, and empty-folder share handoff verification |
 
 ## Feature Docs (pre-existing)
 
@@ -63,6 +66,10 @@ Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycl
 | [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md) | Force password change + luxury design tokens + FK cascade fix |
 | [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md) | Drop link key recovery — PIN-unwrap endpoint, reveal UI, error UX |
 | [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md) | Drop full cycle E2E — 35/35 tests, full lifecycle verified |
+| [SESSION_MEMORY_2026-04-07-sharing-war-room.md](./SESSION_MEMORY_2026-04-07-sharing-war-room.md) | Sharing bug war-room, trust model debugging, and production flow analysis |
+| [SESSION_MEMORY_2026-04-10-security-governance-productization.md](./SESSION_MEMORY_2026-04-10-security-governance-productization.md) | Security posture, governance settings, Access Center, and operator/productization pass |
+| [SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md](./SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md) | QuantiX Drive deploy, env validator bug, and finish-the-deploy runbook |
+| [SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md) | Empty-folder share handoff, latest verification sweep, and safe-to-continue checkpoint |
 
 ## Quick Navigation
 
@@ -104,4 +111,4 @@ Last updated: March 24, 2026 (Drop full cycle E2E — 35/35 tests, full lifecycl
 
 **I want the drop full cycle E2E proof →** [23_DROP_FULL_CYCLE_E2E.md](./23_DROP_FULL_CYCLE_E2E.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md)

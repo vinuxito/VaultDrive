@@ -1,7 +1,7 @@
-# QuantiX Drive Frontend
+# ABRN Drive / QuantiX Drive Frontend
 
-This directory contains the React + TypeScript frontend for QuantiX Drive (and
-its downstream ABRN Drive branded deployment).
+This directory contains the shared React + TypeScript frontend used by both
+ABRN Drive and QuantiX Drive.
 
 It is not a standalone product shell. The production app is served by the Go
 backend, usually under `/quantix/` (or `/abrn/` for the ABRN deployment), and
@@ -96,14 +96,15 @@ npm run preview
   `npm run test:e2e`.
 - If you need to target a proxied or remote environment, override
   `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
-- Current browser smoke coverage has been exercised against the live local app flow:
-  - fresh signup
-  - password login
-  - onboarding / PIN setup
-  - vault open
-  - settings trust surfaces render
-  - committed owner trust flow proof
-  - committed public sender proof (file request + secure drop coverage target)
+- Current verified state for ABRN Drive on this branch:
+  - `npx vitest run` → **88/88 passing**
+  - `npm run build` → **clean**
+  - `npx playwright test e2e/upload-link-lifecycle.spec.ts` → **4/4 passing**
+  - `go test ./...` + `go build ./...` from repo root → **clean**
+- The focused browser proof now explicitly covers the empty-folder owner path:
+  - owner opens an empty folder
+  - the UI steers them into **Create Upload Link** instead of dead-ending in **Share Folder**
+  - upload-link creation succeeds with the same folder preselected
 
 ## Key Files
 
@@ -114,6 +115,9 @@ npm run preview
 - `src/components/vault/AccessPanel.tsx` - access visibility and revoke controls
 - `src/components/settings/AgentApiKeysSection.tsx` - delegated-power UI
 - `src/components/onboarding/OnboardingWizard.tsx` - trust briefing + PIN setup
+- `src/components/folders/FolderActionEntryPanel.tsx` - explicit inbound vs outbound folder action chooser
+- `src/components/links/ProtectedLinkCopyField.tsx` - shared PIN-gated protected copy surface
+- `src/utils/protected-link-copy.ts` - copy validation and masked-link helpers
 - `src/pages/drop-upload.tsx` - public Secure Drop sender flow
 - `src/pages/FileRequestPage.tsx` - public File Request sender flow
  - `playwright.config.ts` - self-hosted Playwright trust proof harness
@@ -127,4 +131,6 @@ npm run preview
 - Docs index: `../docs/INDEX.md`
 - Trust UX hardening: `../docs/13_TRUST_UX_HARDENING.md`
 - Trust proof harness checkpoint: `../docs/15_TRUST_PROOF_HARNESS.md`
-- Latest session context: `../docs/SESSION_MEMORY_2026-03-16-trust-proof-harness.md`
+- Latest verification doc: `../docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md`
+- Latest session context: `../docs/SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md`
+- HTML verification report: `../docs/empty-folder-share-upload-handoff-report.html`

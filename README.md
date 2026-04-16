@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: April 11, 2026 (QuantiX Drive sibling deploy + `AGENT_KEY_PREFIX` validator bug fix — 68/68 tests)**
+> **Last updated: April 16, 2026 (link flow UX hardening + empty-folder upload-link handoff — 88/88 frontend tests, 4/4 focused Playwright, Go test/build clean)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,23 +26,37 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (April 11, 2026)
+## Current State (April 16, 2026)
 
 This section reflects the actual verified state. Sections below are historical documentation.
 
-### Verification Snapshot (April 11, 2026 — QuantiX Drive sibling deploy + config validator fix)
+### Verification Snapshot (April 16, 2026 — link flow UX hardening + empty-folder upload-link handoff)
 
 | Check | Result | Details |
 |-------|--------|---------|
-| `go build ./...` (ABRN-Drive) | **CLEAN** | 0 errors |
-| `go build ./...` (QuantiX-Drive) | **CLEAN** | 0 errors, 8.1 MB binary |
-| `go vet ./...` | **CLEAN** | 0 warnings |
-| `tsc --noEmit` | **CLEAN** | 0 TypeScript errors |
-| `npx vitest run` | **68/68** | 19 test files, all pass (9.46 s) |
-| `npm run build` | **CLEAN** | Zero warnings, all chunks split correctly |
-| `apachectl configtest` | **Syntax OK** | 2 new `Include` lines for QuantiX vhost |
-| `abrndrive.filemonprime.net/` | **302** | Healthy (signin redirect) |
-| `quantixdrive.filemonprime.net/` | **503 → fix pending** | Single sudo away from 200 — see below |
+| `go test ./...` | **CLEAN** | ABRN backend tests pass |
+| `go build ./...` | **CLEAN** | ABRN backend builds successfully |
+| `lsp_diagnostics` on changed frontend surfaces | **CLEAN** | 0 editor/type diagnostics |
+| `npx vitest run` | **88/88** | 26 frontend test files, all pass |
+| `npm run build` | **CLEAN** | Production frontend bundle emits successfully |
+| `npx playwright test e2e/upload-link-lifecycle.spec.ts` | **4/4** | Focused self-hosted browser proof for upload links and empty-folder handoff |
+| `abrndrive.filemonprime.net/` | **302** | Healthy signin redirect |
+| `quantixdrive.filemonprime.net/` | **Operational sibling** | See deployment write-up below |
+
+### Link flow behavior now matches user intent
+
+- **Share Folder** is now unmistakably an outward share for files that already exist.
+- **Upload Links / Secure Drop** are now unmistakably the inbound path for collecting files into a folder.
+- Empty folders no longer strand owners in the wrong share flow.
+  - In the folder action menu, empty folders now favor **Create Upload Link**.
+  - In the folder action panel, **Share Folder** stays visible for clarity but is disabled until the folder contains files.
+  - If someone still reaches the share modal for an empty folder, the modal now explains the distinction and offers **Create Upload Link Instead** with the same folder preselected.
+
+Latest supporting docs:
+
+- [docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md](./docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md)
+- [docs/SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./docs/SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md)
+- [docs/empty-folder-share-upload-handoff-report.html](./docs/empty-folder-share-upload-handoff-report.html)
 
 ### QuantiX Drive Deployment Status (April 11, 2026)
 
