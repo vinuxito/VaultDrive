@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Copy, KeyRound, Loader2, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
@@ -126,33 +126,137 @@ const scopeTemplates: ScopeTemplate[] = [
   },
 ];
 
+const DEFAULT_SELECTED_SCOPES = [
+  "files:list",
+  "files:read_metadata",
+  "activity:read",
+  "trust:read",
+];
+
+const FOCUSABLE_SELECTOR = [
+  "button:not([disabled])",
+  "[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
 function CreateKeyModal({
   open,
   onClose,
   onCreated,
+  returnFocusRef,
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: (key: AgentKeyRecord) => void;
+  returnFocusRef: React.RefObject<HTMLElement | null>;
 }) {
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [expiryDays, setExpiryDays] = useState("30");
-  const [selectedScopes, setSelectedScopes] = useState<string[]>([
-    "files:list",
-    "files:read_metadata",
-    "activity:read",
-    "trust:read",
-  ]);
+  const [selectedScopes, setSelectedScopes] = useState<string[]>(DEFAULT_SELECTED_SCOPES);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState<AgentKeyRecord | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirmedCopy, setConfirmedCopy] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const resetModalState = useCallback(() => {
+    setName("");
+    setNotes("");
+    setExpiryDays("30");
+    setSelectedScopes(DEFAULT_SELECTED_SCOPES);
+    setLoading(false);
+    setError("");
+    setCreated(null);
+    setCopied(false);
+    setConfirmedCopy(false);
+  }, []);
 
   const expiryIso = useMemo(() => {
     if (expiryDays === "never") return "";
     return new Date(Date.now() + Number(expiryDays) * 24 * 60 * 60 * 1000).toISOString();
   }, [expiryDays]);
+
+  const handleClose = useCallback(() => {
+    if (created && !confirmedCopy) return;
+    resetModalState();
+    onClose();
+    window.setTimeout(() => {
+      returnFocusRef.current?.focus();
+    }, 0);
+  }, [confirmedCopy, created, onClose, resetModalState, returnFocusRef]);
+
+  const getFocusableElements = useCallback(() => {
+    if (!modalRef.current) return [] as HTMLElement[];
+
+    return Array.from(modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+      (element) => !element.hasAttribute("disabled")
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const [firstFocusable] = getFocusableElements();
+      if (created) {
+        firstFocusable?.focus() ?? modalRef.current?.focus();
+        return;
+      }
+      firstFocusable?.focus() ?? modalRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [created, getFocusableElements, open]);
+
+  useEffect(() => {
+    if (!copied) return;
+
+    const timeoutId = window.setTimeout(() => setCopied(false), 2000);
+    return () => window.clearTimeout(timeoutId);
+  }, [copied]);
+
+  const handleModalKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (!created) {
+          handleClose();
+        }
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstFocusable = focusableElements[0];
+      const lastFocusable = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey) {
+        if (activeElement === firstFocusable || activeElement === modalRef.current) {
+          event.preventDefault();
+          lastFocusable.focus();
+        }
+        return;
+      }
+
+      if (activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
+    },
+    [created, getFocusableElements, handleClose]
+  );
 
   if (!open) return null;
 
@@ -184,6 +288,8 @@ function CreateKeyModal({
       if (!response.ok || !payload?.data) {
         throw new Error("Could not create agent key");
       }
+      setCopied(false);
+      setConfirmedCopy(false);
       setCreated(payload.data);
       onCreated(payload.data);
     } catch (err) {
@@ -195,14 +301,22 @@ function CreateKeyModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl rounded-3xl border border-border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-agent-key-title"
+        tabIndex={-1}
+        onKeyDown={handleModalKeyDown}
+        className="w-full max-w-2xl rounded-3xl border border-border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+      >
         <div className="px-6 py-5 border-b border-border bg-gradient-to-r from-muted/50 to-card shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">Create agent API key</h3>
+              <h3 id="create-agent-key-title" className="text-lg font-semibold text-foreground">Create agent API key</h3>
               <p className="text-sm text-muted-foreground">Scoped, revocable access for outside systems and agents.</p>
             </div>
           </div>
@@ -211,11 +325,11 @@ function CreateKeyModal({
         {created ? (
           <div className="p-6 space-y-4 overflow-y-auto">
             <div className="brand-receipt-surface rounded-2xl px-4 py-4">
-              <div className="flex items-center gap-2 text-emerald-700 font-medium">
+              <div className="flex items-center gap-2 text-primary font-medium">
                 <ShieldCheck className="w-4 h-4" />
                 Agent key created — save it now
               </div>
-              <p className="mt-2 text-sm text-emerald-700/90">
+              <p className="mt-2 text-sm text-primary/90">
                 {`This is the only time ${branding.productName} will show the full key. After you close this window, only the visible prefix remains.`}
               </p>
             </div>
@@ -230,30 +344,53 @@ function CreateKeyModal({
                 onClick={async () => {
                   await navigator.clipboard.writeText(created.plaintext_key || "");
                   setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
                 }}
                 className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/90"
               >
                 <Copy className="w-4 h-4" />
                 {copied ? "Copied" : "Copy key"}
               </button>
+              <span className="sr-only" aria-live="polite">
+                {copied ? "API key copied to clipboard" : ""}
+              </span>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2 text-sm text-muted-foreground">
-              <div className="rounded-2xl border border-border px-4 py-3 bg-white">
+              <div className="rounded-2xl border border-border px-4 py-3 bg-card">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Visible prefix</p>
-                <p className="mt-1 font-medium text-slate-900">{created.key_prefix}</p>
+                <p className="mt-1 font-medium text-foreground">{created.key_prefix}</p>
               </div>
-              <div className="rounded-2xl border border-border px-4 py-3 bg-white">
+              <div className="rounded-2xl border border-border px-4 py-3 bg-card">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Expires</p>
-                <p className="mt-1 font-medium text-slate-900">
+                <p className="mt-1 font-medium text-foreground">
                   {created.expires_at ? new Date(created.expires_at).toLocaleString() : "No automatic expiry"}
                 </p>
               </div>
             </div>
 
+            <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted/60 px-4 py-3 text-sm text-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={confirmedCopy}
+                onChange={(event) => setConfirmedCopy(event.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-primary shrink-0"
+              />
+              <span>
+                <span className="font-medium">I&apos;ve saved this key</span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  Confirm before closing, because the full secret will not be shown again.
+                </span>
+              </span>
+            </label>
+
             <div className="flex justify-end">
-              <Button onClick={onClose} className="bg-primary hover:bg-primary/90 text-white">Done</Button>
+              <Button
+                onClick={handleClose}
+                disabled={!confirmedCopy}
+                className="bg-primary hover:bg-primary/90 text-white disabled:cursor-not-allowed"
+              >
+                Done
+              </Button>
             </div>
           </div>
         ) : (
@@ -265,9 +402,13 @@ function CreateKeyModal({
                   id="agent-key-name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
+                  maxLength={64}
                   placeholder="e.g. CRM sync agent"
                   className="w-full rounded-xl border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
+                {name.length > 50 && (
+                  <p className="text-xs text-muted-foreground text-right">{name.length}/64</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label htmlFor="agent-key-expiry" className="text-sm font-medium text-foreground">Expiry</label>
@@ -299,7 +440,7 @@ function CreateKeyModal({
 
             <div className="rounded-2xl border border-border bg-muted px-4 py-4 space-y-4">
               <div>
-                <p className="text-sm font-semibold text-slate-800">Permissions</p>
+                <p className="text-sm font-semibold text-foreground">Permissions</p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   Start narrow. These keys never carry decryption authority over your files.
                 </p>
@@ -318,7 +459,7 @@ function CreateKeyModal({
                         className={`text-left rounded-xl border px-3 py-2 text-sm transition-colors ${
                           isActive
                             ? "border-primary bg-muted text-primary/90"
-                            : "border-border bg-white text-foreground hover:bg-muted"
+                            : "border-border bg-card text-foreground hover:bg-muted"
                         }`}
                       >
                         <span className="font-medium">{tmpl.label}</span>
@@ -332,7 +473,7 @@ function CreateKeyModal({
                 <div key={category.label} className="space-y-1.5">
                   <div className="flex items-baseline gap-2">
                     <p className="text-xs font-semibold text-foreground uppercase tracking-[0.1em]">{category.label}</p>
-                    <p className="text-xs text-slate-400">{category.description}</p>
+                    <p className="text-xs text-muted-foreground">{category.description}</p>
                   </div>
                   <div className="grid gap-1.5 md:grid-cols-2">
                     {category.scopes.map((scope) => (
@@ -357,7 +498,7 @@ function CreateKeyModal({
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button variant="outline" onClick={handleClose}>Cancel</Button>
               <Button
                 onClick={() => void handleCreate()}
                 disabled={loading || !name.trim() || selectedScopes.length === 0}
@@ -382,6 +523,7 @@ export function AgentApiKeysSection() {
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const createKeyTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const fetchKeys = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -424,7 +566,7 @@ export function AgentApiKeysSection() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
             Agent API keys
           </h2>
@@ -432,41 +574,47 @@ export function AgentApiKeysSection() {
             Scoped credentials for external systems, automation, and AI agents. Ciphertext-first by default.
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)} className="bg-primary hover:bg-primary/90 text-white shrink-0">
+        <Button
+          onClick={(event) => {
+            createKeyTriggerRef.current = event.currentTarget;
+            setShowCreateModal(true);
+          }}
+          className="bg-primary hover:bg-primary/90 text-white shrink-0"
+        >
           <KeyRound className="w-4 h-4 mr-2" />
           New key
         </Button>
       </div>
 
       <div className="rounded-2xl border border-border bg-card px-4 py-4 text-sm text-muted-foreground">
-        <p className="font-medium text-slate-800">Trust boundary</p>
+        <p className="font-medium text-foreground">Trust boundary</p>
         <p className="mt-1">
           These keys can manage metadata, ciphertext movement, links, requests, and audit surfaces. They do not grant silent plaintext access.
         </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-3 text-sm">
-        <div className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+        <div className="rounded-2xl border border-border bg-card px-4 py-4">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Scoped power</p>
-          <p className="mt-2 text-slate-900 dark:text-slate-100 font-medium">Grant only the job</p>
+          <p className="mt-2 text-foreground font-medium">Grant only the job</p>
           <p className="mt-1 text-xs text-muted-foreground">Start narrow, then expand only if the workflow truly needs more reach.</p>
         </div>
-        <div className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+        <div className="rounded-2xl border border-border bg-card px-4 py-4">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Visible use</p>
-          <p className="mt-2 text-slate-900 dark:text-slate-100 font-medium">See when it was active</p>
+          <p className="mt-2 text-foreground font-medium">See when it was active</p>
           <p className="mt-1 text-xs text-muted-foreground">Every key shows last-used context so delegation never becomes invisible.</p>
         </div>
-        <div className="rounded-2xl border border-border bg-card px-4 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+        <div className="rounded-2xl border border-border bg-card px-4 py-4">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Immediate revoke</p>
-          <p className="mt-2 text-slate-900 dark:text-slate-100 font-medium">Pull access back instantly</p>
+          <p className="mt-2 text-foreground font-medium">Pull access back instantly</p>
           <p className="mt-1 text-xs text-muted-foreground">If a workflow changes, the key can stop working right away.</p>
         </div>
       </div>
 
       {receipt && (
-        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-emerald-800 dark:text-emerald-100">
+        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-primary dark:text-primary">
           <p className="font-medium">Done, safe, under control.</p>
-          <p className="mt-1 text-emerald-700 dark:text-emerald-200">{receipt}</p>
+          <p className="mt-1 text-primary dark:text-emerald-200">{receipt}</p>
         </div>
       )}
 
@@ -482,113 +630,133 @@ export function AgentApiKeysSection() {
           Loading agent keys…
         </div>
       ) : keys.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
           {`No agent keys yet. Create one when you want an outside system to work through ${branding.productName}.`}
         </div>
       ) : (
         <div className="space-y-3">
-          {keys.map((key) => (
-            <div key={key.id} className="rounded-[1.5rem] border border-border bg-card px-4 py-4 space-y-3 shadow-[0_16px_34px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-slate-900">{key.name}</p>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                        key.status === "active"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : key.status === "revoked"
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {key.status}
-                    </span>
-                    <code className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-muted-foreground">{key.key_prefix}</code>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">Created {new Date(key.created_at).toLocaleString()}</p>
-                </div>
+          {keys.map((key) => {
+            const isRevoked = key.status === "revoked";
+            const isExpired = key.status === "expired";
 
-                {key.status === "active" && (
-                  confirmRevokeId === key.id ? (
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setConfirmRevokeId(null)}
-                        className="text-muted-foreground border-border"
+            return (
+              <div
+                key={key.id}
+                className={`rounded-[1.5rem] border border-border bg-card px-4 py-4 space-y-3 shadow-sm ${
+                  isRevoked ? "opacity-60" : isExpired ? "opacity-75" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p
+                        className={`font-medium ${
+                          isRevoked
+                            ? "text-muted-foreground line-through"
+                            : isExpired
+                              ? "text-muted-foreground"
+                              : "text-foreground"
+                        }`}
                       >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void revokeKey(key.id)}
-                        disabled={revokingId === key.id}
-                        className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                        {key.name}
+                      </p>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                          key.status === "active"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : key.status === "revoked"
+                              ? "bg-destructive/10 text-destructive"
+                              : "bg-amber-100 text-amber-700"
+                        }`}
                       >
-                        {revokingId === key.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm revoke"}
-                      </Button>
+                        {key.status}
+                      </span>
+                      <code className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">{key.key_prefix}</code>
                     </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={() => setConfirmRevokeId(key.id)}
-                      className="text-destructive border-destructive/20 hover:bg-destructive/10 shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Revoke
-                    </Button>
-                  )
-                )}
-              </div>
+                    <p className="mt-1 text-sm text-muted-foreground">Created {new Date(key.created_at).toLocaleString()}</p>
+                  </div>
 
-              <div className="flex flex-wrap gap-2">
-                {key.scopes.map((scope) => (
-                  <span key={scope} className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                    {scopeLabels[scope] ?? scope}
-                  </span>
-                ))}
-              </div>
-
-              <div className="rounded-xl border border-border bg-card px-3 py-3 text-sm text-muted-foreground">
-                <p className="font-medium text-slate-800">Delegated power</p>
-                <p className="mt-1 leading-relaxed">
-                  This key can operate within {key.scopes.length} granted scope{key.scopes.length !== 1 ? "s" : ""}. It can move ciphertext and metadata, but it cannot silently decrypt your files.
-                </p>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-3 text-sm text-muted-foreground">
-                <div className="rounded-xl bg-muted px-3 py-3 border border-border">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Last used</p>
-                  <p className="mt-1 text-slate-900 font-medium">
-                    {key.last_used_at ? relativeTime(key.last_used_at) : "Never used"}
-                  </p>
-                  {key.last_used_at && (
-                    <p className="mt-1 text-xs text-muted-foreground">{new Date(key.last_used_at).toLocaleString()}</p>
+                  {key.status === "active" && (
+                    confirmRevokeId === key.id ? (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setConfirmRevokeId(null)}
+                          className="text-muted-foreground border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => void revokeKey(key.id)}
+                          disabled={revokingId === key.id}
+                          className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                        >
+                          {revokingId === key.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm revoke"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => setConfirmRevokeId(key.id)}
+                        className="text-destructive border-destructive/20 hover:bg-destructive/10 shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Revoke
+                      </Button>
+                    )
                   )}
                 </div>
-                <div className="rounded-xl bg-muted px-3 py-3 border border-border">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Last seen from</p>
-                  <p className="mt-1 text-slate-900 font-medium">{key.last_used_ip || "No requests yet"}</p>
-                </div>
-                <div className="rounded-xl bg-muted px-3 py-3 border border-border">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Usage count</p>
-                  <p className="mt-1 text-slate-900 font-medium">{key.usage_count}</p>
-                </div>
-              </div>
 
-              {key.last_used_user_agent && (
-                <p className="text-xs text-slate-400 truncate">Last agent: {key.last_used_user_agent}</p>
-              )}
-            </div>
-          ))}
+                <div className="flex flex-wrap gap-2">
+                  {key.scopes.map((scope) => (
+                    <span key={scope} className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                      {scopeLabels[scope] ?? scope}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="rounded-xl border border-border bg-card px-3 py-3 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Delegated power</p>
+                  <p className="mt-1 leading-relaxed">
+                    This key can operate within {key.scopes.length} granted scope{key.scopes.length !== 1 ? "s" : ""}. It can move ciphertext and metadata, but it cannot silently decrypt your files.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-3 text-sm text-muted-foreground">
+                  <div className="rounded-xl bg-muted px-3 py-3 border border-border">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Last used</p>
+                    <p className="mt-1 text-foreground font-medium">
+                      {key.last_used_at ? relativeTime(key.last_used_at) : "Never used"}
+                    </p>
+                    {key.last_used_at && (
+                      <p className="mt-1 text-xs text-muted-foreground">{new Date(key.last_used_at).toLocaleString()}</p>
+                    )}
+                  </div>
+                  <div className="rounded-xl bg-muted px-3 py-3 border border-border">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Last seen from</p>
+                    <p className="mt-1 text-foreground font-medium">{key.last_used_ip || "No requests yet"}</p>
+                  </div>
+                  <div className="rounded-xl bg-muted px-3 py-3 border border-border">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Usage count</p>
+                    <p className="mt-1 text-foreground font-medium">{key.usage_count}</p>
+                  </div>
+                </div>
+
+                {key.last_used_user_agent && (
+                  <p className="text-xs text-muted-foreground truncate">Last agent: {key.last_used_user_agent}</p>
+                )}
+              </div>
+            )})}
         </div>
       )}
 
       <CreateKeyModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
+        returnFocusRef={createKeyTriggerRef}
         onCreated={(record) => {
           setError("");
           setReceipt(`${record.name} is ready. Save the one-time secret now; only the prefix remains after you close the modal.`);

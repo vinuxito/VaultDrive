@@ -76,9 +76,10 @@ func (sw *slidingWindow) purge() {
 
 // Global rate limiters — one per sensitive endpoint group.
 var (
-	loginRateLimiter  = newSlidingWindow()
-	pinRateLimiter    = newSlidingWindow()
-	globalRateLimiter = newSlidingWindow()
+	loginRateLimiter    = newSlidingWindow()
+	pinRateLimiter      = newSlidingWindow()
+	globalRateLimiter   = newSlidingWindow()
+	agentKeyRateLimiter = newSlidingWindow()
 )
 
 // isLoopbackIP returns true for 127.x.x.x and ::1, which are always local
