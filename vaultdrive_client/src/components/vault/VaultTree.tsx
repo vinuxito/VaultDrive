@@ -45,6 +45,7 @@ interface VaultTreeProps {
   onRenameFolder?: (folderId: string, name: string) => void;
   onDeleteFolder?: (folderId: string, name: string) => void;
   onShareFolder?: (folderId: string, name: string) => void;
+  onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
 }
 
@@ -156,6 +157,7 @@ export function VaultTree({
   onRenameFolder,
   onDeleteFolder,
   onShareFolder,
+  onCollectUploadsForFolder,
   onManageShareFolder,
 }: VaultTreeProps) {
   const [foldersOpen, setFoldersOpen] = useState(true);
@@ -239,6 +241,7 @@ export function VaultTree({
             onDeleteFolder={onDeleteFolder}
             onCreateSubfolder={onCreateSubfolder}
             onShareFolder={onShareFolder}
+            onCollectUploadsForFolder={onCollectUploadsForFolder}
             onManageShareFolder={onManageShareFolder}
           />
         </div>

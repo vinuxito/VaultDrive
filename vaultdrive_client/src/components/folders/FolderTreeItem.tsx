@@ -11,6 +11,7 @@ import {
   Trash2,
   Share2,
   Link2,
+  Upload,
 } from "lucide-react";
 import type { FolderNode } from "./FolderTree";
 
@@ -26,6 +27,7 @@ interface FolderTreeItemProps {
   onDelete: () => void;
   onCreateSubfolder: () => void;
   onShare?: () => void;
+  onCollectUploads?: () => void;
   onManageShares?: () => void;
 }
 
@@ -41,6 +43,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   onDelete,
   onCreateSubfolder,
   onShare,
+  onCollectUploads,
   onManageShares,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -121,6 +124,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
             size="sm"
             onClick={() => setShowMenu((prev) => !prev)}
             className={`h-7 w-7 p-0 ${isSidebar ? "text-slate-500 hover:text-slate-700 hover:bg-slate-100" : ""}`}
+            aria-label={`Folder actions for ${folder.name}`}
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
@@ -146,7 +150,20 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                   <FolderPlus className="w-4 h-4" />
                   Create Subfolder
                 </button>
-                {onShare && (
+                {onCollectUploads && folder.fileCount === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCollectUploads();
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Create Upload Link
+                  </button>
+                )}
+                {onShare && folder.fileCount !== 0 && (
                   <button
                     type="button"
                     onClick={() => {
