@@ -1,13 +1,12 @@
 import { useState } from "react";
 import {
-  X,
-  FolderOpen,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Copy,
-  Key,
-  Calendar,
+    X,
+    FolderOpen,
+    Loader2,
+    CheckCircle2,
+    AlertCircle,
+    Key,
+    Calendar,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import {
@@ -33,6 +32,7 @@ import {
   getNormalizedErrorMessage,
   getStoredUserFromLocalStorage,
 } from "../../utils/browser-storage";
+import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 
 export interface CreateFolderShareLinkModalProps {
   isOpen: boolean;
@@ -42,9 +42,10 @@ export interface CreateFolderShareLinkModalProps {
     name: string;
   };
   onCreated?: () => void;
+  onUseUploadLink?: () => void;
 }
 
-type Step = "credential" | "generating" | "done" | "error";
+type Step = "credential" | "generating" | "done" | "error" | "empty-folder";
 
 const EXPIRY_PRESETS = [
   { label: "1 day", value: 1 },
@@ -83,6 +84,7 @@ export function CreateFolderShareLinkModal({
   onClose,
   folder,
   onCreated,
+  onUseUploadLink,
 }: CreateFolderShareLinkModalProps) {
   const { getCredential } = useSessionVault();
   const cached = getCredential();
@@ -98,8 +100,8 @@ export function CreateFolderShareLinkModal({
   const [pin, setPin] = useState("");
   const [step, setStep] = useState<Step>("credential");
   const [shareUrl, setShareUrl] = useState("");
+  const [shareCopyPin, setShareCopyPin] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [copied, setCopied] = useState(false);
   const [expiryDays, setExpiryDays] = useState<ExpiryOption>(7);
   const [customDate, setCustomDate] = useState("");
   const [expiryDisplay, setExpiryDisplay] = useState("");
@@ -163,7 +165,11 @@ export function CreateFolderShareLinkModal({
       };
 
       if (filesData.total_count === 0) {
-        throw new Error("This folder has no files to share");
+        setErrorMsg(
+          `Folder Share only works after the folder already contains files. Use an upload link when you want someone else to send files into ${folder.name}.`,
+        );
+        setStep("empty-folder");
+        return;
       }
 
       setProgress({ current: 0, total: filesData.total_count });
@@ -255,6 +261,7 @@ export function CreateFolderShareLinkModal({
       const b64Key = await exportKey(folderShareKey);
       const url = `${window.location.origin}${BASE_PATH}/folder-share/${data.token}#${b64Key}`;
       setShareUrl(url);
+      setShareCopyPin(userPin);
       setExpiryDisplay(displayDate);
       setStep("done");
       onCreated?.();
@@ -264,28 +271,36 @@ export function CreateFolderShareLinkModal({
     }
   }
 
-  function handleCopy() {
-    navigator.clipboard
-      .writeText(shareUrl)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => undefined);
-  }
-
   function handleClose() {
     setPin("");
     setAllowCachedPin(Boolean(cached && cached.type === "pin" && /^\d{4}$/.test(cached.value)));
     setStep("credential");
     setShareUrl("");
+    setShareCopyPin("");
     setErrorMsg("");
-    setCopied(false);
     setExpiryDays(7);
     setCustomDate("");
     setExpiryDisplay("");
     setProgress({ current: 0, total: 0 });
     onClose();
+  }
+
+  function resetStateForHandoff() {
+    setPin("");
+    setAllowCachedPin(Boolean(cached && cached.type === "pin" && /^\d{4}$/.test(cached.value)));
+    setStep("credential");
+    setShareUrl("");
+    setShareCopyPin("");
+    setErrorMsg("");
+    setExpiryDays(7);
+    setCustomDate("");
+    setExpiryDisplay("");
+    setProgress({ current: 0, total: 0 });
+  }
+
+  function handleUseUploadLink() {
+    resetStateForHandoff();
+    onUseUploadLink?.();
   }
 
   if (!isOpen) return null;
@@ -447,6 +462,40 @@ export function CreateFolderShareLinkModal({
             </div>
           )}
 
+          {step === "empty-folder" && (
+            <>
+              <div className="rounded-2xl border border-amber-200/40 bg-amber-500/10 px-4 py-4 text-sm text-amber-50">
+                <p className="font-semibold text-white">This folder is empty right now</p>
+                <p className="mt-2 leading-relaxed text-white/80">
+                  Folder Share is for files that already exist in this folder. If your goal is to let someone upload into <strong>{folder.name}</strong>, create an upload link instead.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-white/8 border border-white/15 p-3 text-sm text-white/85 space-y-1">
+                <p className="font-medium">Use the upload flow instead</p>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  Upload Links create a bounded sender route into this folder. The sender can deliver files without getting access to anything else in your vault.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={handleUseUploadLink}
+                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                >
+                  Generate Upload Link Instead
+                </Button>
+              </div>
+            </>
+          )}
+
           {step === "done" && (
             <>
               <div className="brand-receipt-surface rounded-2xl px-4 py-4">
@@ -490,24 +539,22 @@ export function CreateFolderShareLinkModal({
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="fsl-share-url"
-                  className="text-xs text-white/60"
-                >
-                  Share URL (folder key embedded after #)
-                </label>
-                <textarea
-                  id="fsl-share-url"
-                  readOnly
-                  value={shareUrl}
-                  rows={4}
-                  className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white/90 text-xs resize-none focus:outline-none cursor-text"
-                  onClick={(e) =>
-                    (e.target as HTMLTextAreaElement).select()
+              <ProtectedLinkCopyField
+                label="Share URL (folder key embedded after #)"
+                rawUrl={shareUrl}
+                expectedPath={new URL(shareUrl, window.location.origin).pathname}
+                kind="folder-share"
+                variant="dark"
+                copyButtonLabel="Copy full folder share link"
+                guidanceText="Enter your 4-digit PIN to copy the full URL."
+                onResolveUrl={async (pin) => {
+                  if (pin !== shareCopyPin) {
+                    throw new Error("That PIN didn't match. Try again.");
                   }
-                />
-              </div>
+
+                  return shareUrl;
+                }}
+              />
 
               <div className="flex gap-2">
                 <Button
@@ -518,20 +565,10 @@ export function CreateFolderShareLinkModal({
                   Close
                 </Button>
                 <Button
-                  onClick={handleCopy}
+                  onClick={handleClose}
                   className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold gap-1.5"
                 >
-                  {copied ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      Copy Link
-                    </>
-                  )}
+                  Done
                 </Button>
               </div>
             </>

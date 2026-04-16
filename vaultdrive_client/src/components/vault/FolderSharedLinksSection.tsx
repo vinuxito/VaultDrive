@@ -1,20 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, Copy, ExternalLink, FolderOpen, Link2, Loader2, Plus, RefreshCw, ShieldOff } from "lucide-react";
+import { AlertCircle, FolderOpen, Link2, Loader2, Plus, RefreshCw, ShieldOff } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { API_URL, BASE_PATH } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
-import { arrayBufferToBase64, unwrapKeyWithRSA } from "../../utils/crypto";
+import {
+  arrayBufferToBase64,
+  decryptPrivateKeyWithPIN,
+  importRSAPrivateKey,
+  unwrapKeyWithRSA,
+} from "../../utils/crypto";
 import {
   syncFolderShareLinkById,
   type SyncableFolderShareLink,
 } from "../../utils/folder-share-sync";
-import { resolveOwnerPrivateKeyFromSession } from "../../utils/owner-private-key";
 import { branding } from "../../config/branding";
 import {
   getFolderShareOwnerCredentialType,
   resolveFolderSharePanelCredential,
 } from "../../utils/folder-share-repair";
+import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 
 interface FolderSharedLinksSectionProps {
   folder: {
@@ -39,6 +44,18 @@ function getLinkLifecycleStatus(link: SyncableFolderShareLink): { label: string;
     return { label: "Expired", tone: "bg-amber-100 text-amber-700", active: false };
   }
   return { label: "Active", tone: "bg-emerald-100 text-emerald-700", active: true };
+}
+
+function getLinkUnavailableReason(link: SyncableFolderShareLink): string | undefined {
+  if (!link.is_active) {
+    return "This shared link has been revoked and can no longer be copied.";
+  }
+
+  if (link.expires_at && new Date(link.expires_at).getTime() <= Date.now()) {
+    return "This shared link has expired and can no longer be copied.";
+  }
+
+  return undefined;
 }
 
 export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage, refreshKey = 0 }: FolderSharedLinksSectionProps) {
@@ -175,53 +192,26 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
     }
   }
 
-  async function buildShareUrl(link: SyncableFolderShareLink): Promise<string> {
-    const credential = resolveFolderSharePanelCredential(
-      sessionVault.getCredential(),
-      ownerCredentialInput,
-      currentUser,
-    );
-    if (!credential || !currentUser || !link.owner_wrapped_folder_key) {
-      throw new Error(currentUser?.pin_set
-        ? "Enter your current PIN to open or copy this link."
-        : "Enter your current password to open or copy this link.");
+  async function buildShareUrlForCopy(link: SyncableFolderShareLink, pin: string): Promise<string> {
+    if (!currentUser?.pin_set) {
+      throw new Error("Set your PIN before copying a full shared link from this panel.");
     }
 
-    const privateKey = await resolveOwnerPrivateKeyFromSession(
-      sessionVault.getPrivateKey(),
-      credential,
-      currentUser,
-    );
-    if (!privateKey) {
-      throw new Error("Could not recover this shared link in the current session.");
+    if (!currentUser.private_key_pin_encrypted) {
+      throw new Error("PIN-encrypted private key not found. Set your PIN in Settings first.");
     }
+
+    if (!link.owner_wrapped_folder_key) {
+      throw new Error("Repair this older shared link before copying it again.");
+    }
+
+    const privateKeyPem = await decryptPrivateKeyWithPIN(pin, currentUser.private_key_pin_encrypted);
+    const privateKey = await importRSAPrivateKey(privateKeyPem);
 
     const folderShareKey = await unwrapKeyWithRSA(privateKey, link.owner_wrapped_folder_key);
     const rawKey = await window.crypto.subtle.exportKey("raw", folderShareKey);
     const keyB64 = arrayBufferToBase64(rawKey);
-    sessionVault.setCredential(credential.value, credential.type);
     return `${window.location.origin}${BASE_PATH}/folder-share/${link.token}#${keyB64}`;
-  }
-
-  async function handleCopy(link: SyncableFolderShareLink) {
-    try {
-      const shareUrl = await buildShareUrl(link);
-      await navigator.clipboard.writeText(shareUrl);
-      const message = "Copied the full shared link.";
-      setResults((prev) => ({ ...prev, [link.id]: message }));
-      onStatusMessage?.(message);
-    } catch (error) {
-      setResults((prev) => ({ ...prev, [link.id]: error instanceof Error ? error.message : "Failed to copy link." }));
-    }
-  }
-
-  async function handleOpen(link: SyncableFolderShareLink) {
-    try {
-      const shareUrl = await buildShareUrl(link);
-      window.open(shareUrl, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      setResults((prev) => ({ ...prev, [link.id]: error instanceof Error ? error.message : "Failed to open link." }));
-    }
   }
 
   return (
@@ -288,9 +278,11 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
             )}
             {visibleLinks.map((link) => {
               const status = getLinkLifecycleStatus(link);
+              const unavailableReason = getLinkUnavailableReason(link);
               const needsLegacyUrl = !link.owner_wrapped_folder_key;
               const result = results[link.id];
               const canSync = status.active && (!needsLegacyUrl || Boolean(legacyUrls[link.id]?.trim()));
+              const expectedPath = `${BASE_PATH}/folder-share/${link.token}`;
 
               return (
                 <Card key={link.id} className="border-slate-200/80 shadow-sm">
@@ -332,18 +324,33 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                       </div>
                     )}
 
+                    {!needsLegacyUrl && (
+                      <ProtectedLinkCopyField
+                        label="Share URL (folder key embedded after #)"
+                        rawUrl={`${window.location.origin}${expectedPath}#missing`}
+                        expectedPath={expectedPath}
+                        kind="folder-share"
+                        copyButtonLabel="Copy full folder share link"
+                        guidanceText="Enter your 4-digit PIN to copy the full URL."
+                        unavailableReason={unavailableReason}
+                        onResolveUrl={async (pin) => buildShareUrlForCopy(link, pin)}
+                      />
+                    )}
+
+                    {needsLegacyUrl && !unavailableReason && (
+                      <p className="text-xs text-slate-500">
+                        Repair this older shared link once before it can use the PIN-gated copy flow.
+                      </p>
+                    )}
+
+                    {unavailableReason && (
+                      <p className="text-xs text-slate-500">{unavailableReason}</p>
+                    )}
+
                     <div className="flex flex-wrap gap-2">
                       <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white">
                         {busyId === link.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                         Update Link
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => void handleCopy(link)} disabled={busyId === link.id || needsLegacyUrl || !status.active}>
-                        <Copy className="w-4 h-4 mr-2" />
-                        Copy Link
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => void handleOpen(link)} disabled={busyId === link.id || needsLegacyUrl || !status.active}>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Open Link
                       </Button>
                       <Button type="button" variant="outline" onClick={() => void handleRevoke(link)} disabled={busyId === link.id || !status.active} className="text-red-600 border-red-200 hover:bg-red-50">
                         <ShieldOff className="w-4 h-4 mr-2" />
