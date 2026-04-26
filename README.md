@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: April 26, 2026 (main consolidation + post-merge verification — 89/89 frontend tests, Go test/build clean, TypeScript clean, Vite build clean, both production redirects healthy. Two stale dev branches retired, `quantix-overlay` synced upstream.)**
+> **Last updated: April 26, 2026 (main consolidation + full post-merge verification — 89/89 frontend tests, 4/4 upload-link Playwright, 3/3 share-link Playwright, Go test/build clean, TypeScript clean, Vite build clean, both production redirects healthy. Two stale dev branches retired, `quantix-overlay` synced upstream.)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -43,8 +43,8 @@ All recent dev work has been consolidated into `main`. The two superseded local 
 | `npm run build` | **CLEAN** | Built in 11.86 s, all chunks emitted |
 | `abrndrive.filemonprime.net/` | **302 → /abrn/** | Healthy signin redirect |
 | `quantixdrive.filemonprime.net/` | **302 → /quantix/** | Healthy sibling signin redirect |
-| Playwright `upload-link-lifecycle.spec.ts` | **DEFERRED** | Last run 2026-04-16: 4/4. No source under test changed since. Re-run before next behavioral change. |
-| Playwright `share-link-lifecycle.spec.ts` | **DEFERRED** | Last run 2026-04-16: 3/3. Same rationale. |
+| Playwright `upload-link-lifecycle.spec.ts` | **4/4** | Re-run on 2026-04-26 against the consolidated `main`, 32.8 s |
+| Playwright `share-link-lifecycle.spec.ts` | **3/3** | Re-run on 2026-04-26 against the consolidated `main`, 21.7 s |
 
 Latest closeout artifacts:
 

@@ -111,7 +111,18 @@ Result: both **302** to their respective `/abrn/` and `/quantix/` signin paths.
 
 ### Playwright E2E
 
-Not re-run in this session because the only thing that changed since the last run (2026-04-16, all 4/4 + 3/3 passing) was a fast-forward merge — no source under test was modified. The README and verification report record this explicitly so the next session knows to re-run them after the next behavioral change.
+```bash
+cd vaultdrive_client
+npx playwright test e2e/upload-link-lifecycle.spec.ts
+npx playwright test e2e/share-link-lifecycle.spec.ts
+```
+
+Result:
+
+- `upload-link-lifecycle.spec.ts` → **4/4 passing** (32.8 s)
+- `share-link-lifecycle.spec.ts` → **3/3 passing** (21.7 s)
+
+Both specs self-host the current Go app on `http://127.0.0.1:8090/abrn/`, so this is verification of the consolidated `main` code, not a stale server.
 
 ## Failures found
 
@@ -126,7 +137,7 @@ None.
 - **Stale remote branches.** `origin/feature/secure-platform-v3` and `origin/gnhf/make-sure-we-can-upl-56c5d2` still exist on GitHub. Locally they are deleted. The user will push and clean those when they choose.
 - **`origin/main` is behind `local/main`.** No risk while still local; will become a clean fast-forward when the user pushes.
 - **`gh auth setup-git` is not configured.** When the user pushes, HTTPS will prompt for credentials. They can either run `gh auth login` first or switch the `quantix` remote (and optionally `origin`) to SSH.
-- **Playwright suite not re-run today.** Low risk — last run was 2026-04-16 with no source changes since — but the closeout report notes this so the next behavioral change re-runs it before claiming green.
+- ~~**Playwright suite not re-run today.**~~ **Re-run on 2026-04-26 against the consolidated `main`: 4/4 + 3/3 passing.**
 - **`.omc/project-memory.json` updates on every session.** Currently tracked. If the constant churn is annoying, it could also be moved to `.gitignore` later — not done in this session because the user's previous workflow has been committing it explicitly.
 
 ## Whether safe to continue

@@ -45,7 +45,7 @@
 
 <div class="verdict">
   <strong>Verdict: SAFE TO CONTINUE.</strong>
-  All consolidated work on <code>main</code> passes Go test/build, TypeScript, Vitest (89/89), Vite build, and live production redirects. The two stale dev branches were retired without losing any real work. The QuantiX overlay branch is in sync upstream with ABRN branding intact.
+  All consolidated work on <code>main</code> passes Go test/build, TypeScript, Vitest (89/89), Vite build, both Playwright lifecycle specs (4/4 + 3/3), and live production redirects. The two stale dev branches were retired without losing any real work. The QuantiX overlay branch is in sync upstream with ABRN branding intact.
 </div>
 
 <h2>Summary cards</h2>
@@ -56,7 +56,8 @@
   <div class="card green"><div class="label">Vite build</div><div class="value">PASS</div></div>
   <div class="card green"><div class="label">ABRN production</div><div class="value">302</div></div>
   <div class="card green"><div class="label">QuantiX production</div><div class="value">302</div></div>
-  <div class="card amber"><div class="label">Playwright lifecycle</div><div class="value">DEFERRED</div></div>
+  <div class="card green"><div class="label">Playwright upload-link</div><div class="value">4 / 4</div></div>
+  <div class="card green"><div class="label">Playwright share-link</div><div class="value">3 / 3</div></div>
   <div class="card green"><div class="label">Branches consolidated</div><div class="value">2 → main</div></div>
 </div>
 
@@ -71,8 +72,8 @@
     <tr><td>5</td><td>Vite build</td><td><code>npm run build</code></td><td><span class="pill pass">PASS</span></td><td>Built in 11.86 s, largest gzipped chunk 136.84 kB</td></tr>
     <tr><td>6</td><td>ABRN production redirect</td><td><code>curl -I https://abrndrive.filemonprime.net/</code></td><td><span class="pill pass">PASS</span></td><td><code>302 → /abrn/</code></td></tr>
     <tr><td>7</td><td>QuantiX production redirect</td><td><code>curl -I https://quantixdrive.filemonprime.net/</code></td><td><span class="pill pass">PASS</span></td><td><code>302 → /quantix/</code></td></tr>
-    <tr><td>8</td><td>Playwright <code>upload-link-lifecycle.spec.ts</code></td><td>not re-run</td><td><span class="pill defer">DEFERRED</span></td><td>Last run 2026-04-16 was 4/4. No source under test changed since. Re-run before next behavioral change.</td></tr>
-    <tr><td>9</td><td>Playwright <code>share-link-lifecycle.spec.ts</code></td><td>not re-run</td><td><span class="pill defer">DEFERRED</span></td><td>Last run 2026-04-16 was 3/3. Same rationale.</td></tr>
+    <tr><td>8</td><td>Playwright <code>upload-link-lifecycle.spec.ts</code></td><td><code>npx playwright test e2e/upload-link-lifecycle.spec.ts</code></td><td><span class="pill pass">PASS</span></td><td>4/4 in 32.8 s. Self-hosts the consolidated <code>main</code> Go binary on port 8090.</td></tr>
+    <tr><td>9</td><td>Playwright <code>share-link-lifecycle.spec.ts</code></td><td><code>npx playwright test e2e/share-link-lifecycle.spec.ts</code></td><td><span class="pill pass">PASS</span></td><td>3/3 in 21.7 s. Self-hosted against the same consolidated <code>main</code>.</td></tr>
   </tbody>
 </table>
 
@@ -107,7 +108,6 @@
   <thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead>
   <tbody>
     <tr><td>Stale remote branches <code>origin/feature/secure-platform-v3</code> and <code>origin/gnhf/...</code></td><td>Low</td><td>User will push and <code>--delete</code> when ready</td></tr>
-    <tr><td>Playwright suites not re-run today</td><td>Low</td><td>No source changed since last green run on 2026-04-16; explicitly noted as deferred</td></tr>
     <tr><td><code>git push</code> auth not configured (HTTPS prompts for credentials)</td><td>Low</td><td>Run <code>gh auth login</code> or switch remotes to SSH before pushing</td></tr>
     <tr><td><code>.omc/project-memory.json</code> continues to churn between sessions</td><td>Cosmetic</td><td>Currently tracked &mdash; left as-is to respect existing workflow</td></tr>
   </tbody>
@@ -127,7 +127,7 @@
 git push origin main
 git push origin --delete gnhf/make-sure-we-can-upl-56c5d2 feature/secure-platform-v3
 git -C /lamp/www/ABRN-Drive-overlay push quantix quantix-overlay:main</pre>
-<p class="small">If a behavioral change lands afterwards, re-run the two Playwright lifecycle specs before declaring full-green again.</p>
+<p class="small">All checks (including the two Playwright lifecycle specs) re-run against consolidated <code>main</code> on 2026-04-26 &mdash; full green.</p>
 
 <div class="footer">
   Generated 2026-04-26. Companion files:

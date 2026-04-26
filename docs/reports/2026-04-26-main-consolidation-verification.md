@@ -29,6 +29,8 @@ go test ./...
 cd vaultdrive_client && npx tsc --noEmit
 cd vaultdrive_client && npm run test
 cd vaultdrive_client && npm run build
+cd vaultdrive_client && npx playwright test e2e/upload-link-lifecycle.spec.ts
+cd vaultdrive_client && npx playwright test e2e/share-link-lifecycle.spec.ts
 curl -I https://abrndrive.filemonprime.net/
 curl -I https://quantixdrive.filemonprime.net/
 ```
@@ -44,8 +46,8 @@ curl -I https://quantixdrive.filemonprime.net/
 | 5 | Vite build | `npm run build` | **PASS** | Built in 11.86 s, all chunks emitted (largest gzip 136.84 kB) |
 | 6 | ABRN production redirect | `curl -I https://abrndrive.filemonprime.net/` | **PASS** | `302 → /abrn/` |
 | 7 | QuantiX production redirect | `curl -I https://quantixdrive.filemonprime.net/` | **PASS** | `302 → /quantix/` |
-| 8 | Playwright `upload-link-lifecycle.spec.ts` | (not re-run) | **DEFERRED** | Last run on 2026-04-16 was 4/4 passing. No source under test changed since. Re-run before next behavioral change. |
-| 9 | Playwright `share-link-lifecycle.spec.ts` | (not re-run) | **DEFERRED** | Last run on 2026-04-16 was 3/3 passing. Same rationale. |
+| 8 | Playwright `upload-link-lifecycle.spec.ts` | `npx playwright test e2e/upload-link-lifecycle.spec.ts` | **PASS** | 4/4 passing in 32.8 s. Self-hosts the consolidated `main` Go binary on port 8090 |
+| 9 | Playwright `share-link-lifecycle.spec.ts` | `npx playwright test e2e/share-link-lifecycle.spec.ts` | **PASS** | 3/3 passing in 21.7 s. Self-hosted against the same consolidated `main` |
 
 ## Manual checks
 
@@ -74,7 +76,7 @@ None found, none applied beyond the `.gitignore` cleanup.
 | Risk | Severity | Mitigation |
 |---|---|---|
 | Stale remote branches `origin/feature/secure-platform-v3` and `origin/gnhf/...` | Low | User will push and `--delete` when ready |
-| Playwright suites not re-run today | Low | No source changed since last green run; explicitly noted as deferred |
+| ~~Playwright suites not re-run today~~ | ~~Low~~ | **Re-run on 2026-04-26 against consolidated `main`: 4/4 + 3/3 passing** |
 | Auth not yet configured for `git push` | Low | User will run `gh auth login` or switch remotes to SSH before pushing |
 | `.omc/project-memory.json` continues to churn between sessions | Cosmetic | Currently tracked — left as-is to avoid changing the user's workflow without consent |
 
@@ -99,4 +101,4 @@ git push origin --delete gnhf/make-sure-we-can-upl-56c5d2 feature/secure-platfor
 git -C /lamp/www/ABRN-Drive-overlay push quantix quantix-overlay:main
 ```
 
-If a behavioral change lands afterwards, re-run the two Playwright lifecycle specs before declaring full-green again.
+All checks (including the two Playwright lifecycle specs) re-run against consolidated `main` on 2026-04-26 — full green.
