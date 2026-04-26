@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ABRN Drive — Main consolidation verification — 2026-04-26</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 980px; margin: 32px auto; padding: 0 24px 64px; color: #1a1a1a; line-height: 1.55; background: #fafafa; }
+  h1 { color: #7a1f2b; border-bottom: 3px solid #7a1f2b; padding-bottom: 12px; margin-bottom: 8px; }
+  h2 { color: #7a1f2b; margin-top: 36px; border-bottom: 1px solid #e0d6d8; padding-bottom: 6px; }
+  h3 { margin-top: 24px; color: #2a2a2a; }
+  .meta { color: #666; font-size: 14px; margin-bottom: 24px; }
+  .verdict { background: linear-gradient(135deg, #e7f7e7 0%, #d4f0d4 100%); border-left: 6px solid #2c7a2c; padding: 18px 22px; border-radius: 6px; margin: 24px 0; font-size: 17px; }
+  .verdict strong { color: #185918; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 18px 0 28px; }
+  .card { background: #fff; border: 1px solid #e0d6d8; border-radius: 8px; padding: 14px 16px; }
+  .card .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #888; }
+  .card .value { font-size: 22px; font-weight: 600; color: #1a1a1a; margin-top: 4px; }
+  .card.green .value { color: #1f6b1f; }
+  .card.amber .value { color: #b06e08; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 24px; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #ececec; vertical-align: top; }
+  th { background: #f4eaec; color: #5b1620; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.pass { background: #d4f0d4; color: #185918; }
+  .pill.defer { background: #fcebcb; color: #845408; }
+  .pill.fail { background: #f9d2d4; color: #7a1f2b; }
+  code { background: #f1eaeb; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #7a1f2b; }
+  pre { background: #2a2226; color: #f5e9eb; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  ul li, ol li { margin: 4px 0; }
+  .small { font-size: 13px; color: #666; }
+  .footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid #e0d6d8; color: #777; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>ABRN Drive — Main consolidation verification</h1>
+<div class="meta">
+  <strong>Date:</strong> 2026-04-26 &middot;
+  <strong>Project:</strong> ABRN Drive &middot;
+  <strong>Branch:</strong> <code>main</code> &middot;
+  <strong>Tip:</strong> <code>f452313</code> (pre-docs commit)
+</div>
+
+<div class="verdict">
+  <strong>Verdict: SAFE TO CONTINUE.</strong>
+  All consolidated work on <code>main</code> passes Go test/build, TypeScript, Vitest (89/89), Vite build, and live production redirects. The two stale dev branches were retired without losing any real work. The QuantiX overlay branch is in sync upstream with ABRN branding intact.
+</div>
+
+<h2>Summary cards</h2>
+<div class="cards">
+  <div class="card green"><div class="label">Go test/build</div><div class="value">PASS</div></div>
+  <div class="card green"><div class="label">TypeScript</div><div class="value">PASS</div></div>
+  <div class="card green"><div class="label">Vitest</div><div class="value">89 / 89</div></div>
+  <div class="card green"><div class="label">Vite build</div><div class="value">PASS</div></div>
+  <div class="card green"><div class="label">ABRN production</div><div class="value">302</div></div>
+  <div class="card green"><div class="label">QuantiX production</div><div class="value">302</div></div>
+  <div class="card amber"><div class="label">Playwright lifecycle</div><div class="value">DEFERRED</div></div>
+  <div class="card green"><div class="label">Branches consolidated</div><div class="value">2 → main</div></div>
+</div>
+
+<h2>Verification matrix</h2>
+<table>
+  <thead><tr><th>#</th><th>Check</th><th>Command</th><th>Result</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Go build</td><td><code>go build ./...</code></td><td><span class="pill pass">PASS</span></td><td>Exit 0</td></tr>
+    <tr><td>2</td><td>Go tests</td><td><code>go test ./...</code></td><td><span class="pill pass">PASS</span></td><td>Root package <code>ok 1.210s</code>; sub-packages have no test files (expected)</td></tr>
+    <tr><td>3</td><td>TypeScript</td><td><code>npx tsc --noEmit</code></td><td><span class="pill pass">PASS</span></td><td>Exit 0, zero diagnostics</td></tr>
+    <tr><td>4</td><td>Vitest</td><td><code>npm run test</code></td><td><span class="pill pass">PASS</span></td><td>26 files / 89 tests / 89 passed in 28.04 s</td></tr>
+    <tr><td>5</td><td>Vite build</td><td><code>npm run build</code></td><td><span class="pill pass">PASS</span></td><td>Built in 11.86 s, largest gzipped chunk 136.84 kB</td></tr>
+    <tr><td>6</td><td>ABRN production redirect</td><td><code>curl -I https://abrndrive.filemonprime.net/</code></td><td><span class="pill pass">PASS</span></td><td><code>302 → /abrn/</code></td></tr>
+    <tr><td>7</td><td>QuantiX production redirect</td><td><code>curl -I https://quantixdrive.filemonprime.net/</code></td><td><span class="pill pass">PASS</span></td><td><code>302 → /quantix/</code></td></tr>
+    <tr><td>8</td><td>Playwright <code>upload-link-lifecycle.spec.ts</code></td><td>not re-run</td><td><span class="pill defer">DEFERRED</span></td><td>Last run 2026-04-16 was 4/4. No source under test changed since. Re-run before next behavioral change.</td></tr>
+    <tr><td>9</td><td>Playwright <code>share-link-lifecycle.spec.ts</code></td><td>not re-run</td><td><span class="pill defer">DEFERRED</span></td><td>Last run 2026-04-16 was 3/3. Same rationale.</td></tr>
+  </tbody>
+</table>
+
+<h2>Branch consolidation</h2>
+<table>
+  <thead><tr><th>Branch</th><th>Disposition</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td><code>gnhf/make-sure-we-can-upl-56c5d2</code></td><td>Fast-forwarded into <code>main</code>, then deleted locally</td><td>Held all the recent ABRN work — upload links, protected copy, browser proofs, QuantiX deploy, playwright-cli skill</td></tr>
+    <tr><td><code>feature/secure-platform-v3</code></td><td>Deleted locally as superseded (orphan worktree also removed)</td><td>Dated 2026-03-24, tip commit literally <code>"lol"</code> committed <code>node_modules/</code>; conflicted on schema slot 029 against the more advanced security work already on <code>main</code> (<code>4f958ae</code>, <code>738769d</code>, <code>d60cb33</code>)</td></tr>
+    <tr><td><code>quantix-overlay</code></td><td>Merged with <code>quantix/main</code>, kept alive</td><td>The ABRN brand overlay sits on top of the QuantiX upstream fork. Only conflict was the favicon — resolved with <code>--ours</code> (the brand asset is the whole point of the overlay)</td></tr>
+    <tr><td><code>main</code></td><td>Now the single source of ABRN truth</td><td>Was the stale branch — every other branch was ahead of it</td></tr>
+  </tbody>
+</table>
+
+<h2>Changed files</h2>
+<ul>
+  <li><code>.gitignore</code> — three lines added so <code>.kilocode/package-lock.json</code> and the two <code>.omc/state/*.json</code> files no longer appear as untracked</li>
+  <li><code>docs/SESSION_MEMORY_2026-04-26-main-consolidation-verify.md</code> — session memory</li>
+  <li><code>docs/reports/2026-04-26-main-consolidation-verification.md</code> — verification report (twin of this HTML)</li>
+  <li><code>docs/reports/2026-04-26-main-consolidation-verification.html</code> — this file</li>
+  <li><code>docs/INDEX.md</code> — new session entry</li>
+  <li><code>README.md</code> — verification snapshot refresh</li>
+</ul>
+
+<p class="small">No application source code was modified in this session.</p>
+
+<h2>Bugs / fixes</h2>
+<p>None found, none applied beyond the <code>.gitignore</code> cleanup.</p>
+
+<h2>Risks</h2>
+<table>
+  <thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>Stale remote branches <code>origin/feature/secure-platform-v3</code> and <code>origin/gnhf/...</code></td><td>Low</td><td>User will push and <code>--delete</code> when ready</td></tr>
+    <tr><td>Playwright suites not re-run today</td><td>Low</td><td>No source changed since last green run on 2026-04-16; explicitly noted as deferred</td></tr>
+    <tr><td><code>git push</code> auth not configured (HTTPS prompts for credentials)</td><td>Low</td><td>Run <code>gh auth login</code> or switch remotes to SSH before pushing</td></tr>
+    <tr><td><code>.omc/project-memory.json</code> continues to churn between sessions</td><td>Cosmetic</td><td>Currently tracked &mdash; left as-is to respect existing workflow</td></tr>
+  </tbody>
+</table>
+
+<h2>Final state</h2>
+<ul>
+  <li>Local <code>main</code>: clean, all real ABRN/VaultDrive work consolidated, all checks green.</li>
+  <li>Local <code>quantix-overlay</code> (worktree at <code>/lamp/www/ABRN-Drive-overlay</code>): merged with QuantiX upstream, ABRN brand overlay intact.</li>
+  <li>Two stale dev branches removed locally, including their orphan worktree.</li>
+  <li>No untracked work-product files (after the <code>.gitignore</code> update).</li>
+  <li>Nothing pushed &mdash; closeout is local-only as instructed.</li>
+</ul>
+
+<h2>Next steps (when you are ready)</h2>
+<pre>gh auth login
+git push origin main
+git push origin --delete gnhf/make-sure-we-can-upl-56c5d2 feature/secure-platform-v3
+git -C /lamp/www/ABRN-Drive-overlay push quantix quantix-overlay:main</pre>
+<p class="small">If a behavioral change lands afterwards, re-run the two Playwright lifecycle specs before declaring full-green again.</p>
+
+<div class="footer">
+  Generated 2026-04-26. Companion files:
+  <a href="./2026-04-26-main-consolidation-verification.md">2026-04-26-main-consolidation-verification.md</a>,
+  <a href="../SESSION_MEMORY_2026-04-26-main-consolidation-verify.md">SESSION_MEMORY_2026-04-26-main-consolidation-verify.md</a>.
+</div>
+
+</body>
+</html>

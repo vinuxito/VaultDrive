@@ -2,7 +2,7 @@
 
 > Sovereign, zero-knowledge encrypted file control plane for partners, clients, and external agents.
 > All encryption in the browser. All access visible and revocable. All agent operations scoped.
-> **Last updated: April 16, 2026 (link flow verification + protected copy hardening — 89/89 frontend tests, 4/4 upload-link Playwright, 3/3 share-link Playwright, Go test/build clean)**
+> **Last updated: April 26, 2026 (main consolidation + post-merge verification — 89/89 frontend tests, Go test/build clean, TypeScript clean, Vite build clean, both production redirects healthy. Two stale dev branches retired, `quantix-overlay` synced upstream.)**
 
 ABRN Drive is the internal file exchange platform for ABRN Asesores SC. Files are encrypted in the browser before upload — the server stores only ciphertext. Partners and clients can securely drop files without an account. Owners share time-limited links that auto-expire and auto-track access. External AI agents and systems can integrate via scoped API keys that preserve the zero-knowledge boundary.
 
@@ -26,23 +26,31 @@ Deployed at: `https://abrndrive.filemonprime.net` · Stack: Go · React/TS · Po
 
 ---
 
-## Current State (April 16, 2026)
+## Current State (April 26, 2026)
 
 This section reflects the actual verified state. Sections below are historical documentation.
 
-### Verification Snapshot (April 16, 2026 — link flow verification + protected copy hardening)
+### Verification Snapshot (April 26, 2026 — main consolidation + post-merge verification)
+
+All recent dev work has been consolidated into `main`. The two superseded local branches (`gnhf/make-sure-we-can-upl-56c5d2`, `feature/secure-platform-v3`) were retired without losing real work. The `quantix-overlay` worktree was separately synced with the QuantiX upstream fork and the ABRN brand overlay (favicon, logo, env vars) is intact.
 
 | Check | Result | Details |
 |-------|--------|---------|
-| `go test ./...` | **CLEAN** | ABRN backend tests pass |
-| `go build ./...` | **CLEAN** | ABRN backend builds successfully |
-| `lsp_diagnostics` on changed frontend surfaces | **CLEAN** | 0 editor/type diagnostics |
-| `npx vitest run` | **89/89** | 26 frontend test files, all pass |
-| `npm run build` | **CLEAN** | Production frontend bundle emits successfully |
-| `npx playwright test e2e/upload-link-lifecycle.spec.ts` | **4/4** | Focused self-hosted browser proof for upload links and empty-folder handoff |
-| `npx playwright test e2e/share-link-lifecycle.spec.ts` | **3/3** | Self-hosted browser proof that share-link create/access/revoke still works after the UX pass |
-| `abrndrive.filemonprime.net/` | **302** | Healthy signin redirect |
-| `quantixdrive.filemonprime.net/` | **302** | Healthy sibling signin redirect |
+| `go build ./...` | **CLEAN** | Exit 0 |
+| `go test ./...` | **CLEAN** | Root package `ok 1.210s`. Sub-packages have no test files (expected — generated `sqlc` code) |
+| `npx tsc --noEmit` | **CLEAN** | Zero diagnostics |
+| `npm run test` (vitest) | **89/89** | 26 frontend test files / 89 tests / all pass in 28.04 s |
+| `npm run build` | **CLEAN** | Built in 11.86 s, all chunks emitted |
+| `abrndrive.filemonprime.net/` | **302 → /abrn/** | Healthy signin redirect |
+| `quantixdrive.filemonprime.net/` | **302 → /quantix/** | Healthy sibling signin redirect |
+| Playwright `upload-link-lifecycle.spec.ts` | **DEFERRED** | Last run 2026-04-16: 4/4. No source under test changed since. Re-run before next behavioral change. |
+| Playwright `share-link-lifecycle.spec.ts` | **DEFERRED** | Last run 2026-04-16: 3/3. Same rationale. |
+
+Latest closeout artifacts:
+
+- [docs/SESSION_MEMORY_2026-04-26-main-consolidation-verify.md](./docs/SESSION_MEMORY_2026-04-26-main-consolidation-verify.md)
+- [docs/reports/2026-04-26-main-consolidation-verification.md](./docs/reports/2026-04-26-main-consolidation-verification.md)
+- [docs/reports/2026-04-26-main-consolidation-verification.html](./docs/reports/2026-04-26-main-consolidation-verification.html)
 
 ### Link flow behavior now matches user intent
 

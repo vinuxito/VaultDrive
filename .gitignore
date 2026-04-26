@@ -10,3 +10,8 @@ vaultdrive_client/playwright-report/
 vaultdrive
 test-results/
 vaultdrive_client/test-results/
+
+# Local toolchain state (auto-regenerated, not real work)
+.kilocode/package-lock.json
+.omc/state/idle-notif-cooldown.json
+.omc/state/last-tool-error.json

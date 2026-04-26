@@ -96,12 +96,13 @@ npm run preview
   `npm run test:e2e`.
 - If you need to target a proxied or remote environment, override
   `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
-- Current verified state for ABRN Drive on this branch:
-  - `npx vitest run` → **89/89 passing**
-  - `npm run build` → **clean**
-  - `npx playwright test e2e/upload-link-lifecycle.spec.ts` → **4/4 passing**
-  - `npx playwright test e2e/share-link-lifecycle.spec.ts` → **3/3 passing**
-  - `go test ./...` + `go build ./...` from repo root → **clean**
+- Current verified state for ABRN Drive on `main` (re-verified 2026-04-26 after the dev-branch consolidation):
+  - `npx vitest run` → **89/89 passing** (26 files, 28.04 s)
+  - `npx tsc --noEmit` → **clean** (zero diagnostics)
+  - `npm run build` → **clean** (built in 11.86 s)
+  - `go test ./...` + `go build ./...` from repo root → **clean** (root package `ok 1.210s`)
+  - Live: `https://abrndrive.filemonprime.net/` and `https://quantixdrive.filemonprime.net/` both 302 to their respective signin paths
+  - Last green Playwright run on 2026-04-16: `upload-link-lifecycle.spec.ts` → **4/4**, `share-link-lifecycle.spec.ts` → **3/3**. No source under test changed since, so they were not re-run on 2026-04-26 — re-run before the next behavioral change.
 - The focused browser proof now explicitly covers the empty-folder owner path:
   - owner opens an empty folder
   - the UI steers them into **Create Upload Link** instead of dead-ending in **Share Folder**
@@ -133,5 +134,7 @@ npm run preview
 - Trust UX hardening: `../docs/13_TRUST_UX_HARDENING.md`
 - Trust proof harness checkpoint: `../docs/15_TRUST_PROOF_HARNESS.md`
 - Latest verification doc: `../docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md`
-- Latest session context: `../docs/SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md`
-- HTML verification report: `../docs/empty-folder-share-upload-handoff-report.html`
+- Latest session context: `../docs/SESSION_MEMORY_2026-04-26-main-consolidation-verify.md`
+- Latest verification report (MD): `../docs/reports/2026-04-26-main-consolidation-verification.md`
+- Latest verification report (HTML): `../docs/reports/2026-04-26-main-consolidation-verification.html`
+- Previous link-flow report (HTML): `../docs/empty-folder-share-upload-handoff-report.html`

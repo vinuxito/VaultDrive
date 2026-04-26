@@ -1,6 +1,6 @@
 # ABRN Drive — Documentation Index
 
-Last updated: April 16, 2026 (Link flow verification and commit prep, 89/89 frontend tests, 4/4 upload-link Playwright, 3/3 share-link Playwright)
+Last updated: April 26, 2026 (Main consolidation + post-merge verification — 89/89 frontend tests, Go and TS clean, both production redirects healthy)
 
 ## Task Documentation
 
@@ -71,6 +71,14 @@ Last updated: April 16, 2026 (Link flow verification and commit prep, 89/89 fron
 | [SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md](./SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md) | QuantiX Drive deploy, env validator bug, and finish-the-deploy runbook |
 | [SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md) | Empty-folder share handoff, latest verification sweep, and safe-to-continue checkpoint |
 | [SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md](./SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md) | Current-code inspection, clipboard fallback fix, refreshed E2E proof, README/report sync, and commit-ready checkpoint |
+| [SESSION_MEMORY_2026-04-26-main-consolidation-verify.md](./SESSION_MEMORY_2026-04-26-main-consolidation-verify.md) | Main consolidation, dev-branch retirement, `quantix-overlay` upstream sync, post-merge verification, `.gitignore` cleanup, commit-ready checkpoint |
+
+## Verification Reports
+
+| Document | Summary |
+|----------|---------|
+| [reports/2026-04-26-main-consolidation-verification.md](./reports/2026-04-26-main-consolidation-verification.md) | Closeout verification matrix for the main-consolidation pass — Go, TS, Vitest, Vite, live redirects all green |
+| [reports/2026-04-26-main-consolidation-verification.html](./reports/2026-04-26-main-consolidation-verification.html) | Browser-readable HTML twin of the same closeout report |
 
 ## Quick Navigation
 
@@ -112,4 +120,6 @@ Last updated: April 16, 2026 (Link flow verification and commit prep, 89/89 fron
 
 **I want the drop full cycle E2E proof →** [23_DROP_FULL_CYCLE_E2E.md](./23_DROP_FULL_CYCLE_E2E.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md](./SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md)
+**I want the latest session context →** [SESSION_MEMORY_2026-04-26-main-consolidation-verify.md](./SESSION_MEMORY_2026-04-26-main-consolidation-verify.md)
+
+**I want the latest verification report →** [reports/2026-04-26-main-consolidation-verification.html](./reports/2026-04-26-main-consolidation-verification.html)
