@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775942530851,
+  "lastScanned": 1777226833147,
   "projectRoot": "/lamp/www/ABRN-Drive",
   "techStack": {
     "languages": [
@@ -73,7 +73,7 @@
       "path": "auth",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775942530819,
+      "lastAccessed": 1777226832956,
       "keyFiles": [
         "auth.go",
         "imap.go"
@@ -82,8 +82,8 @@
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 58,
-      "lastAccessed": 1775942530820,
+      "fileCount": 64,
+      "lastAccessed": 1777226832969,
       "keyFiles": [
         "01_EMAIL_DISABLED.md",
         "02_PIN_SYSTEM.md",
@@ -96,14 +96,14 @@
       "path": "internal",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775942530832,
+      "lastAccessed": 1777226833074,
       "keyFiles": []
     },
     "llmskills": {
       "path": "llmskills",
       "purpose": null,
       "fileCount": 5,
-      "lastAccessed": 1775942530836,
+      "lastAccessed": 1777226833081,
       "keyFiles": [
         "LIGHTPANDA_E2E.md",
         "LIGHTPANDA_FOR_AGENTS.md",
@@ -116,7 +116,7 @@
       "path": "plans",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1775942530837,
+      "lastAccessed": 1777226833092,
       "keyFiles": [
         "abrn-drive-phase2-execution-plan.md",
         "secure-file-platform-upgrade-plan-v3.md",
@@ -128,7 +128,7 @@
       "path": "plans-old",
       "purpose": null,
       "fileCount": 15,
-      "lastAccessed": 1775942530837,
+      "lastAccessed": 1777226833096,
       "keyFiles": [
         "FINAL-IMPLEMENTATION-STATUS.md",
         "phase-1-completion-summary.md",
@@ -141,7 +141,7 @@
       "path": "screenshots",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1775942530837,
+      "lastAccessed": 1777226833100,
       "keyFiles": [
         "image.png",
         "logo.svg"
@@ -151,7 +151,7 @@
       "path": "sdk",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1775942530838,
+      "lastAccessed": 1777226833100,
       "keyFiles": [
         "client.ts",
         "example.ts",
@@ -162,34 +162,34 @@
       "path": "sql",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775942530842,
+      "lastAccessed": 1777226833101,
       "keyFiles": []
     },
     "test-results": {
       "path": "test-results",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775942530843,
+      "lastAccessed": 1777226833102,
       "keyFiles": []
     },
     "uploads": {
       "path": "uploads",
       "purpose": null,
-      "fileCount": 346,
-      "lastAccessed": 1775942530846,
+      "fileCount": 311,
+      "lastAccessed": 1777226833119,
       "keyFiles": [
-        "010b748c-a27b-4d0e-8b4f-b11debace3b2.pdf",
         "0155c6d1-0978-4f8a-ad05-0b93adcee094.txt",
         "0219ccc2-4b5c-4d0e-972b-c8eafc8c80a9.txt",
         "0345d144-c4c2-45b8-976f-6dbc498ebe54.txt",
-        "035b6fdd-736b-4393-b7df-6fe0a517b825.txt"
+        "035b6fdd-736b-4393-b7df-6fe0a517b825.txt",
+        "046096c7-e90b-41c6-b41b-3c1eff020819.txt"
       ]
     },
     "vaultdrive_client": {
       "path": "vaultdrive_client",
       "purpose": null,
-      "fileCount": 17,
-      "lastAccessed": 1775942530848,
+      "fileCount": 18,
+      "lastAccessed": 1777226833122,
       "keyFiles": [
         "README.md",
         "components.json",
