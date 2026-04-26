@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantiX Drive — Verification Report (2026-04-16)</title>
+  <style>
+    :root {
+      --bg: #081019;
+      --card: rgba(15, 23, 42, 0.82);
+      --border: rgba(1, 255, 247, 0.16);
+      --cyan: #01fff7;
+      --magenta: #ea12ff;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #facc15;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --font: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(circle at top, rgba(1,255,247,0.08), transparent 35%),
+                  radial-gradient(circle at right, rgba(234,18,255,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1180px; margin: 0 auto; padding: 32px 20px 64px; }
+    header { margin-bottom: 28px; }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--cyan), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle, .timestamp { color: var(--muted); }
+    .timestamp { font-size: 0.9rem; margin-top: 6px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin: 24px 0 30px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+    }
+    .metric { text-align: center; }
+    .metric .value { font-size: 2.4rem; font-weight: 700; }
+    .metric .label { color: var(--muted); font-size: 0.9rem; }
+    .ok { color: var(--green); }
+    .warn { color: var(--yellow); }
+    .fail { color: var(--red); }
+    section { margin-bottom: 24px; }
+    section h2 { margin: 0 0 12px; font-size: 1.25rem; }
+    .list { display: grid; gap: 12px; }
+    .item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .item h3 { margin: 0 0 8px; font-size: 1rem; }
+    .item p { margin: 0; color: var(--muted); }
+    code, pre {
+      font-family: var(--mono);
+      font-size: 0.86rem;
+    }
+    pre {
+      margin: 10px 0 0;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    .pill.ok { background: rgba(34,197,94,0.14); }
+    .pill.warn { background: rgba(250,204,21,0.14); }
+    ul { margin: 10px 0 0 18px; color: var(--muted); }
+    footer {
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>QuantiX Drive Verification Report</h1>
+      <div class="subtitle">Current branch verification after session-vault safety fixes, cached-PIN recovery, and Playwright harness isolation.</div>
+      <div class="timestamp">Generated: 2026-04-16 · Scope: backend, frontend, unit, and end-to-end validation</div>
+    </header>
+
+    <div class="grid">
+      <div class="card metric">
+        <div class="value ok">4</div>
+        <div class="label">Verification Layers Green</div>
+      </div>
+      <div class="card metric">
+        <div class="value ok">72/72</div>
+        <div class="label">Frontend Unit Tests</div>
+      </div>
+      <div class="card metric">
+        <div class="value ok">38/38</div>
+        <div class="label">Playwright E2E</div>
+      </div>
+      <div class="card metric">
+        <div class="value warn">0</div>
+        <div class="label">Known New Regressions</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>What was tested</h2>
+      <div class="list">
+        <div class="item">
+          <h3>Backend validation <span class="pill ok">PASS</span></h3>
+          <p>Confirmed the Go server still compiles and its package-level tests still pass after adding configurable upload storage.</p>
+          <pre>go test ./...
+go build ./...</pre>
+        </div>
+
+        <div class="item">
+          <h3>Frontend build <span class="pill ok">PASS</span></h3>
+          <p>Verified the Vite production bundle still builds after the login, folder-share modal, and Playwright harness changes.</p>
+          <pre>cd vaultdrive_client
+npm run build</pre>
+        </div>
+
+        <div class="item">
+          <h3>Focused regression tests <span class="pill ok">PASS</span></h3>
+          <p>Ran the two tests that were previously red and used them as the behavior proof for the implementation fixes.</p>
+          <pre>cd vaultdrive_client
+npm test -- src/pages/login.test.tsx src/components/vault/CreateFolderShareLinkModal.test.tsx</pre>
+        </div>
+
+        <div class="item">
+          <h3>Full frontend unit suite <span class="pill ok">PASS</span></h3>
+          <p>Confirmed the targeted fixes did not destabilize the rest of the frontend test suite.</p>
+          <pre>cd vaultdrive_client
+npm test
+
+Result: 22 files, 72 tests, all passing</pre>
+        </div>
+
+        <div class="item">
+          <h3>Full Playwright harness <span class="pill ok">PASS</span></h3>
+          <p>Ran the committed trust-proof end-to-end suite after making the harness self-bootstrap the server environment, isolated database, migrations, and upload directory.</p>
+          <pre>cd vaultdrive_client
+npm run test:e2e
+
+Result: 38 passed (1.6m)</pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What changed to make verification reliable</h2>
+      <div class="list">
+        <div class="item">
+          <h3>Login now clears stale vault state</h3>
+          <p><code>vaultdrive_client/src/pages/login.tsx</code> now clears in-memory vault state after successful auth and before storing the new session. This closes a real stale-key/stale-credential safety gap.</p>
+        </div>
+        <div class="item">
+          <h3>Folder share modal now falls back from a bad cached PIN</h3>
+          <p><code>vaultdrive_client/src/components/vault/CreateFolderShareLinkModal.tsx</code> now drops back to manual PIN entry with a clear recovery message when an auto-used cached PIN cannot decrypt the private key.</p>
+        </div>
+        <div class="item">
+          <h3>Upload storage is configurable</h3>
+          <p>The backend now uses <code>UPLOAD_DIR</code> when present. This made local and CI-style verification independent from repo-local filesystem ownership quirks.</p>
+        </div>
+        <div class="item">
+          <h3>Playwright now uses an isolated local database by default</h3>
+          <p><code>playwright.config.ts</code> now defaults to <code>vaultdrive_playwright</code>, creates the database if needed, runs goose migrations, and writes uploads to <code>/tmp/quantix-playwright-uploads</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Failures found before the fixes</h2>
+      <div class="list">
+        <div class="item">
+          <h3>Initial harness startup failure <span class="pill fail">FIXED</span></h3>
+          <p>The managed Go server initially died with missing <code>DB_URL</code> / <code>JWT_SECRET</code>. That meant <code>npm run test:e2e</code> was not honest as a default local command.</p>
+        </div>
+        <div class="item">
+          <h3>Upload permission failures <span class="pill fail">FIXED</span></h3>
+          <p>Earlier E2E runs showed repeated <code>permission denied</code> errors while writing to repo-local <code>uploads/</code>. Those failures disappeared after routing the harness through a dedicated writable upload directory.</p>
+        </div>
+        <div class="item">
+          <h3>Shared dev database migration drift <span class="pill fail">FIXED</span></h3>
+          <p>The earlier local <code>vaultdrive</code> DB was missing governance migration <code>044</code>, which broke settings/governance flows. The harness now migrates a dedicated Playwright DB cleanly.</p>
+        </div>
+        <div class="item">
+          <h3>Two failing unit tests <span class="pill fail">FIXED</span></h3>
+          <p>Both failing tests turned out to be real implementation drift, not test problems.</p>
+          <ul>
+            <li><code>login.test.tsx</code>: stale vault state was not cleared on a new successful login</li>
+            <li><code>CreateFolderShareLinkModal.test.tsx</code>: cached PIN failure did not recover into manual PIN entry</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Risk assessment</h2>
+      <div class="item">
+        <h3>Safe to continue <span class="pill ok">YES</span></h3>
+        <p>The current branch is now in a verified state. Backend, frontend, unit, and end-to-end checks are green using the committed harness. The remaining caution is operational, not correctness-related: there are still unrelated dirty files elsewhere in the repo and those should be kept out of this commit on purpose.</p>
+      </div>
+    </section>
+
+    <footer>
+      QuantiX Drive · verification report written from fresh command output, not assumed status.
+    </footer>
+  </div>
+</body>
+</html>

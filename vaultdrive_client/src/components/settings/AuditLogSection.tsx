@@ -51,7 +51,7 @@ function actionTone(action: string): string {
   if (action.includes("created") || action.includes("uploaded") || action.includes("received")) {
     return "text-sky-700 bg-sky-50 border-sky-200";
   }
-  return "text-slate-600 bg-slate-50 border-slate-200";
+  return "text-muted-foreground bg-muted border-border";
 }
 
 function MetadataDetail({ meta }: { meta: Record<string, unknown> }) {
@@ -63,16 +63,16 @@ function MetadataDetail({ meta }: { meta: Record<string, unknown> }) {
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
       >
         {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         {expanded ? "Hide details" : "Details"}
       </button>
       {expanded && (
-        <div className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 space-y-1">
+        <div className="mt-1 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground space-y-1">
           {keys.map((k) => (
             <div key={k} className="flex gap-2">
-              <span className="text-slate-400 w-28 shrink-0">{k}</span>
+              <span className="text-muted-foreground w-28 shrink-0">{k}</span>
               <span className="break-all">{String(meta[k])}</span>
             </div>
           ))}
@@ -127,11 +127,11 @@ export function AuditLogSection() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#7d4f50]" />
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            <Activity className="w-5 h-5 text-primary" />
             Audit log
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Key lifecycle, access changes, and agent actions. Visible only to you.
           </p>
         </div>
@@ -142,11 +142,11 @@ export function AuditLogSection() {
       </div>
 
       {loading && entries.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">
+        <div className="rounded-2xl border border-border bg-card px-4 py-6 text-sm text-muted-foreground">
           Loading audit events...
         </div>
       ) : entries.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+        <div className="rounded-2xl border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
           {`No audit events recorded yet. Actions appear here as you use ${branding.productName}.`}
         </div>
       ) : (
@@ -154,19 +154,19 @@ export function AuditLogSection() {
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
+              className="rounded-2xl border border-border bg-card px-4 py-3"
             >
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${actionTone(entry.action)}`}>
                   {ACTION_LABELS[entry.action] ?? entry.action}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-muted-foreground">
                   {new Date(entry.created_at).toLocaleString()}
                 </span>
               </div>
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-muted-foreground">
                 {entry.resource_type}
-                {entry.resource_id && <span className="ml-1 font-mono text-slate-400">{entry.resource_id.slice(0, 8)}…</span>}
+                {entry.resource_id && <span className="ml-1 font-mono text-muted-foreground">{entry.resource_id.slice(0, 8)}…</span>}
               </div>
               {entry.metadata && Object.keys(entry.metadata).length > 0 && (
                 <MetadataDetail meta={entry.metadata} />

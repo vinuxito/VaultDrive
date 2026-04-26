@@ -38,9 +38,10 @@ export interface CreateFolderShareLinkModalProps {
     name: string;
   };
   onCreated?: () => void;
+  onUseUploadLink?: () => void;
 }
 
-type Step = "credential" | "generating" | "done" | "error";
+type Step = "credential" | "generating" | "done" | "error" | "empty-folder";
 
 const EXPIRY_PRESETS = [
   { label: "1 day", value: 1 },
@@ -79,6 +80,7 @@ export function CreateFolderShareLinkModal({
   onClose,
   folder,
   onCreated,
+  onUseUploadLink,
 }: CreateFolderShareLinkModalProps) {
   const { getCredential } = useSessionVault();
   const cached = getCredential();
@@ -93,11 +95,13 @@ export function CreateFolderShareLinkModal({
   const [customDate, setCustomDate] = useState("");
   const [expiryDisplay, setExpiryDisplay] = useState("");
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [useCachedPin, setUseCachedPin] = useState(Boolean(hasCachedPin));
 
   const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
   async function handleGenerate() {
-    const userPin = hasCachedPin ? cached!.value : pin;
+    const usingCachedPin = Boolean(useCachedPin && cached?.type === "pin");
+    const userPin = usingCachedPin ? cached!.value : pin;
     if (!userPin) return;
     setStep("generating");
     setErrorMsg("");
@@ -110,10 +114,22 @@ export function CreateFolderShareLinkModal({
       if (!user.private_key_pin_encrypted) {
         throw new Error("PIN-encrypted private key not found. Set your PIN in Settings first.");
       }
-      const privateKeyPem = await decryptPrivateKeyWithPIN(
-        userPin,
-        user.private_key_pin_encrypted
-      );
+      let privateKeyPem: string;
+      try {
+        privateKeyPem = await decryptPrivateKeyWithPIN(
+          userPin,
+          user.private_key_pin_encrypted
+        );
+      } catch (err) {
+        if (usingCachedPin) {
+          setUseCachedPin(false);
+          setPin("");
+          setErrorMsg("Your cached PIN could not unlock this folder share. Enter your current PIN and try again.");
+          setStep("credential");
+          return;
+        }
+        throw err;
+      }
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
 
       // 2. Get all files in the folder subtree
@@ -130,7 +146,11 @@ export function CreateFolderShareLinkModal({
       };
 
       if (filesData.total_count === 0) {
-        throw new Error("This folder has no files to share");
+        setErrorMsg(
+          `Folder Share only works after the folder already contains files. Use an upload link when you want someone else to send files into ${folder.name}.`,
+        );
+        setStep("empty-folder");
+        return;
       }
 
       setProgress({ current: 0, total: filesData.total_count });
@@ -253,33 +273,52 @@ export function CreateFolderShareLinkModal({
     setCustomDate("");
     setExpiryDisplay("");
     setProgress({ current: 0, total: 0 });
+    setUseCachedPin(Boolean(hasCachedPin));
     onClose();
+  }
+
+  function resetStateForHandoff() {
+    setPin("");
+    setUseCachedPin(Boolean(hasCachedPin));
+    setStep("credential");
+    setShareUrl("");
+    setErrorMsg("");
+    setCopied(false);
+    setExpiryDays(7);
+    setCustomDate("");
+    setExpiryDisplay("");
+    setProgress({ current: 0, total: 0 });
+  }
+
+  function handleUseUploadLink() {
+    resetStateForHandoff();
+    onUseUploadLink?.();
   }
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+      <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
         <CardHeader className="border-b border-white/10">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
-              <FolderOpen className="w-5 h-5 text-[#f2d7d8]" />
+              <FolderOpen className="w-5 h-5 text-primary-foreground" />
               Share Folder
             </CardTitle>
             <button
               type="button"
               onClick={handleClose}
-              className="text-white/50 hover:text-white/80 transition-colors"
+              className="text-white/75 hover:text-white/85 transition-colors"
               aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <CardDescription className="text-white/70 truncate">
+          <CardDescription className="text-white/80 truncate">
             {folder.name}
           </CardDescription>
-          <div className="mt-3 rounded-2xl border border-white/10 bg-white/6 px-3 py-3 text-xs leading-relaxed text-white/72">
+          <div className="mt-3 rounded-2xl border border-white/10 bg-white/12 px-3 py-3 text-xs leading-relaxed text-white/85">
             Share this folder and all its contents via a single link. Each
             file&apos;s key is wrapped with a folder key that travels in the URL
             fragment — the server never sees it.
@@ -289,8 +328,15 @@ export function CreateFolderShareLinkModal({
         <CardContent className="space-y-4 py-4">
           {step === "credential" && (
             <>
+              {errorMsg && (
+                <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
+                  <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-200">{errorMsg}</p>
+                </div>
+              )}
+
               <div className="space-y-2">
-                <p className="text-sm font-medium flex items-center gap-1.5 text-white/90">
+                <p className="text-sm font-medium flex items-center gap-1.5 text-white">
                   <Calendar className="w-3.5 h-3.5" />
                   Link Expiry
                 </p>
@@ -302,8 +348,8 @@ export function CreateFolderShareLinkModal({
                       onClick={() => setExpiryDays(value)}
                       className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                         expiryDays === value
-                          ? "bg-white text-[#6b4345]"
-                          : "bg-white/10 text-white/80 hover:bg-white/20"
+                          ? "bg-white text-primary/90"
+                          : "bg-white/15 text-white/85 hover:bg-white/25"
                       }`}
                     >
                       {label}
@@ -314,8 +360,8 @@ export function CreateFolderShareLinkModal({
                     onClick={() => setExpiryDays("custom")}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                       expiryDays === "custom"
-                        ? "bg-white text-[#6b4345]"
-                        : "bg-white/10 text-white/80 hover:bg-white/20"
+                        ? "bg-white text-primary/90"
+                        : "bg-white/15 text-white/85 hover:bg-white/25"
                     }`}
                   >
                     Custom
@@ -327,21 +373,21 @@ export function CreateFolderShareLinkModal({
                     value={customDate}
                     min={todayISO}
                     onChange={(e) => setCustomDate(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
+                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
                   />
                 )}
               </div>
 
-              {!hasCachedPin && (
+              {!useCachedPin && (
                 <div className="space-y-1.5">
                   <label
                     htmlFor="fsl-pin"
-                    className="text-sm font-medium flex items-center gap-1.5 text-white/90"
+                    className="text-sm font-medium flex items-center gap-1.5 text-white"
                   >
                     <Key className="w-3.5 h-3.5" />
                     4-digit PIN
                   </label>
-                  <p className="text-xs text-white/68">
+                  <p className="text-xs text-white/75">
                     Enter your PIN to unlock file keys for sharing
                   </p>
                   <input
@@ -354,7 +400,7 @@ export function CreateFolderShareLinkModal({
                       setPin(e.target.value.replace(/\D/g, "").slice(0, 4))
                     }
                     placeholder="••••"
-                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-white/40 focus:outline-none text-center tracking-widest text-xl"
+                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:outline-none text-center tracking-widest text-xl"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && pin.length === 4)
                         void handleGenerate();
@@ -365,19 +411,19 @@ export function CreateFolderShareLinkModal({
 
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => void handleGenerate()}
                   disabled={
-                    (!hasCachedPin && pin.length !== 4) ||
+                    (!useCachedPin && pin.length !== 4) ||
                     (expiryDays === "custom" && customDate === "")
                   }
-                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                 >
                   Generate Link
                 </Button>
@@ -387,16 +433,16 @@ export function CreateFolderShareLinkModal({
 
           {step === "generating" && (
             <div className="flex flex-col items-center gap-3 py-4">
-              <Loader2 className="w-8 h-8 animate-spin text-[#f2d7d8]" />
-              <p className="text-sm text-white/80">
+              <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
+              <p className="text-sm text-white/85">
                 {progress.total > 0
                   ? `Wrapping keys… ${progress.current}/${progress.total} files`
                   : "Preparing folder share…"}
               </p>
               {progress.total > 0 && (
-                <div className="w-full bg-white/10 rounded-full h-1.5">
+                <div className="w-full bg-white/15 rounded-full h-1.5">
                   <div
-                    className="bg-[#f2d7d8] h-1.5 rounded-full transition-all"
+                    className="bg-primary/10 h-1.5 rounded-full transition-all"
                     style={{
                       width: `${Math.round(
                         (progress.current / progress.total) * 100
@@ -406,6 +452,40 @@ export function CreateFolderShareLinkModal({
                 </div>
               )}
             </div>
+          )}
+
+          {step === "empty-folder" && (
+            <>
+              <div className="rounded-2xl border border-amber-200/40 bg-amber-500/10 px-4 py-4 text-sm text-amber-50">
+                <p className="font-semibold text-white">This folder is empty right now</p>
+                <p className="mt-2 leading-relaxed text-white/80">
+                  Folder Share is for files that already exist in this folder. If your goal is to let someone upload into <strong>{folder.name}</strong>, create an upload link instead.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-white/8 border border-white/15 p-3 text-sm text-white/85 space-y-1">
+                <p className="font-medium">Use the upload flow instead</p>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  Upload Links create a bounded sender route into this folder. The sender can deliver files without getting access to anything else in your vault.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={handleUseUploadLink}
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                >
+                  Create Upload Link Instead
+                </Button>
+              </div>
+            </>
           )}
 
           {step === "done" && (
@@ -424,13 +504,13 @@ export function CreateFolderShareLinkModal({
                 </div>
               </div>
 
-              <div className="p-4 bg-white/5 border border-emerald-400/20 rounded-xl">
+              <div className="p-4 bg-white/12 border border-emerald-400/20 rounded-xl">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                 <div className="mt-3 space-y-1.5">
                   <p className="text-sm font-medium text-white">
                     Trust receipt
                   </p>
-                  <p className="text-xs text-white/70 leading-relaxed">
+                  <p className="text-xs text-white/80 leading-relaxed">
                     Each file&apos;s key is individually wrapped with a folder
                     share key carried in the URL fragment after{" "}
                     <strong>#</strong>. The server stores wrapped keys but
@@ -440,9 +520,9 @@ export function CreateFolderShareLinkModal({
               </div>
 
               {expiryDisplay && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-md">
-                  <Calendar className="w-3.5 h-3.5 text-[#f2d7d8] shrink-0" />
-                  <p className="text-xs text-white/80">
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/12 border border-white/10 rounded-md">
+                  <Calendar className="w-3.5 h-3.5 text-primary-foreground shrink-0" />
+                  <p className="text-xs text-white/85">
                     Link expires:{" "}
                     <span className="font-medium text-white">
                       {expiryDisplay}
@@ -454,7 +534,7 @@ export function CreateFolderShareLinkModal({
               <div className="space-y-1.5">
                 <label
                   htmlFor="fsl-share-url"
-                  className="text-xs text-white/60"
+                  className="text-xs text-white/75"
                 >
                   Share URL (folder key embedded after #)
                 </label>
@@ -463,7 +543,7 @@ export function CreateFolderShareLinkModal({
                   readOnly
                   value={shareUrl}
                   rows={4}
-                  className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white/90 text-xs resize-none focus:outline-none cursor-text"
+                  className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white/90 text-xs resize-none focus:outline-none cursor-text"
                   onClick={(e) =>
                     (e.target as HTMLTextAreaElement).select()
                   }
@@ -472,15 +552,15 @@ export function CreateFolderShareLinkModal({
 
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className="flex-1"
                 >
                   Close
                 </Button>
                 <Button
                   onClick={handleCopy}
-                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold gap-1.5"
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold gap-1.5"
                 >
                   {copied ? (
                     <>
@@ -506,15 +586,20 @@ export function CreateFolderShareLinkModal({
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className="flex-1"
                 >
                   Close
                 </Button>
                 <Button
-                  onClick={() => setStep("credential")}
-                  className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                  onClick={() => {
+                    setStep("credential");
+                    if (cached?.type === "pin") {
+                      setUseCachedPin(false);
+                    }
+                  }}
+                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                 >
                   Try Again
                 </Button>

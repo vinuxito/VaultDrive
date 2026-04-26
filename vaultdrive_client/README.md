@@ -66,6 +66,15 @@ Run trust proof e2e:
 npm run test:e2e
 ```
 
+This does more than just run Playwright. The current harness:
+
+- builds the frontend,
+- creates or reuses a dedicated local test database (`vaultdrive_playwright` by default),
+- runs goose migrations against that database,
+- starts the Go app with explicit local dev env,
+- writes encrypted test uploads into `/tmp/quantix-playwright-uploads` by default,
+- then runs the 38-spec trust proof suite.
+
 Run the frontend build:
 
 ```bash
@@ -86,16 +95,22 @@ npm run preview
 
 ## Verification Notes
 
-- The main production-like local path is usually the Go server at
-  `http://localhost:8082/quantix/`, not the raw Vite dev server.
+- The main production-like local path is usually the Go server under `/quantix/`, not the raw Vite dev server.
 - Frontend verification is normally paired with backend verification:
-  - `cd vaultdrive_client && npm run test && npm run build`
+  - `cd vaultdrive_client && npm test && npm run build`
   - `cd .. && go test ./... && go build ./...`
-- The committed Playwright harness defaults to `http://127.0.0.1:8090/quantix/`
-  and starts its own Go server against the current repo code during
-  `npm run test:e2e`.
-- If you need to target a proxied or remote environment, override
-  `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
+- The committed Playwright harness defaults to `http://127.0.0.1:8090/quantix/` and starts its own Go server during `npm run test:e2e`.
+- It now injects the minimum required backend env (`DB_URL`, `JWT_SECRET`, `BASE_PATH`, `PORT`, `UPLOAD_DIR`) instead of assuming your shell is preconfigured.
+- It defaults to a dedicated database, `vaultdrive_playwright`, so the suite does not collide with a half-migrated local dev database.
+- It defaults to a dedicated upload directory, `/tmp/quantix-playwright-uploads`, so the suite does not depend on repo-local file permissions.
+- If you need to target a different local database or upload directory, override `E2E_DB_NAME`, `E2E_DB_URL`, `E2E_ADMIN_DB_URL`, or `E2E_UPLOAD_DIR`.
+- If you need to target a proxied or remote environment, override `E2E_BASE_URL` explicitly.
+
+As of 2026-04-16, the verified local status is:
+
+- `npm run build` ✅
+- `npm test` ✅ (72/72)
+- `npm run test:e2e` ✅ (38/38)
 
 ## Key Files
 

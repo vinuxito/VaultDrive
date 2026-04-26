@@ -145,7 +145,7 @@ export function FileWidget({
 
               {/* Ownership Badge */}
               {file.is_owner && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#e2b9bb] text-blue-700 dark:bg-blue-900 dark:text-[#c4999b] shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-blue-700 dark:bg-blue-900 dark:text-primary shrink-0">
                   Your file
                 </span>
               )}
@@ -186,7 +186,7 @@ export function FileWidget({
                 size="sm"
                 variant="ghost"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="gap-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                className="gap-1 text-muted-foreground hover:text-foreground dark:hover:text-foreground"
               >
                 {isExpanded ? (
                   <>
@@ -234,7 +234,7 @@ export function FileWidget({
                 onClick={() =>
                   onDownload!(file.id, file.filename, file.metadata || "")
                 }
-                className="gap-2 border-blue-500 text-[#7d4f50] hover:bg-[#f2d7d8] dark:hover:bg-[#6b4345] dark:text-[#c4999b]"
+                className="gap-2 border-blue-500 text-primary hover:bg-primary/10 dark:hover:bg-primary/90 dark:text-primary"
               >
                 <Download className="w-4 h-4" />
               </Button>

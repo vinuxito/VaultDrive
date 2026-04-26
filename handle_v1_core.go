@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 func (cfg *ApiConfig) handlerV1ListFiles(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -79,7 +79,7 @@ func (cfg *ApiConfig) handlerV1CreateFile(w http.ResponseWriter, r *http.Request
 	}
 	defer file.Close()
 
-	uploadDir := "uploads"
+	uploadDir := uploadStorageDir()
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not create uploads directory")
 		return

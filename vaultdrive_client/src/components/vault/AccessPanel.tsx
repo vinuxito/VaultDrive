@@ -151,65 +151,65 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
-        <div className="flex items-start justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md border border-border">
+        <div className="flex items-start justify-between px-5 py-4 border-b border-border">
           <div>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#7d4f50] shrink-0" />
-              <h2 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Access Control</h2>
+              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+              <h2 className="font-semibold text-sm text-foreground">Access Control</h2>
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate max-w-64">{filename}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-64">{filename}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors mt-0.5"
+            className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="px-5 py-4 space-y-3">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-[linear-gradient(180deg,#fcfbf9_0%,#f7f3ef_100%)] dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.9)_0%,rgba(15,23,42,0.82)_100%)] px-4 py-4 shadow-[0_10px_30px_rgba(125,79,80,0.08)]">
+          <div className="rounded-2xl border border-border bg-card px-4 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Current visibility</p>
-                <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">{accessHeadline}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Current visibility</p>
+                <p className="mt-2 text-sm font-medium text-foreground">{accessHeadline}</p>
               </div>
-              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm">
                 {activeEntries.length === 0 ? "Owner only" : `${activeEntries.length} live route${activeEntries.length !== 1 ? "s" : ""}`}
               </span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               See every link, share, or sender route in one place so you can confirm exactly who can reach this file right now.
             </p>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Active</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{activeEntries.length}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Routes you may want to review</p>
+            <div className="rounded-xl border border-border bg-muted px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Active</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{activeEntries.length}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Routes you may want to review</p>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Inactive</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{inactiveEntries.length}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Expired or already revoked</p>
+            <div className="rounded-xl border border-border bg-muted px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Inactive</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{inactiveEntries.length}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Expired or already revoked</p>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Trust note</p>
-              <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">Always reviewable</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">You can inspect or remove external access at any time.</p>
+            <div className="rounded-xl border border-border bg-muted px-3 py-3">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Trust note</p>
+              <p className="mt-1 text-sm font-medium text-foreground">Always reviewable</p>
+              <p className="mt-1 text-xs text-muted-foreground">You can inspect or remove external access at any time.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/40 px-4 py-4 shadow-[0_8px_22px_rgba(16,185,129,0.08)]">
-            <div className="w-8 h-8 rounded-2xl bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-start gap-3 rounded-2xl bg-primary/12 dark:bg-primary/15 border border-primary/20 dark:border-primary/30 px-4 py-4 shadow-primary/5">
+            <div className="w-8 h-8 rounded-2xl bg-primary/12 dark:bg-primary/20 flex items-center justify-center shrink-0 text-primary">
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">You (owner)</p>
-              <p className="mt-1 text-xs leading-relaxed text-emerald-700 dark:text-emerald-300">
+              <p className="text-sm font-semibold text-primary">You (owner)</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Full access, always. This anchor remains constant even if every external path expires, is revoked, or fails closed.
               </p>
             </div>
@@ -223,25 +223,25 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
           )}
 
           {loading ? (
-            <div className="flex items-center gap-2 text-slate-400 text-sm py-3 justify-center">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm py-3 justify-center">
               <Loader2 className="w-4 h-4 animate-spin" />
               Checking access…
             </div>
           ) : error ? (
             <div className="px-1 py-2">
-              <p className="text-sm text-slate-700 dark:text-slate-200">Access data is temporarily unavailable.</p>
-              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">You can keep working; the visibility feed just could not be refreshed.</p>
+              <p className="text-sm text-foreground">Access data is temporarily unavailable.</p>
+              <p className="mt-1 text-xs text-muted-foreground">You can keep working; the visibility feed just could not be refreshed.</p>
             </div>
           ) : !data || data.entries.length === 0 ? (
             <div className="px-1 py-2">
-              <p className="text-sm text-slate-700 dark:text-slate-200">No external access is active.</p>
-              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
+              <p className="text-sm text-foreground">No external access is active.</p>
+              <p className="mt-1 text-xs text-muted-foreground">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
             </div>
           ) : (
             orderedEntries.map((entry) => (
               <div
                 key={`${entry.kind}-${entry.since}`}
-                className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-4 shadow-sm"
+                className="rounded-2xl border border-border bg-muted px-4 py-4 shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-8 h-8 rounded-2xl border flex items-center justify-center shrink-0 mt-0.5 ${kindTone(entry.kind)}`}>
@@ -260,24 +260,24 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                             {entry.state}
                           </span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-slate-800 dark:text-slate-100">{entry.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{kindDescription(entry)}</p>
+                        <p className="mt-2 text-sm font-medium text-foreground">{entry.label}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{kindDescription(entry)}</p>
                       </div>
-                      <span className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                      <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground whitespace-nowrap">
                         {relativeTime(entry.since)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground leading-relaxed">
                       <span>{new Date(entry.since).toLocaleString()}</span>
                       {entry.expires_at && (
                         <>
-                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span className="text-muted-foreground/60">•</span>
                           <span>expires {new Date(entry.expires_at).toLocaleDateString()}</span>
                         </>
                       )}
                       {typeof entry.access_count === "number" && (
                         <>
-                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span className="text-muted-foreground/60">•</span>
                           <span>opened {entry.access_count}×</span>
                         </>
                       )}
@@ -302,7 +302,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     type="button"
                     onClick={() => setConfirmRevoke(false)}
                     disabled={revoking}
-                    className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium transition-colors"
+                    className="flex-1 py-2 rounded-lg border border-border text-sm text-foreground bg-background hover:bg-muted font-medium transition-colors"
                   >
                     Keep access
                   </button>
@@ -310,7 +310,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     type="button"
                     onClick={() => void revokeAll()}
                     disabled={revoking}
-                    className="flex-1 py-2 rounded-lg bg-rose-600 text-sm text-white font-medium hover:bg-rose-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2 rounded-lg bg-destructive text-sm text-white font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 dark:bg-destructive/80"
                   >
                     {revoking ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     {revoking ? "Revoking…" : "Yes, revoke all"}
@@ -321,7 +321,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
               <button
                 type="button"
                 onClick={() => setConfirmRevoke(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-rose-200 dark:border-rose-700/50 text-rose-600 dark:text-rose-400 text-sm font-medium hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-destructive/20 dark:border-destructive/40 text-destructive dark:text-destructive text-sm font-medium hover:bg-destructive/5 dark:hover:bg-destructive/10 transition-colors"
               >
                 <ShieldOff className="w-4 h-4" />
                 Revoke all external access

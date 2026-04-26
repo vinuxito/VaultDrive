@@ -70,8 +70,15 @@ func main() {
 	godotenv.Load()
 
 	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL environment variable is required")
+	}
 
-	fmt.Printf("Database URL: %s...\n", dbURL[:12])
+	preview := dbURL
+	if len(preview) > 12 {
+		preview = preview[:12]
+	}
+	fmt.Printf("Database URL: %s...\n", preview)
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {

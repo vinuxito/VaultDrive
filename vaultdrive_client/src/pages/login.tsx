@@ -20,7 +20,7 @@ import {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setPrivateKey, setCredential } = useSessionVault();
+  const { setPrivateKey, setCredential, clearVault } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
   const [loginMode, setLoginMode] = useState<"password" | "pin">(
     localStorage.getItem(`${branding.productSlug}_pin_hint`) === "1" ? "pin" : "password"
@@ -62,6 +62,8 @@ export default function Login() {
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
       }
+
+      clearVault();
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("refresh_token", data.refresh_token);
@@ -152,7 +154,7 @@ export default function Login() {
 
   return (
     <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
-      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
+      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden shadow-[var(--shadow-glow-primary)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <span className="brand-badge">Private access</span>
@@ -168,30 +170,30 @@ export default function Login() {
               ? "A calm, encrypted control plane for files you need to trust at a glance"
               : "Create your account and set up the trust-first vault experience"}
           </CardDescription>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-slate-600">
-            <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">Encryption happens in your browser</div>
-            <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">One PIN after setup for normal owner flows</div>
-            <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">Access stays visible and revocable</div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-muted-foreground">
+            <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-muted/30 px-3 py-2">Encryption happens in your browser</div>
+            <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-muted/30 px-3 py-2">One PIN after setup for normal owner flows</div>
+            <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-muted/30 px-3 py-2">Access stays visible and revocable</div>
           </div>
         </CardHeader>
 
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
           {isLogin ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <div className="flex rounded-[var(--radius)] border border-border overflow-hidden bg-muted/20">
                 <button
                   type="button"
                   onClick={() => switchLoginMode("password")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors ${
                     loginMode === "password"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-white/40 text-muted-foreground hover:bg-white"
+                      : "bg-transparent text-muted-foreground hover:bg-muted/40"
                   }`}
                 >
                   <Lock className="w-3.5 h-3.5" />
@@ -203,7 +205,7 @@ export default function Login() {
                   className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors ${
                     loginMode === "pin"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-white/40 text-muted-foreground hover:bg-white"
+                      : "bg-transparent text-muted-foreground hover:bg-muted/40"
                   }`}
                 >
                   <Fingerprint className="w-3.5 h-3.5" />
@@ -211,13 +213,13 @@ export default function Login() {
                 </button>
               </div>
 
-              <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-3 text-sm text-slate-600 shadow-[0_10px_24px_rgba(125,79,80,0.06)]">
-                <p className="font-medium text-slate-800">
+              <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-card/50 px-4 py-3 text-sm text-muted-foreground shadow-sm">
+                <p className="font-medium text-foreground">
                   {loginMode === "password" ? "Use your account password to enter and finish setup." : "Use your 4-digit PIN when your trusted owner session is already set up."}
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   {loginMode === "password"
-                    ? "{`Once your PIN is enrolled, ${branding.productName} can reuse that trust across the vault, secure links, and protected handoffs.`}"
+                    ? `Once your PIN is enrolled, ${branding.productName} can reuse that trust across the vault, secure links, and protected handoffs.`
                     : "Your PIN unlocks the owner trust path without reintroducing normal per-action friction."}
                 </p>
               </div>
@@ -234,7 +236,7 @@ export default function Login() {
                     onChange={(e) =>
                       setLoginData({ ...loginData, email: e.target.value })
                     }
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
@@ -253,7 +255,7 @@ export default function Login() {
                       onChange={(e) =>
                         setLoginData({ ...loginData, password: e.target.value })
                       }
-                      className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-10 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                       required
                     />
                     <button
@@ -285,7 +287,7 @@ export default function Login() {
                     onChange={(e) =>
                       setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))
                     }
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest text-xl"
+                    className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all text-center tracking-widest text-xl"
                     required
                   />
                   <p className="text-xs text-muted-foreground text-center">
@@ -303,7 +305,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#7d4f50] hover:bg-[#6b4345] text-white shadow-[0_12px_28px_rgba(125,79,80,0.25)]"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                 disabled={
                   loading ||
                   (loginMode === "pin" && pinValue.length !== 4)
@@ -330,7 +332,7 @@ export default function Login() {
                           first_name: e.target.value,
                         })
                       }
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                       required
                     />
                   </div>
@@ -349,7 +351,7 @@ export default function Login() {
                         last_name: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
@@ -370,7 +372,7 @@ export default function Login() {
                         username: e.target.value,
                       })
                     }
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
@@ -391,7 +393,7 @@ export default function Login() {
                         email: e.target.value,
                       })
                     }
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
@@ -429,7 +431,11 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-glow-primary)] rounded-[var(--radius)] border-2 border-primary/50"
+                disabled={loading}
+              >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>

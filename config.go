@@ -48,7 +48,7 @@ func LoadProductConfig() ProductConfig {
 		Name:           envOr("PRODUCT_NAME", "QuantiX Drive"),
 		Slug:           envOr("PRODUCT_SLUG", "quantix-drive"),
 		BasePath:       envOr("BASE_PATH", "/quantix/"),
-		AgentKeyPrefix: envOr("AGENT_KEY_PREFIX", "qx_ak"),
+		AgentKeyPrefix: envOr("AGENT_KEY_PREFIX", "qxak"),
 		PublicBaseURL:  envOr("PUBLIC_BASE_URL", "https://app.quantixdrive.io"),
 	}
 

@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Copy, X, ChevronDown, ChevronUp, Trash2, UploadCloud, FileIcon, ShieldCheck, KeyRound, Check, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { X, ChevronDown, ChevronUp, Trash2, UploadCloud, FileIcon, ShieldCheck } from "lucide-react";
 import { Button } from "../ui/button";
+import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 import type { UploadTokenWithFiles } from "./types";
 import { API_URL, BASE_PATH } from "../../utils/api";
 
@@ -22,68 +23,48 @@ export function UploadLinkCard({
   onDelete,
 }: UploadLinkCardProps) {
   const [revealedKey, setRevealedKey] = useState("");
-  const [pinInput, setPinInput] = useState("");
-  const [showPinPrompt, setShowPinPrompt] = useState(false);
-  const [recovering, setRecovering] = useState(false);
-  const [recoverError, setRecoverError] = useState("");
-  const [copied, setCopied] = useState(false);
 
   const baseUrl = token.upload_url?.startsWith('http')
     ? token.upload_url
     : `${window.location.origin}${token.upload_url || `${BASE_PATH}/drop/${token.token}`}`;
-
-  // Strip any existing fragment from the base URL before appending recovered key
   const baseWithoutFragment = baseUrl.split("#")[0];
-  const displayUrl = revealedKey
-    ? `${baseWithoutFragment}#key=${revealedKey}`
-    : baseUrl;
 
-  const copyUrl = async () => {
-    await navigator.clipboard.writeText(displayUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const copyUnavailableReason = useMemo(() => {
+    if (status.label === "Expired") {
+      return "This upload link has expired, so there is no full URL to copy.";
+    }
+    if (status.label === "Inactive") {
+      return "This upload link is sealed and can no longer accept files.";
+    }
+    if (status.label === "Full") {
+      return "This upload link already reached its file limit and should not be shared again.";
+    }
+    return undefined;
+  }, [status.label]);
 
-  const handleRecoverKey = async () => {
-    if (!pinInput || pinInput.length < 4) {
-      setRecoverError("Enter your 4-digit PIN");
-      return;
+  const handleResolveCopyUrl = async (pin: string) => {
+    if (revealedKey) {
+      return `${baseWithoutFragment}#key=${revealedKey}`;
     }
 
-    setRecovering(true);
-    setRecoverError("");
+    const authToken = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/drop/${token.token}/recover-key`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ pin }),
+    });
 
-    try {
-      const authToken = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/drop/${token.token}/recover-key`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ pin: pinInput }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json() as { error?: string };
-        throw new Error(data.error || "Failed to recover key");
-      }
-
-      const data = await response.json() as { encryption_key: string };
-      setRevealedKey(data.encryption_key);
-      setShowPinPrompt(false);
-      setPinInput("");
-
-      // Auto-copy the full URL
-      const fullUrl = `${baseWithoutFragment}#key=${data.encryption_key}`;
-      await navigator.clipboard.writeText(fullUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      setRecoverError(err instanceof Error ? err.message : "Failed to recover key");
-    } finally {
-      setRecovering(false);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(data.error || "Wrong PIN. Try again.");
     }
+
+    const data = await response.json() as { encryption_key: string };
+    setRevealedKey(data.encryption_key);
+    return `${baseWithoutFragment}#key=${data.encryption_key}`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -103,28 +84,26 @@ export function UploadLinkCard({
       case "default":
         return "bg-emerald-100 text-emerald-700 border border-emerald-200";
       case "destructive":
-        return "bg-rose-100 text-rose-700 border border-rose-200";
+        return "bg-destructive/10 text-destructive border border-destructive/20";
       case "secondary":
-        return "bg-slate-100 text-slate-700 border border-slate-200";
+        return "bg-muted text-foreground border border-border";
       default:
-        return "bg-slate-100 text-slate-700 border border-slate-200";
+        return "bg-muted text-foreground border border-border";
     }
   };
 
-  const hasKey = revealedKey || baseUrl.includes("#key=");
-
   return (
-    <div className="rounded-[1.4rem] border border-slate-200 overflow-hidden bg-white shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-slate-900/70">
+    <div className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:bg-muted/60">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7d4f50] via-[#9f7475] to-[#d7bbbc] flex items-center justify-center text-white shadow-[0_12px_24px_rgba(125,79,80,0.22)]">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 flex items-center justify-center text-white shadow-[0_12px_24px_rgba(0,0,0,0.22)]">
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">
+                  <h3 className="font-semibold text-lg text-foreground">
                     {token.folder_name || "Files Upload Link"}
                   </h3>
                   <span
@@ -133,7 +112,7 @@ export function UploadLinkCard({
                     {status.label}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Client delivery route into the selected folder, with status and uploaded files visible here.
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -143,94 +122,27 @@ export function UploadLinkCard({
             </div>
 
             <div className="mt-3 space-y-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-950/40">
-                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+              <div className="rounded-2xl border border-border bg-muted px-3 py-3 dark:bg-muted/40">
+                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   <span>Sender route</span>
                   <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
                     <ShieldCheck className="w-3 h-3" />
                     Reviewable
                   </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-sm">
-                  <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded text-xs flex-1 min-w-0 overflow-hidden border border-slate-200 dark:border-slate-700">
-                    {displayUrl}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={copyUrl}
-                    className="h-8 px-2 shrink-0"
-                    title={hasKey ? "Copy full link" : "Copy link (missing key)"}
-                  >
-                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                  </Button>
+                <div className="mt-2">
+                  <ProtectedLinkCopyField
+                    label="Sender route"
+                    rawUrl={revealedKey ? `${baseWithoutFragment}#key=${revealedKey}` : `${baseWithoutFragment}#key=missing`}
+                    expectedPath={new URL(baseWithoutFragment).pathname}
+                    kind="upload-link"
+                    variant="light"
+                    copyButtonLabel="Copy full upload link"
+                    guidanceText="Enter your 4-digit PIN to copy the full URL."
+                    onResolveUrl={handleResolveCopyUrl}
+                    unavailableReason={copyUnavailableReason}
+                  />
                 </div>
-
-                {!hasKey && !showPinPrompt && (
-                  <button
-                    type="button"
-                    onClick={() => { setShowPinPrompt(true); setRecoverError(""); }}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-[#7d4f50] hover:text-[#5a3436] transition-colors cursor-pointer"
-                  >
-                    <KeyRound className="w-3.5 h-3.5" />
-                    Reveal full link with PIN
-                  </button>
-                )}
-
-                {showPinPrompt && (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={8}
-                        value={pinInput}
-                        onChange={(e) => { setPinInput(e.target.value); setRecoverError(""); }}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleRecoverKey(); }}
-                        placeholder="Enter PIN"
-                        className="w-28 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:border-[#7d4f50]/40 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-                        autoFocus
-                      />
-                      <Button
-                        size="sm"
-                        onClick={handleRecoverKey}
-                        disabled={recovering}
-                        className="h-8 bg-[#7d4f50] hover:bg-[#5a3436] text-white"
-                      >
-                        {recovering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Reveal"}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { setShowPinPrompt(false); setPinInput(""); setRecoverError(""); }}
-                        className="h-8 px-2"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                    {recoverError && (
-                      <p className="text-xs text-red-600 dark:text-red-400">{recoverError}</p>
-                    )}
-                  </div>
-                )}
-
-                {revealedKey && (
-                  <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    Full link recovered and copied to clipboard. Share this URL with your client.
-                  </p>
-                )}
-
-                {!hasKey && !showPinPrompt && !revealedKey && (
-                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                    The encryption key is not in this URL. Use "Reveal full link with PIN" to recover it.
-                  </p>
-                )}
-
-                {hasKey && !revealedKey && (
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    Share this route with a client when you want them to deliver files into the folder you selected.
-                  </p>
-                )}
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <code className="bg-muted px-2 py-0.5 rounded text-xs flex-1 min-w-0 overflow-hidden">
@@ -270,10 +182,10 @@ export function UploadLinkCard({
       </div>
 
       {isExpanded && (
-        <div className="border-t bg-muted/20 dark:bg-slate-950/20">
+        <div className="border-t bg-muted/20 dark:bg-muted/20">
           <div className="p-4">
-            <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-slate-100">
-              <FileIcon className="w-4 h-4 text-[#7d4f50]" />
+            <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-foreground">
+              <FileIcon className="w-4 h-4 text-primary" />
               Files uploaded through this route ({token.files?.length || 0})
             </h4>
 
@@ -282,10 +194,10 @@ export function UploadLinkCard({
                 {token.files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-background border border-slate-200 dark:border-slate-700"
+                    className="flex items-center justify-between p-3 rounded-xl bg-background border border-border"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded-xl bg-[#7d4f50]/10 flex items-center justify-center text-[#7d4f50]">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <FileIcon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">

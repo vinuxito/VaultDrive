@@ -55,7 +55,7 @@ export function EncryptionPreview({
       </p>
 
       {/* Stage description */}
-      <p className="text-sm text-muted-foreground mb-3">
+      <p className="text-sm text-white/85 mb-3">
         {stage === 'generating-key' && 'Your key never leaves your device'}
         {stage === 'encrypting' && 'AES-256-GCM • Military-grade encryption'}
         {stage === 'uploading' && 'Server sees only encrypted bytes'}
@@ -64,14 +64,14 @@ export function EncryptionPreview({
 
       {/* File info */}
       {fileSize && (
-        <p className="text-xs text-muted-foreground/60">
+        <p className="text-xs text-white/80">
           {formatSize(fileSize)}
         </p>
       )}
 
       {/* Trust indicators */}
-      <div className="mt-4 pt-4 border-t border-[#7d4f50]/15">
-        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+      <div className="mt-4 pt-4 border-t border-primary/15">
+        <div className="flex items-center justify-center gap-4 text-xs text-white/85">
           <div className="flex items-center gap-1">
             <Shield className="w-3 h-3 text-green-500" />
             <span>Zero-Knowledge</span>
@@ -131,7 +131,7 @@ function EncryptingAnimation() {
     <div className="flex items-center justify-center gap-6">
       {/* File icon moving */}
       <div className="relative animate-slide-right">
-        <File className="w-10 h-10 text-muted-foreground" />
+        <File className="w-10 h-10 text-white/80" />
         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/80" />
       </div>
 

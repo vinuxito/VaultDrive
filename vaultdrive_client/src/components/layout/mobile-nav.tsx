@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
 import { BrandLogo, PoweredByBadge } from "../branding";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ interface NavLinkProps {
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = getStoredUserFromLocalStorage() ?? {};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -71,13 +72,13 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         onClick={onClose}
       />
       <div className="fixed inset-y-0 left-0 w-[280px] elegant-overlay z-50 animate-slide-right flex flex-col md:hidden">
-        <div className="flex items-center justify-between p-4 border-b border-[#7d4f50]/15">
+        <div className="flex items-center justify-between p-4 border-b border-primary/15">
           <Link to="/" onClick={onClose} className="flex items-center gap-2">
             <BrandLogo className="h-8" />
           </Link>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-[#7d4f50]/10 rounded-full transition-colors"
+            className="p-2 hover:bg-primary/10 rounded-full transition-colors"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -85,10 +86,10 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         </div>
 
         {user.username && (
-          <div className="p-4 border-b border-[#7d4f50]/15">
+          <div className="p-4 border-b border-primary/15">
             <Link to="/profile" onClick={onClose} className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={user.avatar_url} />
+                <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
                 <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                   {getInitials(user.first_name) || "?"}
                 </AvatarFallback>
@@ -116,7 +117,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         </nav>
 
         {user.username && (
-          <div className="p-3 border-t border-[#7d4f50]/15">
+          <div className="p-3 border-t border-primary/15">
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 p-3 rounded-lg text-red-500/80 hover:bg-red-500/10 hover:text-red-500 transition-colors"
@@ -128,7 +129,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           </div>
         )}
 
-        <div className="p-3 border-t border-[#7d4f50]/15">
+        <div className="p-3 border-t border-primary/15">
           <PoweredByBadge className="text-xs" />
         </div>
       </div>
@@ -151,7 +152,7 @@ function NavLink({ to, icon, label, onClick, isActive, handler }: NavLinkProps) 
       onClick={handleClick}
       className={cn(
         "flex items-center gap-3 p-3 rounded-lg transition-colors text-foreground/80",
-        isActive ? "bg-[#7d4f50]/15 text-[#7d4f50] font-semibold" : "hover:bg-[#7d4f50]/10 hover:text-foreground"
+        isActive ? "bg-primary/15 text-primary font-semibold" : "hover:bg-primary/10 hover:text-foreground"
       )}
       role="menuitem"
     >

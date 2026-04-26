@@ -45,6 +45,7 @@ interface VaultTreeProps {
   onRenameFolder?: (folderId: string, name: string) => void;
   onDeleteFolder?: (folderId: string, name: string) => void;
   onShareFolder?: (folderId: string, name: string) => void;
+  onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
 }
 
@@ -97,19 +98,19 @@ function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: Tre
         w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors
         ${
           active
-            ? "bg-[#f2d7d8] text-[#6b4345] font-medium"
-            : "text-slate-600 hover:bg-[#7d4f50]/8 hover:text-[#7d4f50]"
+            ? "bg-primary/10 text-primary/90 font-medium"
+            : "text-muted-foreground hover:bg-primary/8 hover:text-primary"
         }
         ${depth > 0 ? "pl-7" : ""}
       `}
     >
-      <span className={`shrink-0 ${active ? "text-[#7d4f50]" : "text-slate-400"}`}>{icon}</span>
+      <span className={`shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`}>{icon}</span>
       <span className="flex-1 text-sm truncate">{label}</span>
       {badge}
       {count !== undefined && (
         <span
           className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
-            active ? "bg-[#7d4f50]/15 text-[#7d4f50]" : "bg-slate-100 text-slate-500"
+            active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
           }`}
         >
           {count}
@@ -130,10 +131,10 @@ function SectionHeader({ label, open, onToggle, action }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 group">
       <button type="button" onClick={onToggle} className="flex-1 flex items-center gap-1.5 text-left">
-        <span className="text-slate-500 group-hover:text-slate-700 transition-colors">
+        <span className="text-muted-foreground group-hover:text-foreground transition-colors">
           {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-slate-700 transition-colors">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
           {label}
         </span>
       </button>
@@ -156,6 +157,7 @@ export function VaultTree({
   onRenameFolder,
   onDeleteFolder,
   onShareFolder,
+  onCollectUploadsForFolder,
   onManageShareFolder,
 }: VaultTreeProps) {
   const [foldersOpen, setFoldersOpen] = useState(true);
@@ -177,7 +179,7 @@ export function VaultTree({
   return (
     <nav className="h-full flex flex-col gap-0.5 py-3 px-2 overflow-y-auto">
       <div className="px-3 pb-2 mb-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Quick Access</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Access</p>
       </div>
 
       <TreeItem
@@ -196,7 +198,7 @@ export function VaultTree({
         onClick={() => onSelect({ type: "starred" })}
       />
 
-      <div className="my-2 mx-3 border-t border-slate-200" />
+      <div className="my-2 mx-3 border-t border-border" />
 
       <SectionHeader
         label="My Folders"
@@ -210,7 +212,7 @@ export function VaultTree({
                 event.stopPropagation();
                 onCreateFolder();
               }}
-              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-slate-400 hover:text-[#7d4f50] hover:bg-[#7d4f50]/8 transition-colors"
+              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/8 transition-colors"
               aria-label="Create folder"
               title="Create folder"
             >
@@ -220,7 +222,7 @@ export function VaultTree({
         }
       />
 
-      {foldersOpen && folders.length === 0 && <p className="text-xs text-slate-500 px-7 py-1">No folders yet</p>}
+      {foldersOpen && folders.length === 0 && <p className="text-xs text-muted-foreground px-7 py-1">No folders yet</p>}
 
       {foldersOpen && folders.length > 0 && onCreateSubfolder && onRenameFolder && onDeleteFolder && (
         <div className="px-1">
@@ -239,12 +241,13 @@ export function VaultTree({
             onDeleteFolder={onDeleteFolder}
             onCreateSubfolder={onCreateSubfolder}
             onShareFolder={onShareFolder}
+            onCollectUploadsForFolder={onCollectUploadsForFolder}
             onManageShareFolder={onManageShareFolder}
           />
         </div>
       )}
 
-      <div className="my-2 mx-3 border-t border-slate-200" />
+      <div className="my-2 mx-3 border-t border-border" />
 
       <TreeItem
         icon={<Users className="w-4 h-4" />}
@@ -254,7 +257,7 @@ export function VaultTree({
         onClick={() => onSelect({ type: "shared" })}
       />
 
-      <div className="my-2 mx-3 border-t border-slate-200" />
+      <div className="my-2 mx-3 border-t border-border" />
 
       <SectionHeader
         label="Client Upload Links"
@@ -266,8 +269,8 @@ export function VaultTree({
             onClick={() => onSelect({ type: "manage-drops" })}
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-drops" })
-                ? "bg-[#7d4f50]/15 text-[#7d4f50] font-medium"
-                : "text-slate-400 hover:text-[#7d4f50] hover:bg-[#7d4f50]/8"
+                ? "bg-primary/15 text-primary font-medium"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/8"
             }`}
           >
             Manage
@@ -275,7 +278,7 @@ export function VaultTree({
         }
       />
 
-      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-slate-500 px-7 py-1">No upload links yet</p>}
+      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-muted-foreground px-7 py-1">No upload links yet</p>}
 
       {linksOpen &&
         sortedDropTokens.map((token) => {
@@ -286,7 +289,7 @@ export function VaultTree({
           const label = getDropLabel(token);
 
           const badge = inactive ? (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
               {used ? "sealed" : "expired"}
             </span>
           ) : expiringSoon ? (
@@ -324,7 +327,7 @@ export function VaultTree({
           );
         })}
 
-      <div className="my-2 mx-3 border-t border-slate-200" />
+      <div className="my-2 mx-3 border-t border-border" />
 
       <SectionHeader
         label="File Requests"
@@ -336,8 +339,8 @@ export function VaultTree({
             onClick={() => onSelect({ type: "manage-requests" })}
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-requests" })
-                ? "bg-[#7d4f50]/15 text-[#7d4f50] font-medium"
-                : "text-slate-400 hover:text-[#7d4f50] hover:bg-[#7d4f50]/8"
+                ? "bg-primary/15 text-primary font-medium"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/8"
             }`}
           >
             Manage

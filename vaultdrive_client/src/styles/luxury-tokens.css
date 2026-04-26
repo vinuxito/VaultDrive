@@ -276,6 +276,16 @@
 /* ========== LUXURY UTILITY CLASSES ========== */
 
 /* Glass panel — the core luxury container */
+.lux-navbar {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  border-bottom: var(--glass-border);
+  box-shadow: var(--shadow-sm);
+  transition: background var(--duration-normal) var(--ease-out-expo),
+              border-color var(--duration-normal) var(--ease-out-expo);
+}
+
 .lux-glass {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur-md);

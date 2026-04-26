@@ -72,7 +72,7 @@ function CopyButton({ text }: { text: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className="inline-flex items-center gap-1.5 text-xs text-[#7d4f50] hover:text-[#6b4345] transition-colors"
+      className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/90 transition-colors"
     >
       <Copy className="w-3 h-3" />
       {copied ? "Copied" : "Copy"}
@@ -85,29 +85,29 @@ function EndpointRow({ ep }: { ep: EndpointDef }) {
   const curl = makeCurl(ep);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900/60 overflow-hidden">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-muted transition-colors"
       >
         <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wider ${METHOD_COLORS[ep.method]}`}>
           {ep.method}
         </span>
-        <code className="text-xs text-slate-700 dark:text-slate-200 font-mono flex-1 truncate">
+        <code className="text-xs text-foreground font-mono flex-1 truncate">
           {API_BASE}{ep.path}
         </code>
-        <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] text-slate-500 dark:text-slate-400 shrink-0">
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground shrink-0">
           {ep.scope}
         </span>
-        {expanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
+        {expanded ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
       </button>
       {expanded && (
-        <div className="border-t border-slate-200 dark:border-slate-700 px-3 py-3 space-y-2 bg-slate-50/60 dark:bg-slate-800/30">
-          <p className="text-xs text-slate-600 dark:text-slate-300">{ep.description}</p>
-          <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 px-3 py-2.5">
+        <div className="border-t border-border px-3 py-3 space-y-2 bg-muted/60">
+          <p className="text-xs text-muted-foreground">{ep.description}</p>
+          <div className="rounded-lg border border-border bg-muted px-3 py-2.5">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase tracking-[0.14em] text-slate-400">curl</span>
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">curl</span>
               <CopyButton text={curl} />
             </div>
             <pre className="text-[11px] text-emerald-400 font-mono whitespace-pre-wrap break-all leading-relaxed">{curl}</pre>
@@ -129,24 +129,24 @@ export function AgentDeveloperPortalSection() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Code2 className="w-5 h-5 text-[#7d4f50]" />
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <Code2 className="w-5 h-5 text-primary" />
           Agent API reference
         </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          24 versioned endpoints under <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">/api/v1</code>. All accept <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Authorization: Bearer</code> with JWT or agent key.
+        <p className="text-sm text-muted-foreground mt-1">
+          24 versioned endpoints under <code className="text-xs bg-muted px-1.5 py-0.5 rounded">/api/v1</code>. All accept <code className="text-xs bg-muted px-1.5 py-0.5 rounded">Authorization: Bearer</code> with JWT or agent key.
         </p>
       </div>
 
       {/* Quick-start box */}
-      <div className="rounded-2xl border border-[#e8d9d0] dark:border-slate-700 bg-[linear-gradient(180deg,#fffdfb_0%,#f8f3ef_100%)] dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.96)_0%,rgba(15,23,42,0.92)_100%)] px-5 py-4 space-y-3">
+      <div className="rounded-2xl border border-border bg-card px-5 py-4 space-y-3">
         <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-[#7d4f50]" />
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Quick start</p>
+          <Terminal className="w-4 h-4 text-primary" />
+          <p className="text-sm font-semibold text-foreground">Quick start</p>
         </div>
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 px-3 py-2.5">
+        <div className="rounded-lg border border-border bg-muted px-3 py-2.5">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] uppercase tracking-[0.14em] text-slate-400">verify your key</span>
+            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">verify your key</span>
             <CopyButton text={`curl -s "${window.location.origin}${branding.apiBasePath}/v1/auth/introspect" \\\n  -H "Authorization: Bearer $${branding.agentKeyEnvVar}" | jq .`} />
           </div>
           <pre className="text-[11px] text-emerald-400 font-mono whitespace-pre-wrap break-all leading-relaxed">
@@ -155,15 +155,15 @@ export function AgentDeveloperPortalSection() {
           </pre>
         </div>
         <div className="grid gap-2 sm:grid-cols-3 text-[11px]">
-          <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2 text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl border border-border bg-muted/80 px-3 py-2 text-muted-foreground">
             <Globe className="w-3 h-3 inline mr-1" />
             Base: <code className="font-mono">{window.location.origin}{branding.apiBasePath}/v1</code>
           </div>
-          <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2 text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl border border-border bg-muted/80 px-3 py-2 text-muted-foreground">
             <Shield className="w-3 h-3 inline mr-1" />
             Auth: Bearer token (JWT or agent key)
           </div>
-          <div className="rounded-xl border border-white/70 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 px-3 py-2 text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl border border-border bg-muted/80 px-3 py-2 text-muted-foreground">
             <Code2 className="w-3 h-3 inline mr-1" />
             Format: JSON envelope with request ID
           </div>
@@ -174,13 +174,13 @@ export function AgentDeveloperPortalSection() {
       <button
         type="button"
         onClick={() => setShowEnvelope((v) => !v)}
-        className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 px-4 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+        className="w-full rounded-2xl border border-border bg-muted px-4 py-3 flex items-center justify-between hover:bg-muted/80 transition-colors"
       >
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Response envelope</span>
-        {showEnvelope ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        <span className="text-sm font-medium text-foreground">Response envelope</span>
+        {showEnvelope ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
       </button>
       {showEnvelope && (
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 px-4 py-3">
+        <div className="rounded-lg border border-border bg-muted px-4 py-3">
           <pre className="text-[11px] text-emerald-400 font-mono whitespace-pre-wrap leading-relaxed">
 {`{
   "success": true,
@@ -202,8 +202,8 @@ export function AgentDeveloperPortalSection() {
           onClick={() => setActiveCategory(null)}
           className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
             activeCategory === null
-              ? "bg-[#7d4f50] text-white border-[#7d4f50]"
-              : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+              ? "bg-primary text-white border-primary"
+              : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
           }`}
         >
           All ({ENDPOINTS.length})
@@ -217,8 +217,8 @@ export function AgentDeveloperPortalSection() {
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
               className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
                 activeCategory === cat
-                  ? "bg-[#7d4f50] text-white border-[#7d4f50]"
-                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
               }`}
             >
               {cat} ({count})

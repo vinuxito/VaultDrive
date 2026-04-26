@@ -64,7 +64,7 @@ const getFileIconColor = (filename: string) => {
       return 'bg-red-500/20 text-red-500';
     case 'doc':
     case 'docx':
-      return 'bg-[#7d4f50]/20 text-[#7d4f50]';
+      return 'bg-primary/20 text-primary';
     case 'xls':
     case 'xlsx':
       return 'bg-green-500/20 text-green-500';
@@ -72,7 +72,7 @@ const getFileIconColor = (filename: string) => {
     case 'rar':
       return 'bg-yellow-500/20 text-yellow-500';
     default:
-      return 'bg-gray-500/20 text-gray-500';
+      return 'bg-muted/20 text-muted-foreground';
   }
 }
 
@@ -107,20 +107,20 @@ export function FileCard({
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-lg shadow-lg border border-slate-200 min-w-[152px] py-1">
+          <div className="absolute right-0 top-full mt-1 z-20 bg-popover rounded-lg shadow-lg border border-border min-w-[152px] py-1">
             <button
-              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2"
               onClick={() => { onShare(file.id, file.filename); setMenuOpen(false); }}
             >
               <Share2 size={14} /> Share Link
             </button>
             <button
-              className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2"
               onClick={() => { onToggleMetadata(file.id); setMenuOpen(false); }}
             >
               <FileIcon size={14} /> View Details
             </button>
-            <div className="my-1 border-t border-slate-100" />
+            <div className="my-1 border-t border-border" />
             <button
               className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
               onClick={() => { onDelete(file.id, file.filename); setMenuOpen(false); }}
@@ -189,7 +189,7 @@ export function FileCard({
               "transition-all rounded-full",
               file.starred
                 ? "text-yellow-400"
-                : "text-slate-400/70 hover:text-yellow-400"
+                : "text-muted-foreground hover:text-yellow-400"
             )}
           >
             <Star className={cn("w-5 h-5", file.starred && "fill-current")} />
@@ -203,7 +203,7 @@ export function FileCard({
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-[#7d4f50]/15">
+        <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-primary/15">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

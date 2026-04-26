@@ -49,13 +49,13 @@ const EmailList: React.FC<EmailListProps> = ({ account, mailbox, onSelectEmail }
         <div
           key={email.uid}
           onClick={() => onSelectEmail(email)}
-          className="border-b border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+          className="border-b border-border p-4 hover:bg-muted cursor-pointer"
         >
           <div className="flex justify-between">
             <p className="font-semibold">{email.from.join(', ')}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(email.date).toLocaleDateString()}</p>
+            <p className="text-sm text-muted-foreground">{new Date(email.date).toLocaleDateString()}</p>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">{email.subject}</p>
+          <p className="text-foreground">{email.subject}</p>
         </div>
       ))}
     </div>

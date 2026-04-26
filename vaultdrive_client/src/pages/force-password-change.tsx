@@ -11,6 +11,7 @@ import {
   encryptPrivateKeyWithPassword,
   importRSAPrivateKey,
 } from "../utils/crypto";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 /**
  * Full-screen password change gate.
@@ -33,7 +34,7 @@ export default function ForcePasswordChange() {
   // Guard: must be logged in with force_password_change flag
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = getStoredUserFromLocalStorage() ?? {};
     if (!token) {
       navigate("/login", { replace: true });
     } else if (!user.force_password_change) {
@@ -63,7 +64,7 @@ export default function ForcePasswordChange() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const storedUser = getStoredUserFromLocalStorage() ?? {};
 
       // Re-encrypt private key with new password so file decryption continues to work
       let reEncryptedKey = "";
@@ -146,7 +147,7 @@ export default function ForcePasswordChange() {
 
   return (
     <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "100vh" }}>
-      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
+      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <BrandLogo className="w-16 h-16" />
@@ -245,7 +246,7 @@ export default function ForcePasswordChange() {
 
             <Button
               type="submit"
-              className="w-full bg-[#7d4f50] hover:bg-[#6b4345] text-white shadow-[0_12px_28px_rgba(125,79,80,0.25)]"
+              className="w-full bg-primary hover:bg-primary/90 text-white shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
               disabled={loading || newPassword.length < 8 || newPassword !== confirmPassword}
             >
               {loading ? "Changing password..." : "Set New Password"}

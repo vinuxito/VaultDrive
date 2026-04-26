@@ -22,6 +22,7 @@ interface FolderTreeProps {
   onDeleteFolder: (folderId: string, name: string) => void;
   onCreateSubfolder: (parentId: string) => void;
   onShareFolder?: (folderId: string, name: string) => void;
+  onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
 }
 
@@ -58,6 +59,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   onDeleteFolder,
   onCreateSubfolder,
   onShareFolder,
+  onCollectUploadsForFolder,
   onManageShareFolder,
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string> | null>(null);
@@ -142,6 +144,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         onDelete={() => onDeleteFolder(node.id, node.name)}
         onCreateSubfolder={() => onCreateSubfolder(node.id)}
         onShare={onShareFolder ? () => onShareFolder(node.id, node.name) : undefined}
+        onCollectUploads={onCollectUploadsForFolder ? () => onCollectUploadsForFolder(node.id, node.name) : undefined}
         onManageShares={onManageShareFolder ? () => onManageShareFolder(node.id, node.name) : undefined}
       />
       {node.isExpanded && node.children.map((child) => renderFolderNode(child, level + 1))}

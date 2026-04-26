@@ -45,7 +45,7 @@ export function MoveFileModal({ open, onOpenChange, file, folders, moving, onMov
         </DialogHeader>
 
         <div className="space-y-3">
-          <label htmlFor="move-file-folder" className="text-sm font-medium text-white/80 flex items-center gap-2">
+          <label htmlFor="move-file-folder" className="text-sm font-medium text-white/85 flex items-center gap-2">
             <FolderOpen className="w-4 h-4" />
             Destination folder
           </label>
@@ -53,19 +53,19 @@ export function MoveFileModal({ open, onOpenChange, file, folders, moving, onMov
             id="move-file-folder"
             value={targetFolderId}
             onChange={(event) => setTargetFolderId(event.target.value)}
-            className="w-full rounded-md border border-white/15 bg-white/10 px-3 py-2 text-sm text-white focus:border-white/40 focus:outline-none"
+            className="w-full rounded-md border border-white/15 bg-white/15 px-3 py-2 text-sm text-white focus:border-white/40 focus:outline-none"
           >
-            <option value="" className="text-slate-900">Select a folder…</option>
+            <option value="" className="text-foreground">Select a folder…</option>
             {options.map((option) => (
-              <option key={option.id} value={option.id} className="text-slate-900">
+              <option key={option.id} value={option.id} className="text-foreground">
                 {`${"• ".repeat(option.depth)}${option.name}`}
               </option>
             ))}
           </select>
 
           {selectedFolderName && (
-            <p className="text-xs text-white/60">
-              The file will move into <span className="font-medium text-white/80">{selectedFolderName}</span>. If that folder is already shared, active shared links will be updated additively.
+            <p className="text-xs text-white/75">
+              The file will move into <span className="font-medium text-white/85">{selectedFolderName}</span>. If that folder is already shared, active shared links will be updated additively.
             </p>
           )}
         </div>
@@ -79,7 +79,7 @@ export function MoveFileModal({ open, onOpenChange, file, folders, moving, onMov
               type="button"
               onClick={() => void onMove(targetFolderId)}
               disabled={!targetFolderId || moving}
-              className="bg-[#7d4f50] hover:bg-[#6b4345] text-white"
+              className="bg-primary hover:bg-primary/90 text-white"
             >
               {moving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Moving…</> : "Move file"}
             </Button>

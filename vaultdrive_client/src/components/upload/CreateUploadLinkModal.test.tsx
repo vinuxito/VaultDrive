@@ -74,4 +74,53 @@ describe("CreateUploadLinkModal", () => {
     expect(await screen.findByText(/underlying api call/i)).toBeInTheDocument();
     expect(screen.getByText("POST /api/drop/create")).toBeInTheDocument();
   });
+
+  it("preselects the target folder and shows guidance context when opened from an empty folder handoff", async () => {
+    getCredential.mockReturnValue({ type: "pin", value: "1234" });
+
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      if (url.endsWith("/folders")) {
+        if (init?.method === "POST") {
+          return new Response(JSON.stringify({ id: "folder-3", name: "Created" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify([
+          { id: "folder-1", name: "Inbox" },
+          { id: "folder-2", name: "Client Inbox" },
+        ]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      if (url.endsWith("/drop/create")) {
+        return new Response(JSON.stringify({ upload_url: "/quantix/drop/abc#key=secret" }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      throw new Error(`Unhandled fetch: ${url}`);
+    });
+
+    render(
+      <CreateUploadLinkModal
+        open={true}
+        onClose={() => undefined}
+        initialFolderId="folder-2"
+        initialFolderName="Client Inbox"
+        introMessage="Use this link when you want someone else to upload files into Client Inbox."
+      />,
+    );
+
+    await screen.findByText("Inbox");
+
+    expect(screen.getByText(/someone else to upload files into Client Inbox/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/destination folder/i)).toHaveValue("folder-2");
+  });
 });
