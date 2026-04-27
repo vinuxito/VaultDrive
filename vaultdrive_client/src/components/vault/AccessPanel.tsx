@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ShieldCheck, ShieldOff, Users, Link2, X, Loader2, Inbox } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { relativeTime } from "../../utils/format";
+import { DataState } from "../ui/data-state";
+import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
 
 interface AccessEntry {
   kind: string;
@@ -31,7 +33,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
   const [error, setError] = useState(false);
   const [receipt, setReceipt] = useState<string>("");
 
-  useEffect(() => {
+  const loadAccessSummary = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       setLoading(false);
@@ -65,6 +67,10 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
       })
       .finally(() => setLoading(false));
   }, [fileId]);
+
+  useEffect(() => {
+    loadAccessSummary();
+  }, [loadAccessSummary]);
 
   const revokeAll = async () => {
     setRevoking(true);
@@ -222,23 +228,17 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
             </div>
           )}
 
-          {loading ? (
-            <div className="flex items-center gap-2 text-muted-foreground text-sm py-3 justify-center">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Checking access…
-            </div>
-          ) : error ? (
-            <div className="px-1 py-2">
-              <p className="text-sm text-foreground">Access data is temporarily unavailable.</p>
-              <p className="mt-1 text-xs text-muted-foreground">You can keep working; the visibility feed just could not be refreshed.</p>
-            </div>
-          ) : !data || data.entries.length === 0 ? (
-            <div className="px-1 py-2">
-              <p className="text-sm text-foreground">No external access is active.</p>
-              <p className="mt-1 text-xs text-muted-foreground">If you create a link, group share, or Secure Drop route, it will appear here immediately.</p>
-            </div>
-          ) : (
-            orderedEntries.map((entry) => (
+          <DataState
+            loading={loading}
+            error={error ? "Access data is temporarily unavailable. The visibility feed just could not be refreshed." : undefined}
+            empty={!data || data.entries.length === 0}
+            emptyConfig={EMPTY.shareLinksEmpty}
+            loadingLabel={LOADING.loadingAccess}
+            onRetry={loadAccessSummary}
+            skeletonRows={2}
+            density="compact"
+          >
+            {orderedEntries.map((entry) => (
               <div
                 key={`${entry.kind}-${entry.since}`}
                 className="rounded-2xl border border-border bg-muted px-4 py-4 shadow-sm"
@@ -285,16 +285,16 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                   </div>
                 </div>
               </div>
-            ))
-          )}
+            ))}
+          </DataState>
 
           {hasExternal && (
             confirmRevoke ? (
               <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 p-4 space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-rose-900 dark:text-rose-200">Remove all external access?</p>
+                  <p className="text-sm font-medium text-rose-900 dark:text-rose-200">{CONFIRM_DESTRUCTIVE.revokeAllExternal.title}</p>
                   <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
-                    All active links, group shares, and Secure Drop access will be revoked immediately.
+                    {CONFIRM_DESTRUCTIVE.revokeAllExternal.body}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -304,7 +304,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     disabled={revoking}
                     className="flex-1 py-2 rounded-lg border border-border text-sm text-foreground bg-background hover:bg-muted font-medium transition-colors"
                   >
-                    Keep access
+                    {CONFIRM_DESTRUCTIVE.revokeAllExternal.cancelLabel}
                   </button>
                   <button
                     type="button"
@@ -313,7 +313,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     className="flex-1 py-2 rounded-lg bg-destructive text-sm text-white font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 dark:bg-destructive/80"
                   >
                     {revoking ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    {revoking ? "Revoking…" : "Yes, revoke all"}
+                    {revoking ? LOADING.revokingAllExternal : CONFIRM_DESTRUCTIVE.revokeAllExternal.confirmLabel}
                   </button>
                 </div>
               </div>

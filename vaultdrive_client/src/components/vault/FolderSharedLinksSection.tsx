@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, FolderOpen, Link2, Loader2, Plus, RefreshCw, ShieldOff } from "lucide-react";
+import { AlertCircle, FolderOpen, Link2, Loader2, Plus, RefreshCw, ShieldOff, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { API_URL, BASE_PATH } from "../../utils/api";
@@ -15,6 +15,9 @@ import {
   resolveFolderSharePanelCredential,
 } from "../../utils/folder-share-repair";
 import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
+import { DataState } from "../ui/data-state";
+import { RowActionMenu } from "../ui/row-action-menu";
+import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
 
 interface FolderSharedLinksSectionProps {
   folder: {
@@ -62,6 +65,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   const [legacyUrls, setLegacyUrls] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, string>>({});
   const [ownerCredentialInput, setOwnerCredentialInput] = useState("");
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
 
   const currentUser = useMemo(() => {
     const stored = localStorage.getItem("user");
@@ -157,10 +161,6 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   }
 
   async function handleRevoke(link: SyncableFolderShareLink) {
-    if (!window.confirm("Revoke this shared link? Anyone using it will lose access immediately.")) {
-      return;
-    }
-
     const token = localStorage.getItem("token");
     if (!token) {
       setErrorMsg("Sign in again to manage shared links.");
@@ -184,6 +184,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       setResults((prev) => ({ ...prev, [link.id]: message }));
     } finally {
       setBusyId(null);
+      setConfirmRevokeId(null);
     }
   }
 
@@ -234,20 +235,14 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
           </Card>
         )}
 
-        {loading ? (
-          <Card>
-            <CardContent className="py-12 flex flex-col items-center gap-3 text-muted-foreground">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Loading shared links…</span>
-            </CardContent>
-          </Card>
-        ) : visibleLinks.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-sm text-muted-foreground">
-              No shared links exist for this folder yet.
-            </CardContent>
-          </Card>
-        ) : (
+        <DataState
+          loading={loading}
+          empty={visibleLinks.length === 0}
+          emptyConfig={EMPTY.folderSharesEmpty}
+          loadingLabel={LOADING.workingDefault}
+          onEmptyAction={onCreateLink}
+          skeletonRows={2}
+        >
           <div className="space-y-4">
             {!sessionVault.getCredential() && (
               <Card className="border-border/80 shadow-sm">
@@ -332,16 +327,56 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                       />
                     )}
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                       <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-primary hover:bg-primary/90 text-white">
                         {busyId === link.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                         Update Link
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => void handleRevoke(link)} disabled={busyId === link.id || !status.active} className="text-destructive border-destructive/20 hover:bg-destructive/5 dark:border-destructive/40 dark:hover:bg-destructive/10">
-                        <ShieldOff className="w-4 h-4 mr-2" />
-                        Revoke
-                      </Button>
+                      <RowActionMenu
+                        actions={[
+                          {
+                            id: "revoke",
+                            label: CONFIRM_DESTRUCTIVE.revokeFolderShare.confirmLabel,
+                            icon: ShieldOff,
+                            kind: "destructive",
+                            disabled: busyId === link.id || !status.active,
+                            onSelect: () => setConfirmRevokeId(link.id),
+                          },
+                        ]}
+                        label="Manage shared link"
+                        triggerTestId={`folder-share-actions-${link.id}`}
+                      />
                     </div>
+
+                    {confirmRevokeId === link.id && (
+                      <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 p-3 space-y-2">
+                        <div>
+                          <p className="text-sm font-medium text-rose-900 dark:text-rose-200">{CONFIRM_DESTRUCTIVE.revokeFolderShare.title}</p>
+                          <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">{CONFIRM_DESTRUCTIVE.revokeFolderShare.body}</p>
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setConfirmRevokeId(null)}
+                            disabled={busyId === link.id}
+                          >
+                            {CONFIRM_DESTRUCTIVE.revokeFolderShare.cancelLabel}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => void handleRevoke(link)}
+                            disabled={busyId === link.id}
+                            className="bg-rose-600 hover:bg-rose-700 text-white"
+                          >
+                            {busyId === link.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
+                            {busyId === link.id ? LOADING.revokingLink : CONFIRM_DESTRUCTIVE.revokeFolderShare.confirmLabel}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     {result && (
                       <div className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${result.includes("Failed") || result.includes("Paste") || result.includes("different") || result.includes("not wired yet") ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
@@ -354,7 +389,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
               );
             })}
           </div>
-        )}
+        </DataState>
       </div>
     </div>
   );

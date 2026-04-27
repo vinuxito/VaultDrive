@@ -43,7 +43,7 @@ export async function encryptFile(
   const encryptedData = await window.crypto.subtle.encrypt(
     {
       name: "AES-GCM",
-      iv: iv as any,
+      iv: iv as BufferSource,
     },
     key,
     fileBuffer as ArrayBuffer
@@ -70,14 +70,14 @@ export async function decryptFile(
     const decryptedData = await window.crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: iv as any,
+        iv: iv as BufferSource,
       },
       key,
       encryptedData
     );
 
     return decryptedData;
-  } catch (error) {
+  } catch (_error) {
     throw new Error("Decryption failed. Invalid key or corrupted data.");
   }
 }
@@ -131,7 +131,7 @@ export async function deriveKeyFromPassword(
   return await window.crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: salt as any,
+      salt: salt as BufferSource,
       iterations: iterations,
       hash: "SHA-256",
     },
@@ -433,7 +433,7 @@ export async function encryptMetadata(
   const encrypted = await window.crypto.subtle.encrypt(
     {
       name: "AES-GCM",
-      iv: iv as any,
+      iv: iv as BufferSource,
     },
     key,
     metadataBuffer
@@ -459,7 +459,7 @@ export async function decryptMetadata(
   const decrypted = await window.crypto.subtle.decrypt(
     {
       name: "AES-GCM",
-      iv: new Uint8Array(ivBuffer) as any,
+      iv: new Uint8Array(ivBuffer) as BufferSource,
     },
     key,
     encryptedBuffer

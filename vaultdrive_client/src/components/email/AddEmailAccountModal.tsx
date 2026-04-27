@@ -45,9 +45,9 @@ const AddEmailAccountModal: React.FC<AddEmailAccountModalProps> = ({ isOpen, onC
       await createEmailAccount(formData, token);
       onClose();
       window.location.reload();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to create email account', err);
-      if (err.status === 409) {
+      if (err && typeof err === 'object' && 'status' in err && (err as { status?: number }).status === 409) {
         setError('This email account is already configured');
       } else {
         setError('Failed to create email account. Please check your details and try again.');

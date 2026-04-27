@@ -61,10 +61,17 @@ export function FileWidget({
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Parse metadata
-  const parseMetadata = (metadataStr?: string): any => {
+  interface FileMetadata {
+    algorithm?: string;
+    salt?: string;
+    iv?: string;
+    [key: string]: unknown;
+  }
+
+  const parseMetadata = (metadataStr?: string): FileMetadata | null => {
     if (!metadataStr) return null;
     try {
-      return JSON.parse(metadataStr);
+      return JSON.parse(metadataStr) as FileMetadata;
     } catch {
       return null;
     }

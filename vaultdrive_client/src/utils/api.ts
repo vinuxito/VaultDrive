@@ -23,7 +23,7 @@ export const createEmailAccount = async (account: EmailAccountPayload, token: st
     body: JSON.stringify(account),
   });
   if (!response.ok) {
-    const error: any = new Error('Failed to create email account');
+    const error = new Error('Failed to create email account') as Error & { status?: number; response?: unknown };
     error.status = response.status;
     error.response = await response.json().catch(() => ({}));
     throw error;
@@ -96,7 +96,7 @@ export const updateEmailAccount = async (accountId: string, account: EmailAccoun
     body: JSON.stringify(account),
   });
   if (!response.ok) {
-    const error: any = new Error('Failed to update email account');
+    const error = new Error('Failed to update email account') as Error & { status?: number; response?: unknown };
     error.status = response.status;
     error.response = await response.json().catch(() => ({}));
     throw error;

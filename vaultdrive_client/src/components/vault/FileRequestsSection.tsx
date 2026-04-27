@@ -15,6 +15,9 @@ import {
 import { API_URL, BASE_PATH } from "../../utils/api";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
+import { DataState } from "../ui/data-state";
+import { RowActionMenu, type RowAction } from "../ui/row-action-menu";
+import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
 
 interface FileRequest {
   id: string;
@@ -344,14 +347,6 @@ export function FileRequestsSection() {
     return { label: "Active", color: "bg-green-500" };
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        Loading file requests…
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -408,26 +403,40 @@ export function FileRequestsSection() {
         </div>
       )}
 
-      {requests.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-border dark:bg-muted/60">
-          <Inbox className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-foreground font-medium mb-2">No file requests yet</p>
-          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-            Create a request when you want a sender to upload documents under a clearly framed set of instructions and a route you can revoke later.
-          </p>
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create First Request
-          </Button>
-        </div>
-      ) : (
+      <DataState
+        loading={loading}
+        empty={requests.length === 0}
+        emptyConfig={EMPTY.fileRequestsEmpty}
+        loadingLabel={LOADING.workingDefault}
+        onEmptyAction={() => setShowCreateModal(true)}
+        skeletonRows={3}
+      >
         <div className="space-y-3">
           {requests.map((req) => {
             const status = getStatus(req);
             const requestUrl = `${window.location.origin}${BASE_PATH}/request/${req.token}`;
+            const isConfirming = confirmRevokeId === req.id;
+            const isRevoking = revokingId === req.id;
+
+            const rowActions: RowAction[] = [
+              {
+                id: "copy-url",
+                label: copiedId === req.id ? "Copied!" : "Copy request URL",
+                icon: copiedId === req.id ? Check : Copy,
+                onSelect: () => {
+                  void handleCopyUrl(req);
+                },
+              },
+            ];
+            if (req.is_active) {
+              rowActions.push({
+                id: "delete-request",
+                label: CONFIRM_DESTRUCTIVE.deleteFileRequest.confirmLabel,
+                icon: Trash2,
+                kind: "destructive",
+                onSelect: () => setConfirmRevokeId(req.id),
+              });
+            }
 
             return (
               <div
@@ -464,21 +473,6 @@ export function FileRequestsSection() {
                         <code className="bg-muted px-2 py-0.5 rounded text-xs flex-1 min-w-0 overflow-hidden truncate">
                           {requestUrl}
                         </code>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            void handleCopyUrl(req);
-                          }}
-                          className="h-7 px-2 shrink-0"
-                          title="Copy URL"
-                        >
-                          {copiedId === req.id ? (
-                            <Check className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </Button>
                       </div>
 
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -500,47 +494,48 @@ export function FileRequestsSection() {
                       </div>
                     </div>
 
-                    {req.is_active && (
-                      confirmRevokeId === req.id ? (
-                        <div className="shrink-0 flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setConfirmRevokeId(null)}
-                          >
-                            Keep active
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              void handleRevoke(req);
-                            }}
-                            disabled={revokingId === req.id}
-                            className="bg-rose-600 hover:bg-rose-700 text-white"
-                          >
-                            {revokingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                            {revokingId === req.id ? "Revoking…" : "Confirm revoke"}
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setConfirmRevokeId(req.id)}
-                          className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          title="Revoke request"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )
-                    )}
+                    <RowActionMenu
+                      actions={rowActions}
+                      label="Manage request"
+                      triggerTestId={`file-request-actions-${req.id}`}
+                    />
                   </div>
+
+                  {isConfirming && (
+                    <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 p-3 space-y-2">
+                      <div>
+                        <p className="text-sm font-medium text-rose-900 dark:text-rose-200">{CONFIRM_DESTRUCTIVE.deleteFileRequest.title}</p>
+                        <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">{CONFIRM_DESTRUCTIVE.deleteFileRequest.body}</p>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setConfirmRevokeId(null)}
+                          disabled={isRevoking}
+                        >
+                          {CONFIRM_DESTRUCTIVE.deleteFileRequest.cancelLabel}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            void handleRevoke(req);
+                          }}
+                          disabled={isRevoking}
+                          className="bg-rose-600 hover:bg-rose-700 text-white"
+                        >
+                          {isRevoking ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Trash2 className="w-4 h-4 mr-1" />}
+                          {isRevoking ? LOADING.revokingLink : CONFIRM_DESTRUCTIVE.deleteFileRequest.confirmLabel}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
-      )}
+      </DataState>
 
       <CreateRequestModal
         open={showCreateModal}

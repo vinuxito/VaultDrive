@@ -108,7 +108,8 @@ export default function Login() {
           setCredential(pinValue, "pin");
           localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
         }
-      } catch {
+      } catch (_pinError) {
+        void _pinError;
       }
 
       navigate(data.pin_set ? "/" : "/files");

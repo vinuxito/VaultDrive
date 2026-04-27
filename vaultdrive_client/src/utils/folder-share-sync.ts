@@ -292,8 +292,7 @@ export async function syncFolderShareLinkById({
       body: JSON.stringify(buildFolderShareSyncPayload({}, ownerWrappedFolderKey)),
     });
     if (!response.ok) {
-      if (response.status === 400) {
-      } else {
+      if (response.status !== 400) {
         throw new Error(await readErrorMessage(response, "Failed to upgrade this older shared link."));
       }
     } else {

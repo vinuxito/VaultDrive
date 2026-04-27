@@ -195,6 +195,7 @@ export const EMPTY = {
   folderSharesEmpty: {
     title: "No folder shares",
     body: "Folder shares you create will appear here. You can revoke them at any time.",
+    primaryAction: { label: "Create new link", actionKey: "create-folder-share-link" },
   },
   dropLinksEmpty: {
     title: "No drop links",
@@ -208,6 +209,7 @@ export const EMPTY = {
     body:
       "File requests let you ask a specific person to upload required documents. " +
       "Each request has its own checklist.",
+    primaryAction: { label: "Create first request", actionKey: "create-file-request" },
   },
   groupsEmpty: {
     title: "No groups yet",

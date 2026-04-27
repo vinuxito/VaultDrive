@@ -17,9 +17,16 @@ interface EmailAccount {
   imapUser: string;
 }
 
+interface Mailbox {
+  id: string;
+  name: string;
+  messages: number;
+  unseen: number;
+}
+
 const EmailPage: React.FC = () => {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
-  const [mailboxes, setMailboxes] = useState<any[]>([]);
+  const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [selectedMailbox, setSelectedMailbox] = useState<string | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<EmailSummary | null>(null);

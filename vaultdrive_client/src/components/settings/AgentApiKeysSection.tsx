@@ -203,11 +203,17 @@ function CreateKeyModal({
 
     const frameId = window.requestAnimationFrame(() => {
       const [firstFocusable] = getFocusableElements();
+      const focusFallback = () => {
+        if (firstFocusable) {
+          firstFocusable.focus();
+        } else {
+          modalRef.current?.focus();
+        }
+      };
+      focusFallback();
       if (created) {
-        firstFocusable?.focus() ?? modalRef.current?.focus();
         return;
       }
-      firstFocusable?.focus() ?? modalRef.current?.focus();
     });
 
     return () => window.cancelAnimationFrame(frameId);

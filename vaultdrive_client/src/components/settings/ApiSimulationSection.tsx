@@ -104,7 +104,8 @@ export function ApiSimulationSection() {
       let pretty = bodyText;
       try {
         pretty = JSON.stringify(JSON.parse(bodyText), null, 2);
-      } catch {
+      } catch (_parseError) {
+        void _parseError;
       }
       setResultStatus(res.status);
       setResultBody(pretty);
