@@ -8,6 +8,34 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
+## Current Status (2026-04-27)
+
+**Safe to continue.** Latest verification on commit `49c92c0` (`feat(ui): coherence foundations`) reports green across the board.
+
+| Check | Result |
+|-------|--------|
+| Frontend typecheck (`tsc -b`) | ✅ exit 0 |
+| Frontend unit tests (`vitest run`) | ✅ 99 / 99 |
+| Frontend production build (`vite build`) | ✅ ~11–19 s |
+| Backend build (`go build ./...`) | ✅ exit 0 |
+| Backend tests (`go test ./...`) | ✅ ok (root pkg) |
+| Full E2E suite (`playwright test`) | ✅ 39 / 39 in ~1.5 min on a clean test DB |
+| ESLint | ⚠ 45 pre-existing legacy issues — none from recent work |
+
+**What's new since the last verification:**
+- Three coherence primitives shipped: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` (see [docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md](docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md)).
+- First adoption surface: Upload Links (UploadLinkCard now exposes Seal / Remove via a header-level row action menu; UploadLinksSection renders loading/empty via `<DataState>`).
+- Two surgical fixes to E2E test code that had drifted out of sync with upstream UI changes — see [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md).
+
+**Roadmap:** [docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md](docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) — 7 steps focused on UI/UX coherence. Steps 1–3 (foundations) shipped; next is adoption on AccessPanel and FileRequestsSection.
+
+**Latest verification:**
+- Session memory: [docs/memories/session-2026-04-27-coherence-verification.md](docs/memories/session-2026-04-27-coherence-verification.md)
+- MD report: [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md)
+- HTML report: [docs/reports/2026-04-27-coherence-verification.html](docs/reports/2026-04-27-coherence-verification.html)
+
+---
+
 ## What It Does
 
 - **Store** — AES-256-GCM encrypted file vault. PIN-based access, session key cache, inline preview, vault-wide search via pg_trgm.

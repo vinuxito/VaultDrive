@@ -1,6 +1,6 @@
 # QuantiX Drive — Documentation Index
 
-Last updated: April 27, 2026 (UI/UX coherence foundations: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` shipped + first adoption surface — Upload Links)
+Last updated: April 27, 2026 (Verified `49c92c0` end-to-end — 99/99 unit, 39/39 E2E, build green; coherence foundations safe to continue)
 
 ## Task Documentation
 
@@ -36,6 +36,9 @@ Last updated: April 27, 2026 (UI/UX coherence foundations: `<RowActionMenu>`, `c
 | 28 | [Build Verification 2026-04-16](./28_BUILD_VERIFICATION_2026-04-16.md) | Session-vault reset fix, cached-PIN recovery fix, isolated Playwright DB/upload harness, and fresh verification results |
 | 29 | [UI/UX Coherence Roadmap](./roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) | 7-step UI/UX coherence roadmap — `<RowActionMenu>`, `constants/copy.ts`, `<DataState>`, onboarding hand-off, mobile verification, trust-language pass, activity receipt drawer |
 | 30 | [Coherence Foundations 2026-04-27](./SESSION_MEMORY_2026-04-27-coherence-foundations.md) | Implementation log for Steps 1–3 of the coherence roadmap — three primitives shipped, Upload Links migrated, 99+/99+ tests, build green |
+| 31 | [Coherence Verification 2026-04-27 (memory)](./memories/session-2026-04-27-coherence-verification.md) | Closeout: verified `49c92c0` end-to-end. Two surgical E2E test-code fixes recovered the full Playwright suite to 39/39 |
+| 32 | [Coherence Verification 2026-04-27 (MD report)](./reports/2026-04-27-coherence-verification.md) | Markdown verification report — all checks, all results, all risks, conclusion |
+| 33 | [Coherence Verification 2026-04-27 (HTML report)](./reports/2026-04-27-coherence-verification.html) | Browser-readable verification report with summary cards, verification matrix, fixes, risks |
 
 ## Feature Docs (pre-existing)
 

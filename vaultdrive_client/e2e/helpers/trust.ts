@@ -39,7 +39,9 @@ export async function registerAccount(page: Page, account: OwnerAccount) {
   await page.locator("#register-email").fill(account.email);
   await page.locator("#register-password").fill(account.password);
   await page.getByRole("button", { name: "Create Account" }).click();
-  await expect(page.getByText("Welcome to QuantiX Drive")).toBeVisible();
+  // After successful registration the form flips back to login mode with
+  // credentials prefilled — assert on the login submit button to confirm.
+  await expect(page.getByRole("button", { name: "Open QuantiX Drive" })).toBeVisible();
 }
 
 export async function loginWithPassword(page: Page, account: OwnerAccount) {
