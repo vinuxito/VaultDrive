@@ -48,6 +48,20 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 > Single source of truth: `Makefile`, `START_HERE.txt`, `/etc/systemd/system/quantixdrive.service`. Every code change must end with a redeploy or it never reaches the live URL.
 
+**One-shot deploy (preferred):**
+
+```bash
+cd /lamp/www/QuantiX-Drive
+make deploy            # frontend build + backend build + systemd restart + live smoke
+```
+
+`make deploy` chains `build-frontend`, `build-backend` (`build-prod`), `deploy-restart`
+(requires sudo), and `deploy-smoke` (probes `/api/healthz`, `POST /api/register {}` for 400,
+and `/quantix/`). Any non-2xx (or non-400 for the register probe) fails the target —
+so a broken deploy stops the pipeline instead of going silently live.
+
+**Manual fallback (if you need to run the steps individually):**
+
 ```bash
 # Frontend (regenerates vaultdrive_client/dist/)
 cd /lamp/www/QuantiX-Drive/vaultdrive_client
