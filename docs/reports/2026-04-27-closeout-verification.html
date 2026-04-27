@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>QuantiX Drive — Closeout & Deploy Verification — 2026-04-27</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.55; max-width: 1080px; margin: 32px auto; padding: 0 24px; color: #1a1a1a; background: #fafafa; }
+  h1 { border-bottom: 3px solid #0a7; padding-bottom: 8px; }
+  h2 { margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 6px; color: #0a7; }
+  h3 { margin-top: 22px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+  th { background: #eaf6ef; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: #f4f5f7; padding: 1px 6px; border-radius: 3px; }
+  pre { padding: 12px; overflow-x: auto; }
+  .verdict { display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 16px; background: #d4f4e2; color: #1a6e3a; border: 1px solid #66c28a; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+  .b-pass { background: #d4f4e2; color: #1a6e3a; }
+  .b-warn { background: #fff4d4; color: #8a6d00; }
+  .b-fail { background: #fad4d4; color: #8a1a1a; }
+  .b-info { background: #d4e4f4; color: #1a3a8a; }
+  .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 12px 14px; }
+  .card .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.4px; }
+  .card .value { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-top: 4px; }
+  .severity-high { border-left: 4px solid #c22; background: #fff5f5; padding: 12px; border-radius: 4px; margin: 12px 0; }
+  .severity-med { border-left: 4px solid #c80; background: #fff9ed; padding: 12px; border-radius: 4px; margin: 12px 0; }
+  .severity-low { border-left: 4px solid #4a7; background: #f3fbf6; padding: 12px; border-radius: 4px; margin: 12px 0; }
+  .meta { color: #555; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>QuantiX Drive — Closeout &amp; Deploy Verification</h1>
+<p class="meta">
+  <strong>Date:</strong> 2026-04-27 &nbsp;·&nbsp;
+  <strong>Branch:</strong> <code>main</code> &nbsp;·&nbsp;
+  <strong>Live URL:</strong> <a href="https://quantixdrive.filemonprime.net/quantix/">quantixdrive.filemonprime.net/quantix/</a>
+</p>
+<p><span class="verdict">VERDICT: SAFE TO CONTINUE (with documented risks)</span></p>
+
+<h2>Executive Summary</h2>
+
+<div class="grid-cards">
+  <div class="card"><div class="label">Frontend unit tests</div><div class="value">106 / 106 ✅</div></div>
+  <div class="card"><div class="label">Frontend prod build</div><div class="value">12.94s ✅</div></div>
+  <div class="card"><div class="label">Backend build</div><div class="value">11.7 MB ✅</div></div>
+  <div class="card"><div class="label">Backend tests</div><div class="value">ok ✅</div></div>
+  <div class="card"><div class="label">Live SPA</div><div class="value">HTTP 200 ✅</div></div>
+  <div class="card"><div class="label">Live /api/healthz</div><div class="value">HTTP 200 ✅</div></div>
+  <div class="card"><div class="label">Service</div><div class="value">active (10:00:54) ✅</div></div>
+  <div class="card"><div class="label">Local ahead of origin/main</div><div class="value">+5 commits ⏳</div></div>
+</div>
+
+<p>Source, deployed binary, deployed <code>dist/</code>, and live URL are now aligned. Pre-existing register-endpoint findings remain open from earlier today's QA pass.</p>
+
+<h2>Verification Matrix</h2>
+
+<table>
+<thead><tr><th>#</th><th>Check</th><th>Expected</th><th>Actual</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>go build -o quantix-drive</code></td><td>fresh binary</td><td>11.76 MB at 2026-04-27 09:58</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>2</td><td><code>go test ./...</code></td><td>exit 0</td><td>ok (root pkg, cached)</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>3</td><td><code>npm run build</code></td><td>exit 0, dist emitted</td><td>12.94s, all chunks emitted</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>4</td><td><code>npm run test</code> (vitest)</td><td>all green</td><td>106 / 106 (31 files) in 20.29s</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>5</td><td><code>systemctl is-active quantixdrive</code></td><td>active</td><td>active, started Mon 2026-04-27 10:00:54 CST</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>6</td><td>Live SPA <code>/quantix/</code></td><td>HTTP 200</td><td>HTTP 200, 1509 B</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>7</td><td>Live <code>/api/healthz</code></td><td>HTTP 200</td><td>HTTP 200, 16 B</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>8</td><td>HEAD vs prod binary</td><td>match</td><td>binary built from current HEAD source</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>9</td><td>Build artefacts fresh</td><td>regenerated this session</td><td>dist 09:59:09, binary 09:58:43</td><td><span class="badge b-pass">PASS</span></td></tr>
+<tr><td>10</td><td>Routing model verified</td><td>known/documented</td><td>SPA <code>/quantix/</code>; API root <code>/api/*</code> (Apache split)</td><td><span class="badge b-pass">PASS</span></td></tr>
+</tbody>
+</table>
+
+<h2>Changed Files</h2>
+
+<h3>Source / tests committed in this closeout</h3>
+<table>
+<thead><tr><th>Path</th><th>Kind</th></tr></thead>
+<tbody>
+<tr><td><code>vaultdrive_client/eslint.config.js</code></td><td>ESLint config relax — architectural rules → warnings</td></tr>
+<tr><td><code>vaultdrive_client/src/components/email/AddEmailAccountModal.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/email/EditEmailAccountModal.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/files/FileWidget.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/settings/AgentApiKeysSection.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/settings/ApiSimulationSection.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/ui/input.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/vault/AccessPanel.tsx</code></td><td>ESLint cleanup + coherence prep</td></tr>
+<tr><td><code>vaultdrive_client/src/components/vault/AccessPanel.test.tsx</code></td><td><strong>NEW</strong> vitest spec</td></tr>
+<tr><td><code>vaultdrive_client/src/components/vault/FileRequestsSection.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/components/vault/FileRequestsSection.test.tsx</code></td><td><strong>NEW</strong> vitest spec</td></tr>
+<tr><td><code>vaultdrive_client/src/components/vault/FolderSharedLinksSection.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/constants/copy.ts</code></td><td>Coherence copy additions</td></tr>
+<tr><td><code>vaultdrive_client/src/pages/email.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/pages/login.tsx</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/utils/api.ts</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/utils/browser-storage.ts</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/utils/crypto.ts</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/utils/folder-share-sync.ts</code></td><td>ESLint cleanup</td></tr>
+<tr><td><code>vaultdrive_client/src/utils/test-runner.ts</code></td><td>ESLint cleanup</td></tr>
+</tbody>
+</table>
+
+<h3>Closeout artefacts</h3>
+<ul>
+  <li><code>docs/memories/session-2026-04-27-closeout-and-deploy.md</code> — session memory</li>
+  <li><code>docs/reports/2026-04-27-closeout-verification.md</code></li>
+  <li><code>docs/reports/2026-04-27-closeout-verification.html</code> (this file)</li>
+  <li><code>README.md</code> — Current Status block + deploy/runbook section</li>
+</ul>
+
+<h2>Bugs / Risks</h2>
+
+<div class="severity-high">
+  <strong>🔴 HIGH — Register accepts arbitrary-length passwords</strong>
+  <p>Reproducible against the freshly-deployed binary. <code>POST /api/register</code> with a 5-character password (<code>"short"</code>) returns 200 and creates the account. Source: <code>handle_user_create.go</code>, no length / complexity validation before <code>auth.HashPassword</code>.</p>
+</div>
+
+<div class="severity-med">
+  <strong>🟡 MEDIUM — Register returns 500 on <code>{}</code> body instead of 400</strong>
+  <p>Same handler. Empty fields proceed to bcrypt / DB insert and bubble up as a 500. Should validate <code>Email != ""</code> and <code>Password != ""</code> immediately after JSON decode.</p>
+</div>
+
+<div class="severity-low">
+  <strong>🟢 LOW / NOTE — Encrypted-private-key KDF is single-round SHA-256</strong>
+  <p>Source comment already flags Argon2id / PBKDF2 as the proper target. Migration with backward-compat needed.</p>
+</div>
+
+<div class="severity-low">
+  <strong>⏳ Local main is +5 commits ahead of <code>origin/main</code></strong>
+  <p>The GHCR image built by CI does not yet match what is running on this VPS. Push when ready.</p>
+</div>
+
+<h2>Final State</h2>
+<ul>
+  <li>Source, binary, dist, and live URL aligned at 2026-04-27 ~10:05 CST.</li>
+  <li>All test suites and live health checks green.</li>
+  <li>Two new commits this closeout: ESLint cleanup + new vitest specs (one), and closeout docs + README (two).</li>
+  <li><strong>Nothing pushed.</strong></li>
+</ul>
+
+<h2>Next Steps</h2>
+<ol>
+  <li>Land a coordinated register-validation patch (server-side password policy + 400 on empty body).</li>
+  <li>Push <code>main</code> to <code>origin</code> so the GHCR image catches up.</li>
+  <li>Resume the UI/UX coherence roadmap step 4 (AccessPanel / FileRequests adoption — already partially in flight).</li>
+</ol>
+
+<hr/>
+<p class="meta">Generated 2026-04-27 by closeout pass. Companion docs: <a href="2026-04-27-qa-feature-coverage-report.html">QA feature coverage report</a> · <a href="2026-04-27-coherence-verification.html">Coherence verification</a>.</p>
+
+</body>
+</html>

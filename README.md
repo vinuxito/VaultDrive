@@ -8,27 +8,65 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-04-27 — feature QA pass)
+## Current Status (2026-04-27 — closeout & deploy)
 
-**Safe to continue.** Verdict: **PASS WITH RISKS.** Full QA coverage pass on commit `4e396dc` (`feat: enhance folder sharing and upload link functionality`) — every documented feature has at least one verification check.
+**Safe to continue.** Source, deployed binary, deployed `dist/`, and live prod URL are aligned and verified at 2026-04-27 ~10:05 CST.
+
+**Live URL:** https://quantixdrive.filemonprime.net/quantix/ — running the freshly-built binary (`quantix-drive`, 11.7 MB, mtime 2026-04-27 09:58) under `quantixdrive.service` (`MainPID` started 10:00:54 CST).
 
 | Check | Result |
 |-------|--------|
-| Frontend unit tests (`vitest run`) | ✅ 106 / 106 (31 files) |
-| Frontend production build (`vite build`) | ✅ |
-| Backend build (`go build ./...`) | ✅ exit 0 |
+| Frontend unit tests (`vitest run`) | ✅ 106 / 106 (31 files) in 20.29 s |
+| Frontend production build (`vite build`) | ✅ 12.94 s |
+| Backend build (`go build`) | ✅ binary 11.7 MB |
 | Backend tests (`go test ./...`) | ✅ ok (root pkg) |
-| Full E2E suite (`playwright test`) | ✅ 39 / 39 in ~3.3 min |
-| API smoke (44 manual checks) | ✅ 42/42 expected; 2 register-validation findings |
+| Full E2E suite (`playwright test`) | ✅ 39 / 39 in ~3.3 min (earlier today) |
 | Feature coverage matrix | ✅ 34 / 34 documented features verified |
+| Live SPA `/quantix/` | ✅ HTTP 200 |
+| Live `/api/healthz` | ✅ HTTP 200 |
+| Service `systemctl is-active quantixdrive` | ✅ active |
+
+**Routing model (Apache vhost):**
+- SPA → `https://quantixdrive.filemonprime.net/quantix/`
+- API → `https://quantixdrive.filemonprime.net/api/...` (NOT under `/quantix/`)
 
 **Known risks (register endpoint only — existing accounts unaffected):**
 - 🔴 HIGH — `POST /api/register` accepts arbitrary-length passwords (5-char `"short"` is accepted).
 - 🟡 MEDIUM — `POST /api/register` returns 500 on malformed JSON (`{}`) instead of 400.
+- 🟢 LOW / NOTE — encrypted-private-key KDF is single-round SHA-256 (Argon2id/PBKDF2 is the target).
+- ⏳ Local `main` is **+5 commits ahead of `origin/main`**. GHCR image built by CI does not match what is on this VPS — `git push` when ready.
 
-**Latest QA report:**
-- HTML: [docs/reports/2026-04-27-qa-feature-coverage-report.html](docs/reports/2026-04-27-qa-feature-coverage-report.html)
-- MD: [docs/reports/2026-04-27-qa-feature-coverage-report.md](docs/reports/2026-04-27-qa-feature-coverage-report.md)
+**Latest reports & memory:**
+- Closeout HTML: [docs/reports/2026-04-27-closeout-verification.html](docs/reports/2026-04-27-closeout-verification.html)
+- Closeout MD: [docs/reports/2026-04-27-closeout-verification.md](docs/reports/2026-04-27-closeout-verification.md)
+- Session memory: [docs/memories/session-2026-04-27-closeout-and-deploy.md](docs/memories/session-2026-04-27-closeout-and-deploy.md)
+- Earlier QA report: [docs/reports/2026-04-27-qa-feature-coverage-report.html](docs/reports/2026-04-27-qa-feature-coverage-report.html)
+
+---
+
+## Deploy / Build Runbook
+
+> Single source of truth: `Makefile`, `START_HERE.txt`, `/etc/systemd/system/quantixdrive.service`. Every code change must end with a redeploy or it never reaches the live URL.
+
+```bash
+# Frontend (regenerates vaultdrive_client/dist/)
+cd /lamp/www/QuantiX-Drive/vaultdrive_client
+npm run build         # ~12 s; emits dist/index.html + assets/*
+
+# Backend (regenerates ./quantix-drive binary)
+cd /lamp/www/QuantiX-Drive
+go build -o quantix-drive
+
+# Restart prod service
+sudo systemctl restart quantixdrive
+systemctl is-active quantixdrive   # expect: active
+
+# Smoke
+curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/quantix/
+curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/api/healthz
+```
+
+Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/etc/quantix/quantixdrive.env`. Logs: `journalctl -u quantixdrive -f`.
 
 **What's new since the last verification:**
 - Three coherence primitives shipped: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` (see [docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md](docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md)).
