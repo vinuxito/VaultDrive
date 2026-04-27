@@ -1,6 +1,6 @@
 # QuantiX Drive — Documentation Index
 
-Last updated: April 16, 2026 (Build verification, session-vault safety fix, cached-PIN recovery, Playwright harness isolation)
+Last updated: April 27, 2026 (UI/UX coherence foundations: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` shipped + first adoption surface — Upload Links)
 
 ## Task Documentation
 
@@ -34,6 +34,8 @@ Last updated: April 16, 2026 (Build verification, session-vault safety fix, cach
 | 26 | [Skin System 2026-04-12](./26_SKIN_SYSTEM_2026-04-12.md) | Six-skin theming system, FOUC prevention, and visual rules |
 | 27 | [Theme Color Consistency 2026-04-12](./27_THEME_COLOR_CONSISTENCY_2026-04-12.md) | Semantic-token migration strategy and replacement rules |
 | 28 | [Build Verification 2026-04-16](./28_BUILD_VERIFICATION_2026-04-16.md) | Session-vault reset fix, cached-PIN recovery fix, isolated Playwright DB/upload harness, and fresh verification results |
+| 29 | [UI/UX Coherence Roadmap](./roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) | 7-step UI/UX coherence roadmap — `<RowActionMenu>`, `constants/copy.ts`, `<DataState>`, onboarding hand-off, mobile verification, trust-language pass, activity receipt drawer |
+| 30 | [Coherence Foundations 2026-04-27](./SESSION_MEMORY_2026-04-27-coherence-foundations.md) | Implementation log for Steps 1–3 of the coherence roadmap — three primitives shipped, Upload Links migrated, 99+/99+ tests, build green |
 
 ## Feature Docs (pre-existing)
 

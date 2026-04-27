@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { X, ChevronDown, ChevronUp, Trash2, UploadCloud, FileIcon, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2, UploadCloud, FileIcon, ShieldCheck, X } from "lucide-react";
 import { Button } from "../ui/button";
+import { RowActionMenu, type RowAction } from "../ui/row-action-menu";
 import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 import type { UploadTokenWithFiles } from "./types";
 import { API_URL, BASE_PATH } from "../../utils/api";
@@ -92,6 +93,25 @@ export function UploadLinkCard({
     }
   };
 
+  const sealActionAvailable = !token.used && status.variant !== "destructive";
+
+  const rowActions: RowAction[] = [];
+  if (sealActionAvailable) {
+    rowActions.push({
+      id: "seal-route",
+      label: "Seal route",
+      icon: X,
+      onSelect: onDeactivate,
+    });
+  }
+  rowActions.push({
+    id: "remove-route",
+    label: "Remove route",
+    icon: Trash2,
+    kind: "destructive",
+    onSelect: onDelete,
+  });
+
   return (
     <div className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:bg-muted/60">
       <div className="p-4">
@@ -166,18 +186,26 @@ export function UploadLinkCard({
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onExpand}
-            className="ml-2 shrink-0"
-          >
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </Button>
+          <div className="ml-2 flex shrink-0 items-center gap-1">
+            <RowActionMenu
+              actions={rowActions}
+              label="Manage upload link"
+              triggerAriaLabel="Upload link actions"
+              triggerTestId={`upload-link-actions-${token.id}`}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onExpand}
+              aria-label={isExpanded ? "Collapse upload link details" : "Expand upload link details"}
+            >
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -233,29 +261,6 @@ export function UploadLinkCard({
                 </p>
               </div>
             )}
-
-            <div className="flex gap-2 mt-4 pt-4 border-t">
-              {!token.used && status.variant !== "destructive" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDeactivate}
-                  className="flex-1 gap-1"
-                >
-                  <X className="w-4 h-4" />
-                  Seal route
-                </Button>
-              )}
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onDelete}
-                className="flex-1 gap-1"
-              >
-                <Trash2 className="w-4 h-4" />
-                Remove route
-              </Button>
-            </div>
           </div>
         </div>
       )}
