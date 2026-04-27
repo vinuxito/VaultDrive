@@ -11,14 +11,60 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
 )
+
+const (
+	minPasswordLength = 8
+	maxPasswordLength = 64
+	maxFieldLength    = 254
+)
+
+var emailRegex = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+
+func validateRegisterInput(firstName, lastName, username, email, password string) error {
+	firstName = strings.TrimSpace(firstName)
+	lastName = strings.TrimSpace(lastName)
+	username = strings.TrimSpace(username)
+	email = strings.TrimSpace(email)
+
+	if firstName == "" {
+		return errors.New("first_name is required")
+	}
+	if lastName == "" {
+		return errors.New("last_name is required")
+	}
+	if username == "" {
+		return errors.New("username is required")
+	}
+	if email == "" {
+		return errors.New("email is required")
+	}
+	if !emailRegex.MatchString(email) {
+		return errors.New("email is not a valid email address")
+	}
+	if len(firstName) > maxFieldLength || len(lastName) > maxFieldLength ||
+		len(username) > maxFieldLength || len(email) > maxFieldLength {
+		return fmt.Errorf("fields must be %d characters or fewer", maxFieldLength)
+	}
+	if len(password) < minPasswordLength {
+		return fmt.Errorf("password must be at least %d characters", minPasswordLength)
+	}
+	if len(password) > maxPasswordLength {
+		return fmt.Errorf("password must be %d characters or fewer", maxPasswordLength)
+	}
+	return nil
+}
 
 func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var newUser struct {
@@ -32,6 +78,16 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 	err := json.NewDecoder(r.Body).Decode(&newUser)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload", err)
+		return
+	}
+
+	newUser.FirstName = strings.TrimSpace(newUser.FirstName)
+	newUser.LastName = strings.TrimSpace(newUser.LastName)
+	newUser.Username = strings.TrimSpace(newUser.Username)
+	newUser.Email = strings.TrimSpace(newUser.Email)
+
+	if err := validateRegisterInput(newUser.FirstName, newUser.LastName, newUser.Username, newUser.Email, newUser.Password); err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 

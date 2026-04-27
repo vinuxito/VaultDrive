@@ -17,6 +17,7 @@ import {
   decryptPrivateKeyWithPIN,
   importRSAPrivateKey,
 } from "../utils/crypto";
+import { validateRegister } from "../utils/registerValidation";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -123,6 +124,13 @@ export default function Login() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const validationError = validateRegister(registerData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -417,6 +425,9 @@ export default function Login() {
                     }
                     className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
+                    minLength={8}
+                    maxLength={64}
+                    aria-describedby="register-password-help"
                   />
                   <button
                     type="button"
@@ -430,6 +441,9 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                <p id="register-password-help" className="text-xs text-muted-foreground">
+                  Must be 8–64 characters.
+                </p>
               </div>
 
               <Button
