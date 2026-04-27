@@ -8,19 +8,27 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-04-27)
+## Current Status (2026-04-27 — feature QA pass)
 
-**Safe to continue.** Latest verification on commit `49c92c0` (`feat(ui): coherence foundations`) reports green across the board.
+**Safe to continue.** Verdict: **PASS WITH RISKS.** Full QA coverage pass on commit `4e396dc` (`feat: enhance folder sharing and upload link functionality`) — every documented feature has at least one verification check.
 
 | Check | Result |
 |-------|--------|
-| Frontend typecheck (`tsc -b`) | ✅ exit 0 |
-| Frontend unit tests (`vitest run`) | ✅ 99 / 99 |
-| Frontend production build (`vite build`) | ✅ ~11–19 s |
+| Frontend unit tests (`vitest run`) | ✅ 106 / 106 (31 files) |
+| Frontend production build (`vite build`) | ✅ |
 | Backend build (`go build ./...`) | ✅ exit 0 |
 | Backend tests (`go test ./...`) | ✅ ok (root pkg) |
-| Full E2E suite (`playwright test`) | ✅ 39 / 39 in ~1.5 min on a clean test DB |
-| ESLint | ⚠ 45 pre-existing legacy issues — none from recent work |
+| Full E2E suite (`playwright test`) | ✅ 39 / 39 in ~3.3 min |
+| API smoke (44 manual checks) | ✅ 42/42 expected; 2 register-validation findings |
+| Feature coverage matrix | ✅ 34 / 34 documented features verified |
+
+**Known risks (register endpoint only — existing accounts unaffected):**
+- 🔴 HIGH — `POST /api/register` accepts arbitrary-length passwords (5-char `"short"` is accepted).
+- 🟡 MEDIUM — `POST /api/register` returns 500 on malformed JSON (`{}`) instead of 400.
+
+**Latest QA report:**
+- HTML: [docs/reports/2026-04-27-qa-feature-coverage-report.html](docs/reports/2026-04-27-qa-feature-coverage-report.html)
+- MD: [docs/reports/2026-04-27-qa-feature-coverage-report.md](docs/reports/2026-04-27-qa-feature-coverage-report.md)
 
 **What's new since the last verification:**
 - Three coherence primitives shipped: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` (see [docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md](docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md)).
