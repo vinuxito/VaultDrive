@@ -37,6 +37,36 @@ describe("AccessPanel", () => {
     expect(screen.getByTestId("data-state-retry")).toBeInTheDocument();
   });
 
+  it("DataState retry button re-fetches the access summary", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(null, { status: 500 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            summary: "1 active",
+            entries: [
+              {
+                kind: "share_link",
+                label: "https://example.test/share/r",
+                since: "2026-04-10T10:00:00.000Z",
+                state: "active",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<AccessPanel fileId="file-1" filename="hello.txt" onClose={() => undefined} />);
+
+    const retry = await screen.findByTestId("data-state-retry");
+    await userEvent.click(retry);
+    await screen.findByText(/https:\/\/example.test\/share\/r/i);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("uses centralised destructive copy when revoking external access", async () => {
     globalThis.fetch = vi.fn(async () =>
       new Response(

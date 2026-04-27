@@ -77,6 +77,30 @@ describe("FileRequestsSection", () => {
     ).toBeInTheDocument();
   });
 
+  it("copy-url action writes the request URL to the clipboard", async () => {
+    render(<FileRequestsSection />);
+    await screen.findByText("Q1 statements please");
+    await userEvent.click(screen.getByTestId("file-request-actions-req-1"));
+    await userEvent.click(await screen.findByTestId("row-action-copy-url"));
+    expect(clipboardWriteText).toHaveBeenCalledTimes(1);
+    expect(String(clipboardWriteText.mock.calls[0][0])).toMatch(/\/request\/tok-1$/);
+  });
+
+  it("does not surface the delete action for inactive requests", async () => {
+    globalThis.fetch = vi.fn(async () =>
+      new Response(JSON.stringify([{ ...sampleRequest, is_active: false }]), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ) as typeof fetch;
+
+    render(<FileRequestsSection />);
+    await screen.findByText("Q1 statements please");
+    await userEvent.click(screen.getByTestId("file-request-actions-req-1"));
+    expect(await screen.findByTestId("row-action-copy-url")).toBeInTheDocument();
+    expect(screen.queryByTestId("row-action-delete-request")).not.toBeInTheDocument();
+  });
+
   it("shows the empty state CTA when no requests exist", async () => {
     globalThis.fetch = vi.fn(async () =>
       new Response(JSON.stringify([]), {
