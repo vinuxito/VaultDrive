@@ -89,10 +89,13 @@ Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/
 
 **Roadmap:** [docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md](docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) — 7 steps focused on UI/UX coherence. Steps 1–3 (foundations) shipped; next is adoption on AccessPanel and FileRequestsSection.
 
-**Latest verification:**
-- Session memory: [docs/memories/session-2026-04-27-coherence-verification.md](docs/memories/session-2026-04-27-coherence-verification.md)
-- MD report: [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md)
-- HTML report: [docs/reports/2026-04-27-coherence-verification.html](docs/reports/2026-04-27-coherence-verification.html)
+**Latest verification (Filemón Coder 3-iteration loop, 2026-04-27 11:31 CST):**
+- Session memory: [docs/memories/session-2026-04-27-filemon-coder-3-iterations.md](docs/memories/session-2026-04-27-filemon-coder-3-iterations.md)
+- MD report: [docs/reports/2026-04-27-filemon-coder-iterations-verification.md](docs/reports/2026-04-27-filemon-coder-iterations-verification.md)
+- HTML report: [docs/reports/2026-04-27-filemon-coder-iterations-verification.html](docs/reports/2026-04-27-filemon-coder-iterations-verification.html)
+
+Earlier verifications:
+- Coherence foundations: [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md)
 
 ---
 
