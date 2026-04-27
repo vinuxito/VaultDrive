@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1776029792569,
+  "lastScanned": 1777249551489,
   "projectRoot": "/lamp/www/QuantiX-Drive",
   "techStack": {
     "languages": [
@@ -73,7 +73,7 @@
       "path": "auth",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1776029792532,
+      "lastAccessed": 1777249551404,
       "keyFiles": [
         "auth.go",
         "imap.go"
@@ -82,8 +82,8 @@
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 56,
-      "lastAccessed": 1776029792533,
+      "fileCount": 68,
+      "lastAccessed": 1777249551407,
       "keyFiles": [
         "01_EMAIL_DISABLED.md",
         "02_PIN_SYSTEM.md",
@@ -96,14 +96,14 @@
       "path": "internal",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1776029792546,
+      "lastAccessed": 1777249551428,
       "keyFiles": []
     },
     "llmskills": {
       "path": "llmskills",
       "purpose": null,
       "fileCount": 5,
-      "lastAccessed": 1776029792549,
+      "lastAccessed": 1777249551441,
       "keyFiles": [
         "LIGHTPANDA_E2E.md",
         "LIGHTPANDA_FOR_AGENTS.md",
@@ -116,7 +116,7 @@
       "path": "plans",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1776029792549,
+      "lastAccessed": 1777249551448,
       "keyFiles": [
         "secure-file-platform-upgrade-plan-v3.md",
         "secure-trust-plan-v2.md",
@@ -127,7 +127,7 @@
       "path": "plans-old",
       "purpose": null,
       "fileCount": 15,
-      "lastAccessed": 1776029792550,
+      "lastAccessed": 1777249551450,
       "keyFiles": [
         "FINAL-IMPLEMENTATION-STATUS.md",
         "phase-1-completion-summary.md",
@@ -140,7 +140,7 @@
       "path": "screenshots",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1776029792550,
+      "lastAccessed": 1777249551453,
       "keyFiles": [
         "image.png",
         "logo.svg"
@@ -150,7 +150,7 @@
       "path": "sdk",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1776029792551,
+      "lastAccessed": 1777249551454,
       "keyFiles": [
         "client.ts",
         "example.ts",
@@ -161,27 +161,40 @@
       "path": "sql",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1776029792552,
+      "lastAccessed": 1777249551460,
       "keyFiles": []
+    },
+    "uploads": {
+      "path": "uploads",
+      "purpose": null,
+      "fileCount": 62,
+      "lastAccessed": 1777249551460,
+      "keyFiles": [
+        "00791079-01f6-4f7e-8f9b-4eb2496f2d31.txt",
+        "01626fc5-dd97-48a3-bed8-bdb2e96ac47e.pdf",
+        "0556e3a3-472e-4c34-a5b1-0ee5f85d25b5.txt",
+        "068199c6-033c-4c63-987b-48b2bb755524.txt",
+        "085cfef1-3d76-434a-8cdc-f422397de813.txt"
+      ]
     },
     "vaultdrive_client": {
       "path": "vaultdrive_client",
       "purpose": null,
-      "fileCount": 15,
-      "lastAccessed": 1776029792554,
+      "fileCount": 19,
+      "lastAccessed": 1777249551464,
       "keyFiles": [
         "README.md",
         "components.json",
         "eslint.config.js",
-        "index.html",
-        "package-lock.json"
+        "fix_dark_gradients.py",
+        "fix_hardcoded_colors.py"
       ]
     },
     "vaultdrive_client/dist": {
       "path": "vaultdrive_client/dist",
       "purpose": "Distribution/build output",
       "fileCount": 5,
-      "lastAccessed": 1776029792558,
+      "lastAccessed": 1777249551483,
       "keyFiles": [
         "abrn-logo.png",
         "favicon.png",
@@ -198,8 +211,8 @@
     },
     {
       "path": "vaultdrive_client/src/pages/files.tsx",
-      "accessCount": 44,
-      "lastAccessed": 1776047035151,
+      "accessCount": 45,
+      "lastAccessed": 1777249601707,
       "type": "file"
     },
     {
@@ -212,6 +225,18 @@
       "path": "vaultdrive_client/src/pages/drop-upload.tsx",
       "accessCount": 10,
       "lastAccessed": 1775729018705,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/vault/AccessPanel.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1777310600092,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 10,
+      "lastAccessed": 1777311247667,
       "type": "file"
     },
     {
@@ -245,6 +270,18 @@
       "type": "directory"
     },
     {
+      "path": "docs/INDEX.md",
+      "accessCount": 5,
+      "lastAccessed": 1777273615338,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 5,
+      "lastAccessed": 1777305437073,
+      "type": "directory"
+    },
+    {
       "path": "vaultdrive_client/src/utils/drop-drag.ts",
       "accessCount": 4,
       "lastAccessed": 1775728917535,
@@ -260,6 +297,18 @@
       "path": "vaultdrive_client/src/main.tsx",
       "accessCount": 4,
       "lastAccessed": 1776049828446,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/ui/button.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1777270052736,
+      "type": "directory"
+    },
+    {
+      "path": "vaultdrive_client/src/components/upload/UploadLinksSection.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1777270426709,
       "type": "file"
     },
     {
@@ -281,21 +330,15 @@
       "type": "file"
     },
     {
-      "path": "",
-      "accessCount": 3,
-      "lastAccessed": 1776038103790,
-      "type": "directory"
-    },
-    {
-      "path": "vaultdrive_client/src/components/ui/button.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776047220698,
-      "type": "directory"
-    },
-    {
       "path": "vaultdrive_client/src/components/theme-toggle.tsx",
       "accessCount": 3,
       "lastAccessed": 1776049745333,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/ui/row-action-menu.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1777275858348,
       "type": "file"
     },
     {
@@ -347,6 +390,24 @@
       "type": "file"
     },
     {
+      "path": "vaultdrive_client/src/components/ui/data-state.test.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1777270264142,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/ui/data-state.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1777275859287,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/constants/copy.ts",
+      "accessCount": 2,
+      "lastAccessed": 1777275859665,
+      "type": "file"
+    },
+    {
       "path": "vaultdrive_client/src/components/upload/dropzone.tsx",
       "accessCount": 1,
       "lastAccessed": 1775727811977,
@@ -368,12 +429,6 @@
       "path": "handle_files.go",
       "accessCount": 1,
       "lastAccessed": 1775727856475,
-      "type": "file"
-    },
-    {
-      "path": "README.md",
-      "accessCount": 1,
-      "lastAccessed": 1776036316280,
       "type": "file"
     },
     {
@@ -422,6 +477,30 @@
       "path": "docs/SESSION_MEMORY_2026-04-12-color-consistency.md",
       "accessCount": 1,
       "lastAccessed": 1776051637837,
+      "type": "file"
+    },
+    {
+      "path": "docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md",
+      "accessCount": 1,
+      "lastAccessed": 1777249820192,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/ui/dropdown-menu.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1777270052207,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/ui/dialog.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1777270053014,
+      "type": "file"
+    },
+    {
+      "path": "vaultdrive_client/src/components/ui/row-action-menu.test.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1777270229536,
       "type": "file"
     }
   ],

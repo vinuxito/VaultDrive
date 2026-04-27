@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /lamp/www/QuantiX-Drive && ~/go/bin/goose -dir sql/schema postgres \\\"postgres://postgres:postgres@localhost:5432/quantixdrive\\\" up 2>&1\",\"timeout\":60000,\"description\":\"Run all migration...",
-  "error": "Exit code 1\n2026/04/12 15:53:02 OK   001_users.sql (21.02ms)\n2026/04/12 15:53:02 OK   002_files.sql (14.37ms)\n2026/04/12 15:53:02 OK   003_refresh_tokens.sql (12.85ms)\n2026/04/12 15:53:02 OK   004_file_shares.sql (38.38ms)\n2026/04/12 15:53:02 OK   005_file_access_keys.sql (15.87ms)\n2026/04/12 15:53:02 OK   006_folders.sql (13.76ms)\n2026/04/12 15:53:02 OK   007_tags.sql (15.68ms)\n2026/04/12 15:53:02 OK   008_file_tags.sql (15.83ms)\n2026/04/12 15:53:02 OK   009_file_versions.sql (27ms)\n2026/04/12 ...",
-  "timestamp": "2026-04-12T21:53:03.010Z",
-  "retry_count": 2
+  "tool_input_preview": "{\"command\":\"make deploy-smoke 2>&1\",\"description\":\"Live smoke\"}",
+  "error": "Exit code 2\nmake: *** No rule to make target 'deploy-smoke'.  Stop.",
+  "timestamp": "2026-04-27T17:38:52.930Z",
+  "retry_count": 1
 }
