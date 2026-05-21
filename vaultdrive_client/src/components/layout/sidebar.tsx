@@ -60,6 +60,17 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 type="button"
                 key={item.label}
                 onClick={() => navigate(item.path)}
+                onMouseEnter={() => {
+                  // Prefetch the lazy chunk on hover so navigation feels instant
+                  const prefetchMap: Record<string, () => Promise<unknown>> = {
+                    "/dashboard": () => import("../../pages/dashboard"),
+                    "/files": () => import("../../pages/files"),
+                    "/groups": () => import("../../pages/groups"),
+                    "/shared": () => import("../../pages/shared"),
+                    "/access-center": () => import("../../pages/access-center"),
+                  };
+                  prefetchMap[item.path]?.();
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
                   "hover:bg-primary/10 hover:text-foreground",

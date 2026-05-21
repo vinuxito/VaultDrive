@@ -265,10 +265,11 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {statsLoading
               ? ["s1","s2","s3","s4"].map((k) => <SkeletonCard key={k} />)
-              : statCards.map((card) => (
+              : statCards.map((card, index) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 cursor-default flex flex-col h-full"
+                    className="stat-card-enter rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-shadow duration-200 cursor-default flex flex-col h-full"
+                    style={{ animationDelay: `${index * 60}ms` }}
                   >
                     <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mb-4`}>
                       <card.icon className={`w-5 h-5 ${card.color}`} />
