@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"make deploy-smoke 2>&1\",\"description\":\"Live smoke\"}",
-  "error": "Exit code 2\nmake: *** No rule to make target 'deploy-smoke'.  Stop.",
-  "timestamp": "2026-04-27T17:38:52.930Z",
+  "tool_input_preview": "{\"command\":\"cd /lamp/www/QuantiX-Drive && git fetch origin && git log --oneline -20 origin/main && echo \\\"---LOCAL---\\\" && git log --oneline -20 main && echo \\\"---DIVERGE---\\\" && git rev-list --left-r...",
+  "error": "Exit code 128\nfatal: could not read Username for 'https://github.com': No such device or address",
+  "timestamp": "2026-04-27T17:44:30.996Z",
   "retry_count": 1
 }

@@ -37,6 +37,8 @@ import { PipelineExamplesSection } from "../components/settings/PipelineExamples
 import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { CollapsibleSection } from "../components/settings/CollapsibleSection";
 import { ControlPlaneStatusSection } from "../components/settings/ControlPlaneStatusSection";
+import { LanguageSelector } from "../components/settings/LanguageSelector";
+
 import { Tabs, TabPanel } from "../components/ui/tabs";
 import { useSessionVault } from "../context/SessionVaultContext";
 import {
@@ -249,6 +251,9 @@ export default function Settings() {
 
         {/* Account Tab */}
         <TabPanel id="account" activeTab={activeTab} className="space-y-6">
+        {/* Language Settings */}
+        <LanguageSelector />
+
         {/* Appearance Settings */}
         <Card>
           <CardHeader>

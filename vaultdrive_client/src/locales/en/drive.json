@@ -1,0 +1,54 @@
+{
+  "vault": {
+    "title": "Vault",
+    "subtitle": "Encrypted, visible, revocable",
+    "search": "Search all files…",
+    "upload": "Upload",
+    "folder": "Folder",
+    "dropToUpload": "Drop files to upload",
+    "uploads": "Uploads",
+    "loading": "Loading your vault…",
+    "noStarred": "No starred files",
+    "noShared": "Nothing shared with you yet",
+    "noFiles": "No files here yet",
+    "uploadPrompt": "Upload a file to start your encrypted vault. Files are locked in your browser before they leave your device.",
+    "encryptAndUpload": "Encrypt & Upload",
+    "encrypting": "Encrypting…",
+    "decryptAndDownload": "Decrypt & Download",
+    "decrypting": "Decrypting…",
+    "columns": {
+      "name": "Name",
+      "origin": "Origin",
+      "size": "Size",
+      "date": "Date"
+    },
+    "actions": {
+      "download": "Download",
+      "createShareLink": "Create share link",
+      "star": "Star",
+      "unstar": "Unstar",
+      "accessControl": "Who can access this file?",
+      "share": "Share with user",
+      "quickShare": "Quick Share",
+      "moveToFolder": "Move to folder",
+      "delete": "Delete",
+      "manageShares": "Manage shares",
+      "preview": "Preview"
+    },
+    "passwordModal": {
+      "usePin": "Use Your PIN",
+      "encryptFile": "Encrypt File",
+      "enterPin": "Enter Your PIN",
+      "decryptFile": "Decrypt File",
+      "pinUploadDesc": "Your PIN is used for all new vault uploads.",
+      "passwordUploadDesc": "Enter a password to encrypt your file.",
+      "pinDownloadDesc": "Enter your 4-digit PIN to decrypt this file.",
+      "passwordDownloadDesc": "Enter the credential originally used to encrypt this file.",
+      "pinLabel": "4-digit PIN",
+      "credentialLabel": "File Credential",
+      "cancel": "Cancel",
+      "placeholderPin": "••••",
+      "placeholderCredential": "Enter credential"
+    }
+  }
+}

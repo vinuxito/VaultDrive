@@ -76,8 +76,10 @@ import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import type { DragDataTransferItem } from "../utils/drop-drag";
 import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import { useTranslation } from "react-i18next";
 
 interface FileData {
+
   id: string;
   filename: string;
   file_size: number;
@@ -222,8 +224,10 @@ function hasSomeFilesSelected(files: FileData[], selectedIds: Set<string>): bool
 export default function Files() {
   const navigate = useNavigate();
   const sessionVault = useSessionVault();
+  const { t } = useTranslation(["drive"]);
 
   const [myFiles, setMyFiles] = useState<FileData[]>([]);
+
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [dropTokens, setDropTokens] = useState<DropTokenInfo[]>([]);
@@ -1442,11 +1446,12 @@ export default function Files() {
     <>
       <div className="h-full flex flex-col">
         <div className="px-6 pt-6 pb-4 border-b border-border/60">
-          <h1 className="text-2xl font-bold text-foreground">Vault</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("drive:vault.title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Encrypted, visible, revocable
+            {t("drive:vault.subtitle")}
           </p>
         </div>
+
 
         <div className="px-6 py-3 border-b border-border/60 bg-background shrink-0">
           <div className="flex items-center gap-3">
@@ -1456,9 +1461,10 @@ export default function Files() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search all files…"
+                placeholder={t("drive:vault.search")}
                 className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-white focus:border-primary/40 focus:outline-none transition-all"
               />
+
                 {searchQuery && (
                   <button
                     type="button"
@@ -1560,9 +1566,10 @@ export default function Files() {
                   <Menu className="w-4 h-4" />
                 </button>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="text-muted-foreground">Vault</span>
+                  <span className="text-muted-foreground">{t("drive:vault.title")}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                   <span className="font-medium text-foreground">{panelTitle}</span>
+
                   <span className="ml-1 text-xs text-muted-foreground">
                     ({visibleFiles.length})
                   </span>
@@ -1595,8 +1602,9 @@ export default function Files() {
                       className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
                     >
                       <Upload className="w-3.5 h-3.5" />
-                      Upload
+                      {t("drive:vault.upload")}
                     </label>
+
                     <input
                       id="file-input"
                       type="file"
@@ -1608,8 +1616,9 @@ export default function Files() {
                       className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
                     >
                       <FolderOpen className="w-3.5 h-3.5" />
-                      Folder
+                      {t("drive:vault.folder")}
                     </label>
+
                     <input
                       id="folder-input"
                       type="file"
@@ -1637,8 +1646,9 @@ export default function Files() {
                   disabled={uploading}
                   className="bg-primary hover:bg-primary/90 text-white h-7 px-3 text-xs"
                 >
-                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Encrypt & Upload"}
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t("drive:vault.encryptAndUpload")}
                 </Button>
+
                 <button
                   type="button"
                   onClick={() => setSelectedFile(null)}
@@ -1671,9 +1681,10 @@ export default function Files() {
               {loading && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <Loader2 className="w-6 h-6 animate-spin mb-3" />
-                  <p className="text-sm">Loading your vault…</p>
+                  <p className="text-sm">{t("drive:vault.loading")}</p>
                 </div>
               )}
+
 
               {!loading && visibleFiles.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
@@ -1681,15 +1692,17 @@ export default function Files() {
                     <Lock className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    {selectedNode.type === "starred" ? "No starred files" :
-                     selectedNode.type === "shared" ? "Nothing shared with you yet" :
-                     "No files here yet"}
+                    {selectedNode.type === "starred" ? t("drive:vault.noStarred") :
+                     selectedNode.type === "shared" ? t("drive:vault.noShared") :
+                     t("drive:vault.noFiles")}
                   </p>
+
                   {selectedNode.type === "all" && !isSharedView && (
                     <p className="text-xs mt-1.5 text-muted-foreground max-w-xs text-center">
-                      Upload a file to start your encrypted vault. Files are locked in your browser before they leave your device.
+                      {t("drive:vault.uploadPrompt")}
                     </p>
                   )}
+
                 </div>
               )}
 
@@ -1706,11 +1719,12 @@ export default function Files() {
                         aria-label={allVisibleSelected ? "Clear current view selection" : "Select current view"}
                       />
                     </div>
-                    <div className="flex-1">Name</div>
-                    <div className="w-28 hidden sm:block">Origin</div>
-                    <div className="w-16 text-right hidden md:block">Size</div>
-                    <div className="w-24 text-right hidden lg:block">Date</div>
+                    <div className="flex-1">{t("drive:vault.columns.name")}</div>
+                    <div className="w-28 hidden sm:block">{t("drive:vault.columns.origin")}</div>
+                    <div className="w-16 text-right hidden md:block">{t("drive:vault.columns.size")}</div>
+                    <div className="w-24 text-right hidden lg:block">{t("drive:vault.columns.date")}</div>
                     <div className="w-24 shrink-0" />
+
                   </div>
 
                   {visibleFiles.map((file) => {
@@ -1897,23 +1911,26 @@ export default function Files() {
                                 onClick={() => { handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner); setOpenActionMenu(null); }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                               >
-                                <Download className="w-3.5 h-3.5" /> Download
+                                <Download className="w-3.5 h-3.5" /> {t("drive:vault.actions.download")}
                               </button>
+
                               <button
                                 type="button"
                                 onClick={() => { setPreviewFile(file); setOpenActionMenu(null); }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                               >
-                                <File className="w-3.5 h-3.5" /> Preview
+                                <File className="w-3.5 h-3.5" /> {t("drive:vault.actions.preview")}
                               </button>
+
                               {file.is_owner !== false && (
                                 <button
                                   type="button"
                                   onClick={() => { handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined); setOpenActionMenu(null); }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                                 >
-                                  <Share2 className="w-3.5 h-3.5" /> Share
+                                  <Share2 className="w-3.5 h-3.5" /> {t("drive:vault.actions.share")}
                                 </button>
+
                               )}
                               {file.is_owner !== false && (
                                  <button
@@ -1921,8 +1938,9 @@ export default function Files() {
                                     onClick={() => { handleCreateShareLink(file); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                                  >
-                                   <Link2 className="w-3.5 h-3.5" /> Create share link
+                                   <Link2 className="w-3.5 h-3.5" /> {t("drive:vault.actions.createShareLink")}
                                  </button>
+
                                )}
                                {file.is_owner !== false && (
                                   <button
@@ -1930,8 +1948,9 @@ export default function Files() {
                                     onClick={() => { handleQuickShare(file.id); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-700 hover:bg-violet-50"
                                  >
-                                   <Zap className="w-3.5 h-3.5" /> Quick Share
+                                   <Zap className="w-3.5 h-3.5" /> {t("drive:vault.actions.quickShare")}
                                  </button>
+
                                )}
                                {file.is_owner !== false && (
                                   <button
@@ -1939,8 +1958,9 @@ export default function Files() {
                                     onClick={() => { setAccessPanelFile({ id: file.id, filename: file.filename }); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                                  >
-                                   <Shield className="w-3.5 h-3.5" /> Access control
+                                   <Shield className="w-3.5 h-3.5" /> {t("drive:vault.actions.accessControl")}
                                  </button>
+
                                )}
                               {file.is_owner !== false && (
                                 <button
@@ -1948,8 +1968,9 @@ export default function Files() {
                                   onClick={() => { void handleMoveClick(file); setOpenActionMenu(null); }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                                 >
-                                  <FolderOpen className="w-3.5 h-3.5" /> Move to folder
+                                  <FolderOpen className="w-3.5 h-3.5" /> {t("drive:vault.actions.moveToFolder")}
                                 </button>
+
                               )}
                               {file.is_owner !== false && (
                                  <button
@@ -1957,8 +1978,9 @@ export default function Files() {
                                     onClick={() => { handleDeleteClick(file.id, file.filename); setOpenActionMenu(null); }}
                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
                                  >
-                                   <Trash2 className="w-3.5 h-3.5" /> Delete
+                                   <Trash2 className="w-3.5 h-3.5" /> {t("drive:vault.actions.delete")}
                                  </button>
+
                                )}
                             </div>
                           )}
@@ -1978,8 +2000,9 @@ export default function Files() {
       {isDragging && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="border-4 border-dashed border-white/60 rounded-2xl p-16 text-white text-2xl font-semibold">
-            Drop files to upload
+            {t("drive:vault.dropToUpload")}
           </div>
+
         </div>
       )}
 
@@ -2001,8 +2024,9 @@ export default function Files() {
       {uploadTray.length > 0 && (
         <div className="fixed bottom-6 right-6 z-40 w-72 bg-card border border-white/10 rounded-xl shadow-2xl p-3 space-y-2">
           <div className="flex justify-between items-center text-white/70 text-xs font-medium px-1">
-            <span>Uploads</span>
+            <span>{t("drive:vault.uploads")}</span>
             <button type="button" onClick={() => setUploadTray([])} className="hover:text-white">✕</button>
+
           </div>
           {uploadTray.map((item) => (
             <div key={item.id} className="flex items-center gap-2">
@@ -2062,18 +2086,20 @@ export default function Files() {
               <CardTitle className="flex items-center gap-2 text-white">
                 <Lock className="w-5 h-5 text-primary-foreground" />
                 {isUpload
-                  ? (ownerUsesPin ? "Use Your PIN" : "Encrypt File")
-                  : usePin ? "Enter Your PIN" : "Decrypt File"}
+                  ? (ownerUsesPin ? t("drive:vault.passwordModal.usePin") : t("drive:vault.passwordModal.encryptFile"))
+                  : usePin ? t("drive:vault.passwordModal.enterPin") : t("drive:vault.passwordModal.decryptFile")}
               </CardTitle>
+
               <CardDescription className="text-white/70">
                 {isUpload
                   ? ownerUsesPin
-                    ? "Your PIN is used for all new vault uploads."
-                    : "Enter a password to encrypt your file."
+                    ? t("drive:vault.passwordModal.pinUploadDesc")
+                    : t("drive:vault.passwordModal.passwordUploadDesc")
                   : usePin
-                  ? "Enter your 4-digit PIN to decrypt this file."
-                  : "Enter the credential originally used to encrypt this file."}
+                  ? t("drive:vault.passwordModal.pinDownloadDesc")
+                  : t("drive:vault.passwordModal.passwordDownloadDesc")}
               </CardDescription>
+
             </CardHeader>
             <CardContent className="space-y-4">
               {error && (
@@ -2085,8 +2111,9 @@ export default function Files() {
               <div className="space-y-2">
                 <label htmlFor="vault-credential" className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Key className="w-4 h-4" />
-                  {usePin ? "4-digit PIN" : "File Credential"}
+                  {usePin ? t("drive:vault.passwordModal.pinLabel") : t("drive:vault.passwordModal.credentialLabel")}
                 </label>
+
                 <input
                   id="vault-credential"
                   type="password"
@@ -2098,8 +2125,9 @@ export default function Files() {
                       ? e.target.value.replace(/\D/g, "").slice(0, 4)
                       : e.target.value
                   )}
-                  placeholder={usePin ? "••••" : "Enter credential"}
+                  placeholder={usePin ? t("drive:vault.passwordModal.placeholderPin") : t("drive:vault.passwordModal.placeholderCredential")}
                   className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${usePin ? " text-center tracking-widest text-xl" : ""}`}
+
                   onKeyDown={(e) => { if (e.key === "Enter" && encryptionPassword) handlePasswordSubmit(); }}
                 />
               </div>
@@ -2124,13 +2152,14 @@ export default function Files() {
                   {uploading || downloading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isUpload ? "Encrypting…" : "Decrypting…"}
+                      {isUpload ? t("drive:vault.encrypting") : t("drive:vault.decrypting")}
                     </>
                   ) : isUpload ? (
-                    "Encrypt & Upload"
+                    t("drive:vault.encryptAndUpload")
                   ) : (
-                    "Decrypt & Download"
+                    t("drive:vault.decryptAndDownload")
                   )}
+
                 </Button>
               </div>
             </CardContent>

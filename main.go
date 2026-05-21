@@ -516,8 +516,9 @@ func main() {
 	// Configure server with explicit timeouts for large file uploads
 	server := &http.Server{
 		Addr:    ":" + port,
-		Handler: middlewareCORS(productCfg.CORSOrigins)(mux),
+		Handler: middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(mux)),
 		// Timeouts configured for 2GB uploads (30 minutes)
+
 		ReadTimeout:    30 * time.Minute, // Maximum time to read request body
 		WriteTimeout:   30 * time.Minute, // Maximum time to write response
 		IdleTimeout:    60 * time.Minute, // Keep-alive timeout

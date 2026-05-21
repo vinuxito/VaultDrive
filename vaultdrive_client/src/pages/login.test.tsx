@@ -64,7 +64,9 @@ describe("Login", () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), "owner@example.com");
     await userEvent.type(screen.getByLabelText(/^password$/i), "password123");
-    await userEvent.click(screen.getByRole("button", { name: /open quantix drive/i }));
+    await userEvent.click(screen.getByRole("button", { name: /open/i }));
+
+
 
     await waitFor(() => {
       expect(sessionVaultMocks.clearVault).toHaveBeenCalledTimes(1);

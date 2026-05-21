@@ -1,0 +1,28 @@
+{
+  "language": {
+    "toggle": "Idioma"
+  },
+  "nav": {
+    "dashboard": "Inicio",
+    "files": "Archivos",
+    "groups": "Grupos",
+    "shared": "Compartidos conmigo",
+    "accessCenter": "Centro de Acceso",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión",
+    "profile": "Perfil",
+    "search": "Buscar..."
+  },
+  "userMenu": {
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión"
+  },
+  "notifications": {
+    "newActivities": "{{count}} nuevas actividades",
+    "fileShared": "Han compartido un archivo contigo",
+    "dropUpload": "Nuevo archivo recibido a través de enlace drop",
+    "newActivity": "Nueva actividad: {{type}}"
+  }
+}
+

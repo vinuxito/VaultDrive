@@ -10,24 +10,28 @@ import {
 import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BrandLogo } from "../branding";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
+
   collapsed?: boolean;
 }
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation(["common"]);
 
   const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-    { icon: FolderOpen, label: "Files", path: "/files" },
-    { icon: Users, label: "Groups", path: "/groups" },
-    { icon: Link2, label: "Shared with Me", path: "/shared" },
-    { icon: ShieldCheck, label: "Access Center", path: "/access-center" },
+    { icon: LayoutDashboard, label: t("common:nav.dashboard"), path: "/dashboard" },
+    { icon: FolderOpen, label: t("common:nav.files"), path: "/files" },
+    { icon: Users, label: t("common:nav.groups"), path: "/groups" },
+    { icon: Link2, label: t("common:nav.shared"), path: "/shared" },
+    { icon: ShieldCheck, label: t("common:nav.accessCenter"), path: "/access-center" },
   ];
 
   const handleLogout = () => {
+
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
@@ -88,11 +92,12 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             "text-left",
             collapsed && "justify-center"
           )}
-          title="Settings"
+          title={t("common:nav.settings")}
         >
           <Settings className={cn("w-5 h-5 shrink-0")} />
-          {!collapsed && <span className="font-medium text-sm">Settings</span>}
+          {!collapsed && <span className="font-medium text-sm">{t("common:nav.settings")}</span>}
         </button>
+
         <button
             type="button"
             onClick={handleLogout}
@@ -102,11 +107,12 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 "text-left",
                 collapsed && "justify-center"
             )}
-            title="Logout"
+            title={t("common:nav.logout")}
             >
             <LogOut className={cn("w-5 h-5 shrink-0")} />
-            {!collapsed && <span className="font-medium text-sm">Logout</span>}
+            {!collapsed && <span className="font-medium text-sm">{t("common:nav.logout")}</span>}
         </button>
+
       </div>
     </aside>
   );

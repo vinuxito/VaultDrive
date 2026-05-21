@@ -28,14 +28,18 @@ import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { requiresPinSetup } from "../../utils/pin-trust";
 import { API_URL } from "../../utils/api";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
+import { useTranslation } from "react-i18next";
 
 interface DashboardLayoutProps {
+
   children: ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation(["common"]);
   const { clearVault } = useSessionVault();
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -130,15 +134,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       const message =
         count > 1
-          ? `${count} new activities`
+          ? t("common:notifications.newActivities", { count })
           : first?.event_type === "file_shared"
-          ? "A file was shared with you"
+          ? t("common:notifications.fileShared")
           : first?.event_type === "drop_upload"
-          ? "New file received via drop link"
-          : `New activity: ${first?.event_type ?? ""}`;
+          ? t("common:notifications.dropUpload")
+          : t("common:notifications.newActivity", { type: first?.event_type ?? "" });
 
       setToasts((prev) => [...prev, { id: crypto.randomUUID(), message, type: "info" } as ToastMessage]);
     }, 800);
+
   });
 
   const handleLogout = () => {
@@ -204,9 +209,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={() => setShowCommandPalette(true)}
               className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
             >
-                <Search className="w-4 h-4" />
-                <span>Search...</span>
+              <Search className="w-4 h-4" />
+                <span>{t("common:nav.search")}</span>
                 <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-primary/20 rounded-md bg-primary/5 flex items-center gap-1">
+
                     <Command className="w-2.5 h-2.5" />K
                 </kbd>
             </button>
@@ -252,12 +258,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-xs text-muted-foreground font-normal">{user.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>Profile</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>Settings</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>{t("common:userMenu.profile")}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>{t("common:userMenu.settings")}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:bg-red-500/10 focus:text-red-500">
-                  Logout
+                  {t("common:userMenu.logout")}
                 </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 <div className="px-2 py-2">
                   <PoweredByBadge className="text-xs" />

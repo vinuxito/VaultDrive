@@ -195,7 +195,7 @@ func (cfg *ApiConfig) handlerMoveFileToFolder(w http.ResponseWriter, r *http.Req
 	file, err := cfg.dbQueries.GetFileByID(r.Context(), fileID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			respondWithError(w, http.StatusNotFound, "File not found", err)
+			respondWithErrorCtx(r, w, http.StatusNotFound, "ErrFileNotFound", err)
 			return
 		}
 		respondWithError(w, http.StatusInternalServerError, "Error retrieving file", err)

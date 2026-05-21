@@ -90,8 +90,9 @@ describe("FolderSharedLinksSection", () => {
               folder_id: "folder-1",
               is_active: true,
               created_at: "2026-04-10T10:00:00.000Z",
-              expires_at: "2026-04-30T10:00:00.000Z",
+              expires_at: "2030-04-30T10:00:00.000Z",
               access_count: 2,
+
               last_accessed_at: "2026-04-11T10:00:00.000Z",
               owner_wrapped_folder_key: "wrapped-folder-key",
             },
@@ -116,8 +117,8 @@ describe("FolderSharedLinksSection", () => {
     expect(screen.queryByRole("button", { name: /open link/i })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /copy full folder share link/i }));
-    await userEvent.type(await screen.findByLabelText(/4-digit pin/i), "1111");
-    await userEvent.click(screen.getByRole("button", { name: /verify pin and copy/i }));
+    await userEvent.type(screen.getByLabelText("4-digit PIN"), "1111");
+    await userEvent.click(screen.getByRole("button", { name: /verify/i }));
 
     await waitFor(() => {
       expect(clipboardWriteText).toHaveBeenCalledWith(

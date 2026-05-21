@@ -42,9 +42,10 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := cfg.dbQueries.GetUserByEmail(r.Context(), params.Email)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
+		respondWithErrorCtx(r, w, http.StatusUnauthorized, "ErrInvalidCredentials", err)
 		return
 	}
+
 
 	if params.Pin != "" {
 		if !user.PinHash.Valid || user.PinHash.String == "" {
@@ -57,7 +58,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if err := auth.CheckPasswordHash(params.Password, user.PasswordHash); err != nil {
-			respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
+			respondWithErrorCtx(r, w, http.StatusUnauthorized, "ErrInvalidCredentials", err)
 			return
 		}
 	}
