@@ -8,39 +8,32 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-04-27 — closeout & deploy)
+## Current Status (2026-05-21 — QA & Verification Pass)
 
-**Safe to continue.** Source, deployed binary, deployed `dist/`, and live prod URL are aligned and verified at 2026-04-27 ~10:05 CST.
-
-**Live URL:** https://quantixdrive.filemonprime.net/quantix/ — running the freshly-built binary (`quantix-drive`, 11.7 MB, mtime 2026-04-27 09:58) under `quantixdrive.service` (`MainPID` started 10:00:54 CST).
+**Safe to continue.** The application underwent a full QA feature coverage pass on 2026-05-21. Source, tests, and build are completely verified and green.
 
 | Check | Result |
 |-------|--------|
-| Frontend unit tests (`vitest run`) | ✅ 106 / 106 (31 files) in 20.29 s |
-| Frontend production build (`vite build`) | ✅ 12.94 s |
-| Backend build (`go build`) | ✅ binary 11.7 MB |
+| Frontend unit tests (`vitest run`) | ✅ 116 / 116 |
+| Frontend production build (`vite build`) | ✅ successful |
+| Backend build (`go build`) | ✅ exit 0 |
 | Backend tests (`go test ./...`) | ✅ ok (root pkg) |
-| Full E2E suite (`playwright test`) | ✅ 39 / 39 in ~3.3 min (earlier today) |
-| Feature coverage matrix | ✅ 34 / 34 documented features verified |
-| Live SPA `/quantix/` | ✅ HTTP 200 |
-| Live `/api/healthz` | ✅ HTTP 200 |
-| Service `systemctl is-active quantixdrive` | ✅ active |
+| Full E2E suite (`playwright test`) | ✅ 41 / 41 |
+| Feature coverage matrix | ✅ 28 / 28 documented features verified |
 
 **Routing model (Apache vhost):**
 - SPA → `https://quantixdrive.filemonprime.net/quantix/`
 - API → `https://quantixdrive.filemonprime.net/api/...` (NOT under `/quantix/`)
 
-**Known risks (register endpoint only — existing accounts unaffected):**
-- 🔴 HIGH — `POST /api/register` accepts arbitrary-length passwords (5-char `"short"` is accepted).
-- 🟡 MEDIUM — `POST /api/register` returns 500 on malformed JSON (`{}`) instead of 400.
+**Known risks:**
 - 🟢 LOW / NOTE — encrypted-private-key KDF is single-round SHA-256 (Argon2id/PBKDF2 is the target).
-- ⏳ Local `main` is **+5 commits ahead of `origin/main`**. GHCR image built by CI does not match what is on this VPS — `git push` when ready.
+*(Note: Previous HIGH and MEDIUM register validation risks were fully resolved in commit `f92838d6`).*
 
 **Latest reports & memory:**
+- QA Feature Coverage Report (HTML): [docs/reports/2026-05-21-qa-feature-coverage-report.html](docs/reports/2026-05-21-qa-feature-coverage-report.html)
+- QA Feature Coverage Report (MD): [docs/reports/2026-05-21-qa-feature-coverage-report.md](docs/reports/2026-05-21-qa-feature-coverage-report.md)
 - Closeout HTML: [docs/reports/2026-04-27-closeout-verification.html](docs/reports/2026-04-27-closeout-verification.html)
-- Closeout MD: [docs/reports/2026-04-27-closeout-verification.md](docs/reports/2026-04-27-closeout-verification.md)
 - Session memory: [docs/memories/session-2026-04-27-closeout-and-deploy.md](docs/memories/session-2026-04-27-closeout-and-deploy.md)
-- Earlier QA report: [docs/reports/2026-04-27-qa-feature-coverage-report.html](docs/reports/2026-04-27-qa-feature-coverage-report.html)
 
 ---
 
