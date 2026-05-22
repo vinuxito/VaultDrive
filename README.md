@@ -8,9 +8,9 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-05-22 — Hackathon Final Push)
+## Current Status (2026-05-22 — Verification & Closeout)
 
-**Production-ready.** Full hackathon polish pass completed. All features verified, documented, and hardened.
+**Production-ready.** Full hackathon polish pass completed. All features verified, documented, and hardened. The latest 3-iteration UI hardening and E2E flake-fixing cycle was fully verified end-to-end.
 
 | Check | Result |
 |-------|--------|
@@ -29,9 +29,11 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 - SPA → `https://quantixdrive.filemonprime.net/quantix/`
 - API → `https://quantixdrive.filemonprime.net/api/...` (NOT under `/quantix/`)
 
-**Latest session memory:**
-- Hackathon Final Push: [docs/memories/session-2026-05-22-hackathon-final-push.md](docs/memories/session-2026-05-22-hackathon-final-push.md)
-- Demo Script: [docs/plans/2026-05-22-step-10-demo-script.md](docs/plans/2026-05-22-step-10-demo-script.md)
+**Latest Verification & Session Memory:**
+- Verification Closeout: [docs/memories/session-2026-05-22-verification-closeout.md](docs/memories/session-2026-05-22-verification-closeout.md)
+- MD Verification Report: [docs/reports/2026-05-22-verification.md](docs/reports/2026-05-22-verification.md)
+- HTML Verification Report: [docs/reports/2026-05-22-verification.html](docs/reports/2026-05-22-verification.html)
+- 3-Iteration Loop Memory: [docs/memories/session-2026-05-22-filemon-coder-3-iterations.md](docs/memories/session-2026-05-22-filemon-coder-3-iterations.md)
 
 ---
 
