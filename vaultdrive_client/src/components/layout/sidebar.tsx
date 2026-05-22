@@ -6,6 +6,7 @@ import {
   Users,
   LayoutDashboard,
   ShieldCheck,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -107,6 +108,22 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         >
           <Settings className={cn("w-5 h-5 shrink-0")} />
           {!collapsed && <span className="font-medium text-sm">{t("common:nav.settings")}</span>}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate("/help")}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
+            "hover:bg-primary/10 hover:text-foreground",
+            location.pathname.startsWith('/help') && "bg-primary/20 text-primary font-semibold border border-primary/40",
+            "text-left",
+            collapsed && "justify-center"
+          )}
+          title={t("common:nav.help")}
+        >
+          <HelpCircle className={cn("w-5 h-5 shrink-0")} />
+          {!collapsed && <span className="font-medium text-sm">{t("common:nav.help")}</span>}
         </button>
 
         <button

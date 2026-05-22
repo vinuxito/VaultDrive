@@ -9,6 +9,7 @@
     "shared": "Compartidos conmigo",
     "accessCenter": "Centro de Acceso",
     "settings": "Configuración",
+    "help": "Centro de Ayuda",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
     "search": "Buscar..."
@@ -16,6 +17,7 @@
   "userMenu": {
     "profile": "Perfil",
     "settings": "Configuración",
+    "help": "Centro de Ayuda",
     "logout": "Cerrar sesión"
   },
   "notifications": {

@@ -1,0 +1,45 @@
+{
+  "title": "{{product}} Help Center",
+  "subtitle": "Everything you need to know about using {{product}} securely.",
+  "navigation": {
+    "user_guide": "User Guide",
+    "admin_guide": "Admin Guide",
+    "getting_started": "Getting Started",
+    "vault_pin": "Vault & PIN",
+    "uploads_shares": "Uploads & Shares",
+    "workspaces": "Workspaces & Groups",
+    "user_management": "User Management",
+    "agent_keys": "Agent API Keys",
+    "audit_logs": "Audit Logs"
+  },
+  "content": {
+    "getting_started": {
+      "title": "Getting Started",
+      "body": "Welcome to {{product}}! This secure vault allows you to store, encrypt, and share your sensitive files with zero-knowledge architecture. Every file you upload is encrypted client-side within your browser before it ever reaches our servers."
+    },
+    "vault_pin": {
+      "title": "Your Vault & Recovery PIN",
+      "body": "Your Vault is protected by a secondary Recovery PIN. This PIN is never stored on our servers. It is used to locally derive your master encryption keys. If you lose your PIN, you will lose access to your files, as we cannot decrypt them for you."
+    },
+    "uploads_shares": {
+      "title": "Uploads & Sharing",
+      "body": "Uploading files is as simple as dragging and dropping them into your dashboard. To share a file securely, create a 'Share Link'. You can restrict access, set expiration dates, and monitor exactly who accesses your files."
+    },
+    "workspaces": {
+      "title": "Workspaces & Groups",
+      "body": "Organize your team using Workspaces and Groups. Files shared within a group are end-to-end encrypted for all members of that group, ensuring seamless yet strictly confidential collaboration."
+    },
+    "user_management": {
+      "title": "User Management (Admin)",
+      "body": "As an administrator, you can invite new users, revoke access, and manage role assignments from the Settings dashboard. Note that revoking a user immediately strips their access to all previously shared group keys."
+    },
+    "agent_keys": {
+      "title": "Agent API Keys (Admin)",
+      "body": "{{product}} allows you to create Agent API Keys to automate system interactions. Keys can be scoped to specific actions (e.g., read-only). You can view the live operations of these keys in the Audit Logs."
+    },
+    "audit_logs": {
+      "title": "System Audit Logs (Admin)",
+      "body": "The comprehensive Audit Log tracks every significant event within your organization—from logins and file uploads to API key usage and share link creation. This ensures total transparency and compliance."
+    }
+  }
+}

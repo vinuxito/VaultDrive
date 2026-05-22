@@ -1,0 +1,45 @@
+{
+  "title": "Centro de Ayuda de {{product}}",
+  "subtitle": "Todo lo que necesitas saber para usar {{product}} de forma segura.",
+  "navigation": {
+    "user_guide": "Guía del Usuario",
+    "admin_guide": "Guía del Administrador",
+    "getting_started": "Primeros Pasos",
+    "vault_pin": "Bóveda y PIN",
+    "uploads_shares": "Subidas y Compartir",
+    "workspaces": "Espacios y Grupos",
+    "user_management": "Gestión de Usuarios",
+    "agent_keys": "Claves de API",
+    "audit_logs": "Registros de Auditoría"
+  },
+  "content": {
+    "getting_started": {
+      "title": "Primeros Pasos",
+      "body": "¡Bienvenido a {{product}}! Esta bóveda segura te permite almacenar, encriptar y compartir tus archivos sensibles con arquitectura de conocimiento cero. Cada archivo que subes se encripta localmente en tu navegador antes de llegar a nuestros servidores."
+    },
+    "vault_pin": {
+      "title": "Tu Bóveda y PIN de Recuperación",
+      "body": "Tu Bóveda está protegida por un PIN de recuperación secundario. Este PIN nunca se almacena en nuestros servidores. Se utiliza para derivar localmente tus claves de encriptación maestras. Si pierdes tu PIN, perderás el acceso a tus archivos, ya que nosotros no podemos desencriptarlos."
+    },
+    "uploads_shares": {
+      "title": "Subidas y Compartir",
+      "body": "Subir archivos es tan simple como arrastrarlos y soltarlos en tu panel de control. Para compartir un archivo de forma segura, crea un 'Enlace para Compartir'. Puedes restringir el acceso, establecer fechas de expiración y monitorear exactamente quién accede a tus archivos."
+    },
+    "workspaces": {
+      "title": "Espacios y Grupos",
+      "body": "Organiza tu equipo usando Espacios y Grupos. Los archivos compartidos dentro de un grupo están encriptados de extremo a extremo para todos los miembros de ese grupo, asegurando una colaboración fluida pero estrictamente confidencial."
+    },
+    "user_management": {
+      "title": "Gestión de Usuarios (Admin)",
+      "body": "Como administrador, puedes invitar a nuevos usuarios, revocar accesos y gestionar la asignación de roles desde el panel de Configuración. Ten en cuenta que revocar a un usuario elimina inmediatamente su acceso a todas las claves de grupo previamente compartidas."
+    },
+    "agent_keys": {
+      "title": "Claves de API (Admin)",
+      "body": "{{product}} te permite crear Claves de API (Agent Keys) para automatizar las interacciones del sistema. Las claves pueden limitarse a acciones específicas (ej. solo lectura). Puedes ver las operaciones en vivo de estas claves en los Registros de Auditoría."
+    },
+    "audit_logs": {
+      "title": "Registros de Auditoría (Admin)",
+      "body": "El extenso Registro de Auditoría rastrea cada evento significativo dentro de tu organización: desde inicios de sesión y subida de archivos, hasta el uso de claves API y creación de enlaces para compartir. Esto asegura total transparencia y cumplimiento normativo."
+    }
+  }
+}

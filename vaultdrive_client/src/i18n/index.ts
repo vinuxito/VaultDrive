@@ -11,6 +11,8 @@ import enAuth from '../locales/en/auth.json';
 import esAuth from '../locales/es/auth.json';
 import enDrive from '../locales/en/drive.json';
 import esDrive from '../locales/es/drive.json';
+import enHelp from '../locales/en/help.json';
+import esHelp from '../locales/es/help.json';
 
 import abrnEnOverrides from '../locales/overrides/abrn/en.json';
 import abrnEsOverrides from '../locales/overrides/abrn/es.json';
@@ -22,6 +24,7 @@ const enResources = {
   settings: enSettings,
   auth: enAuth,
   drive: enDrive,
+  help: enHelp,
 };
 
 const esResources = {
@@ -29,6 +32,7 @@ const esResources = {
   settings: esSettings,
   auth: esAuth,
   drive: esDrive,
+  help: esHelp,
 };
 
 if (branding.productSlug === 'abrn-drive') {
@@ -48,7 +52,7 @@ i18n
     },
     fallbackLng: 'en',
     supportedLngs: ['en', 'es'],
-    ns: ['common', 'settings', 'auth', 'drive'],
+    ns: ['common', 'settings', 'auth', 'drive', 'help'],
     defaultNS: 'common',
 
     interpolation: {
