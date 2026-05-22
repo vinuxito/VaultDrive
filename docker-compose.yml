@@ -41,10 +41,10 @@ services:
       PORT: "8090"
       DB_URL: postgres://postgres:postgres@postgres:5432/vaultdrive?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-minimum-32-characters-long}
-      PRODUCT_NAME: "QuantiX Drive"
-      PRODUCT_SLUG: quantix-drive
-      BASE_PATH: /quantix/
-      AGENT_KEY_PREFIX: qxak
+      PRODUCT_NAME: "ABRN Drive"
+      PRODUCT_SLUG: abrn-drive
+      BASE_PATH: /abrn/
+      AGENT_KEY_PREFIX: abrnak
       PUBLIC_BASE_URL: http://localhost:8090
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8090
       ADMIN_BOOTSTRAP_EMAILS: ${ADMIN_BOOTSTRAP_EMAILS:-}
