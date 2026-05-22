@@ -401,7 +401,7 @@ export default function FileRequestPage() {
         <div className="max-w-md w-full text-center space-y-6">
           <BrandLogo className="h-14 mx-auto" />
 
-          <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center mx-auto">
+          <div className="w-24 h-24 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border-4 border-emerald-200 dark:border-emerald-800 flex items-center justify-center mx-auto">
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
 
@@ -417,13 +417,13 @@ export default function FileRequestPage() {
           </div>
 
           <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
-            <p className="text-sm font-semibold text-emerald-900">Delivery receipt</p>
-            <p className="mt-1 text-xs leading-relaxed text-emerald-800">
+            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">Delivery receipt</p>
+            <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-400">
               Your encrypted files are now in the request route. The recipient can review the delivery, but they still need the separate password you chose to open the files.
             </p>
           </div>
 
-          <div className="text-left bg-white/80 rounded-2xl border border-border p-4 space-y-2 text-sm">
+          <div className="text-left bg-card/80 rounded-2xl border border-border p-4 space-y-2 text-sm">
             {info.owner_display_name && (
               <p className="font-medium text-foreground">
                 {info.owner_display_name}
@@ -444,7 +444,7 @@ export default function FileRequestPage() {
             )}
           </div>
 
-          <div className="text-left bg-white/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
+          <div className="text-left bg-card/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
             <p className="font-medium text-foreground">What happened</p>
             <p className="text-muted-foreground leading-relaxed">
               {`Your files were encrypted in this browser using the password you chose. ${branding.productName} stored only the protected files and request metadata.`}
@@ -454,11 +454,11 @@ export default function FileRequestPage() {
             </p>
           </div>
 
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
-            <p className="text-amber-700 text-sm font-medium">
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800">
+            <p className="text-amber-700 dark:text-amber-400 text-sm font-medium">
               Remember your download password
             </p>
-            <p className="text-amber-600 text-xs mt-1">
+            <p className="text-amber-600 dark:text-amber-500 text-xs mt-1">
               Share your download password with{" "}
               {info.owner_display_name || "the recipient"} — they will need it
               to open your files.
@@ -472,7 +472,7 @@ export default function FileRequestPage() {
               setReceiptCopied(true);
               setTimeout(() => setReceiptCopied(false), 2000);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-white text-muted-foreground text-sm hover:bg-muted transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card text-muted-foreground text-sm hover:bg-muted transition-colors cursor-pointer"
           >
             {receiptCopied ? (
               <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
@@ -501,7 +501,7 @@ export default function FileRequestPage() {
 
         {/* Owner identity banner */}
         {(info.owner_display_name || info.owner_organization) && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-border/60">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/70 border border-border/60">
             <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
             <div className="text-sm">
               <span className="font-medium text-foreground">
@@ -530,8 +530,8 @@ export default function FileRequestPage() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
-            <p className="font-medium text-emerald-900">What stays private</p>
+          <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 px-4 py-4 text-sm text-emerald-800 dark:text-emerald-300">
+            <p className="font-medium text-emerald-900 dark:text-emerald-200">What stays private</p>
             <p className="mt-1.5 leading-relaxed">
               {`Your files are encrypted in this browser with the password you choose. ${branding.productName} stores only the protected upload and request metadata.`}
             </p>
@@ -578,7 +578,7 @@ export default function FileRequestPage() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Enter a secure password…"
-                className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:bg-white focus:outline-none transition-all"
+                className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:bg-card focus:outline-none transition-all"
                 disabled={uploading}
               />
               <button
@@ -631,7 +631,7 @@ export default function FileRequestPage() {
 
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <label htmlFor="file-input-req" className="group relative cursor-pointer">
-                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
+                    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
                       <FileIcon className="w-7 h-7 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                         Select Files
@@ -639,7 +639,7 @@ export default function FileRequestPage() {
                     </div>
                   </label>
                   <label htmlFor="folder-input-req" className="group relative cursor-pointer">
-                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
+                    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
                       <FolderOpen className="w-7 h-7 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                         Select Folder
