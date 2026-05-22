@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -59,6 +60,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 	// Create the file on the server
 	dst, err := os.Create(filePath)
 	if err != nil {
+		log.Printf("ERROR: Could not create file on server %s: %v", filePath, err)
 		respondWithError(w, http.StatusInternalServerError, "Could not create file on server", err)
 		return
 	}
@@ -121,6 +123,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		// If DB insert fails, we should probably delete the uploaded file
 		os.Remove(filePath)
+		log.Printf("ERROR: Could not create file entry in DB: %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Could not create file entry", err)
 		return
 	}
@@ -136,6 +139,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		// Rollback: delete file and DB entry
 		os.Remove(filePath)
 		cfg.dbQueries.DeleteFile(r.Context(), dbfile.ID)
+		log.Printf("ERROR: Could not save file access key: %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Could not save file access key", err)
 		return
 	}

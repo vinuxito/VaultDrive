@@ -12,3 +12,4 @@ export { UploadLinksSection } from './UploadLinksSection';
 export type { UploadTokenWithFiles } from './types';
 
 export { CreateUploadLinkModal } from './CreateUploadLinkModal';
+export { EncryptionProof } from './EncryptionProof';

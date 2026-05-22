@@ -10,6 +10,7 @@ import {
 } from "./helpers/trust";
 
 test("owner trust flow supports signup, onboarding, and PIN login", async ({ page }) => {
+  page.on("console", msg => console.log("BROWSER:", msg.text()));
   const account = buildOwnerAccount();
 
   await registerAccount(page, account);

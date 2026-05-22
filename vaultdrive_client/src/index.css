@@ -193,12 +193,7 @@
 
   /* 5.3 Card Hover Lift & Glow */
   .brand-glass-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .brand-glass-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transition: box-shadow 0.2s ease;
   }
 
   [data-theme="quantix"] .brand-glass-card:hover,
@@ -207,8 +202,6 @@
   }
 
   /* 5.4 Theme Transition Smoothing */
-  body,
-  .brand-glass-card,
   .brand-sidebar,
   .brand-header,
   .brand-btn-primary,
@@ -222,9 +215,9 @@
   /* 5.5 Reduced Motion Respect */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
-      animation-duration: 0.01ms !important;
+      animation-duration: 0s !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-duration: 0s !important;
       scroll-behavior: auto !important;
     }
   }

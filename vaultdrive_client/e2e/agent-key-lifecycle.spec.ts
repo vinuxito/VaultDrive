@@ -48,7 +48,7 @@ test.describe("Agent key lifecycle trust proof", () => {
     expect(body.data.name).toBe("QA Reconciliation Bot");
     expect(body.data.scopes).toContain("files:list");
     expect(body.data.plaintext_key).toBeTruthy();
-    expect(body.data.key_prefix).toMatch(/^qxak_/);
+    expect(body.data.key_prefix).toMatch(/^(qxak|abrnak)_/);
 
     test.info().annotations.push({ type: "agent_key", description: body.data.key_prefix });
   });

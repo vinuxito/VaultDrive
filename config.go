@@ -54,6 +54,7 @@ func LoadProductConfig() ProductConfig {
 		PublicBaseURL:  envOr("PUBLIC_BASE_URL", "https://app.quantixdrive.io"),
 		EnableArgon2id: envOr("ENABLE_ARGON2ID", "true") == "true",
 	}
+	log.Printf("DEBUG: LoadProductConfig - ENABLE_ARGON2ID raw env = %q, cfg.EnableArgon2id = %v", os.Getenv("ENABLE_ARGON2ID"), cfg.EnableArgon2id)
 
 	if legacy := os.Getenv("AGENT_KEY_LEGACY_PREFIXES"); legacy != "" {
 		cfg.LegacyAgentKeyPrefixes = splitCSV(legacy)
