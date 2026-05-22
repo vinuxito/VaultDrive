@@ -478,11 +478,8 @@ func main() {
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
-		// Redirect bare root to BasePath so React Router (basename=BasePath) finds routes.
-		if path == "/" {
-			http.Redirect(w, r, basePath, http.StatusFound)
-			return
-		}
+		// Root redirect is handled by parent mux if BasePath is set.
+		// If BasePath is not set, path == "/" will just serve index.html via cleanPath.
 
 		// Skip API paths - they should be handled by API routes above.
 		// Catches both /api/ and /<base>/api/ patterns.
@@ -513,10 +510,19 @@ func main() {
 	})
 
 	log.Printf("Server listening on port %s", port)
-	// Configure server with explicit timeouts for large file uploads
+	var finalHandler http.Handler = mux
+	if basePathNoSlash != "" {
+		parentMux := http.NewServeMux()
+		parentMux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, basePath, http.StatusFound)
+		})
+		parentMux.Handle(basePathNoSlash+"/", http.StripPrefix(basePathNoSlash, mux))
+		finalHandler = parentMux
+	}
+
 	server := &http.Server{
 		Addr:    ":" + port,
-		Handler: middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(mux)),
+		Handler: middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(finalHandler)),
 		// Timeouts configured for 2GB uploads (30 minutes)
 
 		ReadTimeout:    30 * time.Minute, // Maximum time to read request body

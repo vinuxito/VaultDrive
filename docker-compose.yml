@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
 
   migrate:
-    image: golang:1.24-alpine
+    image: golang:1.25-alpine
     working_dir: /app
     volumes:
       - ./sql:/app/sql
@@ -44,7 +44,7 @@ services:
       PRODUCT_NAME: "QuantiX Drive"
       PRODUCT_SLUG: quantix-drive
       BASE_PATH: /quantix/
-      AGENT_KEY_PREFIX: qx_ak
+      AGENT_KEY_PREFIX: qxak
       PUBLIC_BASE_URL: http://localhost:8090
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8090
       ADMIN_BOOTSTRAP_EMAILS: ${ADMIN_BOOTSTRAP_EMAILS:-}
