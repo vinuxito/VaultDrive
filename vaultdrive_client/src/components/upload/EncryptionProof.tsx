@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
-import { formatBytes } from "../../utils/formatters";
-import { CryptoEvent } from "../../utils/crypto";
+import { formatSize } from "../../utils/format";
+import type { CryptoEvent } from "../../utils/crypto";
 
 interface EncryptionProofProps {
   event: CryptoEvent | null;
@@ -25,18 +25,18 @@ export function EncryptionProof({ event }: EncryptionProofProps) {
         )}
         
         {event.type === "encrypting" && (
-          <div className="animate-pulse">Encrypting {formatBytes(event.inputSize)}...</div>
+          <div className="animate-pulse">Encrypting {formatSize(event.inputSize)}...</div>
         )}
 
         {event.type === "encrypted" && (
           <div className="space-y-1">
             <div className="flex justify-between border-b border-white/5 pb-1">
               <span className="text-zinc-500">Input:</span>
-              <span>{formatBytes(event.inputSize)} (Plaintext)</span>
+              <span>{formatSize(event.inputSize)} (Plaintext)</span>
             </div>
             <div className="flex justify-between border-b border-white/5 pb-1">
               <span className="text-zinc-500">Output:</span>
-              <span>{formatBytes(event.outputSize)} (+16B auth tag)</span>
+              <span>{formatSize(event.outputSize)} (+16B auth tag)</span>
             </div>
             <div className="flex justify-between border-b border-white/5 pb-1">
               <span className="text-zinc-500">Performance:</span>

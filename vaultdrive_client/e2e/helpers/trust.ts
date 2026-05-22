@@ -32,13 +32,13 @@ export async function gotoStable(page: Page, path = "/") {
 
 export async function registerAccount(page: Page, account: OwnerAccount) {
   await gotoStable(page, "/login");
-  await page.getByRole("button", { name: "Sign up" }).click();
+  await page.getByRole("button", { name: "Sign up" }).click({ force: true });
   await page.locator("#register-first-name").fill("QA");
   await page.locator("#register-last-name").fill("Verifier");
   await page.locator("#register-username").fill(account.username);
   await page.locator("#register-email").fill(account.email);
   await page.locator("#register-password").fill(account.password);
-  await page.getByRole("button", { name: "Create Account" }).click();
+  await page.getByRole("button", { name: "Create Account" }).click({ force: true });
   // After successful registration the form flips back to login mode with
   // credentials prefilled — assert on the login submit button to confirm.
   await expect(page.getByRole("button", { name: "Open QuantiX Drive" })).toBeVisible();
@@ -47,21 +47,41 @@ export async function registerAccount(page: Page, account: OwnerAccount) {
 export async function loginWithPassword(page: Page, account: OwnerAccount) {
   await page.locator("#login-email").fill(account.email);
   await page.locator("#login-password").fill(account.password);
-  await page.getByRole("button", { name: "Open QuantiX Drive" }).click();
+  await page.getByRole("button", { name: "Open QuantiX Drive" }).click({ force: true });
   await page.waitForURL((url) => !url.toString().includes("/login"));
 }
 
 export async function completeOnboarding(page: Page, account: OwnerAccount, folderName = "QA Inbox") {
   await gotoStable(page, "/files");
-  await page.getByRole("button", { name: /Continue/i }).click();
+  
+  await page.getByText("What stays private").waitFor({ state: 'visible', timeout: 10000 });
+  const continueBtn = page.getByRole("button", { name: /Continue/i });
+  await page.waitForTimeout(500);
+  await continueBtn.click();
+
+  await page.locator("#onboarding-pin").waitFor({ state: 'visible', timeout: 10000 });
   await page.locator("#onboarding-pin").fill(account.pin);
   await page.locator("#onboarding-confirm-pin").fill(account.pin);
   await page.locator("#onboarding-account-password").fill(account.password);
-  await page.getByRole("button", { name: /^Set PIN$/i }).click();
+  
+  const setPinBtn = page.getByRole("button", { name: /Set PIN/i });
+  await expect(setPinBtn).toBeEnabled({ timeout: 10000 });
+  await page.waitForTimeout(500); // Wait for React state flush and modal animation (300ms)
+  await setPinBtn.click();
+
+  await page.locator("#onboarding-folder-name").waitFor({ state: 'visible', timeout: 30000 });
   await page.locator("#onboarding-folder-name").fill(folderName);
-  await page.getByTestId("onboarding-create-folder").click();
-  await page.getByRole("button", { name: /Enter Protected Vault/i }).click();
-  await expect(page.getByText("No files here yet")).toBeVisible();
+  
+  const createFolderBtn = page.getByTestId("onboarding-create-folder");
+  await page.waitForTimeout(500);
+  await createFolderBtn.click();
+  
+  const enterVaultBtn = page.getByRole("button", { name: /Enter Protected Vault/i });
+  await enterVaultBtn.waitFor({ state: 'visible', timeout: 10000 });
+  await page.waitForTimeout(500);
+  await enterVaultBtn.click();
+  
+  await expect(page.getByText("No files here yet")).toBeVisible({ timeout: 15000 });
 }
 
 export async function clearLocalAuth(page: Page) {

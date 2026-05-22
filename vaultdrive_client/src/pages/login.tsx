@@ -84,6 +84,7 @@ export default function Login() {
           private_key_encrypted: data.private_key_encrypted,
           private_key_pin_encrypted: data.private_key_pin_encrypted || null,
           public_key: data.public_key,
+          kek_envelope_version: data.kekEnvelopeVersion || data.kek_envelope_version,
         })
       );
 
@@ -153,10 +154,12 @@ export default function Login() {
         throw new Error(data.error || "Registration failed");
       }
 
-      // Auto-login after successful registration
-      await performLogin(registerData.email, registerData.password, "password");
+      setLoginData({ email: registerData.email, password: registerData.password });
+      setIsLogin(true);
+      setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
+    } finally {
       setLoading(false);
     }
   };

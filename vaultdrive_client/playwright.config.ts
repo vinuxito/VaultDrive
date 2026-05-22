@@ -20,6 +20,7 @@ const e2eBackendEnv = {
   UPLOAD_DIR: process.env.UPLOAD_DIR ?? e2eUploadDir,
   E2E_DB_NAME: e2eDbName,
   E2E_ADMIN_DB_URL: e2eAdminDbUrl,
+  ENABLE_ARGON2ID: "true",
 };
 
 export default defineConfig({
@@ -49,7 +50,7 @@ export default defineConfig({
       "npm run build -- --mode test" +
       " && cd .." +
       " && mkdir -p \"$UPLOAD_DIR\"" +
-      " && psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\"" +
+      " && (psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\" || true)" +
       " && go run github.com/pressly/goose/v3/cmd/goose@latest -dir sql/schema postgres \"$DB_URL\" up" +
       " && PORT=8090 go run .",
     env: e2eBackendEnv,

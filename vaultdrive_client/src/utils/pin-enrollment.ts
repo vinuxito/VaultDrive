@@ -57,6 +57,7 @@ export async function createPinProtectedPrivateKey({
   let kekEnvelopeVersion = 1;
   try {
     const userJson = localStorage.getItem("user");
+    console.log("pin-enrollment userJson:", userJson);
     if (userJson) {
       const userObj = JSON.parse(userJson);
       if (userObj && userObj.kek_envelope_version) {
@@ -64,6 +65,7 @@ export async function createPinProtectedPrivateKey({
       }
     }
   } catch(e) {}
+  console.log("pin-enrollment using kekEnvelopeVersion:", kekEnvelopeVersion);
 
   try {
     privateKeyPem = await decryptPrivateKeyWithPassword(
@@ -71,7 +73,9 @@ export async function createPinProtectedPrivateKey({
       privateKeyEncrypted,
       kekEnvelopeVersion
     );
+    console.log("pin-enrollment decryption SUCCESS");
   } catch (error: unknown) {
+    console.log("pin-enrollment decryption FAILED with password", error);
     if (previousPassword) {
       try {
         privateKeyPem = await decryptPrivateKeyWithPassword(

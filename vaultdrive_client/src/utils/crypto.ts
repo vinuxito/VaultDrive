@@ -330,7 +330,7 @@ export async function decryptPrivateKeyWithPassword(
 
       aesKey = await crypto.subtle.importKey(
         "raw",
-        derivedKeyBytes,
+        derivedKeyBytes as BufferSource,
         { name: "AES-GCM", length: 256 },
         false,
         ["decrypt"]
@@ -364,12 +364,21 @@ export async function decryptPrivateKeyWithPassword(
   const normalizedPassword = password.normalize("NFC");
 
   try {
-    return await decryptWithPasswordBytes(normalizedPassword);
+    const result = await decryptWithPasswordBytes(normalizedPassword);
+    console.log("decryptPrivateKeyWithPassword SUCCESS with normalizedPassword");
+    return result;
   } catch (normalizedError: unknown) {
+    console.log("decryptPrivateKeyWithPassword failed with normalizedPassword:", normalizedError);
     if (normalizedPassword !== password) {
-      return decryptWithPasswordBytes(password);
+      try {
+        const result = await decryptWithPasswordBytes(password);
+        console.log("decryptPrivateKeyWithPassword SUCCESS with unnormalized password");
+        return result;
+      } catch (unnormalizedError) {
+        console.log("decryptPrivateKeyWithPassword failed with unnormalized password:", unnormalizedError);
+        throw unnormalizedError;
+      }
     }
-
     throw normalizedError;
   }
 }
@@ -671,7 +680,7 @@ export async function encryptPrivateKeyWithPIN(pin: string, privateKeyPem: strin
     });
     wrappingKey = await crypto.subtle.importKey(
       "raw",
-      derivedKeyBytes,
+      derivedKeyBytes as BufferSource,
       { name: "AES-GCM", length: 256 },
       false,
       ["encrypt"]
@@ -718,7 +727,7 @@ export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string
     });
     wrappingKey = await crypto.subtle.importKey(
       "raw",
-      derivedKeyBytes,
+      derivedKeyBytes as BufferSource,
       { name: "AES-GCM", length: 256 },
       false,
       ["decrypt"]

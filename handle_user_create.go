@@ -111,6 +111,7 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 	var errEncrypt error
 	kekVersion := int32(1)
 
+	log.Printf("DEBUG: cfg.Product.EnableArgon2id = %v", cfg.Product.EnableArgon2id)
 	if cfg.Product.EnableArgon2id {
 		encryptedPrivKey, errEncrypt = encryptPrivateKeyV2(privKeyPEM, newUser.Password)
 		kekVersion = 2
