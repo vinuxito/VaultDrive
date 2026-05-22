@@ -72,7 +72,7 @@ function formatRelativeTime(dateStr: string): string {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-primary/10 bg-white/60 p-5 animate-pulse flex flex-col h-full">
+    <div className="rounded-2xl border border-primary/10 bg-card/60 p-5 animate-pulse flex flex-col h-full">
       <div className="w-10 h-10 rounded-xl bg-muted mb-4" />
       <div className="mt-auto">
         <div className="w-16 h-8 rounded bg-muted mb-1" />
@@ -223,7 +223,7 @@ export default function Dashboard() {
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
               Attention
             </h2>
-            <div className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5">
+            <div className="rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-sm p-5">
               {posture.attention_count === 0 ? (
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
@@ -268,7 +268,7 @@ export default function Dashboard() {
               : statCards.map((card, index) => (
                   <div
                     key={card.label}
-                    className="stat-card-enter rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-shadow duration-200 cursor-default flex flex-col h-full"
+                    className="stat-card-enter rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-shadow duration-200 cursor-default flex flex-col h-full"
                     style={{ animationDelay: `${index * 60}ms` }}
                   >
                     <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mb-4`}>
@@ -309,7 +309,7 @@ export default function Dashboard() {
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
             Activity
           </h2>
-          <div className="rounded-2xl border border-primary/10 bg-white/70 backdrop-blur-sm overflow-hidden">
+          <div className="rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-sm overflow-hidden">
             {activityLoading ? (
               <div className="divide-y divide-border">
                 {["a1","a2","a3"].map((k) => (

@@ -63,5 +63,12 @@ i18n
     },
   });
 
+// Keep <html lang="…"> in sync with the active language (a11y requirement).
+// Screen readers use this attribute to determine pronunciation and voice.
+i18n.on('languageChanged', (lng: string) => {
+  document.documentElement.lang = lng;
+});
+// Set initial lang in case LanguageDetector chose a non-default
+document.documentElement.lang = i18n.language || 'en';
 
 export default i18n;
