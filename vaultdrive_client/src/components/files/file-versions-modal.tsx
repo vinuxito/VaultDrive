@@ -78,7 +78,7 @@ export function FileVersionsModal({
     <ElegantModal isOpen={isOpen} onClose={onClose} title={`Version History: ${filename}`}>
       <div className="space-y-4">
         {error && (
-          <div className="p-3 bg-[#6b4345]/30 border border-[#d4a5a6]/40 rounded-md text-[#f2d7d8] text-sm">
+          <div className="p-3 bg-primary/20 border border-primary/30 rounded-md text-primary-foreground text-sm">
             {error}
           </div>
         )}
@@ -105,7 +105,7 @@ export function FileVersionsModal({
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-white">Version {version.version_number}</span>
                       {index === 0 && (
-                        <span className="px-2 py-0.5 bg-[#10b981]/20 text-white text-xs rounded-full">
+                        <span className="px-2 py-0.5 bg-primary/20 text-white text-xs rounded-full">
                           Current
                         </span>
                       )}
@@ -118,10 +118,10 @@ export function FileVersionsModal({
                   {index !== 0 && (
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="modal-cancel"
                       onClick={() => handleRestore(version.id, version.version_number)}
                       disabled={restoring === version.id}
-                      className="gap-2 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                      className="gap-2"
                     >
                       <RotateCcw className="w-4 h-4" />
                       {restoring === version.id ? 'Restoring...' : 'Restore'}
@@ -134,7 +134,7 @@ export function FileVersionsModal({
         )}
 
         <div className="flex justify-end gap-2 pt-4 border-t border-white/10">
-          <Button variant="outline" onClick={onClose} className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent">
+          <Button variant="modal-cancel" onClick={onClose}>
             <X className="w-4 h-4 mr-2" />
             Close
           </Button>

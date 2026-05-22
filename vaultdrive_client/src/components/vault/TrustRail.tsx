@@ -89,12 +89,12 @@ export function TrustRail({ fileId }: TrustRailProps) {
     return (
       <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="h-3 w-36 bg-white/10 rounded animate-pulse" />
-          <div className="h-5 w-20 bg-white/10 rounded-full animate-pulse" />
+          <div className="h-3 w-36 bg-white/12 rounded animate-pulse" />
+          <div className="h-5 w-20 bg-white/12 rounded-full animate-pulse" />
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-xl overflow-hidden relative bg-white/5">
+            <div key={i} className="h-16 rounded-xl overflow-hidden relative bg-white/12">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent animate-shine" />
             </div>
           ))}
@@ -106,13 +106,13 @@ export function TrustRail({ fileId }: TrustRailProps) {
   if (error || !summary) {
     return (
       <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
-        <div className="flex items-center gap-2 text-white/50">
+        <div className="flex items-center gap-2 text-white/75">
           <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
           <span className="brand-trust-kicker">Protection & Access</span>
         </div>
         <div className="brand-trust-panel rounded-2xl px-4 py-4">
-          <p className="text-sm text-white/85">Trust data is temporarily unavailable.</p>
-          <p className="mt-1 text-xs text-white/62">Your file remains encrypted and under your control.</p>
+          <p className="text-sm text-white/95">Trust data is temporarily unavailable.</p>
+          <p className="mt-1 text-xs text-white/75">Your file remains encrypted and under your control.</p>
         </div>
       </div>
     );
@@ -135,13 +135,13 @@ export function TrustRail({ fileId }: TrustRailProps) {
     <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-4">
       <div className="relative z-10 flex items-start justify-between gap-3 flex-wrap">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-white/55">
+          <div className="flex items-center gap-2 text-white/75">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span className="brand-trust-kicker">Protection & Access</span>
           </div>
           <div>
             <p className="text-lg font-semibold text-white">{accessStateLabel(summary.access_state)}</p>
-            <p className="mt-1 text-sm text-white/60">
+            <p className="mt-1 text-sm text-white/75">
               {activeCount === 0
                 ? "No outside route is currently open."
                 : `${activeCount} external path${activeCount !== 1 ? "s" : ""} remain visible, scoped, and revocable.`}
@@ -154,56 +154,56 @@ export function TrustRail({ fileId }: TrustRailProps) {
           >
             {summary.visibility_summary}
           </span>
-          <span className="inline-flex items-center rounded-full border border-white/12 bg-white/7 px-3 py-1.5 text-xs font-medium text-white/78">
+          <span className="inline-flex items-center rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-xs font-medium text-white/90">
             {activeCount === 0 ? "Owner only" : `${activeCount} active route${activeCount !== 1 ? "s" : ""}`}
           </span>
         </div>
       </div>
 
       <div className="relative z-10 brand-trust-panel-strong rounded-[1.4rem] px-4 py-4">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/55">
-          <span className="inline-flex items-center rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 font-medium text-emerald-200">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/75">
+          <span className="inline-flex items-center rounded-full border border-emerald-400/25 bg-emerald-400/12 px-2.5 py-1 font-medium text-emerald-200">
             Ciphertext stored only
           </span>
-          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-medium text-white/70">
+          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/12 px-2.5 py-1 font-medium text-white/85">
             Owner: {summary.owner_label}
           </span>
           {activeKinds.slice(0, 2).map((kind) => (
             <span
               key={kind}
-              className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-medium text-white/65"
+              className="inline-flex items-center rounded-full border border-white/20 bg-white/12 px-2.5 py-1 font-medium text-white/80"
             >
               {kind}
             </span>
           ))}
         </div>
-        <p className="mt-3 text-sm leading-relaxed text-white/92">{calmSummary}</p>
-        <p className="mt-2 text-xs leading-relaxed text-white/62">
+        <p className="mt-3 text-sm leading-relaxed text-white/95">{calmSummary}</p>
+        <p className="mt-2 text-xs leading-relaxed text-white/75">
           {`${branding.productName} stores ciphertext and access metadata only, so this view is your control surface rather than a copy of the file.`}
         </p>
       </div>
 
       <div className="relative z-10 grid gap-3 md:grid-cols-3 text-sm">
         <div className="brand-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
-          <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
+          <div className="flex items-center gap-2 text-white/75 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400/12 text-emerald-300">
               <Lock className="w-3.5 h-3.5" />
             </span>
             Encryption
           </div>
-          <p className="mt-3 text-white/92 leading-snug text-sm font-medium">{summary.protection}</p>
-          <p className="mt-2 text-xs leading-relaxed text-white/60">Locked in your browser before upload, then kept unreadable outside your trusted session.</p>
+          <p className="mt-3 text-white/95 leading-snug text-sm font-medium">{summary.protection}</p>
+          <p className="mt-2 text-xs leading-relaxed text-white/75">Locked in your browser before upload, then kept unreadable outside your trusted session.</p>
         </div>
 
         <div className="brand-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
-          <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
+          <div className="flex items-center gap-2 text-white/75 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-400/12 text-sky-300">
               <Sparkles className="w-3.5 h-3.5" />
             </span>
             Source
           </div>
-          <p className="mt-3 text-white/92 leading-snug text-sm font-medium">{originLabel(summary.origin)}</p>
-          <p className={`mt-2 text-xs leading-relaxed ${activeCount === 0 ? "text-white/60" : "text-white/72 font-medium"}`}>
+          <p className="mt-3 text-white/95 leading-snug text-sm font-medium">{originLabel(summary.origin)}</p>
+          <p className={`mt-2 text-xs leading-relaxed ${activeCount === 0 ? "text-white/75" : "text-white/85 font-medium"}`}>
             {activeCount === 0
               ? "No external access is active"
               : `${activeCount} active access point${activeCount !== 1 ? "s" : ""}, all revocable`}
@@ -211,14 +211,14 @@ export function TrustRail({ fileId }: TrustRailProps) {
         </div>
 
         <div className="brand-trust-panel rounded-[1.35rem] px-3.5 py-3.5">
-          <div className="flex items-center gap-2 text-white/62 text-xs uppercase tracking-[0.15em]">
+          <div className="flex items-center gap-2 text-white/75 text-xs uppercase tracking-[0.15em]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400/12 text-amber-200">
               <Clock3 className="w-3.5 h-3.5" />
             </span>
             Last Event
           </div>
-          <p className="mt-3 text-white/92 leading-snug text-sm font-medium">{summary.latest_activity}</p>
-          <p className="mt-2 text-xs leading-relaxed text-white/60">Trace the full chain of sharing, download, revoke, and owner activity below.</p>
+          <p className="mt-3 text-white/95 leading-snug text-sm font-medium">{summary.latest_activity}</p>
+          <p className="mt-2 text-xs leading-relaxed text-white/75">Trace the full chain of sharing, download, revoke, and owner activity below.</p>
         </div>
       </div>
     </div>

@@ -9,19 +9,19 @@ import {
 describe("protected-link-copy", () => {
   it("accepts a full upload link with the expected path and key fragment", () => {
     const result = validateUploadLinkForCopy(
-      "https://abrndrive.example.com/abrn/drop/drop-token-1#key=secret-key",
+      "https://quantixdrive.example.com/quantix/drop/drop-token-1#key=secret-key",
       "drop-token-1",
-      "/abrn",
+      "/quantix",
     );
 
-    expect(result).toEqual({ ok: true, url: "https://abrndrive.example.com/abrn/drop/drop-token-1#key=secret-key" });
+    expect(result).toEqual({ ok: true, url: "https://quantixdrive.example.com/quantix/drop/drop-token-1#key=secret-key" });
   });
 
   it("rejects upload links without a key fragment", () => {
     const result = validateUploadLinkForCopy(
-      "https://abrndrive.example.com/abrn/drop/drop-token-1",
+      "https://quantixdrive.example.com/quantix/drop/drop-token-1",
       "drop-token-1",
-      "/abrn",
+      "/quantix",
     );
 
     expect(result).toEqual({ ok: false, error: "The full upload link is unavailable. Recover the link again and retry." });
@@ -29,7 +29,7 @@ describe("protected-link-copy", () => {
 
   it("rejects empty URLs before copy", () => {
     const result = validateProtectedLinkForCopy("", {
-      expectedPath: "/abrn/drop/drop-token-1",
+      expectedPath: "/quantix/drop/drop-token-1",
       kind: "upload-link",
     });
 
@@ -38,9 +38,9 @@ describe("protected-link-copy", () => {
 
   it("rejects URLs whose path does not match the expected token route", () => {
     const result = validateFolderShareLinkForCopy(
-      "https://abrndrive.example.com/abrn/folder-share/other-token#folder-key",
+      "https://quantixdrive.example.com/quantix/folder-share/other-token#folder-key",
       "folder-token-1",
-      "/abrn",
+      "/quantix",
     );
 
     expect(result).toEqual({ ok: false, error: "The folder share route is incomplete. Generate it again before copying." });
@@ -48,11 +48,11 @@ describe("protected-link-copy", () => {
 
   it("accepts folder share URLs only when the hash fragment is present", () => {
     const result = validateFolderShareLinkForCopy(
-      "https://abrndrive.example.com/abrn/folder-share/folder-token-1#folder-key",
+      "https://quantixdrive.example.com/quantix/folder-share/folder-token-1#folder-key",
       "folder-token-1",
-      "/abrn",
+      "/quantix",
     );
 
-    expect(result).toEqual({ ok: true, url: "https://abrndrive.example.com/abrn/folder-share/folder-token-1#folder-key" });
+    expect(result).toEqual({ ok: true, url: "https://quantixdrive.example.com/quantix/folder-share/folder-token-1#folder-key" });
   });
 });

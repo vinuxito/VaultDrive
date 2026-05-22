@@ -27,14 +27,19 @@ import type { ToastMessage } from "./Toast";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { requiresPinSetup } from "../../utils/pin-trust";
 import { API_URL } from "../../utils/api";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
+import { useTranslation } from "react-i18next";
 
 interface DashboardLayoutProps {
+
   children: ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation(["common"]);
   const { clearVault } = useSessionVault();
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -43,7 +48,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = getStoredUserFromLocalStorage() ?? {};
   const [showOnboarding, setShowOnboarding] = useState(() => requiresPinSetup(user));
 
   // Verify PIN status from server to handle stale localStorage
@@ -58,7 +63,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .then((data) => {
         if (data?.pin_set) {
           // PIN already set server-side — update localStorage and dismiss onboarding
-          const stored = JSON.parse(localStorage.getItem("user") || "{}");
+          const stored = getStoredUserFromLocalStorage() ?? {};
           localStorage.setItem("user", JSON.stringify({ ...stored, pin_set: true }));
           setShowOnboarding(false);
         }
@@ -73,7 +78,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      const latestUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const latestUser = getStoredUserFromLocalStorage() ?? {};
       if (requiresPinSetup(latestUser)) {
         setShowOnboarding(true);
       }
@@ -129,15 +134,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       const message =
         count > 1
-          ? `${count} new activities`
+          ? t("common:notifications.newActivities", { count })
           : first?.event_type === "file_shared"
-          ? "A file was shared with you"
+          ? t("common:notifications.fileShared")
           : first?.event_type === "drop_upload"
-          ? "New file received via drop link"
-          : `New activity: ${first?.event_type ?? ""}`;
+          ? t("common:notifications.dropUpload")
+          : t("common:notifications.newActivity", { type: first?.event_type ?? "" });
 
       setToasts((prev) => [...prev, { id: crypto.randomUUID(), message, type: "info" } as ToastMessage]);
     }, 800);
+
   });
 
   const handleLogout = () => {
@@ -160,8 +166,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
 
   return (
-    <div className="min-h-screen w-full bg-background text-foreground flex">
-      <div className="fixed inset-0 z-[-1]" style={{background: "linear-gradient(180deg, #faf8f5 0%, #f7f2f0 60%, #f2ece9 100%)"}} />
+    <div className="min-h-screen w-full text-foreground flex">
+      <div className="fixed inset-0 z-[-1]" style={{background: "var(--gradient-page)"}} />
 
         {showOnboarding && (
           <OnboardingWizard onComplete={handleOnboardingComplete} />
@@ -179,12 +185,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 brand-glass-nav px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-[#7d4f50]/5">
+        <header className="sticky top-0 z-30 lux-navbar px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors hidden md:block"
+              className="p-2 rounded-lg hover:bg-primary/10 transition-colors hidden md:block"
               aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5" />
@@ -192,7 +198,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button
               type="button"
               onClick={() => setShowMobileMenu(true)}
-              className="p-2 rounded-lg hover:bg-[#7d4f50]/10 transition-colors md:hidden"
+              className="p-2 rounded-lg hover:bg-primary/10 transition-colors md:hidden"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
@@ -201,11 +207,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button 
               type="button"
               onClick={() => setShowCommandPalette(true)}
-              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-[#7d4f50]/5 transition-colors"
+              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
             >
-                <Search className="w-4 h-4" />
-                <span>Search...</span>
-                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-[#7d4f50]/20 rounded-md bg-[#7d4f50]/5 flex items-center gap-1">
+              <Search className="w-4 h-4" />
+                <span>{t("common:nav.search")}</span>
+                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-primary/20 rounded-md bg-primary/5 flex items-center gap-1">
+
                     <Command className="w-2.5 h-2.5" />K
                 </kbd>
             </button>
@@ -215,7 +222,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button 
               type="button"
               onClick={() => setShowCommandPalette(true)}
-              className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors sm:hidden" aria-label="Search"
+              className="p-2 rounded-full hover:bg-primary/10 transition-colors sm:hidden" aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -223,7 +230,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button
               type="button"
               onClick={() => { setActivityFeedOpen(true); setUnreadCount(0); }}
-              className="p-2 rounded-full hover:bg-[#7d4f50]/10 transition-colors relative"
+              className="p-2 rounded-full hover:bg-primary/10 transition-colors relative"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
@@ -238,25 +245,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <button type="button" className="flex items-center gap-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={user.avatar_url} />
+                  <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
                   <AvatarFallback className="bg-primary/20 text-primary font-semibold">
                     {getInitials(user.first_name) || "?"}
                   </AvatarFallback>
                 </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] backdrop-blur-2xl border-white/20 shadow-xl text-white">
+              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-primary to-primary/90 backdrop-blur-2xl border-white/20 shadow-xl text-white">
                 <DropdownMenuLabel>
                   <p className="font-semibold">{user.first_name} {user.last_name}</p>
                   <p className="text-xs text-muted-foreground font-normal">{user.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>Profile</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>Settings</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>{t("common:userMenu.profile")}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>{t("common:userMenu.settings")}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:bg-red-500/10 focus:text-red-500">
-                  Logout
+                  {t("common:userMenu.logout")}
                 </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 <div className="px-2 py-2">
                   <PoweredByBadge className="text-xs" />

@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git check-ignore -v vaultdrive_client/public/manifest.json 2>&1; echo \\\"---\\\"; git ls-files --error-unmatch vaultdrive_client/public/manifest.json 2>&1\",\"description\":\"Check if manifest is...",
-  "error": "Exit code 1\n---\nerror: pathspec 'vaultdrive_client/public/manifest.json' did not match any file(s) known to git\nDid you forget to 'git add'?\n[rerun: b189]",
-  "timestamp": "2026-04-10T20:24:52.195Z",
-  "retry_count": 1
-}

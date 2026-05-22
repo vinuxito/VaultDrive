@@ -154,7 +154,7 @@ export default function About() {
               { title: "Theme Support", desc: "Dark and light mode with persistent user preference" },
             ].map((f) => (
               <div key={f.title} className="flex gap-3">
-                <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: "#7d4f50" }} />
+                <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
                 <div>
                   <h4 className="font-semibold mb-1">{f.title}</h4>
                   <p className="text-sm text-muted-foreground">{f.desc}</p>

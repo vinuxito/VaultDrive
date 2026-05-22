@@ -27,6 +27,7 @@ import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { restorePrivateKeyFromSessionPin } from "../utils/shared-session";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 interface SharedFile {
   id: string;
@@ -109,8 +110,7 @@ export default function SharedFiles() {
       }
     }
 
-    const stored = localStorage.getItem("user");
-    const userObj = stored ? JSON.parse(stored) : null;
+    const userObj = getStoredUserFromLocalStorage();
     const restoredKey = await restorePrivateKeyFromSessionPin({
       credential: getCredential(),
       privateKeyPinEncrypted: userObj?.private_key_pin_encrypted ?? null,
@@ -192,8 +192,7 @@ export default function SharedFiles() {
         throw new Error("No wrapped key in response. The file owner must re-share this file.");
       }
 
-      const stored = localStorage.getItem("user");
-      const userObj = stored ? JSON.parse(stored) : null;
+      const userObj = getStoredUserFromLocalStorage();
       const privateKeyPinEncrypted: string | null = userObj?.private_key_pin_encrypted ?? null;
 
       if (!privateKeyPinEncrypted) {
@@ -239,8 +238,8 @@ export default function SharedFiles() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-[#7d4f50]/20 flex items-center justify-center">
-              <Share2 className="w-6 h-6 text-[#c4999b]" />
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Share2 className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold">Shared With Me</h1>
@@ -273,18 +272,18 @@ export default function SharedFiles() {
               <div className="space-y-2">
                 {["s1","s2","s3"].map((k) => (
                   <div key={k} className="flex items-center gap-3 p-4 animate-pulse">
-                    <div className="w-10 h-10 rounded-lg bg-slate-200 shrink-0" />
+                    <div className="w-10 h-10 rounded-lg bg-muted shrink-0" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-slate-200 rounded w-3/4" />
-                      <div className="h-2.5 bg-slate-100 rounded w-1/3" />
+                      <div className="h-3 bg-muted rounded w-3/4" />
+                      <div className="h-2.5 bg-muted rounded w-1/3" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : sharedFiles.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7d4f50]/20 flex items-center justify-center">
-                  <Share2 className="w-8 h-8 text-[#c4999b]" />
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Share2 className="w-8 h-8 text-primary" />
                 </div>
                 <p className="text-muted-foreground font-medium">No shared files yet</p>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
@@ -332,13 +331,13 @@ export default function SharedFiles() {
 
         {showPinModal && pendingDownload && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border-white/10 text-white">
+            <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
               <CardHeader className="border-b border-white/10">
                 <CardTitle className="flex items-center gap-2 text-white">
-                  <Lock className="w-5 h-5 text-[#f2d7d8]" />
+                  <Lock className="w-5 h-5 text-primary-foreground" />
                   Decrypt Shared File
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription className="text-white/80">
                   Enter your 4-digit PIN to decrypt this file
                 </CardDescription>
               </CardHeader>
@@ -363,7 +362,7 @@ export default function SharedFiles() {
                     value={pinValue}
                     onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
                     placeholder="4-digit PIN"
-                    className="w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
+                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
                     }}
@@ -372,20 +371,20 @@ export default function SharedFiles() {
 
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="modal-cancel"
                     onClick={() => {
                       setShowPinModal(false);
                       setPinValue("");
                       setPendingDownload(null);
                     }}
-                    className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                    className="flex-1"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handlePinSubmit}
                     disabled={pinValue.length !== 4}
-                    className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                    className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                   >
                     Decrypt & Download
                   </Button>

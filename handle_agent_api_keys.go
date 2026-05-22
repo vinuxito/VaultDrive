@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 type agentAPIKeyResponse struct {
@@ -85,9 +86,13 @@ func (cfg *ApiConfig) handlerCreateAgentAPIKey(w http.ResponseWriter, r *http.Re
 		respondWithV1Error(w, r, http.StatusBadRequest, "Invalid request body")
 		return
 	}
-	name := body.Name
+	name := strings.TrimSpace(body.Name)
 	if name == "" {
 		respondWithV1Error(w, r, http.StatusBadRequest, "Name is required")
+		return
+	}
+	if len(name) > 64 {
+		respondWithV1Error(w, r, http.StatusBadRequest, "Name must be 64 characters or fewer")
 		return
 	}
 	scopes := normalizeAgentScopes(body.Scopes)

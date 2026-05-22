@@ -48,10 +48,10 @@ export function PasswordModal({
     <ElegantModal isOpen={isOpen} onClose={onClose} className="w-full max-w-md">
       <CardHeader className="border-b-0">
         <CardTitle className="flex items-center gap-2 text-white">
-          <Lock className="w-5 h-5 text-[#f2d7d8]" />
+          <Lock className="w-5 h-5 text-primary-foreground" />
           {title}
         </CardTitle>
-        <CardDescription className="text-white/70">{description}</CardDescription>
+        <CardDescription className="text-white/80">{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {action === 'upload' && encryptionStage !== 'idle' ? (
@@ -64,23 +64,24 @@ export function PasswordModal({
         ) : (
           <>
             {error && (
-              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-[#d4a5a6]" />
+              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-primary/60" />
                 <span>{error}</span>
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2 text-white/90">
+              <label htmlFor="encryption-password" className="text-sm font-medium flex items-center gap-2 text-white">
                 <Key className="w-4 h-4" />
                 Encryption Password
               </label>
               <Input
+                id="encryption-password"
                 type="password"
                 value={password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 autoFocus
-                className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+                className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === 'Enter' && password) {
                     handleSubmit();
@@ -89,10 +90,10 @@ export function PasswordModal({
               />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose} className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent">
+              <Button variant="modal-cancel" onClick={onClose} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!password || isLoading} className="flex-1 bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold">
+              <Button onClick={handleSubmit} disabled={!password || isLoading} className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

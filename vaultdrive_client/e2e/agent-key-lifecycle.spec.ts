@@ -7,7 +7,7 @@ import {
   gotoStable,
 } from "./helpers/trust";
 
-const apiBase = process.env.ABRN_E2E_API_BASE_URL ?? `${new URL(process.env.ABRN_E2E_BASE_URL ?? "http://127.0.0.1:8090/abrn").origin}/api`;
+const apiBase = process.env.E2E_API_BASE_URL ?? `${new URL(process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/quantix").origin}/api`;
 
 function apiUrl(path: string): string {
   const base = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;
@@ -48,7 +48,7 @@ test.describe("Agent key lifecycle trust proof", () => {
     expect(body.data.name).toBe("QA Reconciliation Bot");
     expect(body.data.scopes).toContain("files:list");
     expect(body.data.plaintext_key).toBeTruthy();
-    expect(body.data.key_prefix).toMatch(/^abrn_ak_/);
+    expect(body.data.key_prefix).toMatch(/^qxak_/);
 
     test.info().annotations.push({ type: "agent_key", description: body.data.key_prefix });
   });
@@ -217,7 +217,7 @@ test.describe("Agent key lifecycle trust proof", () => {
     await page.locator("#filemon-raw-key").fill(rawKey);
     await page.getByRole("button", { name: /run through filemon/i }).click();
 
-    await expect(page.getByText(/^GET http:\/\/127\.0\.0\.1:8090\/abrn\/api\/v1\/auth\/introspect/)).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("pre").filter({ hasText: /\/api\/v1\/auth\/introspect/ })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/Auth type:\s*agent_api_key/)).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/"auth_type":\s*"agent_api_key"/)).toBeVisible({ timeout: 5000 });
     await page.screenshot({ path: test.info().outputPath("filemon-operator-console.png"), fullPage: true });

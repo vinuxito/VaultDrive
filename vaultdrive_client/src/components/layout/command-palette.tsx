@@ -56,10 +56,10 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16" onClick={onClose}>
       <div 
-        className="elegant-overlay w-full max-w-lg rounded-xl border border-[#7d4f50]/20 shadow-2xl animate-fade-in-down"
+        className="elegant-overlay w-full max-w-lg rounded-xl border border-primary/20 shadow-2xl animate-fade-in-down"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center p-3 border-b border-[#7d4f50]/15">
+        <div className="flex items-center p-3 border-b border-primary/15">
           <Search className="w-5 h-5 text-muted-foreground mr-3" />
           <input
             type="text"
@@ -78,7 +78,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 {group.items.map((item) => (
                   <li
                     key={item.name}
-                    className="flex items-center gap-3 p-2 rounded-md hover:bg-[#7d4f50]/10 cursor-pointer text-foreground/70 hover:text-foreground"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-primary/10 cursor-pointer text-foreground/70 hover:text-foreground"
                     onClick={() => {
                         item.action();
                         onClose();
@@ -95,9 +95,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <p className="text-center p-4 text-sm text-muted-foreground">No results found.</p>
            )}
         </div>
-        <div className="p-2 border-t border-[#7d4f50]/15 text-xs text-muted-foreground flex items-center justify-between">
+        <div className="p-2 border-t border-primary/15 text-xs text-muted-foreground flex items-center justify-between">
             <span>Navigate with arrows, select with Enter.</span>
-            <span>Press <kbd className="px-1.5 py-0.5 border border-[#7d4f50]/20 rounded-md bg-[#7d4f50]/5">ESC</kbd> to close.</span>
+            <span>Press <kbd className="px-1.5 py-0.5 border border-primary/20 rounded-md bg-primary/5">ESC</kbd> to close.</span>
         </div>
       </div>
     </div>

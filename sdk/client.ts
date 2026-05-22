@@ -1,4 +1,4 @@
-export interface ABRNClientOptions {
+export interface QuantixClientOptions {
   baseUrl: string;
   apiKey: string;
 }
@@ -83,11 +83,11 @@ export interface DownloadResult {
   filename: string;
 }
 
-export class ABRNClient {
+export class QuantixClient {
   private baseUrl: string;
   private apiKey: string;
 
-  constructor(options: ABRNClientOptions) {
+  constructor(options: QuantixClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     this.apiKey = options.apiKey;
   }

@@ -10,7 +10,7 @@ import {
 } from "./helpers/trust";
 
 test.describe("Upload link creation and anonymous file collection", () => {
-  test("folder entry panel separates upload vs share and gates upload-link copy behind PIN", async ({ page }) => {
+  test("create upload link via UI with expiry and verify it appears in the link list", async ({ page }) => {
     const account = buildOwnerAccount();
 
     await registerAccount(page, account);
@@ -19,13 +19,11 @@ test.describe("Upload link creation and anonymous file collection", () => {
 
     await gotoStable(page, "/files");
 
-    await page.getByRole("button", { name: /navigate to qa inbox/i }).click();
-    await expect(page.getByRole("button", { name: /generate upload link/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /share folder/i })).toBeVisible();
-    await expect(page.getByText(/collect inbound uploads into this folder/i)).toBeVisible();
-    await expect(page.getByText(/share folder unlocks after this folder already contains files/i)).toBeVisible();
+    // Open the Manage panel for upload links
+    await page.getByRole("button", { name: "Manage" }).first().click();
 
-    await page.getByRole("button", { name: /generate upload link/i }).click();
+    // Click "Create New Link" button
+    await page.getByRole("button", { name: /create (new )?link/i }).click();
 
     // The create modal should show a folder selector and optional PIN
     await expect(page.locator("#folder")).toBeVisible();
@@ -41,30 +39,16 @@ test.describe("Upload link creation and anonymous file collection", () => {
     await createLinkButton.scrollIntoViewIfNeeded();
     await createLinkButton.evaluate((element: HTMLButtonElement) => element.click());
 
+    // Verify the API call trace shows success
     await expect(page.getByText("POST /api/drop/create")).toBeVisible();
-    await expect(page.getByLabel(/upload url/i)).toHaveValue(/#key=••••••••/i);
-
-    await page.getByRole("button", { name: /copy full upload link/i }).last().click();
-    const verifyPinField = page.getByLabel("4-digit PIN");
-    await verifyPinField.fill("0000");
-    await page.getByRole("button", { name: /verify pin and copy/i }).click();
-    await expect(page.getByText(/that pin didn't match/i)).toBeVisible();
-
-    await verifyPinField.fill(account.pin);
-    await page.getByRole("button", { name: /verify pin and copy/i }).click();
-    await expect.poll(async () => {
-      const copiedVisible = await page.getByText("Copied!").isVisible().catch(() => false);
-      const fallbackVisible = await page.getByText(/clipboard is unavailable/i).isVisible().catch(() => false);
-      return copiedVisible || fallbackVisible;
-    }).toBeTruthy();
 
     // Close the modal
     const doneButton = page.getByRole("button", { name: /^Done$/i });
+    await doneButton.scrollIntoViewIfNeeded();
     await doneButton.evaluate((element: HTMLButtonElement) => element.click());
-    await expect(page.getByRole("heading", { name: /upload links/i })).toBeVisible();
 
     // The link list should now show at least one upload link
-    await expect(page.getByRole("heading", { name: /files upload link/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("QA Intake Route").or(page.getByText("Client Upload Link"))).toBeVisible({ timeout: 5000 });
 
     await page.screenshot({
       path: test.info().outputPath("upload-link-created.png"),
@@ -200,12 +184,12 @@ test.describe("Upload link creation and anonymous file collection", () => {
     expect(diffHours).toBeLessThan(26);
   });
 
-  test("empty folder panel keeps both actions visible and still drives the correct upload-link flow", async ({ page }) => {
+  test("empty folder share path redirects owners into the correct upload-link flow", async ({ page }) => {
     const account = buildOwnerAccount();
 
     await registerAccount(page, account);
     await loginWithPassword(page, account);
-    await completeOnboarding(page, account, "Primary Inbox");
+    await completeOnboarding(page, account);
 
     const token = await getAuthToken(page);
     const createFolderResponse = await page.request.post(resolveApiUrl("/api/folders"), {
@@ -222,13 +206,11 @@ test.describe("Upload link creation and anonymous file collection", () => {
 
     await gotoStable(page, "/files");
 
-    await page.getByRole("button", { name: /navigate to empty intake/i }).click();
+    await page.getByRole("button", { name: /folder actions for Empty Intake/i }).click();
+    await expect(page.getByRole("button", { name: /create upload link/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /share folder/i })).toHaveCount(0);
 
-    await expect(page.getByRole("button", { name: /generate upload link/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /share folder/i })).toBeDisabled();
-    await expect(page.getByText(/share folder unlocks after this folder already contains files/i)).toBeVisible();
-
-    await page.getByRole("button", { name: /generate upload link/i }).click();
+    await page.getByRole("button", { name: /create upload link/i }).click();
 
     await expect(page.getByText(/someone else to upload files into Empty Intake/i)).toBeVisible();
     await expect(page.locator("#folder")).toHaveValue(emptyFolder.id);

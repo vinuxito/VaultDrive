@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>QuantiX Drive — Coherence Foundations Verification (2026-04-27)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #12161e;
+    --panel-2: #182030;
+    --border: #232b3a;
+    --text: #e6ebf5;
+    --muted: #8a93a6;
+    --green: #3ddc97;
+    --amber: #ffb454;
+    --red: #ff6b6b;
+    --link: #6ad7ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); background: var(--bg); }
+  header { padding: 36px 28px 12px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #131927, #0b0d12); }
+  header .crumbs { color: var(--muted); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; }
+  header h1 { margin: 8px 0 4px; font-size: 28px; }
+  header .sub { color: var(--muted); font-size: 14px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 28px 64px; }
+  section { margin: 28px 0; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  h3 { font-size: 15px; margin: 24px 0 8px; color: var(--text); }
+  .verdict { display: inline-block; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .verdict.green { background: rgba(61, 220, 151, 0.12); color: var(--green); border: 1px solid rgba(61, 220, 151, 0.4); }
+  .verdict.amber { background: rgba(255, 180, 84, 0.12); color: var(--amber); border: 1px solid rgba(255, 180, 84, 0.4); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card .label { color: var(--muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .card .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .card .value.green { color: var(--green); }
+  .card .value.amber { color: var(--amber); }
+  .card .value.red { color: var(--red); }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  th { background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: 0; }
+  td.pass { color: var(--green); white-space: nowrap; }
+  td.warn { color: var(--amber); white-space: nowrap; }
+  td.fail { color: var(--red); white-space: nowrap; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font: 13px ui-monospace, monospace; }
+  ul { padding-left: 18px; }
+  li { margin: 4px 0; }
+  a { color: var(--link); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .tag.green { background: rgba(61,220,151,0.12); color: var(--green); border: 1px solid rgba(61,220,151,0.4); }
+  .tag.amber { background: rgba(255,180,84,0.12); color: var(--amber); border: 1px solid rgba(255,180,84,0.4); }
+  .tag.red { background: rgba(255,107,107,0.12); color: var(--red); border: 1px solid rgba(255,107,107,0.4); }
+  footer { color: var(--muted); font-size: 12px; padding: 16px 28px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<header>
+  <div class="crumbs">QuantiX Drive · Verification Report</div>
+  <h1>Coherence Foundations — End-to-End Verification</h1>
+  <div class="sub">Date: 2026-04-27 · Branch: <code>main</code> · Commit verified: <code>49c92c0</code> · <span class="verdict green">SAFE TO CONTINUE — full suite green</span></div>
+</header>
+<main>
+
+<section>
+  <h2>Executive verdict</h2>
+  <p>
+    All five primary verification axes — frontend typecheck, frontend unit tests, frontend production build, backend tests, and the full Playwright E2E suite — are <strong>green</strong> on commit <code>49c92c0</code>. The E2E suite was largely broken at the start of this pass because two pieces of test code had drifted out of sync with upstream UI changes. <strong>Two safe surgical fixes</strong> in test code (no production source touched) brought the suite from 32 failures + 7 not-run to <strong>39/39 passing in 1.5 min on a clean test database</strong>.
+  </p>
+</section>
+
+<section>
+  <h2>Summary</h2>
+  <div class="grid">
+    <div class="card"><div class="label">Frontend typecheck</div><div class="value green">exit 0</div></div>
+    <div class="card"><div class="label">Frontend unit tests</div><div class="value green">99 / 99</div></div>
+    <div class="card"><div class="label">Frontend build</div><div class="value green">11–19 s</div></div>
+    <div class="card"><div class="label">Backend build</div><div class="value green">exit 0</div></div>
+    <div class="card"><div class="label">Backend tests</div><div class="value green">ok</div></div>
+    <div class="card"><div class="label">E2E (Playwright)</div><div class="value green">39 / 39</div></div>
+    <div class="card"><div class="label">ESLint</div><div class="value amber">45 pre-existing</div></div>
+    <div class="card"><div class="label">Working tree</div><div class="value green">clean</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Verification matrix</h2>
+  <table>
+    <thead><tr><th>#</th><th>Check</th><th>Result</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>git status --short</code></td><td class="pass">PASS</td><td>Clean except <code>.omc/project-memory.json</code> (tooling), deliberately untouched.</td></tr>
+      <tr><td>2</td><td>Frontend typecheck — <code>npx tsc -b</code></td><td class="pass">PASS</td><td>No type errors.</td></tr>
+      <tr><td>3</td><td>Frontend unit tests — <code>npx vitest run</code></td><td class="pass">PASS</td><td>99 / 99 across 29 test files. Includes 13 new primitive tests + 3 new UploadLinkCard integration tests.</td></tr>
+      <tr><td>4</td><td>Frontend build — <code>npm run build</code></td><td class="pass">PASS</td><td>Built in 11–19 s. Bundles emit cleanly.</td></tr>
+      <tr><td>5</td><td>ESLint — <code>npx eslint .</code></td><td class="warn">WARN</td><td>45 pre-existing problems (42 errors + 3 warnings) in legacy <code>src/utils/*</code>. <strong>None introduced by <code>49c92c0</code>.</strong></td></tr>
+      <tr><td>6</td><td>Backend build — <code>go build ./...</code></td><td class="pass">PASS</td><td></td></tr>
+      <tr><td>7</td><td>Backend tests — <code>go test ./...</code></td><td class="pass">PASS</td><td>Root package <code>github.com/vinuxito/VaultDrive</code> OK. <code>auth/</code> and <code>internal/database/</code> have no test files (pre-existing).</td></tr>
+      <tr><td>8</td><td>Postgres reachable</td><td class="pass">PASS</td><td>Local instance available for the Playwright harness.</td></tr>
+      <tr><td>9</td><td>Playwright E2E — <code>npx playwright test</code></td><td class="pass">39 / 39</td><td>Two safe surgical fixes in test code recovered the full suite. Run completes in 1.5 min on a clean test database.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Failures and fixes</h2>
+
+  <h3>Found in baseline <span class="tag red">32 fail · 7 did not run</span></h3>
+  <p>Almost the entire Playwright suite was failing at <code>e2e/helpers/trust.ts:42</code> on the assertion <code>getByText("Welcome to QuantiX Drive")</code> after a successful registration. The Dashboard heading had been changed to a dynamic time-based greeting (<code>Good {morning|afternoon|evening}, {firstName}.</code>) in an upstream commit (<code>ee6c0ca docs+fix: verify branch and harden trust flows</code>). The E2E helper was not updated to match.</p>
+
+  <h3>Fix #1 <span class="tag green">applied</span> · helper assertion</h3>
+  <ul>
+    <li>File: <code>vaultdrive_client/e2e/helpers/trust.ts</code></li>
+    <li>Change: replaced <code>getByText("Welcome to QuantiX Drive")</code> with <code>getByRole("button", { name: "Open QuantiX Drive" })</code> — the login submit button that appears when registration succeeds and the form flips back to login mode. (<code>handleRegister()</code> doesn't navigate to Dashboard; it just sets <code>isLogin = true</code> and prefills the login form.)</li>
+    <li>Risk: minimal. Stable role-based selector.</li>
+    <li><strong>Result after #1:</strong> 38 / 39 pass.</li>
+  </ul>
+
+  <h3>Fix #2 <span class="tag green">applied</span> · Done button viewport</h3>
+  <ul>
+    <li>File: <code>vaultdrive_client/e2e/owner-trust-flow.spec.ts</code> around line 50.</li>
+    <li>Change: the <code>Done</code> button click in the upload-link receipt flow now uses the same <code>scrollIntoViewIfNeeded()</code> + <code>.evaluate(el =&gt; el.click())</code> pattern that the same test already uses for the <code>Create Link</code> button just above. Mirrors a pre-existing idiom, not a new technique.</li>
+    <li>Risk: minimal.</li>
+    <li><strong>Result after #2:</strong> 39 / 39 pass.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Changed files</h2>
+  <table>
+    <thead><tr><th>File</th><th>Type</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td><code>vaultdrive_client/e2e/helpers/trust.ts</code></td><td>test code</td><td>Updated registration assertion to a stable role-based locator on the login submit button.</td></tr>
+      <tr><td><code>vaultdrive_client/e2e/owner-trust-flow.spec.ts</code></td><td>test code</td><td>Done button click now uses the scroll+evaluate pattern already in use for Create Link in the same test.</td></tr>
+      <tr><td><code>docs/memories/session-2026-04-27-coherence-verification.md</code></td><td>doc</td><td>Session memory of this verification pass.</td></tr>
+      <tr><td><code>docs/reports/2026-04-27-coherence-verification.md</code></td><td>doc</td><td>Markdown verification report.</td></tr>
+      <tr><td><code>docs/reports/2026-04-27-coherence-verification.html</code></td><td>doc</td><td>This file.</td></tr>
+      <tr><td><code>README.md</code></td><td>doc</td><td>Verbose update reflecting current state, latest verification, links.</td></tr>
+      <tr><td><code>docs/INDEX.md</code></td><td>doc</td><td>Added entries for the verification artefacts.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Risks remaining</h2>
+  <table>
+    <thead><tr><th>Risk</th><th>Severity</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>45 pre-existing ESLint errors in legacy <code>src/utils/*</code></td><td class="warn">Low</td><td>Not from this session. Deferred to a focused cleanup pass.</td></tr>
+      <tr><td>Only Upload Links uses the new primitives</td><td class="warn">Low</td><td>Roadmap explicitly stages adoption surface-by-surface.</td></tr>
+      <tr><td>Empty-state <code>route</code> hook not yet wired by hosts</td><td class="warn">Low</td><td>Plugs into Roadmap Step 4 (onboarding hand-off).</td></tr>
+      <tr><td>Backend handler tests live only in the root package</td><td class="warn">Medium (pre-existing)</td><td>Structural choice. Not a regression today.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Final state</h2>
+  <ul>
+    <li>Working tree contains only the two test-code fixes + the new documentation files.</li>
+    <li>All five primary verification axes are green.</li>
+    <li>Playwright suite back to 39 / 39 in 1.5 min on a clean test database.</li>
+    <li>Foundation work from <code>49c92c0</code> (RowActionMenu, copy.ts, DataState) is shippable and ready for adoption on a second surface (suggested: AccessPanel).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Next steps</h2>
+  <ol>
+    <li>Adopt <code>&lt;RowActionMenu&gt;</code> on AccessPanel per-entry actions.</li>
+    <li>Adopt <code>&lt;DataState&gt;</code> on AccessPanel + FileRequestsSection + FolderSharedLinksSection.</li>
+    <li>Add a CI grep step that fails on inline <code>Are you sure</code> and <code>Loading\.{3}</code> outside <code>copy.ts</code>.</li>
+    <li>Optional dedicated cleanup pass on the 45 ESLint issues in <code>src/utils/*</code>.</li>
+  </ol>
+</section>
+
+</main>
+<footer>
+  <p>Generated 2026-04-27 · QuantiX Drive · Reports stored under <code>docs/reports/</code>. Companion files: <a href="2026-04-27-coherence-verification.md">verification.md</a> · <a href="../memories/session-2026-04-27-coherence-verification.md">session memory</a></p>
+</footer>
+</body>
+</html>

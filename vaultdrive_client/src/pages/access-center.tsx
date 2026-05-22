@@ -41,7 +41,7 @@ const STATUS_BADGE: Record<string, { label: string; icon: React.ReactNode; cls: 
   expired: { label: "Expired", icon: <Clock className="w-3 h-3" />, cls: "text-amber-700 bg-amber-50 border-amber-200" },
   revoked: { label: "Revoked", icon: <Ban className="w-3 h-3" />, cls: "text-red-700 bg-red-50 border-red-200" },
   stale: { label: "Stale", icon: <AlertTriangle className="w-3 h-3" />, cls: "text-orange-700 bg-orange-50 border-orange-200" },
-  never_used: { label: "Never used", icon: <XCircle className="w-3 h-3" />, cls: "text-slate-500 bg-slate-50 border-slate-200" },
+  never_used: { label: "Never used", icon: <XCircle className="w-3 h-3" />, cls: "text-muted-foreground bg-muted border-border" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -127,8 +127,8 @@ export default function AccessCenter() {
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#7d4f50]/10 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-[#7d4f50]" />
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h1 className="text-xl font-semibold text-foreground">Access Center</h1>
@@ -144,7 +144,7 @@ export default function AccessCenter() {
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 tab === t.key
-                  ? "border-[#7d4f50] text-[#7d4f50]"
+                  ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -163,8 +163,8 @@ export default function AccessCenter() {
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                 statusFilter === s
-                  ? "bg-[#7d4f50] text-white border-[#7d4f50]"
-                  : "bg-white text-muted-foreground border-border hover:border-[#7d4f50]/40"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-muted-foreground border-border hover:border-primary/40"
               }`}
             >
               {s === "all" ? "All" : s === "never_used" ? "Never used" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -174,7 +174,7 @@ export default function AccessCenter() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
-            <div className="w-6 h-6 border-2 border-[#7d4f50] border-t-transparent rounded-full animate-spin mr-3" />
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-3" />
             Loading access data…
           </div>
         ) : (
@@ -279,8 +279,8 @@ function DropCard({ item, status, baseURL, copiedId, onCopy }: DropCardProps) {
   const dropURL = `${baseURL}/drop/${item.token}`;
   return (
     <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
-      <div className="w-8 h-8 rounded-lg bg-[#f2d7d8] flex items-center justify-center shrink-0">
-        <Upload className="w-4 h-4 text-[#7d4f50]" />
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+        <Upload className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{item.link_name ?? item.token.slice(0, 12) + "…"}</p>

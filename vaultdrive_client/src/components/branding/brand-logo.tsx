@@ -8,8 +8,15 @@ interface BrandLogoProps {
 }
 
 /**
- * Brand logo switcher — renders the logo variant selected in the branding
- * config. Use this instead of importing a specific logo directly.
+ * Brand logo switcher — ABRN overlay.
+ *
+ * This file is part of the ABRN downstream overlay on top of the QuantiX Drive
+ * upstream. It replaces the upstream brand-logo.tsx (which renders only
+ * QuantixLogo) with a switcher that picks ABRNLogo when VITE_LOGO_VARIANT=abrn.
+ *
+ * When syncing upstream, this file will conflict with upstream/main's
+ * brand-logo.tsx — resolve by keeping this switcher version and discarding
+ * the upstream rewrite.
  */
 export default function BrandLogo({ className, alt }: BrandLogoProps) {
   const label = alt ?? branding.productName;

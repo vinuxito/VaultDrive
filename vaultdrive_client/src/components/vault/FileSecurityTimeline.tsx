@@ -95,12 +95,12 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
   return (
     <div className="brand-trust-shell rounded-[1.75rem] px-4 py-4 space-y-3">
       <div className="relative z-10 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2 text-white/50">
+        <div className="flex items-center gap-2 text-white/75">
           <Clock3 className="w-3.5 h-3.5 text-amber-200" />
           <span className="brand-trust-kicker">Security History</span>
         </div>
         {!loading && !error && (
-          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72">
+          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/12 px-2.5 py-1 text-[11px] font-medium text-white/90">
             {events.length === 0 ? "Owner-only story" : `${events.length} recorded event${events.length !== 1 ? "s" : ""}`}
           </span>
         )}
@@ -110,10 +110,10 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
         <div className="relative z-10 space-y-3 py-1">
           {[1, 2, 3].map((row) => (
             <div key={row} className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-white/10 animate-pulse shrink-0" />
+              <div className="w-6 h-6 rounded-full bg-white/12 animate-pulse shrink-0" />
               <div className="flex-1 space-y-2 pt-0.5">
-                <div className="h-3 rounded bg-white/10 animate-pulse w-3/4" />
-                <div className="h-2.5 rounded bg-white/10 animate-pulse w-1/3" />
+                <div className="h-3 rounded bg-white/12 animate-pulse w-3/4" />
+                <div className="h-2.5 rounded bg-white/12 animate-pulse w-1/3" />
               </div>
             </div>
           ))}
@@ -124,8 +124,8 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
             <Clock3 className="w-3 h-3 text-amber-300" />
           </div>
           <div>
-            <p className="text-sm text-white/85">Security history is temporarily unavailable.</p>
-            <p className="text-xs text-white/60 mt-0.5">The file remains protected; only the event feed could not be loaded.</p>
+            <p className="text-sm text-white/95">Security history is temporarily unavailable.</p>
+            <p className="text-xs text-white/75 mt-0.5">The file remains protected; only the event feed could not be loaded.</p>
           </div>
         </div>
       ) : events.length === 0 ? (
@@ -134,8 +134,8 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
           </div>
           <div>
-            <p className="text-sm text-white/85">No external access has occurred yet.</p>
-            <p className="text-xs text-white/60 mt-0.5">Only you currently hold access to this file.</p>
+            <p className="text-sm text-white/95">No external access has occurred yet.</p>
+            <p className="text-xs text-white/75 mt-0.5">Only you currently hold access to this file.</p>
           </div>
         </div>
       ) : (
@@ -149,7 +149,7 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
                   {getEventIcon(event.event_type)}
                 </div>
                 {idx < events.length - 1 && (
-                  <span className="mt-1.5 w-px h-6 bg-white/15 shrink-0" />
+                  <span className="mt-1.5 w-px h-6 bg-white/25 shrink-0" />
                 )}
               </div>
               <div
@@ -157,23 +157,23 @@ export function FileSecurityTimeline({ fileId }: FileSecurityTimelineProps) {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/55">
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-2 py-0.5 font-medium text-white/72">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/75">
+                      <span className="inline-flex items-center rounded-full border border-white/20 bg-white/15 px-2 py-0.5 font-medium text-white/90">
                         {eventGroupLabel(event.event_type)}
                       </span>
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/55">
+                      <span className="inline-flex items-center rounded-full border border-white/20 bg-white/12 px-2 py-0.5 text-white/75">
                         {toneLabel(event.tone)}
                       </span>
                     </div>
-                    <p className="text-sm text-white/92 leading-relaxed">{event.label}</p>
+                    <p className="text-sm text-white/95 leading-relaxed">{event.label}</p>
                   </div>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/72 whitespace-nowrap">
+                  <span className="rounded-full border border-white/20 bg-white/12 px-2.5 py-1 text-[11px] font-medium text-white/90 whitespace-nowrap">
                     {relativeTime(event.at)}
                   </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-white/58">
+                <div className="mt-2 flex items-center gap-2 text-xs text-white/75">
                   <span>{new Date(event.at).toLocaleString()}</span>
-                  <span className="text-white/38">•</span>
+                  <span className="text-white/75">•</span>
                   <span>Readable history of protection and control</span>
                 </div>
               </div>

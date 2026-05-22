@@ -70,8 +70,15 @@ func main() {
 	godotenv.Load()
 
 	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL environment variable is required")
+	}
 
-	fmt.Printf("Database URL: %s...\n", dbURL[:12])
+	preview := dbURL
+	if len(preview) > 12 {
+		preview = preview[:12]
+	}
+	fmt.Printf("Database URL: %s...\n", preview)
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -464,10 +471,10 @@ func main() {
 
 	// SPA catch-all handler - must be registered AFTER API routes.
 	// Handles any non-API route that doesn't match a file. The base path
-	// comes from ProductConfig so a QuantiX deployment serves under
-	// /quantix/ while an ABRN deployment serves under /abrn/.
-	basePath := productCfg.BasePath                // "/abrn/" or "/quantix/"
-	basePathNoSlash := productCfg.BasePathTrimmed() // "/abrn" or "/quantix"
+	// comes from ProductConfig so deployments can serve under any prefix
+	// (e.g. "/quantix/") via PRODUCT_BASE_PATH.
+	basePath := productCfg.BasePath                // e.g. "/quantix/"
+	basePathNoSlash := productCfg.BasePathTrimmed() // e.g. "/quantix"
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
@@ -509,8 +516,9 @@ func main() {
 	// Configure server with explicit timeouts for large file uploads
 	server := &http.Server{
 		Addr:    ":" + port,
-		Handler: middlewareCORS(productCfg.CORSOrigins)(mux),
+		Handler: middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(mux)),
 		// Timeouts configured for 2GB uploads (30 minutes)
+
 		ReadTimeout:    30 * time.Minute, // Maximum time to read request body
 		WriteTimeout:   30 * time.Minute, // Maximum time to write response
 		IdleTimeout:    60 * time.Minute, // Keep-alive timeout

@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 type fileRequestResponse struct {
@@ -231,7 +231,7 @@ func (cfg *ApiConfig) handlerFileRequestUpload(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	uploadDir := "uploads"
+	uploadDir := uploadStorageDir()
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not create uploads directory", err)
 		return

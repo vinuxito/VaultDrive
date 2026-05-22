@@ -204,29 +204,28 @@ export function CreateUploadLinkModal({
       setLoading(false);
     }
   };
-
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
+      <div className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2 text-white">
-            <Plus className="w-5 h-5 text-[#f2d7d8]" />
+            <Plus className="w-5 h-5 text-primary-foreground" />
             {createdLink ? "Upload Link Created" : "Create Client Upload Link"}
           </h2>
-          <Button
+            <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white/70 hover:text-white hover:bg-white/10"
+            className="text-white/80 hover:text-white hover:bg-white/15"
           >
             <X className="w-5 h-5" />
           </Button>
         </div>
 
         {!createdLink && (
-          <div className="mb-4 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-xs leading-relaxed text-white/72">
+          <div className="mb-4 rounded-2xl border border-white/10 bg-white/12 px-4 py-3 text-xs leading-relaxed text-white/85">
             {introMessage ?? `Create a sender route into a specific folder. You stay in control of the route, its expiry, and whether it should seal itself after a delivery.${initialFolderName ? ` This route will target ${initialFolderName}.` : ""}`}
           </div>
         )}
@@ -243,9 +242,9 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/8 border border-white/15 space-y-1.5">
+            <div className="p-3 rounded-xl bg-white/12 border border-white/15 space-y-1.5">
               <p className="text-sm font-medium text-white">Trust receipt</p>
-              <p className="text-xs text-white/70 leading-relaxed">
+              <p className="text-xs text-white/80 leading-relaxed">
                 This route now accepts uploads into the folder you selected. You can watch uploads arrive, seal the route, or remove it later from Upload Links.
               </p>
             </div>
@@ -273,15 +272,15 @@ export function CreateUploadLinkModal({
               }}
             />
 
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-white/60 text-xs">
+            <div className="p-3 rounded-xl bg-white/12 border border-white/10">
+              <p className="text-white/75 text-xs">
                 The encryption key travels in the URL fragment and never reaches the server. Verify your PIN when you need to copy the full route, or manage it later from Upload Links.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/8 border border-white/15">
-              <p className="text-white/80 text-sm flex items-center gap-2">
-                <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+            <div className="p-3 rounded-xl bg-white/12 border border-white/15">
+              <p className="text-white/85 text-sm flex items-center gap-2">
+                <Fingerprint className="w-4 h-4 text-primary-foreground shrink-0" />
                 Files uploaded through this route stay bound to your app-wide <strong>4-digit PIN</strong> so the route feels delegated, not detached.
               </p>
             </div>
@@ -289,7 +288,7 @@ export function CreateUploadLinkModal({
             <div className="flex justify-end gap-3 pt-2">
               <Button
                 onClick={onClose}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                className="bg-white text-primary hover:bg-primary/10 font-semibold"
               >
                 Done
               </Button>
@@ -298,7 +297,7 @@ export function CreateUploadLinkModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="linkName" className="text-white/90 text-sm">
+              <Label htmlFor="linkName" className="text-white text-sm">
                 Link Name (optional)
               </Label>
               <Input
@@ -307,12 +306,12 @@ export function CreateUploadLinkModal({
                 placeholder="e.g. ALPLA"
                 value={linkName}
                 onChange={(e) => setLinkName(e.target.value)}
-                className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+                className="mt-1 bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
               />
             </div>
 
             <div>
-              <Label htmlFor="description" className="text-white/90 text-sm">
+              <Label htmlFor="description" className="text-white text-sm">
                 Instructions for client (optional)
               </Label>
               <textarea
@@ -321,17 +320,17 @@ export function CreateUploadLinkModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="mt-1 w-full rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 focus:outline-none px-3 py-2 text-sm resize-none"
+                className="mt-1 w-full rounded-md bg-white/15 border border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20 focus:outline-none px-3 py-2 text-sm resize-none"
               />
             </div>
 
             <div>
-              <Label htmlFor="folder" className="text-white/90 text-sm">
+              <Label htmlFor="folder" className="text-white text-sm">
                 Destination Folder
               </Label>
               <div className="mt-1 flex gap-2">
                 {fetchingFolders ? (
-                  <div className="text-white/70 text-sm">Loading folders...</div>
+                  <div className="text-white/80 text-sm">Loading folders...</div>
                 ) : showCreateFolder ? (
                   <div className="flex-1 flex gap-2">
                     <Input
@@ -341,7 +340,7 @@ export function CreateUploadLinkModal({
                       value={newFolderName}
                       onChange={(e) => setNewFolderName(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-                      className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+                      className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
                       disabled={creatingFolder}
                       autoFocus
                     />
@@ -349,7 +348,7 @@ export function CreateUploadLinkModal({
                       type="button"
                       onClick={handleCreateFolder}
                       disabled={creatingFolder || !newFolderName.trim()}
-                      className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                      className="bg-white text-primary hover:bg-primary/10 font-semibold"
                     >
                       {creatingFolder ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -361,7 +360,7 @@ export function CreateUploadLinkModal({
                       type="button"
                       variant="ghost"
                       onClick={() => { setShowCreateFolder(false); setNewFolderName(""); }}
-                      className="text-white/70 hover:text-white hover:bg-white/10"
+                      className="text-white/80 hover:text-white hover:bg-white/15"
                     >
                       Cancel
                     </Button>
@@ -372,7 +371,7 @@ export function CreateUploadLinkModal({
                       id="folder"
                       value={selectedFolderId}
                       onChange={(e) => setSelectedFolderId(e.target.value)}
-                      className="flex-1 bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:border-white/40 focus:bg-white/15"
+                      className="flex-1 bg-white/15 border border-white/20 text-white rounded-md px-3 py-2 focus:border-white/40 focus:bg-white/20"
                     >
                       {folders.length === 0 ? (
                         <option value="">-- Create a folder --</option>
@@ -386,9 +385,8 @@ export function CreateUploadLinkModal({
                     </select>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="modal-cancel"
                       onClick={() => { setShowCreateFolder(true); setNewFolderName(""); }}
-                      className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
                       title="Create new folder"
                     >
                       <FolderIcon className="w-4 h-4" />
@@ -397,21 +395,21 @@ export function CreateUploadLinkModal({
                 )}
               </div>
               {folders.length === 0 && !showCreateFolder && (
-                <div className="mt-1 text-sm text-[#f2d7d8]">
+                <div className="mt-1 text-sm text-primary-foreground">
                   ↑ Click folder icon to create your first folder
                 </div>
               )}
             </div>
 
             <div>
-              <Label htmlFor="expiresIn" className="text-white/90 text-sm">
+              <Label htmlFor="expiresIn" className="text-white text-sm">
                 Link Expiration
               </Label>
               <select
                 id="expiresIn"
                 value={expiresIn}
                 onChange={(e) => setExpiresIn(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 mt-1 focus:border-white/40 focus:bg-white/15"
+                className="w-full bg-white/15 border border-white/20 text-white rounded-md px-3 py-2 mt-1 focus:border-white/40 focus:bg-white/20"
               >
                 <option value="0">Never</option>
                 <option value="1">1 Day</option>
@@ -421,7 +419,7 @@ export function CreateUploadLinkModal({
             </div>
 
             <div>
-              <Label htmlFor="maxFiles" className="text-white/90 text-sm">
+              <Label htmlFor="maxFiles" className="text-white text-sm">
                 Max Files (0 = Unlimited)
               </Label>
               <Input
@@ -430,7 +428,7 @@ export function CreateUploadLinkModal({
                 min="0"
                 value={maxFiles}
                 onChange={(e) => setMaxFiles(parseInt(e.target.value, 10) || 0)}
-                className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15"
+                className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
               />
             </div>
 
@@ -440,26 +438,26 @@ export function CreateUploadLinkModal({
                 role="switch"
                 aria-checked={sealAfterUpload}
                 onClick={() => setSealAfterUpload((v) => !v)}
-                className={`relative w-10 h-6 rounded-full transition-colors focus:outline-none ${sealAfterUpload ? "bg-amber-500" : "bg-white/20"}`}
+                className={`relative w-10 h-6 rounded-full transition-colors focus:outline-none ${sealAfterUpload ? "bg-amber-500" : "bg-white/25"}`}
               >
                 <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${sealAfterUpload ? "translate-x-4" : ""}`} />
               </button>
               <div>
-                <p className="text-white/90 text-sm font-medium">Seal after first upload</p>
-                <p className="text-white/68 text-xs">Link closes automatically after one use</p>
+                <p className="text-white text-sm font-medium">Seal after first upload</p>
+                <p className="text-white/75 text-xs">Link closes automatically after one use</p>
               </div>
             </div>
 
             {cachedPin ? (
-              <div className="p-3 rounded-lg bg-white/10 border border-white/20">
-                <p className="text-white/90 text-sm flex items-center gap-2">
-                  <Fingerprint className="w-4 h-4 text-[#f2d7d8] shrink-0" />
+              <div className="p-3 rounded-lg bg-white/15 border border-white/20">
+                <p className="text-white text-sm flex items-center gap-2">
+                  <Fingerprint className="w-4 h-4 text-primary-foreground shrink-0" />
                   Your vault PIN is already trusted for this session. This link will use the same app-wide PIN automatically.
                 </p>
               </div>
             ) : (
               <div>
-                <Label htmlFor="pin" className="text-white/90 text-sm flex items-center gap-1">
+                <Label htmlFor="pin" className="text-white text-sm flex items-center gap-1">
                   <Fingerprint className="w-4 h-4" />
                   Your 4-digit PIN
                 </Label>
@@ -471,9 +469,9 @@ export function CreateUploadLinkModal({
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
                   placeholder="••••"
-                  className="mt-1 w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 text-center tracking-widest text-xl"
+                  className="mt-1 w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20 text-center tracking-widest text-xl"
                 />
-                <p className="text-white/60 text-xs mt-1">
+                <p className="text-white/75 text-xs mt-1">
                   Files will be encrypted so only you can decrypt them with this PIN.
                   Set your PIN in Settings if you haven't yet.
                 </p>
@@ -481,7 +479,7 @@ export function CreateUploadLinkModal({
             )}
 
             {error && (
-              <div className="p-3 rounded-lg bg-[#6b4345]/30 border border-[#d4a5a6]/40 text-[#f2d7d8] text-sm">
+              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm">
                 {error}
               </div>
             )}
@@ -489,17 +487,16 @@ export function CreateUploadLinkModal({
             <div className="flex items-center justify-end gap-3 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="modal-cancel"
                 onClick={onClose}
                 disabled={loading}
-                className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading || fetchingFolders || (folders.length === 0 && !showCreateFolder) || !selectedFolderId || activePin.length !== 4}
-                className="bg-white text-[#7d4f50] hover:bg-[#f2d7d8] font-semibold"
+                className="bg-white text-primary hover:bg-primary/10 font-semibold"
               >
                 {loading ? (
                   <>

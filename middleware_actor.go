@@ -105,6 +105,13 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	ip := requestIP(r)
+	if !isLoopbackIP(ip) && !agentKeyRateLimiter.allow(dbKey.ID.String(), 60, time.Minute) {
+		w.Header().Set("Retry-After", "60")
+		respondWithV1Error(w, r, http.StatusTooManyRequests, "Rate limit exceeded for this agent key")
+		return
+	}
+
 	scopes := decodeAgentScopes(dbKey.ScopesJson)
 	matchedScope := ""
 	for _, required := range requiredScopes {

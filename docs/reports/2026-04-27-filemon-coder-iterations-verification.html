@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>QuantiX Drive — Filemón Coder 3-Iteration Verification (2026-04-27)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #12161e; --panel-2: #182030; --border: #232b3a;
+    --text: #e6ebf5; --muted: #8a93a6; --green: #3ddc97; --amber: #ffb454;
+    --red: #ff6b6b; --link: #6ad7ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); background: var(--bg); }
+  header { padding: 36px 28px 12px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #131927, #0b0d12); }
+  header .crumbs { color: var(--muted); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; }
+  header h1 { margin: 8px 0 4px; font-size: 28px; }
+  header .sub { color: var(--muted); font-size: 14px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 28px 64px; }
+  section { margin: 28px 0; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  h3 { font-size: 15px; margin: 24px 0 8px; color: var(--text); }
+  .verdict { display: inline-block; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(61,220,151,0.12); color: var(--green); border: 1px solid rgba(61,220,151,0.4); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card .label { color: var(--muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .card .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .card .value.green { color: var(--green); }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  th { background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: 0; }
+  td.pass { color: var(--green); white-space: nowrap; }
+  td.was { color: var(--red); white-space: nowrap; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font: 13px ui-monospace, monospace; }
+  ul { padding-left: 18px; } li { margin: 4px 0; }
+  a { color: var(--link); }
+  footer { color: var(--muted); font-size: 12px; padding: 16px 28px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<header>
+  <div class="crumbs">Verification report — 2026-04-27</div>
+  <h1>QuantiX Drive — Filemón Coder, 3 iterations</h1>
+  <div class="sub">Each iteration ended with a live deploy to <a href="https://quantixdrive.filemonprime.net/quantix/">quantixdrive.filemonprime.net</a> and a smoke probe.</div>
+  <p style="margin-top:14px"><span class="verdict">All iterations green on prod</span></p>
+</header>
+<main>
+
+<section>
+  <h2>Top-line numbers</h2>
+  <div class="grid">
+    <div class="card"><div class="label">Iterations</div><div class="value green">3 / 3</div></div>
+    <div class="card"><div class="label">Vitest</div><div class="value green">117 / 117</div></div>
+    <div class="card"><div class="label">Playwright E2E</div><div class="value green">39 / 39</div></div>
+    <div class="card"><div class="label">Live smoke (3 probes)</div><div class="value green">3 / 3</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Iteration progression</h2>
+  <table>
+    <tr><th>Iter</th><th>Goal</th><th>Result</th><th>Commit</th></tr>
+    <tr><td>1</td><td>Register input validation (server + client + tests)</td><td class="pass">landed live</td><td><code>f92838d</code></td></tr>
+    <tr><td>2</td><td><code>make deploy</code> automation + README runbook</td><td class="pass">landed</td><td><code>e667625</code></td></tr>
+    <tr><td>3</td><td>Coherence test extension + full E2E + final deploy</td><td class="pass">landed live</td><td><code>5da2389</code></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>2. Test evidence</h2>
+  <table>
+    <tr><th>Suite</th><th>Files</th><th>Tests</th><th>Result</th></tr>
+    <tr><td>Go (<code>go test ./...</code>)</td><td>5 specs incl. new <code>handle_user_create_test.go</code></td><td>all green</td><td class="pass">ok github.com/vinuxito/VaultDrive</td></tr>
+    <tr><td>Vitest (<code>npm test</code>)</td><td>32</td><td>117</td><td class="pass">117 / 117</td></tr>
+    <tr><td>Playwright (<code>npm run test:e2e</code>)</td><td>10</td><td>39</td><td class="pass">39 / 39 in 1m 36s</td></tr>
+    <tr><td>Live smoke (<code>make deploy-smoke</code>)</td><td>3 URLs</td><td>3</td><td class="pass">3 / 3 expected statuses</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>3. Live behaviour change — POST /api/register</h2>
+  <table>
+    <tr><th>Body</th><th>Before iter 1</th><th>After iter 1</th></tr>
+    <tr><td><code>{}</code></td><td class="was">500 — Error creating user</td><td class="pass">400 — first_name is required</td></tr>
+    <tr><td>short password</td><td class="was">201 — user persisted</td><td class="pass">400 — password must be at least 8 characters</td></tr>
+    <tr><td>malformed email</td><td class="was">200/201 (no check)</td><td class="pass">400 — email is not a valid email address</td></tr>
+    <tr><td>valid input</td><td class="pass">201</td><td class="pass">201 (preserved)</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>4. Deploy automation (<code>make deploy</code>)</h2>
+  <p>Chains <code>build-frontend</code> → <code>build-backend</code> (= <code>build-prod</code>) → <code>deploy-restart</code> → <code>deploy-smoke</code>. Smoke fails the chain on any unexpected status — so a broken deploy stops the pipeline instead of going silently live.</p>
+  <pre>$ make deploy-smoke
+Smoke: GET /api/healthz
+  healthz: HTTP 200
+Smoke: POST /api/register {}
+  register{}: HTTP 400
+Smoke: GET /quantix/
+  /quantix/: HTTP 200
+Deploy verified.</pre>
+  <p>The <code>register{} → 400</code> probe also acts as a continuous regression test for Iteration 1.</p>
+</section>
+
+<section>
+  <h2>5. Coherence primitives — adoption status</h2>
+  <table>
+    <tr><th>Surface</th><th>&lt;DataState&gt;</th><th>&lt;RowActionMenu&gt;</th><th>Centralised destructive copy</th></tr>
+    <tr><td>AccessPanel</td><td class="pass">yes (loading / error / empty / retry covered)</td><td>n/a — single panel-level action</td><td class="pass">yes</td></tr>
+    <tr><td>FileRequestsSection</td><td class="pass">yes</td><td class="pass">yes (copy-url, delete-request)</td><td class="pass">yes</td></tr>
+    <tr><td>UploadLinksSection</td><td class="pass">yes (existing)</td><td class="pass">yes (existing)</td><td class="pass">yes (existing)</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>6. Files changed</h2>
+  <pre>Makefile
+README.md
+handle_user_create.go
+handle_user_create_test.go                                          (new)
+vaultdrive_client/src/components/vault/AccessPanel.test.tsx
+vaultdrive_client/src/components/vault/FileRequestsSection.test.tsx
+vaultdrive_client/src/pages/login.tsx
+vaultdrive_client/src/utils/registerValidation.ts                   (new)
+vaultdrive_client/src/utils/registerValidation.test.ts              (new)
+docs/memories/session-2026-04-27-filemon-coder-3-iterations.md      (new)
+docs/reports/2026-04-27-filemon-coder-iterations-verification.md    (new)
+docs/reports/2026-04-27-filemon-coder-iterations-verification.html  (new)</pre>
+</section>
+
+<section>
+  <h2>7. Open items</h2>
+  <ul>
+    <li>Phase 4 — Argon2id KDF for <code>encryptPrivateKey</code> (still single-round SHA-256). Next correctness fix in the architect plan; not a hot bug.</li>
+    <li><code>origin/main</code> divergence — local main is ~10 commits ahead. By user policy, no push.</li>
+    <li>Smoke could be wider — current canary covers 3 URLs. A future iteration could add a tokened auth probe.</li>
+  </ul>
+</section>
+
+</main>
+<footer>QuantiX Drive · Filemón Coder verification · 2026-04-27 · service active since 11:31:16 CST · MainPID 184333</footer>
+</body>
+</html>

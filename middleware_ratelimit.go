@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -75,16 +76,31 @@ func (sw *slidingWindow) purge() {
 
 // Global rate limiters — one per sensitive endpoint group.
 var (
-	loginRateLimiter  = newSlidingWindow()
-	pinRateLimiter    = newSlidingWindow()
-	globalRateLimiter = newSlidingWindow()
+	loginRateLimiter    = newSlidingWindow()
+	pinRateLimiter      = newSlidingWindow()
+	globalRateLimiter   = newSlidingWindow()
+	agentKeyRateLimiter = newSlidingWindow()
 )
 
+// isLoopbackIP returns true for 127.x.x.x and ::1, which are always local
+// dev / CI traffic. Rate-limiting loopback breaks parallel E2E test suites
+// running on the same machine without providing any real security benefit.
+func isLoopbackIP(ip string) bool {
+	// Strip port if present
+	host := ip
+	if h, _, err := net.SplitHostPort(ip); err == nil {
+		host = h
+	}
+	parsed := net.ParseIP(host)
+	return parsed != nil && parsed.IsLoopback()
+}
+
 // middlewareRateLimitLogin limits login attempts to 10 per minute per IP.
+// Loopback addresses (127.x.x.x, ::1) are exempt for local dev and E2E tests.
 func middlewareRateLimitLogin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := requestIP(r)
-		if !loginRateLimiter.allow(ip, 10, time.Minute) {
+		if !isLoopbackIP(ip) && !loginRateLimiter.allow(ip, 10, time.Minute) {
 			w.Header().Set("Retry-After", "60")
 			respondWithError(w, http.StatusTooManyRequests, "Too many login attempts. Please wait before trying again.", nil)
 			return
@@ -94,10 +110,11 @@ func middlewareRateLimitLogin(next http.Handler) http.Handler {
 }
 
 // middlewareRateLimitPIN limits PIN attempts to 5 per minute per IP.
+// Loopback addresses (127.x.x.x, ::1) are exempt for local dev and E2E tests.
 func middlewareRateLimitPIN(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := requestIP(r)
-		if !pinRateLimiter.allow(ip, 5, time.Minute) {
+		if !isLoopbackIP(ip) && !pinRateLimiter.allow(ip, 5, time.Minute) {
 			w.Header().Set("Retry-After", "60")
 			respondWithError(w, http.StatusTooManyRequests, "Too many PIN attempts. Please wait before trying again.", nil)
 			return

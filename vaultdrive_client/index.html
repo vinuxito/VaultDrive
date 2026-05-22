@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vault.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="%VITE_PRIMARY_COLOR%" />
   <link rel="manifest" href="/manifest.json" />
@@ -11,6 +11,20 @@
 </head>
 
 <body>
+  <!-- Skin bootstrap: sets data-theme before React mounts to prevent FOUC -->
+  <script>
+    (function () {
+      var VALID = ["quantix", "light", "dark", "cyberpunk", "elegant", "business"];
+      var DARK  = ["quantix", "dark", "cyberpunk", "elegant"];
+      var skin  = localStorage.getItem("quantixdrive-skin");
+      if (!skin || VALID.indexOf(skin) < 0) {
+        var legacy = localStorage.getItem("vaultdrive-ui-theme");
+        skin = legacy === "dark" ? "dark" : legacy === "light" ? "light" : "quantix";
+      }
+      document.documentElement.setAttribute("data-theme", skin);
+      if (DARK.indexOf(skin) >= 0) document.documentElement.classList.add("dark");
+    })();
+  </script>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>

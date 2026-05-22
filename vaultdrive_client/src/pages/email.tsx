@@ -17,9 +17,16 @@ interface EmailAccount {
   imapUser: string;
 }
 
+interface Mailbox {
+  id: string;
+  name: string;
+  messages: number;
+  unseen: number;
+}
+
 const EmailPage: React.FC = () => {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
-  const [mailboxes, setMailboxes] = useState<any[]>([]);
+  const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [selectedMailbox, setSelectedMailbox] = useState<string | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<EmailSummary | null>(null);
@@ -131,14 +138,14 @@ const EmailPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-[#1e2330] via-[#2c3240] to-[#6b4345]">
+    <div className="flex h-screen bg-gradient-to-br from-background via-card to-primary/90">
       <EditEmailAccountModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         account={editingAccount}
         onUpdate={handleUpdateComplete}
       />
-      <div className="w-64 bg-[#2c3240]/80 backdrop-blur-sm border-r border-white/10 p-4">
+      <div className="w-64 bg-card/80 backdrop-blur-sm border-r border-white/10 p-4">
         <EmailAccountSettings />
         <h2 className="mt-4 text-lg font-semibold">Accounts</h2>
         {error && <p className="text-red-500">{error}</p>}
@@ -149,23 +156,47 @@ const EmailPage: React.FC = () => {
                 onClick={() => setSelectedAccount(account)}
                 className={`flex-1 text-left px-4 py-2 text-sm rounded-md transition-colors ${
   selectedAccount?.id === account.id
-    ? 'bg-[#7d4f50]/30 text-[#c4999b] border border-[#7d4f50]/50'
-    : 'text-white/70 hover:bg-white/5 hover:text-white'
+    ? 'bg-primary/30 text-primary border border-primary/50'
+    : 'text-white/85 hover:bg-white/20 hover:text-white'
 }`}
               >
                 {account.email}
               </button>
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEditAccount(account);
                 }}
-                className="p-2 hover:bg-white/10 rounded-md text-white/70 hover:text-white transition-colors"
+                className="p-2 hover:bg-white/20 rounded-md text-white/85 hover:text-white transition-colors"
                 title="Edit account"
               >
                 <Pencil className="h-4 w-4" />
               </button>
               <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteAccount(account);
+                }}
+                className="p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-md text-red-600 dark:text-red-400"
+                title="Delete account"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditAccount(account);
+                }}
+                className="p-2 hover:bg-white/20 rounded-md text-white/85 hover:text-white transition-colors"
+                title="Edit account"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteAccount(account);
@@ -179,7 +210,7 @@ const EmailPage: React.FC = () => {
           ))}
         </ul>
         {accounts.length === 0 && !isLoading && !error && (
-          <p className="text-sm text-gray-500 mt-2">No email accounts configured</p>
+          <p className="text-sm text-muted-foreground mt-2">No email accounts configured</p>
         )}
         <h2 className="mt-4 text-lg font-semibold">Mailboxes</h2>
         <MailboxList

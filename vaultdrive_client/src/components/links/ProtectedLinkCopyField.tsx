@@ -25,26 +25,22 @@ function looksLikePinError(message: string): boolean {
   return /pin/i.test(message) || /didn't match/i.test(message);
 }
 
-function looksLikeClipboardError(message: string): boolean {
-  return /clipboard|writetext|permission/i.test(message);
-}
-
 const variantStyles = {
   light: {
-    field: "border-slate-200 bg-slate-50 text-slate-700",
-    helper: "text-slate-500",
-    info: "text-slate-600",
-    error: "text-rose-600",
-    button: "bg-[#7d4f50] text-white hover:bg-[#6b4345]",
-    secondaryButton: "text-slate-500 hover:text-slate-700 hover:bg-slate-100",
-    label: "text-slate-700",
+    field: "border-border bg-muted text-foreground",
+    helper: "text-muted-foreground",
+    info: "text-muted-foreground",
+    error: "text-destructive",
+    button: "bg-primary text-white hover:bg-primary/90",
+    secondaryButton: "text-muted-foreground hover:text-foreground hover:bg-muted",
+    label: "text-foreground",
   },
   dark: {
     field: "border-white/20 bg-white/10 text-white/90",
     helper: "text-white/70",
     info: "text-white/80",
     error: "text-rose-200",
-    button: "bg-white text-[#7d4f50] hover:bg-[#f2d7d8]",
+    button: "bg-white text-primary hover:bg-primary/10",
     secondaryButton: "text-white/60 hover:text-white hover:bg-white/10",
     label: "text-white/90",
   },
@@ -90,14 +86,6 @@ export function ProtectedLinkCopyField({
     setManualCopyUrl("");
   };
 
-  const fallbackToManualCopy = (resolvedUrl: string) => {
-    setShowPinPrompt(false);
-    setPinValue("");
-    setManualCopyUrl(resolvedUrl);
-    setStatusMessage("");
-    setErrorMessage("Clipboard is unavailable. Select the full URL and copy it manually.");
-  };
-
   const openPinPrompt = () => {
     if (unavailableReason) {
       setShowPinPrompt(false);
@@ -139,21 +127,15 @@ export function ProtectedLinkCopyField({
       }
 
       if (!navigator.clipboard?.writeText) {
-        fallbackToManualCopy(validation.url);
+        setShowPinPrompt(false);
+        setPinValue("");
+        setManualCopyUrl(validation.url);
+        setStatusMessage("");
+        setErrorMessage("Clipboard is unavailable. Select the full URL and copy it manually.");
         return;
       }
 
-      try {
-        await navigator.clipboard.writeText(validation.url);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Clipboard is unavailable.";
-        if (looksLikeClipboardError(message)) {
-          fallbackToManualCopy(validation.url);
-          return;
-        }
-        throw error;
-      }
-
+      await navigator.clipboard.writeText(validation.url);
       setShowPinPrompt(false);
       setPinValue("");
       setManualCopyUrl("");

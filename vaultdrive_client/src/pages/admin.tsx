@@ -13,6 +13,7 @@ import {
   ShieldOff,
 } from "lucide-react";
 import { API_URL } from "../utils/api";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 interface User {
   id: string;
@@ -56,7 +57,7 @@ export default function Admin() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUser = getStoredUserFromLocalStorage() ?? {};
 
   // Users that can be selected for bulk delete (not self)
   const selectableUsers = users.filter(
@@ -371,7 +372,7 @@ export default function Admin() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Shield className="h-8 w-8 text-[#7d4f50]" />
+          <Shield className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         </div>
         <button
@@ -379,7 +380,7 @@ export default function Admin() {
             setShowCreateUser(true);
             setError("");
           }}
-          className="bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center gap-2"
+          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2"
         >
           <UserPlus className="h-4 w-4" />
           New User
@@ -388,68 +389,69 @@ export default function Admin() {
 
       {/* Bulk Action Bar */}
       {selected.size > 0 && (
-        <div className="mb-4 flex items-center gap-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <span className="text-sm font-medium text-red-800">
+        <div className="mb-4 flex items-center gap-4 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-3">
+          <span className="text-sm font-medium text-destructive">
             {selected.size} user{selected.size > 1 ? "s" : ""} selected
           </span>
           <button
+            type="button"
             onClick={handleBulkDelete}
             disabled={bulkDeleting}
-            className="bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 text-sm"
+            className="bg-destructive text-white px-3 py-1.5 rounded-md hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2 text-sm"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {bulkDeleting ? "Deleting..." : "Delete Selected"}
           </button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-sm text-gray-600 hover:text-gray-800 ml-auto"
+            className="text-sm text-muted-foreground hover:text-foreground ml-auto"
           >
             Clear selection
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-card rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
               <th className="px-4 py-3 w-10">
                 <input
                   type="checkbox"
                   checked={allSelectableSelected}
                   onChange={toggleSelectAll}
-                  className="h-4 w-4 rounded border-gray-300 text-[#7d4f50] focus:ring-[#7d4f50]"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                   title="Select all"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Username
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Role
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Joined
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {users.map((user) => {
               const isSelf = user.id === currentUser?.id;
               const isSelected = selected.has(user.id);
               return (
                 <tr
                   key={user.id}
-                  className={isSelected ? "bg-red-50" : undefined}
+                  className={isSelected ? "bg-destructive/10" : undefined}
                 >
                   <td className="px-4 py-4 w-10">
                     {isSelf ? (
@@ -459,29 +461,29 @@ export default function Admin() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(user.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-[#7d4f50] focus:ring-[#7d4f50]"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-foreground">
                       {user.first_name} {user.last_name}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.username}</div>
+                    <div className="text-sm text-muted-foreground">{user.username}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.email}</div>
+                    <div className="text-sm text-muted-foreground">{user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {user.is_admin ? (
                       <button
                         onClick={() => !isSelf && handleToggleAdmin(user)}
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#e2b9bb] text-[#7d4f50] ${
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/20 text-primary ${
                           isSelf
                             ? "cursor-default"
-                            : "hover:bg-[#d4a3a5] cursor-pointer"
+                            : "hover:bg-primary/20 cursor-pointer"
                         }`}
                         title={
                           isSelf
@@ -496,7 +498,7 @@ export default function Admin() {
                     ) : (
                       <button
                         onClick={() => handleToggleAdmin(user)}
-                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 cursor-pointer"
+                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-muted text-muted-foreground hover:bg-muted cursor-pointer"
                         title="Click to grant admin"
                       >
                         <ShieldOff className="h-3 w-3 mr-1 mt-0.5" />
@@ -504,13 +506,13 @@ export default function Admin() {
                       </button>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => setEditingUser(user)}
-                      className="text-[#7d4f50] hover:text-[#6b4345] mr-3"
+                      className="text-primary hover:text-primary/90 mr-3"
                       title="Edit user"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -539,8 +541,8 @@ export default function Admin() {
                         onClick={() => handleForcePasswordChange(user)}
                         className={`mr-3 ${
                           user.force_password_change
-                            ? "text-amber-600"
-                            : "text-amber-400 hover:text-amber-600"
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-amber-400 hover:text-amber-600 dark:text-amber-500 dark:hover:text-amber-400"
                         }`}
                         title={
                           user.force_password_change
@@ -555,7 +557,7 @@ export default function Admin() {
                     {!isSelf && (
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-destructive hover:text-destructive/80"
                         title="Delete user"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -572,7 +574,7 @@ export default function Admin() {
       {/* Create User Modal */}
       {showCreateUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Create New User</h2>
               <button
@@ -581,20 +583,20 @@ export default function Admin() {
                   setNewUser(emptyNewUser);
                   setError("");
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             {error && (
-              <div className="mb-4 p-2 bg-red-50 text-red-600 text-sm rounded">
+              <div className="mb-4 p-2 bg-destructive/10 text-destructive text-sm rounded">
                 {error}
               </div>
             )}
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     First Name
                   </label>
                   <input
@@ -603,11 +605,11 @@ export default function Admin() {
                     onChange={(e) =>
                       setNewUser({ ...newUser, first_name: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-border rounded-md"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Last Name
                   </label>
                   <input
@@ -616,12 +618,12 @@ export default function Admin() {
                     onChange={(e) =>
                       setNewUser({ ...newUser, last_name: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-border rounded-md"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Username
                 </label>
                 <input
@@ -630,11 +632,11 @@ export default function Admin() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, username: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Email
                 </label>
                 <input
@@ -643,11 +645,11 @@ export default function Admin() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Password
                 </label>
                 <input
@@ -656,13 +658,13 @@ export default function Admin() {
                   onChange={(e) =>
                     setNewUser({ ...newUser, password: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                   placeholder="Min. 6 characters"
                 />
               </div>
               <button
                 onClick={handleCreateUser}
-                className="w-full bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2"
               >
                 <UserPlus className="h-4 w-4" />
                 Create User
@@ -675,19 +677,19 @@ export default function Admin() {
       {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit User</h2>
               <button
                 onClick={() => setEditingUser(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   First Name
                 </label>
                 <input
@@ -699,11 +701,11 @@ export default function Admin() {
                       first_name: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Last Name
                 </label>
                 <input
@@ -715,11 +717,11 @@ export default function Admin() {
                       last_name: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Username
                 </label>
                 <input
@@ -731,11 +733,11 @@ export default function Admin() {
                       username: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Email
                 </label>
                 <input
@@ -744,12 +746,12 @@ export default function Admin() {
                   onChange={(e) =>
                     setEditingUser({ ...editingUser, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <button
                 onClick={handleUpdateUser}
-                className="w-full bg-[#7d4f50] text-white px-4 py-2 rounded-md hover:bg-[#6b4345] flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 Save Changes
@@ -762,7 +764,7 @@ export default function Admin() {
       {/* Reset Password Modal */}
       {resetPasswordUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Reset Password</h2>
               <button
@@ -770,21 +772,21 @@ export default function Admin() {
                   setResetPasswordUser(null);
                   setNewPassword("");
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   New Password
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                   placeholder="Enter new password"
                 />
               </div>

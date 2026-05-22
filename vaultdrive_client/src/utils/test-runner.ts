@@ -402,7 +402,7 @@ export async function testSharedFileVisibility(): Promise<TestResult> {
     }
 
     const files = await response.json();
-    const sharedFiles = files.filter((f: any) => f.shared_from === "group");
+    const sharedFiles = files.filter((f: { shared_from?: string }) => f.shared_from === "group");
 
     return {
       name: "Shared File Visibility",
@@ -425,7 +425,7 @@ export async function testSharedFileMetadata(): Promise<TestResult> {
   try {
     const response = await authFetch(`${API_URL}/files`);
     const files = await response.json();
-    const sharedFile = files.find((f: any) => f.shared_from === "group");
+    const sharedFile = files.find((f: { shared_from?: string }) => f.shared_from === "group");
 
     if (!sharedFile) {
       return {

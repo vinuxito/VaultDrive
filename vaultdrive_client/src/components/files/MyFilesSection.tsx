@@ -121,7 +121,7 @@ export const MyFilesSection: React.FC<MyFilesSectionProps> = ({
               <Button
                 onClick={onUpload}
                 disabled={!selectedFile || uploading}
-                className="gap-2 bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0 rounded-md"
+                className="gap-2 bg-primary hover:bg-primary/90 text-white border-0 rounded-md"
               >
                 <Upload className="w-4 h-4" />
                 {uploading ? "Uploading..." : "Upload"}
@@ -225,7 +225,7 @@ export const MyFilesSection: React.FC<MyFilesSectionProps> = ({
                               file.pin_wrapped_key
                             )
                           }
-                          className="gap-2 border-blue-500 text-[#7d4f50] hover:bg-[#f2d7d8] dark:hover:bg-[#6b4345] dark:text-[#c4999b]"
+                          className="gap-2 border-blue-500 text-primary hover:bg-primary/10 dark:hover:bg-primary/90 dark:text-primary"
                         >
                           <Download className="w-4 h-4" />
                           Download

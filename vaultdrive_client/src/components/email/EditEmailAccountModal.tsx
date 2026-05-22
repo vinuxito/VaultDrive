@@ -90,7 +90,7 @@ const EditEmailAccountModal: React.FC<EditEmailAccountModalProps> = ({
       await updateEmailAccount(account.id, updateData as EmailAccountPayload, token);
       onUpdate();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update email account', err);
       setError('Failed to update email account. Please check your details and try again.');
     }

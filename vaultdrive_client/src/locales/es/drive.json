@@ -1,0 +1,54 @@
+{
+  "vault": {
+    "title": "Bóveda",
+    "subtitle": "Cifrada, visible, revocable",
+    "search": "Buscar en todos los archivos…",
+    "upload": "Subir",
+    "folder": "Carpeta",
+    "dropToUpload": "Suelta los archivos para subir",
+    "uploads": "Subidas",
+    "loading": "Cargando tu bóveda…",
+    "noStarred": "No hay archivos destacados",
+    "noShared": "Aún no han compartido nada contigo",
+    "noFiles": "Aún no hay archivos aquí",
+    "uploadPrompt": "Sube un archivo para iniciar tu bóveda cifrada. Los archivos se bloquean en tu navegador antes de salir de tu dispositivo.",
+    "encryptAndUpload": "Cifrar y Subir",
+    "encrypting": "Cifrando…",
+    "decryptAndDownload": "Descifrar y Descargar",
+    "decrypting": "Descifrando…",
+    "columns": {
+      "name": "Nombre",
+      "origin": "Origen",
+      "size": "Tamaño",
+      "date": "Fecha"
+    },
+    "actions": {
+      "download": "Descargar",
+      "createShareLink": "Crear enlace",
+      "star": "Destacar",
+      "unstar": "Quitar destacado",
+      "accessControl": "¿Quién puede acceder?",
+      "share": "Compartir con usuario",
+      "quickShare": "Compartir rápido",
+      "moveToFolder": "Mover a carpeta",
+      "delete": "Eliminar",
+      "manageShares": "Administrar acceso",
+      "preview": "Vista previa"
+    },
+    "passwordModal": {
+      "usePin": "Usa tu PIN",
+      "encryptFile": "Cifrar Archivo",
+      "enterPin": "Ingresa tu PIN",
+      "decryptFile": "Descifrar Archivo",
+      "pinUploadDesc": "Tu PIN se usa para todas las nuevas subidas a la bóveda.",
+      "passwordUploadDesc": "Ingresa una contraseña para cifrar tu archivo.",
+      "pinDownloadDesc": "Ingresa tu PIN de 4 dígitos para descifrar este archivo.",
+      "passwordDownloadDesc": "Ingresa la credencial usada originalmente para cifrar este archivo.",
+      "pinLabel": "PIN de 4 dígitos",
+      "credentialLabel": "Credencial del archivo",
+      "cancel": "Cancelar",
+      "placeholderPin": "••••",
+      "placeholderCredential": "Ingresar credencial"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "language": {
+    "toggle": "Language"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "files": "Files",
+    "groups": "Groups",
+    "shared": "Shared with Me",
+    "accessCenter": "Access Center",
+    "settings": "Settings",
+    "logout": "Logout",
+    "profile": "Profile",
+    "search": "Search..."
+  },
+  "userMenu": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "notifications": {
+    "newActivities": "{{count}} new activities",
+    "fileShared": "A file was shared with you",
+    "dropUpload": "New file received via drop link",
+    "newActivity": "New activity: {{type}}"
+  }
+}
+

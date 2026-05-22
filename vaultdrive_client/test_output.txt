@@ -1,0 +1,76 @@
+
+> vaultdrive_client@0.0.0 test
+> vitest run
+
+
+ RUN  v4.1.0 /lamp/www/QuantiX-Drive/vaultdrive_client
+
+ ✓ src/components/folders/FolderTreeItem.test.tsx (2 tests) 1589ms
+     ✓ shows Create Upload Link instead of Share Folder for empty folders  1365ms
+ ✓ src/components/vault/CreateFolderShareLinkModal.test.tsx (1 test) 996ms
+     ✓ falls back to a manual pin prompt when an auto-used cached pin fails  991ms
+ ❯ src/components/vault/FolderSharedLinksSection.test.tsx (1 test | 1 failed) 2406ms
+     × uses the masked PIN-gated copy flow for existing folder-share links and removes direct open 2404ms
+ ✓ src/components/layout/dashboard-layout.test.tsx (2 tests) 1777ms
+     ✓ still blocks the authenticated shell when the user has not set a pin  673ms
+     ✓ keeps onboarding active until completion and then dismisses it  1101ms
+ ✓ src/components/upload/CreateUploadLinkModal.test.tsx (2 tests) 2586ms
+     ✓ uses the cached pin for secure drop creation without asking again  2337ms
+ ✓ src/components/settings/CollapsibleSection.test.tsx (1 test) 2147ms
+     ✓ starts collapsed and reveals content when expanded  2120ms
+ ❯ src/pages/login.test.tsx (1 test | 1 failed) 2799ms
+     × clears stale vault state before storing a new login session 2797ms
+ ✓ src/components/vault/AccessPanel.test.tsx (4 tests) 3530ms
+     ✓ renders DataState empty when no entries  690ms
+     ✓ DataState retry button re-fetches the access summary  2019ms
+     ✓ uses centralised destructive copy when revoking external access  643ms
+ ✓ src/pages/shared.test.tsx (2 tests) 3134ms
+     ✓ shows the real download error instead of asking for a pin again  2433ms
+     ✓ restores the private key from the cached session pin before prompting  694ms
+ ✓ src/components/vault/FileRequestsSection.test.tsx (6 tests) 5021ms
+     ✓ renders requests through the RowActionMenu trigger  533ms
+     ✓ opens RowActionMenu and surfaces the delete-request destructive action  1013ms
+     ✓ requests centralised destructive confirmation copy before revoking  875ms
+     ✓ copy-url action writes the request URL to the clipboard  1114ms
+     ✓ does not surface the delete action for inactive requests  1388ms
+ ✓ src/components/ui/row-action-menu.test.tsx (7 tests) 8901ms
+     ✓ renders trigger with accessible label  1644ms
+     ✓ opens the menu and renders all actions on trigger click  1996ms
+     ✓ invokes onSelect when an action is chosen  2950ms
+     ✓ flags destructive items with the destructive variant attribute  895ms
+     ✓ disables disabled actions  722ms
+     ✓ renders an optional menu label when provided  503ms
+ ✓ src/components/upload/UploadLinkCard.test.tsx (4 tests) 10574ms
+     ✓ blocks copy until the correct PIN is entered and then copies the full URL  4156ms
+     ✓ invokes onDeactivate when Seal route is chosen from the row action menu  3794ms
+     ✓ invokes onDelete when Remove route (destructive) is chosen  1108ms
+     ✓ hides Seal route when the link is already used (sealed)  1506ms
+ ✓ src/components/ui/data-state.test.tsx (6 tests) 2664ms
+     ✓ renders the empty state with title, body, and primary action  2274ms
+ ✓ src/utils/format.test.ts (5 tests) 86ms
+ ✓ src/utils/pin-enrollment.test.ts (7 tests) 124ms
+ ✓ src/components/settings/agent-operations.test.ts (3 tests) 110ms
+ ✓ src/utils/file-move.test.ts (2 tests) 62ms
+ ✓ src/utils/folder-share-sync.test.ts (6 tests) 367ms
+ ✓ src/utils/browser-storage.test.ts (2 tests) 290ms
+ ✓ src/utils/crypto.test.ts (3 tests) 292ms
+ ✓ src/utils/folder-share.test.ts (4 tests) 78ms
+ ✓ src/components/vault/CreateFolderShareLinkModal.empty-folder.test.tsx (1 test) 3148ms
+     ✓ guides users to create an upload link when the folder is empty  3144ms
+ ✓ src/utils/folder-share-repair.test.ts (9 tests) 26ms
+ ✓ src/lib/motion-presets.test.ts (6 tests) 650ms
+ ✓ src/utils/pin-trust.test.ts (3 tests) 92ms
+ ✓ src/utils/shared-session.test.ts (2 tests) 21ms
+ ✓ src/utils/registerValidation.test.ts (8 tests) 437ms
+ ✓ src/utils/protected-link-copy.test.ts (5 tests) 142ms
+ ✓ src/utils/base-path.test.ts (7 tests) 143ms
+ ✓ src/utils/drop-upload.test.ts (2 tests) 11ms
+ ✓ src/utils/drop-drag.test.ts (1 test) 241ms
+ ✓ src/utils/file-request-upload.test.ts (2 tests) 15ms
+
+ Test Files  2 failed | 30 passed (32)
+      Tests  2 failed | 115 passed (117)
+     Errors  1 error
+   Start at  10:45:47
+   Duration  37.69s (transform 8.96s, setup 29.97s, import 33.95s, tests 54.46s, environment 241.91s)
+

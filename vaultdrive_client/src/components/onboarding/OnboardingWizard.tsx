@@ -19,6 +19,7 @@ import {
   createPinProtectedPrivateKey,
   getPinEnrollmentErrorMessage,
 } from "../../utils/pin-enrollment";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 import { mergeUserPinState } from "../../utils/pin-trust";
 import { branding } from "../../config/branding";
 
@@ -63,8 +64,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     }
     setSettingPin(true);
     try {
-      const stored = localStorage.getItem("user");
-      const user = stored ? JSON.parse(stored) : null;
+      const user = getStoredUserFromLocalStorage();
       const { privateKeyPinEncrypted, reEncryptedPrivateKey } = await createPinProtectedPrivateKey({
         privateKeyEncrypted: user?.private_key_encrypted ?? null,
         password: passwordInput,
@@ -87,7 +87,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to set PIN");
       }
-      if (stored) {
+      if (user) {
         const updatedUser = mergeUserPinState(user, privateKeyPinEncrypted);
         if (reEncryptedPrivateKey) {
           updatedUser.private_key_encrypted = reEncryptedPrivateKey;
@@ -156,12 +156,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
       <div
-        className="max-w-2xl w-full p-0 overflow-hidden rounded-[2rem] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.5)] my-auto"
-        style={{ background: "linear-gradient(160deg, rgba(51,23,27,0.98) 0%, rgba(24,11,14,0.98) 52%, rgba(14,10,15,1) 100%)" }}
+        className="max-w-2xl w-full p-0 overflow-hidden rounded-[2rem] border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.5)] my-auto"
+        style={{ background: "var(--gradient-page)" }}
       >
         <div className="px-8 pt-8 pb-0">
           <div className="flex justify-center mb-5">
-            <span className="inline-flex items-center rounded-full border border-[#d4a5a6]/25 bg-white/6 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-[#f2d7d8]">
+            <span className="inline-flex items-center rounded-full border border-primary/20 bg-white/30 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-primary-foreground">
               Owner setup
             </span>
           </div>
@@ -172,10 +172,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 <div
                   className={`flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold transition-all duration-300 ${
                     step === s.num
-                      ? "bg-[#7d4f50] text-white ring-2 ring-[#f2d7d8]/30 scale-110 shadow-[0_0_0_10px_rgba(125,79,80,0.16)]"
+                      ? "bg-primary text-white ring-2 ring-primary-foreground/30 scale-110 shadow-[0_0_0_10px_rgba(0,0,0,0.16)]"
                       : step > s.num
-                      ? "bg-[#7d4f50]/40 text-[#f2d7d8]"
-                      : "bg-white/10 text-white/55"
+                      ? "bg-primary/90 text-primary-foreground"
+                      : "bg-white/30 text-white/90"
                   }`}
                 >
                   {step > s.num ? (
@@ -187,10 +187,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 <span
                   className={`text-xs font-medium hidden sm:block transition-colors ${
                     step === s.num
-                      ? "text-[#f2d7d8]"
+                      ? "text-primary-foreground"
                       : step > s.num
-                      ? "text-[#f2d7d8]/65"
-                      : "text-white/45"
+                      ? "text-primary-foreground/90"
+                      : "text-white/90"
                   }`}
                 >
                   {s.label}
@@ -198,7 +198,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 {idx < steps.length - 1 && (
                   <div
                     className={`w-8 h-px transition-colors ${
-                      step > s.num ? "bg-[#7d4f50]/60" : "bg-white/10"
+                      step > s.num ? "bg-primary/80" : "bg-white/30"
                     }`}
                   />
                 )}
@@ -211,48 +211,48 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7d4f50]/20 border border-[#7d4f50]/30 mb-2">
-                  <Lock className="w-7 h-7 text-[#f2d7d8]" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 mb-2">
+                  <Lock className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <div className="flex justify-center">
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#f2d7d8]">
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/30 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-primary-foreground">
                     One PIN. One trusted session.
                   </span>
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
                   Your files, your control
                 </h2>
-                <p className="text-sm text-white/50 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-white/90 max-w-md mx-auto leading-relaxed">
                   Files are encrypted in your browser before they leave your device. The server only ever sees locked data and the access record you can review.
                 </p>
               </div>
 
               <div className="space-y-3 text-sm">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                   <p className="font-medium text-white flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-[#f2d7d8]" />
+                    <Lock className="w-4 h-4 text-primary-foreground" />
                     What stays private
                   </p>
-                  <p className="mt-1 text-white/70 leading-relaxed">Your file contents. Even with full database access, files cannot be read without your PIN and the key material it unlocks.</p>
+                  <p className="mt-1 text-white/90 leading-relaxed">Your file contents. Even with full database access, files cannot be read without your PIN and the key material it unlocks.</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                   <p className="font-medium text-white flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-[#f2d7d8]" />
+                    <Eye className="w-4 h-4 text-primary-foreground" />
                     What you control
                   </p>
-                  <p className="mt-1 text-white/70 leading-relaxed">Who can access each file, when links expire, and the ability to revoke any external access immediately when something changes.</p>
+                  <p className="mt-1 text-white/90 leading-relaxed">Who can access each file, when links expire, and the ability to revoke any external access immediately when something changes.</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                   <p className="font-medium text-white flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-[#f2d7d8]" />
+                    <Bot className="w-4 h-4 text-primary-foreground" />
                     Agents work within bounds
                   </p>
-                  <p className="mt-1 text-white/70 leading-relaxed">AI systems and automation get scoped credentials. They can help move encrypted data, but they cannot quietly read your files.</p>
+                  <p className="mt-1 text-white/90 leading-relaxed">AI systems and automation get scoped credentials. They can help move encrypted data, but they cannot quietly read your files.</p>
                 </div>
               </div>
 
               <Button
-                className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={() => setStep(2)}
               >
                 Continue <ArrowRight className="w-4 h-4" />
@@ -263,29 +263,29 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           {step === 2 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7d4f50]/20 border border-[#7d4f50]/30 mb-2">
-                  <Shield className="w-7 h-7 text-[#f2d7d8]" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 mb-2">
+                  <Shield className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
                   Set your PIN
                 </h2>
-                <p className="text-sm text-white/50 max-w-xs mx-auto">
+                <p className="text-sm text-white/90 max-w-xs mx-auto">
                   A 4-digit PIN secures your vault, future shares, Secure Drop, and quick login.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#f2d7d8]">After this step</p>
-                <div className="mt-3 grid gap-2 sm:grid-cols-3 text-left text-xs text-white/68">
-                  <div className="rounded-xl border border-white/8 bg-black/15 px-3 py-2">Unlock the vault without extra friction</div>
-                  <div className="rounded-xl border border-white/8 bg-black/15 px-3 py-2">Create secure links with the same trusted session</div>
-                  <div className="rounded-xl border border-white/8 bg-black/15 px-3 py-2">Keep control visible across every share and sender route</div>
+              <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary-foreground">After this step</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3 text-left text-xs text-white/90">
+                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">Unlock the vault without extra friction</div>
+                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">Create secure links with the same trusted session</div>
+                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">Keep control visible across every share and sender route</div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="onboarding-pin" className="text-white/70 text-xs font-medium uppercase tracking-wider">
+                  <Label htmlFor="onboarding-pin" className="text-white/90 text-xs font-medium uppercase tracking-wider">
                     4-Digit PIN
                   </Label>
                   <div className="relative">
@@ -297,12 +297,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                       placeholder="••••"
                       value={pin}
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 text-center text-2xl tracking-[0.5em] h-12 pr-10"
+                      className="bg-white/30 border-white/20 text-white placeholder:text-white/90 focus:border-primary/60 focus:ring-primary/20 text-center text-2xl tracking-[0.5em] h-12 pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/48 hover:text-white/70 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/90 hover:text-white transition-colors"
                     >
                       {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -310,7 +310,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="onboarding-confirm-pin" className="text-white/70 text-xs font-medium uppercase tracking-wider">
+                  <Label htmlFor="onboarding-confirm-pin" className="text-white/90 text-xs font-medium uppercase tracking-wider">
                     Confirm PIN
                   </Label>
                   <Input
@@ -322,12 +322,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     value={confirmPin}
                     onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 text-center text-2xl tracking-[0.5em] h-12"
+                    className="bg-white/30 border-white/20 text-white placeholder:text-white/90 focus:border-primary/60 focus:ring-primary/20 text-center text-2xl tracking-[0.5em] h-12"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="onboarding-account-password" className="text-white/70 text-xs font-medium uppercase tracking-wider">
+                  <Label htmlFor="onboarding-account-password" className="text-white/90 text-xs font-medium uppercase tracking-wider">
                     Account Password
                   </Label>
                   <Input
@@ -337,16 +337,16 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 h-12"
+                    className="bg-white/30 border-white/20 text-white placeholder:text-white/90 focus:border-primary/60 focus:ring-primary/20 h-12"
                   />
-                  <p className="text-xs text-white/58 leading-relaxed">
+                  <p className="text-xs text-white/90 leading-relaxed">
                     {`We use this once to re-wrap your private key so your one PIN works everywhere in ${branding.productName}.`}
                   </p>
                 </div>
 
                 {showRecovery && (
                   <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Label htmlFor="onboarding-previous-password" className="text-amber-200/70 text-xs font-medium uppercase tracking-wider">
+                    <Label htmlFor="onboarding-previous-password" className="text-amber-200/90 text-xs font-medium uppercase tracking-wider">
                       Previous Password
                     </Label>
                     <Input
@@ -356,16 +356,16 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                       value={previousPassword}
                       onChange={(e) => setPreviousPassword(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
-                      className="bg-amber-500/5 border-amber-500/20 text-white placeholder:text-white/20 focus:border-amber-500/40 focus:ring-amber-500/10 h-12"
+                      className="bg-amber-500/30 border-amber-500/30 text-white placeholder:text-white/90 focus:border-amber-500/40 focus:ring-amber-500/10 h-12"
                     />
-                    <p className="text-xs text-amber-200/50 leading-relaxed">
+                    <p className="text-xs text-amber-200/90 leading-relaxed">
                       Your administrator may have reset your password. Enter your previous password to recover your encryption key.
                     </p>
                   </div>
                 )}
 
                 {pinError && (
-                  <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  <p className="text-red-400 text-sm text-center bg-red-500/20 border border-red-500/30 rounded-lg px-3 py-2">
                     {pinError}
                   </p>
                 )}
@@ -373,7 +373,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
               <Button
                 type="button"
-                className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={() => { void handleSetPin(); }}
                 disabled={settingPin || pin.length !== 4 || confirmPin.length !== 4 || passwordInput.length === 0}
               >
@@ -391,20 +391,20 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           {step === 3 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#7d4f50]/20 border border-[#7d4f50]/30 mb-2">
-                  <FolderPlus className="w-7 h-7 text-[#f2d7d8]" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 mb-2">
+                  <FolderPlus className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
                   Create a client folder
                 </h2>
-                <p className="text-sm text-white/50 max-w-xs mx-auto">
+                <p className="text-sm text-white/90 max-w-xs mx-auto">
                   Organize incoming files from clients with a dedicated folder.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="onboarding-folder-name" className="text-white/70 text-xs font-medium uppercase tracking-wider">
+                  <Label htmlFor="onboarding-folder-name" className="text-white/90 text-xs font-medium uppercase tracking-wider">
                     Folder Name
                   </Label>
                   <Input
@@ -414,7 +414,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#7d4f50]/60 focus:ring-[#7d4f50]/20 h-11"
+                    className="bg-white/30 border-white/20 text-white placeholder:text-white/90 focus:border-primary/60 focus:ring-primary/20 h-11"
                   />
                 </div>
 
@@ -428,7 +428,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <div className="space-y-2">
                 <Button
                   data-testid="onboarding-create-folder"
-                  className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                   onClick={handleCreateFolder}
                   disabled={creatingFolder || !folderName.trim()}
                 >
@@ -442,7 +442,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full h-10 text-white/40 hover:text-white/70 hover:bg-white/5 rounded-xl text-sm"
+                  className="w-full h-10 text-white/90 hover:text-white hover:bg-white/30 rounded-xl text-sm"
                   onClick={handleSkipFolder}
                   disabled={creatingFolder}
                 >
@@ -459,45 +459,45 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                 </div>
                 <div className="flex justify-center">
-                  <span className="inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200">
+                  <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/20 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200">
                     Trust established
                   </span>
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
                   Vault is ready
                 </h2>
-                <p className="text-sm text-white/50 max-w-sm mx-auto leading-relaxed">
+                <p className="text-sm text-white/90 max-w-sm mx-auto leading-relaxed">
                   Your PIN is set, your encryption key is protected, and the app can now work with you instead of interrupting you.
                 </p>
               </div>
 
-              <div className="rounded-[1.6rem] border border-white/10 bg-white/6 px-4 py-4 text-left">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#f2d7d8]">Ready checklist</p>
+              <div className="rounded-[1.6rem] border border-white/20 bg-white/30 px-4 py-4 text-left">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary-foreground">Ready checklist</p>
                 <div className="mt-3 space-y-2">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/15 border border-white/8">
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/70 border border-white/10">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-sm text-white/74">Your one PIN now protects the vault and every owner-controlled secure route</p>
+                    <p className="text-sm text-white/90">Your one PIN now protects the vault and every owner-controlled secure route</p>
                   </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/15 border border-white/8">
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/70 border border-white/10">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-sm text-white/74">Secure Drop and shared-download recovery can reuse the same trusted session</p>
+                    <p className="text-sm text-white/90">Secure Drop and shared-download recovery can reuse the same trusted session</p>
                   </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/15 border border-white/8">
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/70 border border-white/10">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-sm text-white/74">You can see, review, and revoke outside access without losing your calm overview</p>
+                    <p className="text-sm text-white/90">You can see, review, and revoke outside access without losing your calm overview</p>
                   </div>
                 </div>
               </div>
 
               <div className="text-left space-y-2">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/30 border border-white/20">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <p className="text-sm text-white/70">{`You only set this once. ${branding.productName} now carries that trust through normal owner flows.`}</p>
+                  <p className="text-sm text-white/90">{`You only set this once. ${branding.productName} now carries that trust through normal owner flows.`}</p>
                 </div>
               </div>
 
               <Button
-                className="w-full h-11 bg-[#7d4f50] hover:bg-[#6b4345] text-white font-semibold rounded-xl transition-all duration-200 gap-2"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={handleComplete}
               >
                 Enter Protected Vault <ArrowRight className="w-4 h-4" />

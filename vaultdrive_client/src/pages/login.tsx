@@ -17,9 +17,13 @@ import {
   decryptPrivateKeyWithPIN,
   importRSAPrivateKey,
 } from "../utils/crypto";
+import { validateRegister } from "../utils/registerValidation";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["auth"]);
+
   const { setPrivateKey, setCredential, clearVault } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
   const [loginMode, setLoginMode] = useState<"password" | "pin">(
@@ -108,7 +112,8 @@ export default function Login() {
           setCredential(pinValue, "pin");
           localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
         }
-      } catch {
+      } catch (_pinError) {
+        void _pinError;
       }
 
       navigate(data.pin_set ? "/" : "/files");
@@ -122,6 +127,13 @@ export default function Login() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const validationError = validateRegister(registerData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -154,79 +166,84 @@ export default function Login() {
 
   return (
     <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
-      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden border-white/70 shadow-[0_24px_60px_rgba(125,79,80,0.12)]">
+      <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden shadow-[var(--shadow-glow-primary)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-            <span className="brand-badge">Private access</span>
+            <span className="brand-badge">{t("auth:login.privateAccess")}</span>
           </div>
           <div className="flex justify-center mb-4">
             <BrandLogo className="w-20 h-20" />
           </div>
           <CardTitle className="text-2xl">
-            {isLogin ? `Welcome to ${branding.productName}` : `Join ${branding.productName}`}
+            {isLogin ? t("auth:login.welcome", { product: branding.productName }) : t("auth:login.join", { product: branding.productName })}
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? "A calm, encrypted control plane for files you need to trust at a glance"
-              : "Create your account and set up the trust-first vault experience"}
+              ? t("auth:login.welcomeDesc")
+              : t("auth:login.joinDesc")}
           </CardDescription>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-slate-600">
-            <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">Encryption happens in your browser</div>
-            <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">One PIN after setup for normal owner flows</div>
-            <div className="rounded-xl border border-white/60 bg-white/75 px-3 py-2">Access stays visible and revocable</div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3 text-left text-[11px] text-muted-foreground">
+            <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-muted/30 px-3 py-2">{t("auth:login.feature1")}</div>
+            <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-muted/30 px-3 py-2">{t("auth:login.feature2")}</div>
+            <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-muted/30 px-3 py-2">{t("auth:login.feature3")}</div>
           </div>
         </CardHeader>
 
+
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
           {isLogin ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <div className="flex rounded-[var(--radius)] border border-border overflow-hidden bg-muted/20">
                 <button
                   type="button"
                   onClick={() => switchLoginMode("password")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors ${
                     loginMode === "password"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-white/40 text-muted-foreground hover:bg-white"
+                      : "bg-transparent text-muted-foreground hover:bg-muted/40"
                   }`}
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  Password
+                  {t("auth:login.modePassword")}
                 </button>
+
                 <button
                   type="button"
                   onClick={() => switchLoginMode("pin")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors ${
                     loginMode === "pin"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-white/40 text-muted-foreground hover:bg-white"
+                      : "bg-transparent text-muted-foreground hover:bg-muted/40"
                   }`}
                 >
                   <Fingerprint className="w-3.5 h-3.5" />
-                  PIN
+                  {t("auth:login.modePin")}
                 </button>
+
               </div>
 
-              <div className="rounded-2xl border border-[#e8d9d0] bg-[#fbf7f3] px-4 py-3 text-sm text-slate-600 shadow-[0_10px_24px_rgba(125,79,80,0.06)]">
-                <p className="font-medium text-slate-800">
-                  {loginMode === "password" ? "Use your account password to enter and finish setup." : "Use your 4-digit PIN when your trusted owner session is already set up."}
+              <div className="rounded-[var(--radius)] border-2 border-[var(--glass-border-strong)] bg-card/50 px-4 py-3 text-sm text-muted-foreground shadow-sm">
+                <p className="font-medium text-foreground">
+                  {loginMode === "password" ? t("auth:login.passwordHint") : t("auth:login.pinHint")}
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   {loginMode === "password"
-                    ? "{`Once your PIN is enrolled, ${branding.productName} can reuse that trust across the vault, secure links, and protected handoffs.`}"
-                    : "Your PIN unlocks the owner trust path without reintroducing normal per-action friction."}
+                    ? t("auth:login.passwordHintSub", { product: branding.productName })
+                    : t("auth:login.pinHintSub")}
                 </p>
               </div>
+
 
               <div className="space-y-2">
-                <label htmlFor="login-email" className="text-sm font-medium">Email</label>
+                <label htmlFor="login-email" className="text-sm font-medium">{t("auth:login.email")}</label>
                 <div className="relative">
+
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <input
                     id="login-email"
@@ -236,7 +253,7 @@ export default function Login() {
                     onChange={(e) =>
                       setLoginData({ ...loginData, email: e.target.value })
                     }
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
@@ -244,8 +261,9 @@ export default function Login() {
 
               {loginMode === "password" ? (
                 <div className="space-y-2">
-                  <label htmlFor="login-password" className="text-sm font-medium">Password</label>
+                  <label htmlFor="login-password" className="text-sm font-medium">{t("auth:login.password")}</label>
                   <div className="relative">
+
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <input
                       id="login-password"
@@ -255,7 +273,7 @@ export default function Login() {
                       onChange={(e) =>
                         setLoginData({ ...loginData, password: e.target.value })
                       }
-                      className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-10 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                       required
                     />
                     <button
@@ -275,8 +293,9 @@ export default function Login() {
                 <div className="space-y-2">
                   <label htmlFor="login-pin" className="text-sm font-medium flex items-center gap-2">
                     <Fingerprint className="w-4 h-4" />
-                    4-digit PIN
+                    {t("auth:login.pin")}
                   </label>
+
                   <input
                     id="login-pin"
                     type="password"
@@ -287,39 +306,42 @@ export default function Login() {
                     onChange={(e) =>
                       setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))
                     }
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest text-xl"
+                    className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all text-center tracking-widest text-xl"
                     required
                   />
                   <p className="text-xs text-muted-foreground text-center">
-                    Don't have a PIN?{" "}
+                    {t("auth:login.noPin")}{" "}
                     <button
                       type="button"
                       onClick={() => switchLoginMode("password")}
                       className="text-primary hover:underline"
                     >
-                      Log in with password
+                      {t("auth:login.loginWithPassword")}
                     </button>
                   </p>
+
                 </div>
               )}
 
               <Button
                 type="submit"
-                className="w-full bg-[#7d4f50] hover:bg-[#6b4345] text-white shadow-[0_12px_28px_rgba(125,79,80,0.25)]"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                 disabled={
                   loading ||
                   (loginMode === "pin" && pinValue.length !== 4)
                 }
               >
-                {loading ? "Logging in..." : isLogin ? `Open ${branding.productName}` : "Continue securely"}
+                {loading ? t("auth:login.buttonLoading") : isLogin ? t("auth:login.buttonOpen", { product: branding.productName }) : t("auth:login.buttonSecure")}
               </Button>
+
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="register-first-name" className="text-sm font-medium">First Name</label>
+                  <label htmlFor="register-first-name" className="text-sm font-medium">{t("auth:register.firstName")}</label>
                   <div className="relative">
+
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <input
                       id="register-first-name"
@@ -332,15 +354,16 @@ export default function Login() {
                           first_name: e.target.value,
                         })
                       }
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="register-last-name" className="text-sm font-medium">Last Name</label>
+                  <label htmlFor="register-last-name" className="text-sm font-medium">{t("auth:register.lastName")}</label>
                   <input
+
                     id="register-last-name"
                     type="text"
                     placeholder="Doe"
@@ -351,15 +374,16 @@ export default function Login() {
                         last_name: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="register-username" className="text-sm font-medium">Username</label>
+                <label htmlFor="register-username" className="text-sm font-medium">{t("auth:register.username")}</label>
                 <div className="relative">
+
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <input
                     id="register-username"
@@ -372,15 +396,16 @@ export default function Login() {
                         username: e.target.value,
                       })
                     }
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="register-email" className="text-sm font-medium">Email</label>
+                <label htmlFor="register-email" className="text-sm font-medium">{t("auth:login.email")}</label>
                 <div className="relative">
+
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <input
                     id="register-email"
@@ -393,15 +418,16 @@ export default function Login() {
                         email: e.target.value,
                       })
                     }
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="register-password" className="text-sm font-medium">Password</label>
+                <label htmlFor="register-password" className="text-sm font-medium">{t("auth:login.password")}</label>
                 <div className="relative">
+
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <input
                     id="register-password"
@@ -416,6 +442,9 @@ export default function Login() {
                     }
                     className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
+                    minLength={8}
+                    maxLength={64}
+                    aria-describedby="register-password-help"
                   />
                   <button
                     type="button"
@@ -429,18 +458,26 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                <p id="register-password-help" className="text-xs text-muted-foreground">
+                  {t("auth:register.passwordHelp")}
+                </p>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating account..." : "Create Account"}
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-glow-primary)] rounded-[var(--radius)] border-2 border-primary/50"
+                disabled={loading}
+              >
+                {loading ? t("auth:register.buttonLoading") : t("auth:register.buttonCreate")}
               </Button>
+
             </form>
           )}
 
           <div className="mt-6 text-center text-sm">
             {isLogin ? (
               <p>
-                Don't have an account?{" "}
+                {t("auth:login.noAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => {
@@ -449,12 +486,12 @@ export default function Login() {
                   }}
                   className="text-primary font-medium hover:underline"
                 >
-                  Sign up
+                  {t("auth:login.signUp")}
                 </button>
               </p>
             ) : (
               <p>
-                Already have an account?{" "}
+                {t("auth:login.hasAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => {
@@ -463,11 +500,12 @@ export default function Login() {
                   }}
                   className="text-primary font-medium hover:underline"
                 >
-                  Login
+                  {t("auth:login.logIn")}
                 </button>
               </p>
             )}
           </div>
+
 
           <div className="mt-6 flex justify-center">
             <PoweredByBadge />

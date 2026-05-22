@@ -1,5 +1,8 @@
 -- +goose Up
-UPDATE users SET is_admin = TRUE WHERE email = 'v.cazares@abrn.mx';
+-- Superseded: admin bootstrap is now handled at application startup via
+-- admin_bootstrap.go using the ADMIN_BOOTSTRAP_EMAILS env var. This migration
+-- is kept as a placeholder so goose history remains linear.
+SELECT 1;
 
 -- +goose Down
-UPDATE users SET is_admin = FALSE WHERE email = 'v.cazares@abrn.mx';
+SELECT 1;

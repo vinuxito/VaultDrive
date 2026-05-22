@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
+import { DataState } from "../ui/data-state";
 import { UploadCloud, RefreshCw, Plus } from "lucide-react";
 import { UploadLinkCard } from "./UploadLinkCard";
 import { CreateUploadLinkModal } from "./CreateUploadLinkModal";
 import { API_URL } from "../../utils/api";
 import type { UploadTokenWithFiles, UploadToken } from "./types";
 import { normalizeUploadToken } from "./types";
+import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
 
 export function UploadLinksSection() {
   const [tokens, setTokens] = useState<UploadTokenWithFiles[]>([]);
@@ -144,14 +146,6 @@ export function UploadLinksSection() {
     setShowCreateModal(true);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        Loading upload links...
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -178,7 +172,7 @@ export function UploadLinksSection() {
           <Button
             onClick={handleOpenCreateModal}
             size="sm"
-            className="gap-2 bg-[#7d4f50] hover:bg-[#6b4345] text-white border-0"
+            className="gap-2 bg-primary hover:bg-primary/90 text-white border-0"
           >
             <Plus className="w-4 h-4" />
             Create New Link
@@ -186,8 +180,8 @@ export function UploadLinksSection() {
         </div>
       </div>
 
-      <div className="rounded-[1.6rem] border border-[#e8d9d0] bg-[linear-gradient(180deg,#fffdfa_0%,#f8f2ee_100%)] px-4 py-4 text-sm text-slate-600 shadow-[0_16px_36px_rgba(125,79,80,0.06)] dark:border-slate-700 dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.94)_0%,rgba(15,23,42,0.9)_100%)] dark:text-slate-300">
-        <p className="font-medium text-slate-900 dark:text-slate-100">Controlled sender routes</p>
+      <div className="rounded-[1.6rem] border border-border bg-card px-4 py-4 text-sm text-muted-foreground shadow-[0_16px_36px_rgba(0,0,0,0.06)]">
+        <p className="font-medium text-foreground">Controlled sender routes</p>
         <p className="mt-1 leading-relaxed">
           Each upload link is a bounded route into your vault. You can see its status, seal it after use, or remove it without affecting the files already delivered.
         </p>
@@ -206,58 +200,55 @@ export function UploadLinksSection() {
         </div>
       )}
 
-      {tokens.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-[1.6rem] bg-white/70 border-[#d8cbc3] dark:bg-slate-900/60 dark:border-slate-700">
-          <UploadCloud className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-slate-700 dark:text-slate-200 font-medium mb-2">
-            No upload links created yet
-          </p>
-          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-            Create a sender route when you want a client or partner to deliver files into a specific folder without giving them broader access.
-          </p>
-          <Button onClick={handleOpenCreateModal} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create Your First Link
-          </Button>
-        </div>
-      ) : (
+      <DataState
+        loading={loading}
+        loadingLabel={LOADING.loadingVault}
+        empty={!loading && !error && tokens.length === 0}
+        emptyConfig={EMPTY.dropLinksEmpty}
+        onEmptyAction={handleOpenCreateModal}
+        skeletonRows={3}
+      >
         <div className="space-y-3">
-          {tokens.map((tokenData) => (
-            <div key={tokenData.id} className="space-y-2">
-              <UploadLinkCard
-                token={tokenData}
-                isExpanded={expandedToken === tokenData.token}
-                status={getTokenStatus(tokenData)}
-                onExpand={() => handleExpand(tokenData.token)}
-                onDeactivate={() => setConfirmDeactivateId(tokenData.token)}
-                onDelete={() => setConfirmDeleteId(tokenData.id)}
-              />
+          {tokens.map((tokenData) => {
+            const sealCopy = CONFIRM_DESTRUCTIVE.expireDropLink;
+            const deleteCopy = CONFIRM_DESTRUCTIVE.deleteFileRequest;
+            return (
+              <div key={tokenData.id} className="space-y-2">
+                <UploadLinkCard
+                  token={tokenData}
+                  isExpanded={expandedToken === tokenData.token}
+                  status={getTokenStatus(tokenData)}
+                  onExpand={() => handleExpand(tokenData.token)}
+                  onDeactivate={() => setConfirmDeactivateId(tokenData.token)}
+                  onDelete={() => setConfirmDeleteId(tokenData.id)}
+                />
 
-              {confirmDeactivateId === tokenData.token && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
-                  <p className="font-medium">Seal this upload link?</p>
-                  <p className="mt-1 text-amber-700">No more files can be uploaded, but anything already delivered stays in your vault.</p>
-                  <div className="mt-3 flex gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setConfirmDeactivateId(null)}>Keep active</Button>
-                    <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-amber-600 hover:bg-amber-700 text-white">Seal link</Button>
+                {confirmDeactivateId === tokenData.token && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                    <p className="font-medium">{sealCopy.title}</p>
+                    <p className="mt-1 text-amber-700">{sealCopy.body}</p>
+                    <div className="mt-3 flex gap-2 justify-end">
+                      <Button variant="outline" size="sm" onClick={() => setConfirmDeactivateId(null)}>{sealCopy.cancelLabel}</Button>
+                      <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-[hsl(var(--destructive)/0.8)] hover:bg-[hsl(var(--destructive)/0.9)] dark:bg-[hsl(var(--destructive)/0.6)] dark:hover:bg-[hsl(var(--destructive)/0.7)] text-white border-0">{sealCopy.confirmLabel}</Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {confirmDeleteId === tokenData.id && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
-                  <p className="font-medium">Remove this upload link?</p>
-                  <p className="mt-1 text-rose-700">The link disappears immediately, but previously uploaded files remain available in your vault.</p>
-                  <div className="mt-3 flex gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>Keep link</Button>
-                    <Button size="sm" onClick={() => void handleDelete(tokenData.id)} className="bg-rose-600 hover:bg-rose-700 text-white">Delete link</Button>
+                {confirmDeleteId === tokenData.id && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 px-4 py-4 text-sm text-rose-800 dark:text-rose-200">
+                    <p className="font-medium">{deleteCopy.title}</p>
+                    <p className="mt-1 text-rose-700 dark:text-rose-300">{deleteCopy.body}</p>
+                    <div className="mt-3 flex gap-2 justify-end">
+                      <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>{deleteCopy.cancelLabel}</Button>
+                      <Button variant="destructive" size="sm" onClick={() => void handleDelete(tokenData.id)}>{deleteCopy.confirmLabel}</Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+      </DataState>
 
       <CreateUploadLinkModal
         open={showCreateModal}

@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, FolderOpen, Link2, Loader2, Plus, RefreshCw, ShieldOff } from "lucide-react";
+import { AlertCircle, FolderOpen, Link2, Loader2, Plus, RefreshCw, ShieldOff, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { API_URL, BASE_PATH } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
-import {
-  arrayBufferToBase64,
-  decryptPrivateKeyWithPIN,
-  importRSAPrivateKey,
-  unwrapKeyWithRSA,
-} from "../../utils/crypto";
+import { arrayBufferToBase64, decryptPrivateKeyWithPIN, importRSAPrivateKey, unwrapKeyWithRSA } from "../../utils/crypto";
 import {
   syncFolderShareLinkById,
   type SyncableFolderShareLink,
@@ -20,6 +15,9 @@ import {
   resolveFolderSharePanelCredential,
 } from "../../utils/folder-share-repair";
 import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
+import { DataState } from "../ui/data-state";
+import { RowActionMenu } from "../ui/row-action-menu";
+import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
 
 interface FolderSharedLinksSectionProps {
   folder: {
@@ -38,7 +36,7 @@ function formatDate(value?: string | null): string {
 
 function getLinkLifecycleStatus(link: SyncableFolderShareLink): { label: string; tone: string; active: boolean } {
   if (!link.is_active) {
-    return { label: "Revoked", tone: "bg-slate-100 text-slate-500", active: false };
+    return { label: "Revoked", tone: "bg-muted text-muted-foreground", active: false };
   }
   if (link.expires_at && new Date(link.expires_at).getTime() <= Date.now()) {
     return { label: "Expired", tone: "bg-amber-100 text-amber-700", active: false };
@@ -67,6 +65,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   const [legacyUrls, setLegacyUrls] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, string>>({});
   const [ownerCredentialInput, setOwnerCredentialInput] = useState("");
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
 
   const currentUser = useMemo(() => {
     const stored = localStorage.getItem("user");
@@ -162,10 +161,6 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   }
 
   async function handleRevoke(link: SyncableFolderShareLink) {
-    if (!window.confirm("Revoke this shared link? Anyone using it will lose access immediately.")) {
-      return;
-    }
-
     const token = localStorage.getItem("token");
     if (!token) {
       setErrorMsg("Sign in again to manage shared links.");
@@ -189,6 +184,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       setResults((prev) => ({ ...prev, [link.id]: message }));
     } finally {
       setBusyId(null);
+      setConfirmRevokeId(null);
     }
   }
 
@@ -219,12 +215,12 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Shared Links</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Manage every public folder link for <span className="font-medium text-slate-700">{folder.name}</span>.
+            <h2 className="text-2xl font-semibold text-foreground">Shared Links</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage every public folder link for <span className="font-medium text-foreground">{folder.name}</span>.
             </p>
           </div>
-          <Button type="button" onClick={onCreateLink} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white">
+          <Button type="button" onClick={onCreateLink} className="bg-primary hover:bg-primary/90 text-white">
             <Plus className="w-4 h-4 mr-2" />
             Create New Link
           </Button>
@@ -239,25 +235,19 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
           </Card>
         )}
 
-        {loading ? (
-          <Card>
-            <CardContent className="py-12 flex flex-col items-center gap-3 text-slate-500">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Loading shared links…</span>
-            </CardContent>
-          </Card>
-        ) : visibleLinks.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-sm text-slate-500">
-              No shared links exist for this folder yet.
-            </CardContent>
-          </Card>
-        ) : (
+        <DataState
+          loading={loading}
+          empty={visibleLinks.length === 0}
+          emptyConfig={EMPTY.folderSharesEmpty}
+          loadingLabel={LOADING.workingDefault}
+          onEmptyAction={onCreateLink}
+          skeletonRows={2}
+        >
           <div className="space-y-4">
             {!sessionVault.getCredential() && (
-              <Card className="border-slate-200/80 shadow-sm">
+              <Card className="border-border/80 shadow-sm">
                 <CardContent className="py-4 space-y-2">
-                  <label htmlFor="folder-share-owner-credential" className="text-sm font-medium text-slate-700">
+                  <label htmlFor="folder-share-owner-credential" className="text-sm font-medium text-foreground">
                     {currentUser?.pin_set ? "Enter your current PIN" : "Enter your current password"}
                   </label>
                   <input
@@ -268,9 +258,9 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                     value={ownerCredentialInput}
                     onChange={(event) => setOwnerCredentialInput(event.target.value)}
                     placeholder={currentUser?.pin_set ? "••••" : "Current password"}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7d4f50]/40 focus:outline-none"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
                   />
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Use your current {getFolderShareOwnerCredentialType(currentUser) === "pin" ? "PIN" : "password"} once here, then update or open links from this panel.
                   </p>
                 </CardContent>
@@ -278,22 +268,20 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
             )}
             {visibleLinks.map((link) => {
               const status = getLinkLifecycleStatus(link);
-              const unavailableReason = getLinkUnavailableReason(link);
               const needsLegacyUrl = !link.owner_wrapped_folder_key;
               const result = results[link.id];
               const canSync = status.active && (!needsLegacyUrl || Boolean(legacyUrls[link.id]?.trim()));
-              const expectedPath = `${BASE_PATH}/folder-share/${link.token}`;
 
               return (
-                <Card key={link.id} className="border-slate-200/80 shadow-sm">
+                <Card key={link.id} className="border-border/80 shadow-sm">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 min-w-0">
-                        <CardTitle className="text-base flex items-center gap-2 text-slate-900">
-                          <FolderOpen className="w-4 h-4 text-[#7d4f50]" />
+                        <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                          <FolderOpen className="w-4 h-4 text-primary" />
                           <span className="truncate">{link.token.slice(0, 12)}…</span>
                         </CardTitle>
-                        <CardDescription className="text-sm text-slate-500 flex flex-wrap items-center gap-3">
+                        <CardDescription className="text-sm text-muted-foreground flex flex-wrap items-center gap-3">
                           <span>{needsLegacyUrl ? "Legacy link" : "Owner-recoverable"}</span>
                           <span>Created {formatDate(link.created_at)}</span>
                           <span>Expires {formatDate(link.expires_at)}</span>
@@ -309,8 +297,8 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                   <CardContent className="space-y-4">
                     {needsLegacyUrl && (
                       <div className="space-y-2">
-                        <label htmlFor={`legacy-share-url-${link.id}`} className="text-xs font-medium text-slate-700 flex items-center gap-2">
-                          <Link2 className="w-3.5 h-3.5 text-[#7d4f50]" />
+                        <label htmlFor={`legacy-share-url-${link.id}`} className="text-xs font-medium text-foreground flex items-center gap-2">
+                          <Link2 className="w-3.5 h-3.5 text-primary" />
                           Paste original share URL once to repair this older link
                         </label>
                         <textarea
@@ -319,44 +307,76 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                           onChange={(event) => setLegacyUrls((prev) => ({ ...prev, [link.id]: event.target.value }))}
                           rows={3}
                           placeholder={`${branding.publicBaseURL}/folder-share/...#...`}
-                          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7d4f50]/40 focus:outline-none"
+                          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
                         />
                       </div>
                     )}
 
                     {!needsLegacyUrl && (
                       <ProtectedLinkCopyField
-                        label="Share URL (folder key embedded after #)"
-                        rawUrl={`${window.location.origin}${expectedPath}#missing`}
-                        expectedPath={expectedPath}
+                        label="Folder share route"
+                        rawUrl={`${window.location.origin}${BASE_PATH}/folder-share/${link.token}#missing`}
+                        expectedPath={`${BASE_PATH}/folder-share/${link.token}`}
                         kind="folder-share"
                         copyButtonLabel="Copy full folder share link"
-                        guidanceText="Enter your 4-digit PIN to copy the full URL."
-                        unavailableReason={unavailableReason}
-                        onResolveUrl={async (pin) => buildShareUrlForCopy(link, pin)}
+                        guidanceText={currentUser?.pin_set
+                          ? "Enter your current PIN to recover and copy the full share link."
+                          : "Enter your current password to recover and copy the full share link."}
+                        unavailableReason={getLinkUnavailableReason(link)}
+                        onResolveUrl={(pin) => buildShareUrlForCopy(link, pin)}
                       />
                     )}
 
-                    {needsLegacyUrl && !unavailableReason && (
-                      <p className="text-xs text-slate-500">
-                        Repair this older shared link once before it can use the PIN-gated copy flow.
-                      </p>
-                    )}
-
-                    {unavailableReason && (
-                      <p className="text-xs text-slate-500">{unavailableReason}</p>
-                    )}
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-[#7d4f50] hover:bg-[#6b4345] text-white">
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-primary hover:bg-primary/90 text-white">
                         {busyId === link.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                         Update Link
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => void handleRevoke(link)} disabled={busyId === link.id || !status.active} className="text-red-600 border-red-200 hover:bg-red-50">
-                        <ShieldOff className="w-4 h-4 mr-2" />
-                        Revoke
-                      </Button>
+                      <RowActionMenu
+                        actions={[
+                          {
+                            id: "revoke",
+                            label: CONFIRM_DESTRUCTIVE.revokeFolderShare.confirmLabel,
+                            icon: ShieldOff,
+                            kind: "destructive",
+                            disabled: busyId === link.id || !status.active,
+                            onSelect: () => setConfirmRevokeId(link.id),
+                          },
+                        ]}
+                        label="Manage shared link"
+                        triggerTestId={`folder-share-actions-${link.id}`}
+                      />
                     </div>
+
+                    {confirmRevokeId === link.id && (
+                      <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 p-3 space-y-2">
+                        <div>
+                          <p className="text-sm font-medium text-rose-900 dark:text-rose-200">{CONFIRM_DESTRUCTIVE.revokeFolderShare.title}</p>
+                          <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">{CONFIRM_DESTRUCTIVE.revokeFolderShare.body}</p>
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setConfirmRevokeId(null)}
+                            disabled={busyId === link.id}
+                          >
+                            {CONFIRM_DESTRUCTIVE.revokeFolderShare.cancelLabel}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => void handleRevoke(link)}
+                            disabled={busyId === link.id}
+                            className="bg-rose-600 hover:bg-rose-700 text-white"
+                          >
+                            {busyId === link.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
+                            {busyId === link.id ? LOADING.revokingLink : CONFIRM_DESTRUCTIVE.revokeFolderShare.confirmLabel}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     {result && (
                       <div className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${result.includes("Failed") || result.includes("Paste") || result.includes("different") || result.includes("not wired yet") ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
@@ -369,7 +389,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
               );
             })}
           </div>
-        )}
+        </DataState>
       </div>
     </div>
   );

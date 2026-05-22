@@ -38,7 +38,7 @@ export function validateProtectedLinkForCopy(
   }
 
   try {
-    const parsed = new URL(trimmed, "https://abrn-drive.local");
+    const parsed = new URL(trimmed, "https://quantix-drive.local");
     if (normalizePath(parsed.pathname) !== normalizePath(expectedPath)) {
       return { ok: false, error: getUnavailableMessage(kind) };
     }

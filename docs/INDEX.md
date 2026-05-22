@@ -1,6 +1,6 @@
-# ABRN Drive — Documentation Index
+# QuantiX Drive — Documentation Index
 
-Last updated: April 26, 2026 (Main consolidation + post-merge verification — 89/89 frontend tests, Go and TS clean, both production redirects healthy)
+Last updated: April 27, 2026 (Verified `49c92c0` end-to-end — 99/99 unit, 39/39 E2E, build green; coherence foundations safe to continue)
 
 ## Task Documentation
 
@@ -29,9 +29,16 @@ Last updated: April 26, 2026 (Main consolidation + post-merge verification — 8
 | 21 | [Force Password Change](./21_FORCE_PASSWORD_CHANGE.md) | Admin security gate — force users to change password on next login, 3-layer defense, private key re-encryption |
 | 22 | [Drop Key Recovery](./22_DROP_KEY_RECOVERY.md) | Fix broken drop links — PIN-unwrap endpoint, reveal-key UI, missing-key error page, dead code cleanup |
 | 23 | [Drop Full Cycle E2E](./23_DROP_FULL_CYCLE_E2E.md) | Full lifecycle proof — create link, client upload, owner download+decrypt, key recovery, wrong PIN |
-| 24 | [Security Governance Productization](./24_SECURITY_GOVERNANCE_PRODUCTIZATION.md) | Security posture, governance settings, audit export, Access Center, lazy-loaded operator surfaces |
-| 25 | [QuantiX Drive Production Deploy](./25_QUANTIXDRIVE_PRODUCTION_DEPLOY.md) | Second branded product deployment on the shared VPS and config validation hardening |
-| 26 | [Link Flow UX Redesign Verification](./26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md) | Protected link copy, explicit inbound vs outbound link UX, and empty-folder share handoff verification |
+| 24 | [Security Governance Productization](./24_SECURITY_GOVERNANCE_PRODUCTIZATION.md) | Governance settings, audit retention, stale-link automation, alert thresholds |
+| 25 | [QA Session 2026-04-12](./25_QA_SESSION_2026-04-12.md) | QA-led evidence pass before the latest verification improvements |
+| 26 | [Skin System 2026-04-12](./26_SKIN_SYSTEM_2026-04-12.md) | Six-skin theming system, FOUC prevention, and visual rules |
+| 27 | [Theme Color Consistency 2026-04-12](./27_THEME_COLOR_CONSISTENCY_2026-04-12.md) | Semantic-token migration strategy and replacement rules |
+| 28 | [Build Verification 2026-04-16](./28_BUILD_VERIFICATION_2026-04-16.md) | Session-vault reset fix, cached-PIN recovery fix, isolated Playwright DB/upload harness, and fresh verification results |
+| 29 | [UI/UX Coherence Roadmap](./roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) | 7-step UI/UX coherence roadmap — `<RowActionMenu>`, `constants/copy.ts`, `<DataState>`, onboarding hand-off, mobile verification, trust-language pass, activity receipt drawer |
+| 30 | [Coherence Foundations 2026-04-27](./SESSION_MEMORY_2026-04-27-coherence-foundations.md) | Implementation log for Steps 1–3 of the coherence roadmap — three primitives shipped, Upload Links migrated, 99+/99+ tests, build green |
+| 31 | [Coherence Verification 2026-04-27 (memory)](./memories/session-2026-04-27-coherence-verification.md) | Closeout: verified `49c92c0` end-to-end. Two surgical E2E test-code fixes recovered the full Playwright suite to 39/39 |
+| 32 | [Coherence Verification 2026-04-27 (MD report)](./reports/2026-04-27-coherence-verification.md) | Markdown verification report — all checks, all results, all risks, conclusion |
+| 33 | [Coherence Verification 2026-04-27 (HTML report)](./reports/2026-04-27-coherence-verification.html) | Browser-readable verification report with summary cards, verification matrix, fixes, risks |
 
 ## Feature Docs (pre-existing)
 
@@ -66,19 +73,16 @@ Last updated: April 26, 2026 (Main consolidation + post-merge verification — 8
 | [SESSION_MEMORY_2026-03-23-force-password-change.md](./SESSION_MEMORY_2026-03-23-force-password-change.md) | Force password change + luxury design tokens + FK cascade fix |
 | [SESSION_MEMORY_2026-03-24-drop-key-recovery.md](./SESSION_MEMORY_2026-03-24-drop-key-recovery.md) | Drop link key recovery — PIN-unwrap endpoint, reveal UI, error UX |
 | [SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md](./SESSION_MEMORY_2026-03-24-drop-full-cycle-e2e.md) | Drop full cycle E2E — 35/35 tests, full lifecycle verified |
-| [SESSION_MEMORY_2026-04-07-sharing-war-room.md](./SESSION_MEMORY_2026-04-07-sharing-war-room.md) | Sharing bug war-room, trust model debugging, and production flow analysis |
-| [SESSION_MEMORY_2026-04-10-security-governance-productization.md](./SESSION_MEMORY_2026-04-10-security-governance-productization.md) | Security posture, governance settings, Access Center, and operator/productization pass |
-| [SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md](./SESSION_MEMORY_2026-04-11-quantixdrive-deploy.md) | QuantiX Drive deploy, env validator bug, and finish-the-deploy runbook |
-| [SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md](./SESSION_MEMORY_2026-04-16-empty-folder-share-upload-handoff.md) | Empty-folder share handoff, latest verification sweep, and safe-to-continue checkpoint |
-| [SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md](./SESSION_MEMORY_2026-04-16-link-flow-verification-and-commit-prep.md) | Current-code inspection, clipboard fallback fix, refreshed E2E proof, README/report sync, and commit-ready checkpoint |
-| [SESSION_MEMORY_2026-04-26-main-consolidation-verify.md](./SESSION_MEMORY_2026-04-26-main-consolidation-verify.md) | Main consolidation, dev-branch retirement, `quantix-overlay` upstream sync, post-merge verification, `.gitignore` cleanup, commit-ready checkpoint |
+| [SESSION_MEMORY_2026-04-12-color-consistency.md](./SESSION_MEMORY_2026-04-12-color-consistency.md) | Theme color consistency across all six skins, script inventory, and verification notes |
+| [SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md](./SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md) | Current branch checkpoint: build/test/e2e verification, risk assessment, and commit-safe state |
 
-## Verification Reports
+## HTML Reports
 
-| Document | Summary |
-|----------|---------|
-| [reports/2026-04-26-main-consolidation-verification.md](./reports/2026-04-26-main-consolidation-verification.md) | Closeout verification matrix for the main-consolidation pass — Go, TS, Vitest, Vite, live redirects all green |
-| [reports/2026-04-26-main-consolidation-verification.html](./reports/2026-04-26-main-consolidation-verification.html) | Browser-readable HTML twin of the same closeout report |
+| Report | Summary |
+|--------|---------|
+| [qa-report-2026-04-14.html](./qa-report-2026-04-14.html) | Earlier visual QA report before the latest harness fixes |
+| [agent-keys-improvement-report.html](./agent-keys-improvement-report.html) | Agent key and settings-related report artifact |
+| [qa-report-2026-04-16.html](./qa-report-2026-04-16.html) | Fresh verification report for the current branch: backend, frontend, unit tests, and full Playwright pass |
 
 ## Quick Navigation
 
@@ -120,6 +124,4 @@ Last updated: April 26, 2026 (Main consolidation + post-merge verification — 8
 
 **I want the drop full cycle E2E proof →** [23_DROP_FULL_CYCLE_E2E.md](./23_DROP_FULL_CYCLE_E2E.md)
 
-**I want the latest session context →** [SESSION_MEMORY_2026-04-26-main-consolidation-verify.md](./SESSION_MEMORY_2026-04-26-main-consolidation-verify.md)
-
-**I want the latest verification report →** [reports/2026-04-26-main-consolidation-verification.html](./reports/2026-04-26-main-consolidation-verification.html)
+**I want the latest session context →** [SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md](./SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md)

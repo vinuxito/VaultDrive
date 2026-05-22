@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 	defer file.Close()
 
 	// Create uploads directory if it doesn't exist
-	uploadDir := "uploads"
+	uploadDir := uploadStorageDir()
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, 0755)
 		if err != nil {
@@ -195,7 +195,7 @@ func (cfg *ApiConfig) handlerMoveFileToFolder(w http.ResponseWriter, r *http.Req
 	file, err := cfg.dbQueries.GetFileByID(r.Context(), fileID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			respondWithError(w, http.StatusNotFound, "File not found", err)
+			respondWithErrorCtx(r, w, http.StatusNotFound, "ErrFileNotFound", err)
 			return
 		}
 		respondWithError(w, http.StatusInternalServerError, "Error retrieving file", err)

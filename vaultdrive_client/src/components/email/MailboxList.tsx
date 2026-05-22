@@ -20,11 +20,12 @@ const MailboxList: React.FC<MailboxListProps> = ({ mailboxes, selectedMailbox, o
         <li key={mailbox.id}>
           <button
             onClick={() => onSelectMailbox(mailbox.name)}
-            className={`w-full text-left px-4 py-2 text-sm rounded-md ${selectedMailbox === mailbox.name ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+            type="button"
+            className={`w-full text-left px-4 py-2 text-sm rounded-md ${selectedMailbox === mailbox.name ? 'bg-muted' : ''}`}
           >
             <div className="flex justify-between items-center">
               <span>{mailbox.name}</span>
-              <span className="text-gray-500">{mailbox.messages}</span>
+              <span className="text-muted-foreground">{mailbox.messages}</span>
             </div>
           </button>
         </li>

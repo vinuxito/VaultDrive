@@ -24,7 +24,7 @@ test("owner trust flow supports signup, onboarding, and PIN login", async ({ pag
 
   await clearLocalAuth(page);
   await loginWithPin(page, account);
-  await expect(page).toHaveURL(/abrn$/);
+  await expect(page).toHaveURL(/quantix$/);
 });
 
 test("owner action receipts expose the underlying API calls", async ({ page }) => {
@@ -47,7 +47,11 @@ test("owner action receipts expose the underlying API calls", async ({ page }) =
   await createLinkButton.scrollIntoViewIfNeeded();
   await createLinkButton.evaluate((element: HTMLButtonElement) => element.click());
   await expect(page.getByText("POST /api/drop/create")).toBeVisible();
-  await page.getByRole("button", { name: /^Done$/i }).click();
+  // Done button can render below the viewport in headless after the receipt
+  // expands; mirror the scroll+evaluate workaround used for Create Link above.
+  const doneButton = page.getByRole("button", { name: /^Done$/i });
+  await doneButton.scrollIntoViewIfNeeded();
+  await doneButton.evaluate((element: HTMLButtonElement) => element.click());
 
   await page.getByRole("button", { name: "Manage Requests" }).click();
   await page.getByRole("button", { name: /new request/i }).click();

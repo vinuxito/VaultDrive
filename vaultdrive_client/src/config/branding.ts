@@ -2,18 +2,18 @@
  * Branding configuration — read from Vite env vars at build time.
  *
  * Defaults are QuantiX Drive (the generic upstream product).
- * For ABRN Drive (or any other branded deployment), override via
- * `.env.local` / `.env.abrn` / environment variables at build time.
+ * Branded downstream deployments override via `.env.local` or
+ * environment variables at build time.
  */
 
-export type BrandLogoVariant = "quantix" | "abrn";
+export type BrandLogoVariant = string;
 
 export interface BrandingConfig {
   /** Canonical product name, e.g. "QuantiX Drive" */
   productName: string;
   /** Short product slug, e.g. "quantix-drive" — used for filenames, ids */
   productSlug: string;
-  /** Company / operator name, e.g. "QuantiX" or "ABRN Asesores" */
+  /** Company / operator name, e.g. "QuantiX" */
   companyName: string;
   /** Which logo component to render */
   logoVariant: BrandLogoVariant;
@@ -29,13 +29,14 @@ export interface BrandingConfig {
   publicBaseURL: string;
   /** Marketing / homepage URL shown on public landing pages */
   marketingURL: string;
-  /** API base path, e.g. "/api" or "/abrn/api" */
+  /** API base path, e.g. "/api" */
   apiBasePath: string;
   /** SPA base path, e.g. "/quantix" — NO trailing slash */
   basePath: string;
   /**
    * Hosts where the app is served at the root (no SPA base path prefix).
-   * Used by `base-path.ts` to strip the legacy `/abrn` prefix on prod hosts.
+   * Used by `base-path.ts` to strip the SPA base path on prod hosts that
+   * don't need the prefix.
    */
   rootHostedHosts: string[];
   /** Agent API key prefix (matches backend PRODUCT_AGENT_KEY_PREFIX), e.g. "qx_ak" */

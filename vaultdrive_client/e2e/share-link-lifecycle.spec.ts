@@ -53,7 +53,7 @@ test.describe("Share link lifecycle — create, access, revoke", () => {
     const shareLinkData = (await shareLinkRes.json()) as { token: string };
     expect(shareLinkData.token).toBeTruthy();
 
-    // The share URL format: /abrn/share/{token}#base64Key
+    // The share URL format: /{basePath}/share/{token}#base64Key
     // In production, the frontend appends the AES key as a fragment
     // The fragment never reaches the server (HTTP spec guarantee)
     const shareToken = shareLinkData.token;

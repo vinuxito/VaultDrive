@@ -1,11 +1,10 @@
-# ABRN Drive / QuantiX Drive Frontend
+# QuantiX Drive Frontend
 
-This directory contains the shared React + TypeScript frontend used by both
-ABRN Drive and QuantiX Drive.
+This directory contains the React + TypeScript frontend for QuantiX Drive.
 
 It is not a standalone product shell. The production app is served by the Go
-backend, usually under `/quantix/` (or `/abrn/` for the ABRN deployment), and
-this frontend builds into `vaultdrive_client/dist/` for that backend to serve.
+backend under the configured base path (default `/quantix/`), and this
+frontend builds into `vaultdrive_client/dist/` for that backend to serve.
 
 ## Branding Configuration
 
@@ -14,10 +13,12 @@ vars. See:
 
 - `.env` — committed QuantiX defaults (active when no override is present)
 - `.env.example` — documented QuantiX defaults you can copy to `.env.local`
-- `.env.abrn` — ABRN Drive downstream overrides; activate with
-  `cp .env.abrn .env.local && npm run build`
 - `src/config/branding.ts` — single source of truth for the `branding` object
   consumed by React components
+
+Branded downstream deployments override these values in their own `.env.local`
+or build-time environment and may replace `src/components/branding/brand-logo.tsx`
+in an overlay to render an alternate logo.
 
 ## Stack
 
@@ -65,6 +66,15 @@ Run trust proof e2e:
 npm run test:e2e
 ```
 
+This does more than just run Playwright. The current harness:
+
+- builds the frontend,
+- creates or reuses a dedicated local test database (`vaultdrive_playwright` by default),
+- runs goose migrations against that database,
+- starts the Go app with explicit local dev env,
+- writes encrypted test uploads into `/tmp/quantix-playwright-uploads` by default,
+- then runs the 38-spec trust proof suite.
+
 Run the frontend build:
 
 ```bash
@@ -85,28 +95,22 @@ npm run preview
 
 ## Verification Notes
 
-- The main production-like local path is usually the Go server at
-  `http://localhost:8082/quantix/` (or `/abrn/` under the ABRN override), not
-  the raw Vite dev server.
+- The main production-like local path is usually the Go server under `/quantix/`, not the raw Vite dev server.
 - Frontend verification is normally paired with backend verification:
-  - `cd vaultdrive_client && npm run test && npm run build`
+  - `cd vaultdrive_client && npm test && npm run build`
   - `cd .. && go test ./... && go build ./...`
-- The committed Playwright harness defaults to `http://127.0.0.1:8090/<base>/`
-  and starts its own Go server against the current repo code during
-  `npm run test:e2e`.
-- If you need to target a proxied or remote environment, override
-  `E2E_BASE_URL` and `E2E_API_BASE_URL` explicitly.
-- Current verified state for ABRN Drive on `main` (re-verified 2026-04-26 after the dev-branch consolidation):
-  - `npx vitest run` → **89/89 passing** (26 files, 28.04 s)
-  - `npx tsc --noEmit` → **clean** (zero diagnostics)
-  - `npm run build` → **clean** (built in 11.86 s)
-  - `go test ./...` + `go build ./...` from repo root → **clean** (root package `ok 1.210s`)
-  - Live: `https://abrndrive.filemonprime.net/` and `https://quantixdrive.filemonprime.net/` both 302 to their respective signin paths
-  - Last green Playwright run on 2026-04-16: `upload-link-lifecycle.spec.ts` → **4/4**, `share-link-lifecycle.spec.ts` → **3/3**. No source under test changed since, so they were not re-run on 2026-04-26 — re-run before the next behavioral change.
-- The focused browser proof now explicitly covers the empty-folder owner path:
-  - owner opens an empty folder
-  - the UI steers them into **Create Upload Link** instead of dead-ending in **Share Folder**
-  - upload-link creation succeeds with the same folder preselected
+- The committed Playwright harness defaults to `http://127.0.0.1:8090/quantix/` and starts its own Go server during `npm run test:e2e`.
+- It now injects the minimum required backend env (`DB_URL`, `JWT_SECRET`, `BASE_PATH`, `PORT`, `UPLOAD_DIR`) instead of assuming your shell is preconfigured.
+- It defaults to a dedicated database, `vaultdrive_playwright`, so the suite does not collide with a half-migrated local dev database.
+- It defaults to a dedicated upload directory, `/tmp/quantix-playwright-uploads`, so the suite does not depend on repo-local file permissions.
+- If you need to target a different local database or upload directory, override `E2E_DB_NAME`, `E2E_DB_URL`, `E2E_ADMIN_DB_URL`, or `E2E_UPLOAD_DIR`.
+- If you need to target a proxied or remote environment, override `E2E_BASE_URL` explicitly.
+
+As of 2026-04-16, the verified local status is:
+
+- `npm run build` ✅
+- `npm test` ✅ (72/72)
+- `npm run test:e2e` ✅ (38/38)
 
 ## Key Files
 
@@ -117,24 +121,7 @@ npm run preview
 - `src/components/vault/AccessPanel.tsx` - access visibility and revoke controls
 - `src/components/settings/AgentApiKeysSection.tsx` - delegated-power UI
 - `src/components/onboarding/OnboardingWizard.tsx` - trust briefing + PIN setup
-- `src/components/folders/FolderActionEntryPanel.tsx` - explicit inbound vs outbound folder action chooser
-- `src/components/links/ProtectedLinkCopyField.tsx` - shared PIN-gated protected copy surface
-- `src/utils/protected-link-copy.ts` - copy validation and masked-link helpers
-- `e2e/upload-link-lifecycle.spec.ts` - self-hosted browser proof for upload-link creation, protected copy, anonymous sender delivery, expiry, and empty-folder handoff
-- `e2e/share-link-lifecycle.spec.ts` - self-hosted browser proof for share-link creation, access counting, and revoke behavior
 - `src/pages/drop-upload.tsx` - public Secure Drop sender flow
 - `src/pages/FileRequestPage.tsx` - public File Request sender flow
 - `playwright.config.ts` - Playwright trust proof harness
 - `e2e/` - committed trust proof end-to-end specs
-
-## Documentation
-
-- Root product docs: `../README.md`
-- Docs index: `../docs/INDEX.md`
-- Trust UX hardening: `../docs/13_TRUST_UX_HARDENING.md`
-- Trust proof harness checkpoint: `../docs/15_TRUST_PROOF_HARNESS.md`
-- Latest verification doc: `../docs/26_LINK_FLOW_UX_REDESIGN_VERIFICATION.md`
-- Latest session context: `../docs/SESSION_MEMORY_2026-04-26-main-consolidation-verify.md`
-- Latest verification report (MD): `../docs/reports/2026-04-26-main-consolidation-verification.md`
-- Latest verification report (HTML): `../docs/reports/2026-04-26-main-consolidation-verification.html`
-- Previous link-flow report (HTML): `../docs/empty-folder-share-upload-handoff-report.html`

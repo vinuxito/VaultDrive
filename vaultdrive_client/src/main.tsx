@@ -3,10 +3,12 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./components/theme-provider";
+import "./i18n";
+
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="light" storageKey="vaultdrive-ui-theme">
+    <ThemeProvider defaultSkin="quantix" storageKey="quantixdrive-skin">
       <App />
     </ThemeProvider>
   </StrictMode>

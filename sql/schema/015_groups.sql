@@ -1,3 +1,4 @@
+-- +goose Up
 -- Groups Schema
 -- Allows users to create groups and share files with many users at once
 
@@ -34,3 +35,7 @@ CREATE INDEX idx_group_members_group_id ON group_members(group_id);
 CREATE INDEX idx_group_members_user_id ON group_members(user_id);
 CREATE INDEX idx_group_file_shares_group_id ON group_file_shares(group_id);
 CREATE INDEX idx_group_file_shares_file_id ON group_file_shares(file_id);
+-- +goose Down
+DROP TABLE IF EXISTS group_file_shares;
+DROP TABLE IF EXISTS group_members;
+DROP TABLE IF EXISTS groups;

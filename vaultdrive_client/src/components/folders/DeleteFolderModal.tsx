@@ -40,15 +40,16 @@ export default function DeleteFolderModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-gradient-to-br from-[#7d4f50] to-[#6b4345] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-4"
+            className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-4"
           >
             {/* Header with red accent for delete action */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Trash2 className="h-5 w-5 text-[#ef4444]" />
+                <Trash2 className="h-5 w-5 text-destructive" />
                 <h2 className="text-xl font-semibold text-white">Delete Folder</h2>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 disabled={loading}
                 className="text-white/70 hover:text-white transition-colors"
@@ -61,13 +62,13 @@ export default function DeleteFolderModal({
               <div className="space-y-4">
                 <p className="text-white">
                   Are you sure you want to delete the folder{" "}
-                  <span className="font-semibold text-[#f2d7d8]">"{folderName}"</span>?
+                  <span className="font-semibold text-primary-foreground">"{folderName}"</span>?
                 </p>
 
                 {hasSubfolders && (
-                  <div className="flex items-start gap-2 p-3 bg-[#6b4345]/30 border border-[#d4a5a6]/40 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-[#d4a5a6] flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-[#f2d7d8]">
+                  <div className="flex items-start gap-2 p-3 bg-primary/20 border border-primary/30 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-primary/60 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-primary-foreground">
                       <p className="font-semibold mb-1">Warning</p>
                       <p>
                         This folder contains subfolders. All subfolders and their contents
@@ -84,10 +85,9 @@ export default function DeleteFolderModal({
                 <div className="flex gap-2 justify-end pt-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="modal-cancel"
                     onClick={onClose}
                     disabled={loading}
-                    className="border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
                   >
                     Cancel
                   </Button>
@@ -95,7 +95,7 @@ export default function DeleteFolderModal({
                     type="button"
                     onClick={handleConfirm}
                     disabled={loading}
-                    className="bg-[#ef4444] hover:bg-[#dc2626] text-white border-0"
+                    className="bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-white border-0"
                   >
                     {loading ? (
                       <>

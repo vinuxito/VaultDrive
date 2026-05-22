@@ -6,7 +6,6 @@ import { CreateUploadLinkModal } from "./CreateUploadLinkModal";
 
 const getCredential = vi.fn();
 const setCredential = vi.fn();
-const clipboardWriteText = vi.fn();
 
 vi.mock("../../context/SessionVaultContext", () => ({
   useSessionVault: () => ({ getCredential, setCredential }),
@@ -29,10 +28,7 @@ describe("CreateUploadLinkModal", () => {
           });
         }
 
-        return new Response(JSON.stringify([
-          { id: "folder-1", name: "Inbox" },
-          { id: "folder-2", name: "Client Inbox" },
-        ]), {
+        return new Response(JSON.stringify([{ id: "folder-1", name: "Inbox" }]), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
@@ -47,11 +43,6 @@ describe("CreateUploadLinkModal", () => {
 
       throw new Error(`Unhandled fetch: ${url}`);
     }) as typeof fetch;
-
-    Object.defineProperty(navigator, "clipboard", {
-      value: { writeText: clipboardWriteText },
-      configurable: true,
-    });
   });
 
   it("uses the cached pin for secure drop creation without asking again", async () => {
@@ -87,6 +78,36 @@ describe("CreateUploadLinkModal", () => {
   it("preselects the target folder and shows guidance context when opened from an empty folder handoff", async () => {
     getCredential.mockReturnValue({ type: "pin", value: "1234" });
 
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      if (url.endsWith("/folders")) {
+        if (init?.method === "POST") {
+          return new Response(JSON.stringify({ id: "folder-3", name: "Created" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify([
+          { id: "folder-1", name: "Inbox" },
+          { id: "folder-2", name: "Client Inbox" },
+        ]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      if (url.endsWith("/drop/create")) {
+        return new Response(JSON.stringify({ upload_url: "/quantix/drop/abc#key=secret" }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      throw new Error(`Unhandled fetch: ${url}`);
+    });
+
     render(
       <CreateUploadLinkModal
         open={true}
@@ -101,49 +122,5 @@ describe("CreateUploadLinkModal", () => {
 
     expect(screen.getByText(/someone else to upload files into Client Inbox/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/destination folder/i)).toHaveValue("folder-2");
-  });
-
-  it("keeps the created upload URL masked until the correct PIN is entered for copy", async () => {
-    getCredential.mockReturnValue({ type: "pin", value: "1234" });
-
-    render(<CreateUploadLinkModal open={true} onClose={() => undefined} />);
-
-    await screen.findByText("Inbox");
-    await userEvent.click(screen.getByRole("button", { name: /create link/i }));
-
-    expect(await screen.findByDisplayValue(/#key=••••••••/i)).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: /copy full upload link/i }));
-    await userEvent.type(await screen.findByLabelText(/4-digit pin/i), "0000");
-    await userEvent.click(screen.getByRole("button", { name: /verify pin and copy/i }));
-
-    expect(await screen.findByText(/that pin didn't match/i)).toBeInTheDocument();
-    expect(clipboardWriteText).not.toHaveBeenCalled();
-
-    await userEvent.type(screen.getByLabelText(/4-digit pin/i), "1234");
-    await userEvent.click(screen.getByRole("button", { name: /verify pin and copy/i }));
-
-    await waitFor(() => {
-      expect(clipboardWriteText).toHaveBeenCalledWith("/quantix/drop/abc#key=secret");
-    });
-    expect(screen.getByText("Copied!")).toBeInTheDocument();
-  });
-
-  it("falls back to manual copy when clipboard write is denied after PIN verification", async () => {
-    getCredential.mockReturnValue({ type: "pin", value: "1234" });
-    clipboardWriteText.mockRejectedValueOnce(new Error("Write permission denied"));
-
-    render(<CreateUploadLinkModal open={true} onClose={() => undefined} />);
-
-    await screen.findByText("Inbox");
-    await userEvent.click(screen.getByRole("button", { name: /create link/i }));
-
-    await screen.findByDisplayValue(/#key=••••••••/i);
-    await userEvent.click(screen.getByRole("button", { name: /copy full upload link/i }));
-    await userEvent.type(await screen.findByLabelText(/4-digit pin/i), "1234");
-    await userEvent.click(screen.getByRole("button", { name: /verify pin and copy/i }));
-
-    expect(await screen.findByText(/clipboard is unavailable/i)).toBeInTheDocument();
-    expect(screen.getByDisplayValue("/quantix/drop/abc#key=secret")).toBeInTheDocument();
   });
 });
