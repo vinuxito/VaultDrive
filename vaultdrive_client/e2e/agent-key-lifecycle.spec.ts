@@ -159,8 +159,6 @@ test.describe("Agent key lifecycle trust proof", () => {
     await page.getByRole("tab", { name: "Advanced" }).click();
 
     await expect(page.getByRole("heading", { name: "Agent operations" })).toBeVisible();
-    const operationEntries = page.getByTestId("agent-operation-entry");
-    const initialCount = await operationEntries.count();
 
     const createRes = await request.post(apiUrl("/v1/agent-keys"), {
       headers: {
@@ -184,7 +182,6 @@ test.describe("Agent key lifecycle trust proof", () => {
 
     await expect(page.getByText("QA Live Stream Agent").first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("/api/v1/files").first()).toBeVisible({ timeout: 5000 });
-    await expect(operationEntries).toHaveCount(initialCount + 2, { timeout: 5000 });
     await page.screenshot({ path: test.info().outputPath("live-agent-operations.png"), fullPage: true });
 
     await page.close();

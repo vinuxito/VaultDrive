@@ -21,7 +21,10 @@ export function BottomNav() {
 
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 lux-navbar border-t border-primary/15 md:hidden safe-area-bottom">
+    <nav
+      aria-label={t("common:nav.bottomNavigation", "Bottom navigation")}
+      className="fixed bottom-0 left-0 right-0 z-30 lux-navbar border-t border-primary/15 md:hidden safe-area-bottom"
+    >
       <div className="flex items-center justify-around h-16">
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
