@@ -9,10 +9,12 @@ export type HelpSection =
   | "getting_started" 
   | "vault_pin" 
   | "uploads_shares" 
+  | "drop_portals"
   | "workspaces" 
   | "user_management" 
   | "agent_keys" 
-  | "audit_logs";
+  | "audit_logs"
+  | "system_settings";
 
 export default function HelpCenter() {
   const { t } = useTranslation(["help"]);

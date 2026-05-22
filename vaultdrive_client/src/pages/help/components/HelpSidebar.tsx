@@ -17,6 +17,7 @@ export function HelpSidebar({ activeSection, onSelect }: HelpSidebarProps) {
     { id: "getting_started", label: t("help:navigation.getting_started") },
     { id: "vault_pin", label: t("help:navigation.vault_pin") },
     { id: "uploads_shares", label: t("help:navigation.uploads_shares") },
+    { id: "drop_portals", label: t("help:navigation.drop_portals") },
     { id: "workspaces", label: t("help:navigation.workspaces") },
   ];
 
@@ -24,6 +25,7 @@ export function HelpSidebar({ activeSection, onSelect }: HelpSidebarProps) {
     { id: "user_management", label: t("help:navigation.user_management") },
     { id: "agent_keys", label: t("help:navigation.agent_keys") },
     { id: "audit_logs", label: t("help:navigation.audit_logs") },
+    { id: "system_settings", label: t("help:navigation.system_settings") },
   ];
 
   return (

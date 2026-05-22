@@ -1,45 +1,139 @@
 {
   "title": "Centro de Ayuda de {{product}}",
-  "subtitle": "Todo lo que necesitas saber para usar {{product}} de forma segura.",
+  "subtitle": "Manuales completos y documentación de seguridad para {{product}}.",
   "navigation": {
     "user_guide": "Guía del Usuario",
     "admin_guide": "Guía del Administrador",
-    "getting_started": "Primeros Pasos",
+    "getting_started": "Comenzando",
     "vault_pin": "Bóveda y PIN",
-    "uploads_shares": "Subidas y Compartir",
-    "workspaces": "Espacios y Grupos",
+    "uploads_shares": "Subidas y Enlaces",
+    "drop_portals": "Portales Drop",
+    "workspaces": "Espacios de Trabajo",
     "user_management": "Gestión de Usuarios",
-    "agent_keys": "Claves de API",
-    "audit_logs": "Registros de Auditoría"
+    "agent_keys": "Claves API de Agentes",
+    "audit_logs": "Registros de Auditoría",
+    "system_settings": "Configuración del Sistema"
   },
   "content": {
     "getting_started": {
-      "title": "Primeros Pasos",
-      "body": "¡Bienvenido a {{product}}! Esta bóveda segura te permite almacenar, encriptar y compartir tus archivos sensibles con arquitectura de conocimiento cero. Cada archivo que subes se encripta localmente en tu navegador antes de llegar a nuestros servidores."
+      "title": "Comenzando con {{product}}",
+      "paragraphs": [
+        "Bienvenido a {{product}}. Esta plataforma está construida bajo los principios de encriptación de conocimiento cero (zero-knowledge), lo que significa que sus archivos confidenciales se aseguran del lado del cliente antes de que salgan de su dispositivo.",
+        "Ya sea que esté compartiendo documentos empresariales confidenciales o colaborando dentro de un equipo restringido, {{product}} garantiza que ni nuestros servidores, ni sus administradores, ni ninguna entidad externa puedan leer su texto cifrado sin una autorización criptográfica explícita.",
+        "Para comenzar, explore su Panel de Control. Este es su espacio de trabajo principal donde puede gestionar su Bóveda, rastrear sus Portales Drop activos y auditar las interacciones recientes de archivos."
+      ],
+      "bulletPoints": [],
+      "callout": {
+        "type": "info",
+        "title": "Arquitectura de Conocimiento Cero",
+        "text": "Cada archivo se encripta en su navegador utilizando AES-256-GCM. El servidor solo almacena el texto cifrado y nunca ve sus datos en texto plano."
+      }
     },
     "vault_pin": {
-      "title": "Tu Bóveda y PIN de Recuperación",
-      "body": "Tu Bóveda está protegida por un PIN de recuperación secundario. Este PIN nunca se almacena en nuestros servidores. Se utiliza para derivar localmente tus claves de encriptación maestras. Si pierdes tu PIN, perderás el acceso a tus archivos, ya que nosotros no podemos desencriptarlos."
+      "title": "Su Bóveda y PIN de Recuperación",
+      "paragraphs": [
+        "Su Bóveda es el repositorio seguro para sus archivos personales encriptados. El acceso a su Bóveda está protegido por un PIN de Recuperación secundario establecido durante la incorporación.",
+        "Este PIN se utiliza para derivar localmente sus claves maestras de encriptación. Nunca se transmite ni se almacena en nuestros servidores en texto plano.",
+        "Cuando inicie sesión desde un nuevo dispositivo o después de que caduque su sesión, se le pedirá que ingrese este PIN para desbloquear su llavero local."
+      ],
+      "bulletPoints": [
+        "Nunca comparta su PIN con nadie, incluidos los administradores.",
+        "Almacene su PIN en un administrador de contraseñas seguro.",
+        "Los administradores no pueden restablecer ni recuperar su PIN."
+      ],
+      "callout": {
+        "type": "warning",
+        "title": "Riesgo de Pérdida Irrevocable de Datos",
+        "text": "Dado que {{product}} utiliza una arquitectura de Conocimiento Cero, no podemos recuperar sus archivos si pierde su PIN. Sus claves de encriptación nunca salen de su navegador sin encriptar."
+      }
     },
     "uploads_shares": {
-      "title": "Subidas y Compartir",
-      "body": "Subir archivos es tan simple como arrastrarlos y soltarlos en tu panel de control. Para compartir un archivo de forma segura, crea un 'Enlace para Compartir'. Puedes restringir el acceso, establecer fechas de expiración y monitorear exactamente quién accede a tus archivos."
+      "title": "Subidas y Uso Compartido Seguro",
+      "paragraphs": [
+        "Subir archivos a {{product}} es un proceso fluido. Simplemente arrastre y suelte archivos o carpetas en su Bóveda. El proceso de encriptación ocurre instantáneamente en la memoria antes de que comience la subida.",
+        "Para colaborar externamente sin comprometer la seguridad, puede generar un 'Enlace para Compartir'. Cuando crea un Enlace para Compartir, la clave de desencriptación se incrusta en el fragmento de la URL (la parte después del `#`).",
+        "Debido a que los navegadores nunca envían fragmentos de URL al servidor, el servidor enruta el archivo encriptado al destinatario, y el navegador del destinatario utiliza la clave del fragmento para desencriptarlo localmente."
+      ],
+      "bulletPoints": [
+        "Los Enlaces para Compartir pueden configurarse para que caduquen después de un número específico de días.",
+        "Puede revocar instantáneamente cualquier Enlace para Compartir activo desde el Centro de Acceso.",
+        "El servidor rastrea análisis de acceso a enlaces (IP, marca de tiempo) para su registro de auditoría sin ver el contenido del archivo."
+      ],
+      "callout": {
+        "type": "info",
+        "title": "Transmisión Segura",
+        "text": "Incluso si la transmisión es interceptada, la carga útil permanece protegida por AES-256-GCM. Solo el destinatario con la URL completa que contiene la clave del fragmento puede desencriptar la carga."
+      }
+    },
+    "drop_portals": {
+      "title": "Portales Drop y Solicitudes de Archivos",
+      "paragraphs": [
+        "Los Portales Drop le permiten recolectar archivos de forma segura de terceros que no tienen una cuenta de {{product}}. Cuando crea un Portal Drop, genera una página de subida pública con su marca.",
+        "Los remitentes externos suben sus archivos, los cuales se encriptan en su navegador usando una clave pública asociada con su Portal Drop. Solo usted posee la clave privada correspondiente para desencriptar estos archivos.",
+        "Puede configurar los Portales Drop con listas de verificación de documentos requeridos, fechas de vencimiento e instrucciones personalizadas. Esto es ideal para la recepción segura de documentos, procesos KYC e informes confidenciales."
+      ],
+      "bulletPoints": [],
+      "callout": {}
     },
     "workspaces": {
-      "title": "Espacios y Grupos",
-      "body": "Organiza tu equipo usando Espacios y Grupos. Los archivos compartidos dentro de un grupo están encriptados de extremo a extremo para todos los miembros de ese grupo, asegurando una colaboración fluida pero estrictamente confidencial."
+      "title": "Espacios de Trabajo y Grupos",
+      "paragraphs": [
+        "Para la colaboración empresarial interna, {{product}} utiliza Espacios de Trabajo y Grupos. Los grupos le permiten compartir archivos encriptados con múltiples usuarios simultáneamente sin gestionar enlaces para compartir de forma individual.",
+        "Cuando comparte un archivo con un Grupo, su navegador encripta la clave simétrica del archivo utilizando las claves públicas RSA de todos los miembros actuales del Grupo.",
+        "Si un miembro es eliminado del Grupo, su acceso se revoca criptográficamente para todos los compartidos futuros, y el servidor le niega el acceso al texto cifrado compartido previamente."
+      ],
+      "bulletPoints": [],
+      "callout": {}
     },
     "user_management": {
       "title": "Gestión de Usuarios (Admin)",
-      "body": "Como administrador, puedes invitar a nuevos usuarios, revocar accesos y gestionar la asignación de roles desde el panel de Configuración. Ten en cuenta que revocar a un usuario elimina inmediatamente su acceso a todas las claves de grupo previamente compartidas."
+      "paragraphs": [
+        "Como administrador del sistema, tiene la autoridad para gestionar el acceso organizacional a través del panel de Configuración. Esto incluye aprovisionar nuevos usuarios, gestionar asignaciones de roles y revocar accesos.",
+        "Es crítico tener en cuenta que revocar el acceso de un usuario le quita inmediatamente su capacidad de autenticarse, bloqueándolo efectivamente de la plataforma y cortando su acceso a todas las claves de grupo compartidas previamente.",
+        "Los administradores también pueden gestionar las cuotas de almacenamiento predeterminadas y las restricciones organizacionales."
+      ],
+      "bulletPoints": [
+        "Asegúrese de verificar la identidad de los usuarios antes de asignar roles de Administrador.",
+        "Los usuarios desactivados retienen sus registros de auditoría históricos por cumplimiento."
+      ],
+      "callout": {
+        "type": "warning",
+        "title": "Aislamiento Criptográfico",
+        "text": "Los administradores gestionan el acceso pero no pueden eludir la encriptación. No puede ver el contenido en texto plano de las Bóvedas de sus usuarios."
+      }
     },
     "agent_keys": {
-      "title": "Claves de API (Admin)",
-      "body": "{{product}} te permite crear Claves de API (Agent Keys) para automatizar las interacciones del sistema. Las claves pueden limitarse a acciones específicas (ej. solo lectura). Puedes ver las operaciones en vivo de estas claves en los Registros de Auditoría."
+      "title": "Claves API de Agentes (Admin)",
+      "paragraphs": [
+        "Las Claves API de Agentes le permiten integrar {{product}} con sistemas externos, agentes de IA y flujos de trabajo de automatización. Estas claves proporcionan acceso programático a la API REST estable de la plataforma.",
+        "Al generar una Clave API de Agente, debe adherirse al principio de privilegio mínimo (least privilege) limitando la clave a operaciones específicas (por ejemplo, `files:list`, `activity:read`).",
+        "Las claves son totalmente revocables. El servidor solo almacena un hash criptográfico de la clave. La clave en texto plano se muestra solo una vez en el momento de su creación."
+      ],
+      "bulletPoints": [
+        "Utilice el Operador Filemon integrado para probar sus claves interactivamente.",
+        "Monitoree el uso de claves y las marcas de tiempo de última vez visto a través del Registro de Auditoría.",
+        "Rote las claves periódicamente para adherirse a los protocolos de seguridad internos."
+      ],
+      "callout": {}
     },
     "audit_logs": {
-      "title": "Registros de Auditoría (Admin)",
-      "body": "El extenso Registro de Auditoría rastrea cada evento significativo dentro de tu organización: desde inicios de sesión y subida de archivos, hasta el uso de claves API y creación de enlaces para compartir. Esto asegura total transparencia y cumplimiento normativo."
+      "title": "Auditoría y Cumplimiento (Admin)",
+      "paragraphs": [
+        "El Registro de Auditoría completo es la piedra angular del marco de cumplimiento de {{product}}. Proporciona un registro inmutable y ordenado cronológicamente de cada evento significativo dentro de la organización.",
+        "Los eventos rastreados incluyen autenticaciones de usuarios, subidas de archivos, creaciones de enlaces para compartir e invocaciones de Claves API de Agentes. Esto asegura total transparencia y responsabilidad.",
+        "Los administradores pueden filtrar el registro de auditoría por fecha, actor, tipo de recurso y acción, y exportar los datos como CSV o JSON para integración con herramientas SIEM externas."
+      ],
+      "bulletPoints": [],
+      "callout": {}
+    },
+    "system_settings": {
+      "title": "Configuración del Sistema (Admin)",
+      "paragraphs": [
+        "La configuración global dicta la postura de seguridad del despliegue de {{product}}. Los administradores pueden ajustar políticas de retención, forzar tiempos de expiración de sesiones y configurar reglas de caducidad automática de enlaces obsoletos.",
+        "Todas las modificaciones de la configuración del sistema se registran en el Registro de Auditoría. Asegúrese de que cualquier cambio se alinee con el gobierno de datos interno y los mandatos de cumplimiento de su organización."
+      ],
+      "bulletPoints": [],
+      "callout": {}
     }
   }
 }
