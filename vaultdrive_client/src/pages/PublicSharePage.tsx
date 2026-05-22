@@ -62,6 +62,8 @@ export default function PublicSharePage() {
   const [savedFilename, setSavedFilename] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+  const [decryptDuration, setDecryptDuration] = useState<number | null>(null);
+
   useEffect(() => {
     async function fetchInfo() {
       try {
@@ -149,7 +151,10 @@ export default function PublicSharePage() {
       const encryptedBlob = await response.blob();
       const encryptedData = await encryptedBlob.arrayBuffer();
 
+      const start = performance.now();
       const decryptedData = await decryptFile(encryptedData, aesKey, iv);
+      const duration = performance.now() - start;
+      setDecryptDuration(duration);
 
       const decryptedBlob = new Blob([decryptedData]);
       const blobUrl = window.URL.createObjectURL(decryptedBlob);
@@ -263,17 +268,40 @@ export default function PublicSharePage() {
           )}
 
           {state === "done" && (
-            <div className="flex flex-col items-center gap-4 py-2 text-center">
+            <div className="flex flex-col items-center gap-4 py-2 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
               <CheckCircle2 className="w-12 h-12 text-emerald-400" />
               <div>
-                <p className="text-lg font-semibold text-white">File saved!</p>
+                <p className="text-lg font-semibold text-white">File Decrypted & Saved!</p>
                 {savedFilename && (
                   <p className="text-sm text-white/80 mt-1 break-all">{savedFilename}</p>
                 )}
               </div>
-              <p className="text-xs text-white/80">
-                The file was saved to your device.
-              </p>
+              
+              <div className="w-full text-left bg-black/30 backdrop-blur-md border border-white/10 rounded-lg p-4 font-mono text-xs space-y-2 mt-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 font-semibold uppercase tracking-wider">Zero-Knowledge Proof</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-zinc-500">Algorithm:</span>
+                    <span>AES-256-GCM</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-zinc-500">Key Source:</span>
+                    <span>URL fragment (Local)</span>
+                  </div>
+                  {decryptDuration !== null && (
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span className="text-zinc-500">Performance:</span>
+                      <span className="text-emerald-400">⚡ {decryptDuration.toFixed(0)}ms</span>
+                    </div>
+                  )}
+                  <div className="text-xs text-zinc-500 mt-2 italic border-l-2 border-emerald-500/30 pl-2">
+                    Server never saw the encryption key. Decryption happened entirely on this device.
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

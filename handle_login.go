@@ -27,6 +27,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		PublicKey                  string `json:"public_key"`
 		PrivateKeyEncrypted        string `json:"private_key_encrypted"`
 		PrivateKeyPinEncrypted     string `json:"private_key_pin_encrypted,omitempty"`
+		KekEnvelopeVersion         int32  `json:"kek_envelope_version"`
 		IsAdmin                    bool   `json:"is_admin"`
 		PinSet                     bool   `json:"pin_set"`
 		ForcePasswordChange        bool   `json:"force_password_change"`
@@ -60,6 +61,27 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		if err := auth.CheckPasswordHash(params.Password, user.PasswordHash); err != nil {
 			respondWithErrorCtx(r, w, http.StatusUnauthorized, "ErrInvalidCredentials", err)
 			return
+		}
+
+		// KDF Migration: V1 (SHA-256) -> V2 (Argon2id)
+		if user.KekEnvelopeVersion == 1 && cfg.Product.EnableArgon2id {
+			plainPrivKey, err := decryptPrivateKey(user.PrivateKeyEncrypted, params.Password)
+			if err == nil {
+				rewrapped, err := encryptPrivateKeyV2(plainPrivKey, params.Password)
+				if err == nil {
+					errUpdate := cfg.dbQueries.UpdateUserKEK(r.Context(), database.UpdateUserKEKParams{
+						ID:                  user.ID,
+						PrivateKeyEncrypted: rewrapped,
+						KekEnvelopeVersion:  2,
+						UpdatedAt:           time.Now(),
+					})
+					if errUpdate == nil {
+						// Update local user object so the response gets the new key and version
+						user.PrivateKeyEncrypted = rewrapped
+						user.KekEnvelopeVersion = 2
+					}
+				}
+			}
 		}
 	}
 
@@ -108,6 +130,7 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		PublicKey:                  user.PublicKey,
 		PrivateKeyEncrypted:        user.PrivateKeyEncrypted,
 		PrivateKeyPinEncrypted:     privateKeyPinEncrypted,
+		KekEnvelopeVersion:         user.KekEnvelopeVersion,
 		IsAdmin:                    isAdmin,
 		PinSet:                     pinSet,
 		ForcePasswordChange:        user.ForcePasswordChange,

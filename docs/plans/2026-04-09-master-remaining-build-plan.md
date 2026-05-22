@@ -692,7 +692,7 @@ Tools to expose:
 ```json
 {
   "mcpServers": {
-    "abrn-drive": {
+    "quantix-drive": {
       "command": "abrn-mcp",
       "env": {
         "ABRN_AGENT_KEY": "your-key-here",

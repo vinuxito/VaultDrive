@@ -212,16 +212,16 @@ Add the version column **first**, in a no-op migration that defaults all existin
 - No outdated example URLs in `docs/QUICKREF_DROP.md`, `docs/PASSWORD_PROTECTED_DROP.md`, etc.
 
 ### Frame
-50 files mention the old name. Most are stale example URLs (`dev-app.filemonprime.net/abrn/...`) and migration notes. New contributors will trip on these. This is documentation hygiene, not code.
+50 files mention the old name. Most are stale example URLs (`quantixdrive.filemonprime.net/quantix/...`) and migration notes. New contributors will trip on these. This is documentation hygiene, not code.
 
 ### Smallest strong move
 One sweep, one commit, one PR-equivalent. Do not edit code. Do not edit migrations.
 
 ### Implementation steps
 1. List the 50 files.
-2. For each: rewrite example URLs to `quantixdrive.filemonprime.net/quantix/...`; rewrite "ABRN-Drive" → "QuantiX Drive".
+2. For each: rewrite example URLs to `quantixdrive.filemonprime.net/quantix/...`; rewrite "QuantiX Drive" → "QuantiX Drive".
 3. Where a doc is genuinely about the old product (e.g. `06_DOMAIN_MIGRATION.md` describing the rename), keep the historical context but add a header noting the doc is archival.
-4. Add a short note in `README.md` or `CONTRIBUTING.md`: *"Project was renamed from ABRN-Drive to QuantiX Drive in early 2026; some archival docs retain the old name for historical context."*
+4. Add a short note in `README.md` or `CONTRIBUTING.md`: *"Project was renamed from QuantiX Drive to QuantiX Drive in early 2026; some archival docs retain the old name for historical context."*
 
 ### Verification
 - `grep -rln "abrn\|ABRN" docs/` returns < 5 files (allow archival entries).

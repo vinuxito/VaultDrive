@@ -63,13 +63,13 @@ Each step is a self-contained markdown file. Steps are ordered by **demo impact*
 | # | Step | File | Priority | Status | What it delivers |
 |---|------|------|----------|--------|------------------|
 | 3 | [Demo Golden Path — 60-Second Story](./2026-05-22-step-03-demo-flow.md) | step-03 | 🔴 Critical | 🔲 TODO | Register → Upload → Share → Verify in under 60 seconds |
-| 4 | [Live Crypto Proof — Show, Don't Tell](./2026-05-22-step-04-crypto-proof.md) | step-04 | 🔴 Critical | 🔲 TODO | Real-time encryption visualization during upload |
+| 4 | [Live Crypto Proof — Show, Don't Tell](./2026-05-22-step-04-crypto-proof.md) | step-04 | 🔴 Critical | ✅ DONE | Real-time encryption visualization during upload |
 
 ### Act III — The Polish That Separates Winners (30–55 seconds)
 
 | # | Step | File | Priority | Status | What it delivers |
 |---|------|------|----------|--------|------------------|
-| 5 | [Micro-Animations & Tactile Soul](./2026-05-22-step-05-micro-animations.md) | step-05 | 🟡 High | ⚡ PARTIAL | Modal slide-ups, toast animations, theme transitions |
+| 5 | [Micro-Animations & Tactile Soul](./2026-05-22-step-05-micro-animations.md) | step-05 | 🟡 High | ✅ DONE | Modal slide-ups, toast animations, theme transitions |
 | 6 | [Mobile — Judge Pulls Out Phone](./2026-05-22-step-06-mobile-polish.md) | step-06 | 🟡 High | 🔲 TODO | 375px perfection, PWA install, bottom nav |
 | 7 | [Accessibility & Reduced Motion](./2026-05-22-step-07-accessibility.md) | step-07 | 🟡 High | 🔲 TODO | WCAG 2.1 AA, keyboard nav, screen reader labels |
 
@@ -162,7 +162,7 @@ Each step is a self-contained markdown file. Steps are ordered by **demo impact*
 3. **No new features** — We are polishing what exists, not adding scope. The one exception is Step 4 (crypto proof), which is a *visualization* of an existing feature, not a new feature.
 4. **Every step ships independently** — If we stop after Step 4, we can still demo. If we stop after Step 7, we probably win. If we complete all 12, they'll think it's a funded startup.
 5. **Evidence-based** — Every step ends with a verification section, an evidence log, and measured results. No "I think it works."
-6. **Downstream-safe** — Every change must merge cleanly into ABRN-Drive. The `.env.test` pattern ensures E2E stability across brands.
+6. **Downstream-safe** — Every change must merge cleanly into QuantiX Drive. The `.env.test` pattern ensures E2E stability across brands.
 
 ---
 

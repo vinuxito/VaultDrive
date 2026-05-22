@@ -48,8 +48,8 @@ Fix inadequate text contrast, missing backgrounds, and low-visibility UI element
 
 ### Final repo-wide verification
 
-- `cd /lamp/www/ABRN-Drive && go build ./...` → PASS
-- `cd /lamp/www/ABRN-Drive && go test ./...` → PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` → PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` → PASS
 - `cd vaultdrive_client && npm run build` → PASS
 - `cd vaultdrive_client && npx vitest run` → PASS (21/21)
 

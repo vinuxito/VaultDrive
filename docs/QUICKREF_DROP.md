@@ -4,7 +4,7 @@
 
 ```bash
 TOKEN="your_jwt_token"
-curl -X POST https://dev-app.filemonprime.net/abrn/api/drop/create \
+curl -X POST https://quantixdrive.filemonprime.net/quantix/api/drop/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"target_folder_id":"FOLDER_UUID","password":"mySecret123"}'
@@ -23,7 +23,7 @@ curl -X POST https://dev-app.filemonprime.net/abrn/api/drop/create \
 TOKEN="drop_token"
 WRAPPED_KEY="wrapped_key_from_url"
 
-curl -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload?key=${WRAPPED_KEY}" \
+curl -X POST "https://quantixdrive.filemonprime.net/quantix/api/drop/${TOKEN}/upload?key=${WRAPPED_KEY}" \
   -F "file=@/path/to/file.enc" \
   -F "password=${WRAPPED_KEY}"
 ```
@@ -34,7 +34,7 @@ curl -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload?key
 TOKEN="drop_token"
 WRAPPED_KEY="wrapped_key_from_url"
 
-curl "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}?key=${WRAPPED_KEY}"
+curl "https://quantixdrive.filemonprime.net/quantix/api/drop/${TOKEN}?key=${WRAPPED_KEY}"
 ```
 
 ## List My Tokens
@@ -42,7 +42,7 @@ curl "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}?key=${WRAPPED_KEY}
 ```bash
 TOKEN="your_jwt_token"
 curl -H "Authorization: Bearer $TOKEN" \
-  https://dev-app.filemonprime.net/abrn/api/drop/tokens | jq .
+  https://quantixdrive.filemonprime.net/quantix/api/drop/tokens | jq .
 ```
 
 ## Key Wrapping (for testing)

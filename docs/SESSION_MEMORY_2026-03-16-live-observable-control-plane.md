@@ -46,8 +46,8 @@ Turn the existing control plane into a live operator surface that feels calm, pr
 ### Final repo-wide verification
 
 - `cd vaultdrive_client && npm test` -> PASS (`21/21`)
-- `cd /lamp/www/ABRN-Drive && go test ./...` -> PASS
-- `cd /lamp/www/ABRN-Drive && go build ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` -> PASS
 - `cd vaultdrive_client && npm run test:e2e` -> PASS (`14/14`)
 
 ### Browser proofs added in this chamber

@@ -45,6 +45,7 @@ import {
   decryptPrivateKeyWithPIN,
   importRSAPrivateKey,
   unwrapKeyWithRSA,
+  type CryptoEvent,
 } from "../utils/crypto";
 import ShareModal from "../components/share-modal";
 import { CreateShareLinkModal } from "../components/vault/CreateShareLinkModal";
@@ -68,7 +69,7 @@ import {
   type SyncableFolderShareLink,
 } from "../utils/folder-share-sync";
 import { FilePreviewModal } from "../components/vault/FilePreviewModal";
-import { CreateUploadLinkModal, UploadLinksSection } from "../components/upload";
+import { CreateUploadLinkModal, UploadLinksSection, EncryptionProof } from "../components/upload";
 import { FileRequestsSection } from "../components/vault/FileRequestsSection";
 import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksSection";
 import { buildMoveTargetOptions } from "../utils/file-move";
@@ -235,6 +236,7 @@ export default function Files() {
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cryptoEvent, setCryptoEvent] = useState<CryptoEvent | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -745,7 +747,8 @@ export default function Files() {
     try {
       const salt = generateSalt();
       const encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
-      const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey);
+      setCryptoEvent(null);
+      const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey, setCryptoEvent);
       const formData = new FormData();
       formData.append("file", new Blob([encryptedData], { type: "application/octet-stream" }), selectedFile.name);
       formData.append("iv", arrayBufferToBase64(iv));
@@ -798,7 +801,8 @@ export default function Files() {
       const salt = generateSalt();
       const encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
       updateTray(30, "uploading");
-      const { encryptedData, iv } = await encryptFile(file, encryptionKey);
+      setCryptoEvent(null);
+      const { encryptedData, iv } = await encryptFile(file, encryptionKey, setCryptoEvent);
       updateTray(60, "uploading");
       const formData = new FormData();
       formData.append("file", new Blob([encryptedData], { type: "application/octet-stream" }), file.name);
@@ -2018,6 +2022,12 @@ export default function Files() {
           >
             <FolderOpen className="w-3.5 h-3.5" /> Move to folder
           </button>
+        </div>
+      )}
+
+      {cryptoEvent && (
+        <div className="fixed bottom-6 left-6 z-50 w-80">
+          <EncryptionProof event={cryptoEvent} />
         </div>
       )}
 

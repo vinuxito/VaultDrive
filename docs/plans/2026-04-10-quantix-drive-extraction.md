@@ -2,15 +2,15 @@
 
 **Date:** 2026-04-10
 **Author:** Session with Claude
-**Base branch:** `gnhf/make-sure-we-can-upl-56c5d2` (ABRN-Drive)
+**Base branch:** `gnhf/make-sure-we-can-upl-56c5d2` (QuantiX Drive)
 **Go module (current):** `github.com/vinuxito/VaultDrive`
 
 ---
 
 ## Objective
 
-Extract the current ABRN-Drive codebase into a generic product called **QuantiX-Drive** that
-becomes the canonical upstream. ABRN-Drive is reclassified as a **branded customer deployment**
+Extract the current QuantiX Drive codebase into a generic product called **QuantiX-Drive** that
+becomes the canonical upstream. QuantiX Drive is reclassified as a **branded customer deployment**
 that tracks QuantiX-Drive and receives every upstream upgrade automatically.
 
 **Mental model:**
@@ -19,26 +19,26 @@ that tracks QuantiX-Drive and receives every upstream upgrade automatically.
  QuantiX-Drive  (upstream — generic product, where dev happens)
        │
        ▼   upstream-sync (periodic merge/rebase)
- ABRN-Drive    (downstream — ABRN branding, ABRN config, ABRN deploy targets)
+ QuantiX Drive    (downstream — ABRN branding, ABRN config, ABRN deploy targets)
 ```
 
-New feature → commit to QuantiX-Drive → ABRN-Drive pulls it via `git merge upstream/main`.
-No feature work ever happens directly on ABRN-Drive.
+New feature → commit to QuantiX-Drive → QuantiX Drive pulls it via `git merge upstream/main`.
+No feature work ever happens directly on QuantiX Drive.
 
 ---
 
 ## Strategic Options Considered
 
 ### Option A — Hard fork (two separate repos, no git relationship)
-- ABRN-Drive and QuantiX-Drive each have their own history
+- QuantiX Drive and QuantiX-Drive each have their own history
 - Changes propagate by cherry-pick or patch files
 - **Pros:** Simplest mental model, zero risk of cross-contamination
 - **Cons:** Every upstream change needs manual replay. Divergence guaranteed within weeks. Rejected.
 
 ### Option B — Git upstream-downstream (two repos, git-tracked relationship) ⭐ RECOMMENDED
 - QuantiX-Drive lives in a new repo (e.g. `github.com/vinuxito/QuantiX-Drive`)
-- ABRN-Drive adds QuantiX-Drive as a git remote named `upstream`
-- ABRN-Drive's `main` branch carries only ABRN-specific overrides (branding, config, deploy keys)
+- QuantiX Drive adds QuantiX-Drive as a git remote named `upstream`
+- QuantiX Drive's `main` branch carries only ABRN-specific overrides (branding, config, deploy keys)
 - Upstream syncs happen with `git fetch upstream && git merge upstream/main`
 - **Pros:** Native git workflow. Automatic propagation of upstream work. Conflict surface is limited to the ABRN override files. Industry-standard (Linux distros, Odoo enterprise, etc.)
 - **Cons:** Merge conflicts possible if ABRN overrides and upstream touch the same lines — but Phase 1 exists precisely to minimize this surface.
@@ -46,12 +46,12 @@ No feature work ever happens directly on ABRN-Drive.
 ### Option C — Single repo with customer profiles (monorepo with build-time config)
 - One repo, one codebase. Customer branding/config selected by env var at build time.
 - **Pros:** Zero merge cost. Single source of truth.
-- **Cons:** ABRN-Drive is the only customer today. Adding a "customer dir" now is speculative. Doesn't match the user's stated intent ("QuantiX-Drive is going to become the main origin"). If a second customer shows up, Phase 1 of Option B converges naturally to this anyway.
+- **Cons:** QuantiX Drive is the only customer today. Adding a "customer dir" now is speculative. Doesn't match the user's stated intent ("QuantiX-Drive is going to become the main origin"). If a second customer shows up, Phase 1 of Option B converges naturally to this anyway.
 
 ### Recommendation: **Option B** (upstream/downstream via git remotes)
 
 This matches the user's stated mental model. The cost of the split is paid once (Phase 2). After
-that, day-to-day feature work happens only in QuantiX-Drive. ABRN-Drive becomes a thin overlay.
+that, day-to-day feature work happens only in QuantiX-Drive. QuantiX Drive becomes a thin overlay.
 
 ---
 
@@ -108,10 +108,10 @@ Hot spots:
 
 Open questions for the user (see end of document). Pin these answers before Phase 1.
 
-### Phase 1 — Make current code customer-agnostic (stays on ABRN-Drive branch)
+### Phase 1 — Make current code customer-agnostic (stays on QuantiX Drive branch)
 
 **Goal:** Before the split, strip every ABRN-ism out of the codebase and replace it with
-config-driven behavior. After Phase 1, ABRN-Drive still builds and behaves identically, but
+config-driven behavior. After Phase 1, QuantiX Drive still builds and behaves identically, but
 no longer *contains* the string "abrn" anywhere except in the config file(s) it reads at runtime.
 
 This phase has the highest line-change count but the lowest architectural risk — it's pure
@@ -244,7 +244,7 @@ Before merging Phase 1:
 - [ ] Running locally with `VITE_LOGO=quantix VITE_PRODUCT_NAME="QuantiX Drive" npm run dev` shows a fully unbranded-for-ABRN UI
 - [ ] Running locally with the `.env.abrn` overrides shows the current ABRN UI byte-for-byte
 
-Phase 1 ships as a PR on the ABRN-Drive repo titled `refactor: config-driven branding for upstream extraction`.
+Phase 1 ships as a PR on the QuantiX Drive repo titled `refactor: config-driven branding for upstream extraction`.
 
 ### Phase 2 — Create the QuantiX-Drive repo
 
@@ -258,11 +258,11 @@ Working assumption: `github.com/vinuxito/QuantiX-Drive`, Go module
 `github.com/vinuxito/QuantiXDrive` (Go convention: no hyphens in import paths, but the GitHub
 repo name can have them).
 
-#### 2.2 Mirror current ABRN-Drive history into the new repo
+#### 2.2 Mirror current QuantiX Drive history into the new repo
 
 ```bash
 # On a clean working copy
-git clone /lamp/www/ABRN-Drive /tmp/quantix-drive-seed
+git clone /lamp/www/QuantiX Drive /tmp/quantix-drive-seed
 cd /tmp/quantix-drive-seed
 git remote rename origin abrn-origin
 git remote add origin git@github.com:vinuxito/QuantiX-Drive.git
@@ -272,7 +272,7 @@ git remote add origin git@github.com:vinuxito/QuantiX-Drive.git
 
 - **Preserve history:** fastest, keeps `git blame` working. Downside: the repo history openly
   shows "ABRN" references in old commits. Acceptable if the repo is private.
-- **Squash to a single `init: quantix-drive extracted from ABRN-Drive` commit:** cleaner but loses blame.
+- **Squash to a single `init: quantix-drive extracted from QuantiX Drive` commit:** cleaner but loses blame.
 
 Recommendation: **preserve history** (private repo, blame is valuable).
 
@@ -282,7 +282,7 @@ On the new QuantiX-Drive repo's main branch (and only there):
 - `.env.example` → `PRODUCT_NAME="QuantiX Drive"`, `BASE_PATH="/quantix/"`, `AGENT_KEY_PREFIX="qx_ak"`, etc.
 - `vaultdrive_client/.env.example` → same
 - Add a generic `quantix-logo.tsx` component
-- Update `README.md` to describe QuantiX-Drive, not ABRN-Drive
+- Update `README.md` to describe QuantiX-Drive, not QuantiX Drive
 - Remove `.env.abrn` (it belongs to the ABRN deployment, not the upstream product)
 - Remove ABRN-specific deploy workflows (`azure-static-web-apps-proud-dune-0024f9810.yml`, domain-specific CORS defaults). Add a generic Docker Compose and a deploy-target-agnostic CI workflow (build + test + publish Docker image to GHCR).
 
@@ -319,22 +319,22 @@ git push origin --tags
 - [ ] New repo's `README.md` describes QuantiX-Drive
 - [ ] CI pipeline on the new repo runs and stays green
 
-### Phase 3 — Turn ABRN-Drive into a downstream of QuantiX-Drive
+### Phase 3 — Turn QuantiX Drive into a downstream of QuantiX-Drive
 
-The goal: ABRN-Drive's main branch is the QuantiX-Drive main branch + a small, stable
+The goal: QuantiX Drive's main branch is the QuantiX-Drive main branch + a small, stable
 set of ABRN-specific override files (env, branding assets, deploy workflows).
 
-#### 3.1 Add upstream remote to ABRN-Drive
+#### 3.1 Add upstream remote to QuantiX Drive
 
 ```bash
-cd /lamp/www/ABRN-Drive
+cd /lamp/www/QuantiX Drive
 git remote add upstream git@github.com:vinuxito/QuantiX-Drive.git
 git fetch upstream
 ```
 
-#### 3.2 Rebase ABRN-Drive onto QuantiX-Drive
+#### 3.2 Rebase QuantiX Drive onto QuantiX-Drive
 
-The commits on ABRN-Drive's `main` are already identical to QuantiX-Drive's `main` (because
+The commits on QuantiX Drive's `main` are already identical to QuantiX-Drive's `main` (because
 Phase 2 was just a copy). The divergence starts *now*:
 
 - Create branch `abrn/overlay` from `main`
@@ -348,10 +348,10 @@ Phase 2 was just a copy). The divergence starts *now*:
 
 #### 3.3 Document the sync workflow
 
-Add `docs/UPSTREAM_SYNC.md` to ABRN-Drive:
+Add `docs/UPSTREAM_SYNC.md` to QuantiX Drive:
 
 ```markdown
-# Syncing ABRN-Drive from QuantiX-Drive upstream
+# Syncing QuantiX Drive from QuantiX-Drive upstream
 
 ## Routine sync (every Monday or before each ABRN release)
 
@@ -364,35 +364,35 @@ Add `docs/UPSTREAM_SYNC.md` to ABRN-Drive:
 
 ## Adding new features
 
-New features MUST be developed on the QuantiX-Drive repo (the upstream), NOT on ABRN-Drive.
+New features MUST be developed on the QuantiX-Drive repo (the upstream), NOT on QuantiX Drive.
 Workflow:
 
 1. Clone QuantiX-Drive
 2. Create feature branch
 3. Implement, test, PR, merge to QuantiX-Drive/main
-4. On ABRN-Drive, run the sync steps above
-5. Deploy ABRN-Drive to Azure
+4. On QuantiX Drive, run the sync steps above
+5. Deploy QuantiX Drive to Azure
 ```
 
 #### 3.4 Phase 3 verification gate
 
-- [ ] `git diff upstream/main main` on ABRN-Drive shows only override files (no source-code edits)
-- [ ] ABRN-Drive builds and deploys to Azure with ABRN branding intact
+- [ ] `git diff upstream/main main` on QuantiX Drive shows only override files (no source-code edits)
+- [ ] QuantiX Drive builds and deploys to Azure with ABRN branding intact
 - [ ] QuantiX-Drive still builds independently
-- [ ] A test upstream change (e.g. a typo fix on QuantiX-Drive) merges cleanly into ABRN-Drive
+- [ ] A test upstream change (e.g. a typo fix on QuantiX-Drive) merges cleanly into QuantiX Drive
 
 ### Phase 4 — End-to-end verification
 
 - [ ] Deploy QuantiX-Drive locally (`docker compose up`) under `/quantix/` base path — confirm branding is generic
-- [ ] Deploy ABRN-Drive locally — confirm burgundy ABRN branding
+- [ ] Deploy QuantiX Drive locally — confirm burgundy ABRN branding
 - [ ] Generate a fake upstream commit on QuantiX-Drive (e.g. adjust a copy string)
-- [ ] Sync ABRN-Drive: `git fetch upstream && git merge upstream/main`
-- [ ] Verify the change is present on ABRN-Drive, deploy-ready
+- [ ] Sync QuantiX Drive: `git fetch upstream && git merge upstream/main`
+- [ ] Verify the change is present on QuantiX Drive, deploy-ready
 - [ ] All automated tests green on both repos
 
 ### Phase 5 — Production migration
 
-- [ ] Update ABRN production deploy pipelines to pull from the new ABRN-Drive repo (unchanged if the repo stays at the same origin; only `upstream` remote is new)
+- [ ] Update ABRN production deploy pipelines to pull from the new QuantiX Drive repo (unchanged if the repo stays at the same origin; only `upstream` remote is new)
 - [ ] Update documentation (README.md on both repos)
 - [ ] Announce the split in a team doc
 - [ ] Archive old planning docs that are ABRN-specific but live in the shared codebase (move to `deploy/abrn/docs/`)
@@ -406,9 +406,9 @@ Workflow:
 | Phase 1 refactor introduces a bug that only shows under specific env config | High | Run full test suite under both `.env.abrn` and QuantiX defaults before merging Phase 1. Add a CI matrix run. |
 | `agent_api_keys.go` prefix change breaks existing ABRN API keys | High | Existing DB-stored keys still contain their original `abrn_ak` prefix; validation logic must accept ANY prefix in the DB (full-string match) and only use the config prefix for NEW keys. Audit `agent_api_keys.go` lookup path carefully. |
 | Migration 017/035 mentions ABRN emails and becomes history-frozen in the upstream QuantiX repo | Low | Leave them frozen. Squash-from-history is not worth it. Document that early migrations are historical ABRN-era artifacts. |
-| Upstream sync conflicts pile up if ABRN-Drive drifts | Medium | Strict rule: NO feature work on ABRN-Drive. Any ABRN-only bugfix must be backported to QuantiX-Drive first, then synced down. |
+| Upstream sync conflicts pile up if QuantiX Drive drifts | Medium | Strict rule: NO feature work on QuantiX Drive. Any ABRN-only bugfix must be backported to QuantiX-Drive first, then synced down. |
 | Loss of git blame on the upstream repo if we squash | Low | Don't squash. Preserve history. |
-| Two deploy pipelines to maintain | Medium | Accept this cost. QuantiX-Drive deploys to a demo/staging environment. ABRN-Drive deploys to Azure. |
+| Two deploy pipelines to maintain | Medium | Accept this cost. QuantiX-Drive deploys to a demo/staging environment. QuantiX Drive deploys to Azure. |
 | Frontend `.env.local` leaks secrets if checked in | High | `.env.local` stays gitignored. `.env.abrn` contains only public branding values, never API secrets. |
 | Go module rename again breaks 41 files for marginal benefit | Low | Don't rename. Keep `github.com/vinuxito/VaultDrive` as the engine module name. |
 
@@ -426,7 +426,7 @@ Before implementation begins, the user needs to confirm:
 6. **Go module rename?** Keep `github.com/vinuxito/VaultDrive` as the engine (recommended) or rename to `github.com/vinuxito/QuantiXDrive`?
 7. **Primary color for QuantiX-Drive default branding:** Burgundy (inherited from ABRN) or a new distinct color (e.g. indigo, teal)? If distinct, ABRN keeps burgundy via override.
 8. **QuantiX-Drive's own domain:** Is there a planned domain (e.g. `quantixdrive.io`)? Even a placeholder is fine — just needs to differ from `filemonprime.net`.
-9. **GitHub Actions secrets:** Who owns the Azure/CI secrets on the new repo? Can they stay on ABRN-Drive only (since the upstream repo wouldn't deploy to ABRN's Azure)?
+9. **GitHub Actions secrets:** Who owns the Azure/CI secrets on the new repo? Can they stay on QuantiX Drive only (since the upstream repo wouldn't deploy to ABRN's Azure)?
 10. **Timeline pressure:** Is this a "fit between features" slow extraction (weeks) or a "block all other work" focused sprint (days)?
 
 ---
@@ -438,7 +438,7 @@ Before implementation begins, the user needs to confirm:
 | Phase 0 | 0 (discussion) | None |
 | Phase 1 | ~800 LOC touched across ~55 files (mostly string replacements + config threading) | Medium — pure refactor, tests must stay green |
 | Phase 2 | New repo, ~20 file edits on top of Phase 1 base | Low — isolated work on a new repo |
-| Phase 3 | ~10 files added to ABRN-Drive as overrides | Low |
+| Phase 3 | ~10 files added to QuantiX Drive as overrides | Low |
 | Phase 4 | Verification only | Low |
 | Phase 5 | Deploy pipeline tweaks | Medium — touches production |
 
@@ -450,6 +450,6 @@ Phase 1 is the single biggest batch of work. The rest are low-risk mechanical st
 
 **Do not start implementing yet.** Answer the 10 Phase 0 questions first. Once the user confirms
 the product name, repo location, module-rename decision, and primary color, I can start Phase 1
-(the config-driven refactor) inside the current ABRN-Drive branch. Phase 1 lands as a PR that
+(the config-driven refactor) inside the current QuantiX Drive branch. Phase 1 lands as a PR that
 ships to ABRN production with zero visible change — proving the refactor is safe. Only then do
 we create the QuantiX-Drive repo in Phase 2.

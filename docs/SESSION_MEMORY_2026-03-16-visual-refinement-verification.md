@@ -19,10 +19,10 @@ Verify the current ABRN Drive visual refinement state end-to-end, close the rema
 ### Static verification
 
 - `lsp_diagnostics` on all modified frontend files -> no diagnostics
-- `cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run test` -> PASS (`17/17`)
-- `cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build` -> PASS
-- `cd /lamp/www/ABRN-Drive && go test ./...` -> PASS
-- `cd /lamp/www/ABRN-Drive && go build ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive/vaultdrive_client && npm run test` -> PASS (`17/17`)
+- `cd /lamp/www/QuantiX Drive/vaultdrive_client && npm run build` -> PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` -> PASS
 
 ### Live browser verification
 

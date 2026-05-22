@@ -7,10 +7,11 @@ INSERT INTO users (
   password_hash,
   public_key,
   private_key_encrypted,
+  kek_envelope_version,
   created_at,
   updated_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING *;
 
 -- name: GetUserByID :one
@@ -118,4 +119,9 @@ WHERE id = $1;
 -- name: UpdateUserPrivateKeyEncrypted :exec
 UPDATE users
 SET private_key_encrypted = $2, updated_at = $3
+WHERE id = $1;
+
+-- name: UpdateUserKEK :exec
+UPDATE users
+SET private_key_encrypted = $2, kek_envelope_version = $3, updated_at = $4
 WHERE id = $1;

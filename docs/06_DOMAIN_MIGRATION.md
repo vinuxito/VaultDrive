@@ -1,3 +1,7 @@
+> [!NOTE]
+> **Historical Document.** This describes the 2026 rename from ABRN-Drive to QuantiX Drive.
+> Preserved for historical context. The current product name is QuantiX Drive.
+
 # Step 8 — Own Domain: `abrndrive.filemonprime.net`
 
 ## Goal

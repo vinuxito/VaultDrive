@@ -3,7 +3,7 @@
 **Parent:** [Hackathon Index](./2026-05-22-hackathon-index.md)  
 **Priority:** 🔴 Critical  
 **Effort:** M (1 day)  
-**Status:** 🔲 TODO
+**Status:** ✅ DONE
 
 ---
 
@@ -192,4 +192,4 @@ This closes the loop: the judge sees encryption on upload, then sees decryption 
 
 | Date | What was done | Verified? | Commit |
 |------|--------------|-----------|--------|
-| | | | |
+| 2026-05-22 | Implemented live crypto proof components and events | ✅ | Pending |

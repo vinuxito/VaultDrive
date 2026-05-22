@@ -42,10 +42,10 @@ Inspect the current ABRN Drive code after trust UX hardening pass 3, verify that
 
 ### Build / test verification
 
-- `cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run test` -> PASS
-- `cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build` -> PASS
-- `cd /lamp/www/ABRN-Drive && go test ./...` -> PASS
-- `cd /lamp/www/ABRN-Drive && go build ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive/vaultdrive_client && npm run test` -> PASS
+- `cd /lamp/www/QuantiX Drive/vaultdrive_client && npm run build` -> PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` -> PASS
 - `lsp_diagnostics` on modified frontend files -> no diagnostics
 
 ### Live app browser verification

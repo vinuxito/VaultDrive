@@ -39,8 +39,9 @@ describe("createPinProtectedPrivateKey", () => {
     expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenCalledWith(
       "correct horse battery staple",
       "password-wrapped-private-key",
+      1
     );
-    expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM");
+    expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM", 1);
   });
 
   it("fails loudly when the encrypted private key is missing", async () => {
@@ -94,13 +95,15 @@ describe("createPinProtectedPrivateKey", () => {
       1,
       "new-password",
       "old-password-wrapped-private-key",
+      1
     );
     expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenNthCalledWith(
       2,
       "old-password",
       "old-password-wrapped-private-key",
+      1
     );
-    expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM");
+    expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM", 1);
     expect(cryptoMocks.encryptPrivateKeyWithPassword).toHaveBeenCalledWith("new-password", "PRIVATE KEY PEM");
   });
 

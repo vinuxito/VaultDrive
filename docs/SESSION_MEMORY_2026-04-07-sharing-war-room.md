@@ -152,7 +152,7 @@ We discovered:
 So instead of waiting on GitHub Actions, we could deploy by:
 
 - rebuilding `vaultdrive_client/dist`
-- rebuilding `/lamp/www/ABRN-Drive/abrndrive`
+- rebuilding `/lamp/www/QuantiX Drive/abrndrive`
 - restarting `abrndrive.service`
 
 Which we did. Repeatedly. With increasing confidence and slightly decreasing sanity.

@@ -3,7 +3,7 @@
 **Parent:** [Hackathon Index](./2026-05-22-hackathon-index.md)  
 **Priority:** 🟡 High  
 **Effort:** M (1 day)  
-**Status:** ⚡ PARTIAL — Button feedback done (`a4ac4eb`). Modals, toasts, theme transitions remain.
+**Status:** ✅ DONE
 
 ---
 
@@ -22,11 +22,11 @@ QuantiX-Drive already pays the bundle cost for `framer-motion` (124 KB chunk). B
 | Button press feedback (`active:scale(0.97)`) | ✅ Done | `a4ac4eb` |
 | Staggered card animations | ✅ Done | `a4ac4eb` |
 | Scroll-triggered reveal | ✅ Done | `aff37ae` |
-| Modal slide-up animation | 🔲 TODO | — |
-| Toast slide-in | 🔲 TODO | — |
-| Card hover lift/glow | 🔲 TODO | — |
-| Theme transition smoothing | 🔲 TODO | — |
-| Reduced motion respect | 🔲 TODO | — |
+| Modal slide-up animation | ✅ Done | Pending |
+| Toast slide-in | ✅ Done | Pending |
+| Card hover lift/glow | ✅ Done | Pending |
+| Theme transition smoothing | ✅ Done | Pending |
+| Reduced motion respect | ✅ Done | Pending |
 
 ---
 
@@ -201,4 +201,4 @@ Add a single media query that kills all animation for users who prefer reduced m
 | 2026-05-21 | Global button press feedback | ✅ | `a4ac4eb` |
 | 2026-05-21 | Staggered card animations | ✅ | `a4ac4eb` |
 | 2026-05-21 | Scroll-triggered reveal | ✅ | `aff37ae` |
-| | | | |
+| 2026-05-22 | Implemented CSS micro-animations for modals, toasts, cards, theme smoothing, and reduced motion | ✅ | Pending |

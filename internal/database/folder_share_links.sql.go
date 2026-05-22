@@ -31,7 +31,7 @@ func (q *Queries) CreateFolderShareFileKey(ctx context.Context, arg CreateFolder
 const createFolderShareLink = `-- name: CreateFolderShareLink :one
 INSERT INTO folder_share_links (folder_id, owner_id, token, expires_at)
 VALUES ($1, $2, $3, $4)
-RETURNING id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at
+RETURNING id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at, owner_wrapped_folder_key
 `
 
 type CreateFolderShareLinkParams struct {
@@ -59,6 +59,7 @@ func (q *Queries) CreateFolderShareLink(ctx context.Context, arg CreateFolderSha
 		&i.AccessCount,
 		&i.LastAccessedAt,
 		&i.CreatedAt,
+		&i.OwnerWrappedFolderKey,
 	)
 	return i, err
 }
@@ -121,7 +122,7 @@ func (q *Queries) GetFolderShareFileKeys(ctx context.Context, folderShareLinkID 
 }
 
 const getFolderShareLinkByToken = `-- name: GetFolderShareLinkByToken :one
-SELECT id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at FROM folder_share_links
+SELECT id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at, owner_wrapped_folder_key FROM folder_share_links
 WHERE token = $1 AND is_active = TRUE
 `
 
@@ -138,6 +139,7 @@ func (q *Queries) GetFolderShareLinkByToken(ctx context.Context, token string) (
 		&i.AccessCount,
 		&i.LastAccessedAt,
 		&i.CreatedAt,
+		&i.OwnerWrappedFolderKey,
 	)
 	return i, err
 }
@@ -154,7 +156,7 @@ func (q *Queries) IncrementFolderShareLinkAccess(ctx context.Context, token stri
 }
 
 const listFolderShareLinksByFolder = `-- name: ListFolderShareLinksByFolder :many
-SELECT id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at FROM folder_share_links
+SELECT id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at, owner_wrapped_folder_key FROM folder_share_links
 WHERE folder_id = $1 AND owner_id = $2
 ORDER BY created_at DESC
 `
@@ -183,6 +185,7 @@ func (q *Queries) ListFolderShareLinksByFolder(ctx context.Context, arg ListFold
 			&i.AccessCount,
 			&i.LastAccessedAt,
 			&i.CreatedAt,
+			&i.OwnerWrappedFolderKey,
 		); err != nil {
 			return nil, err
 		}
@@ -198,7 +201,7 @@ func (q *Queries) ListFolderShareLinksByFolder(ctx context.Context, arg ListFold
 }
 
 const listFolderShareLinksByOwner = `-- name: ListFolderShareLinksByOwner :many
-SELECT id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at FROM folder_share_links
+SELECT id, folder_id, owner_id, token, expires_at, is_active, access_count, last_accessed_at, created_at, owner_wrapped_folder_key FROM folder_share_links
 WHERE owner_id = $1
 ORDER BY created_at DESC
 `
@@ -222,6 +225,7 @@ func (q *Queries) ListFolderShareLinksByOwner(ctx context.Context, ownerID uuid.
 			&i.AccessCount,
 			&i.LastAccessedAt,
 			&i.CreatedAt,
+			&i.OwnerWrappedFolderKey,
 		); err != nil {
 			return nil, err
 		}

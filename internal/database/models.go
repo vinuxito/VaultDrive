@@ -143,15 +143,16 @@ type FolderShareFileKey struct {
 }
 
 type FolderShareLink struct {
-	ID             uuid.UUID
-	FolderID       uuid.UUID
-	OwnerID        uuid.UUID
-	Token          string
-	ExpiresAt      sql.NullTime
-	IsActive       bool
-	AccessCount    int32
-	LastAccessedAt sql.NullTime
-	CreatedAt      time.Time
+	ID                    uuid.UUID
+	FolderID              uuid.UUID
+	OwnerID               uuid.UUID
+	Token                 string
+	ExpiresAt             sql.NullTime
+	IsActive              bool
+	AccessCount           int32
+	LastAccessedAt        sql.NullTime
+	CreatedAt             time.Time
+	OwnerWrappedFolderKey sql.NullString
 }
 
 type Group struct {
@@ -232,6 +233,18 @@ type Tag struct {
 	CreatedAt time.Time
 }
 
+type UploadLinkTemplate struct {
+	ID             uuid.UUID
+	UserID         uuid.UUID
+	Name           string
+	Description    sql.NullString
+	DefaultMessage sql.NullString
+	ChecklistItems json.RawMessage
+	BrandingTag    sql.NullString
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type UploadToken struct {
 	ID              uuid.UUID
 	Token           string
@@ -249,6 +262,7 @@ type UploadToken struct {
 	ClientMessage   sql.NullString
 	SealAfterUpload bool
 	LastUsedAt      sql.NullTime
+	ChecklistItems  json.RawMessage
 }
 
 type User struct {
@@ -270,4 +284,9 @@ type User struct {
 	PinLockedUntil         sql.NullTime
 	OrganizationName       sql.NullString
 	ForcePasswordChange    bool
+	AuditRetentionDays     int32
+	AutoExpireStaleDays    sql.NullInt32
+	FailureAlertThreshold  int32
+	// 1=SHA-256 (legacy), 2=Argon2id
+	KekEnvelopeVersion int32
 }
