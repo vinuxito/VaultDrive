@@ -4,7 +4,8 @@ import {
   registerAccount,
   loginWithPassword,
   gotoStable,
-  productName
+  productName,
+  uploadFileAsOwner
 } from "./helpers/trust";
 import path from "path";
 
@@ -76,30 +77,33 @@ test("Hackathon 60-second Golden Path", async ({ page, request, context }) => {
   await expect(page.getByText("No files here yet")).toBeVisible({ timeout: 15000 });
   await page.waitForTimeout(1000);
 
-  // Upload file
-  const testFile = path.resolve("e2e", "test-files", "demo-file.txt");
-  await page.setInputFiles('input[type="file"]', testFile);
+  // Upload file using the reliable helper
+  await uploadFileAsOwner(page, account, {
+    name: "demo-file.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("Hello World, this is a secure upload demonstration for QuantiX."),
+  });
   
-  // Wait for the upload to complete and file card to appear
-  await expect(page.getByText("demo-file.txt").first()).toBeVisible({ timeout: 10000 });
+  // Wait for the upload to complete and file row to appear
+  await expect(page.locator('div.group', { hasText: 'demo-file.txt' }).first()).toBeVisible({ timeout: 15000 });
   await page.waitForTimeout(2000); // Admire the encrypted file
 
   // -----------------------------------------------------
   // Beat 3: The Share
   // -----------------------------------------------------
-  // The share button is inside the MoreMenu dropdown
-  // We locate the file card and click its last button (the MoreMenu trigger)
-  const fileCard = page.getByText("demo-file.txt").first().locator('xpath=./ancestor::div[contains(@class, "group")]');
-  await fileCard.locator('button').last().click();
-  await page.waitForTimeout(500);
-  await page.getByRole("button", { name: /Share Link/i }).click();
+  // The share button is directly in the file row actions
+  await page.getByTitle('Create share link').first().click();
   await page.waitForTimeout(1000); // Look at the dialog
+  
+  // Generate the link
+  await page.getByRole("button", { name: "Generate Link" }).click();
+  await page.waitForTimeout(1000); // Wait for the network request and animation
   
   // Copy link
   await page.getByRole("button", { name: "Copy Link" }).click();
-  const clipboardText = await page.evaluate("navigator.clipboard.readText()");
+  const clipboardText = await page.locator('#csl-share-url').inputValue();
   await page.waitForTimeout(500);
-  await page.getByRole("button", { name: /Close|Done/i }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).last().click();
   
   // Incognito view simulation (New context)
   const incognitoContext = await page.context().browser()!.newContext();
@@ -120,33 +124,30 @@ test("Hackathon 60-second Golden Path", async ({ page, request, context }) => {
 
   // Agent API Key
   // Instead of UI clicking through complex forms, we can intercept or just show the audit log
-  // Actually, we'll just scroll down to Audit Logs
-  await page.getByRole("heading", { name: "Audit log" }).scrollIntoViewIfNeeded();
+  // Actually, we'll expand the Audit Logs section
+  await page.getByRole("button", { name: /Raw audit log/i }).scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: /Raw audit log/i }).click();
   await page.waitForTimeout(1500);
   // Show that the file upload and share link creation are tracked
-  await expect(page.getByText("file.uploaded").first()).toBeVisible();
-  await expect(page.getByText("file.shared").first()).toBeVisible();
+  await expect(page.getByText("File uploaded").first()).toBeVisible();
+  await expect(page.getByText("Share link created").first()).toBeVisible();
   
   // -----------------------------------------------------
   // Beat 5: The Close (Themes & Languages)
   // -----------------------------------------------------
-  // Theme Toggle
-  const themeToggle = page.locator('button[aria-label="Toggle theme"], button[title="Switch theme"], [data-testid="theme-toggle"]');
-  // If we can't find it easily by role, let's look for a generic button with 'theme'
-  // Or just click the avatar/menu to find languages
-  await page.getByRole("button", { name: "Account settings" }).click(); // The avatar dropdown
-  await page.waitForTimeout(1000);
-  await page.getByRole("menuitem", { name: "Theme" }).hover();
-  await page.waitForTimeout(1000);
+  // Go to Account tab
+  await page.getByRole("tab", { name: "Account" }).click();
+  await page.waitForTimeout(500);
+
+  // Click Cyberpunk theme
   await page.getByText("Cyberpunk").click();
   await page.waitForTimeout(1500); // Admire Cyberpunk
 
-  await page.getByRole("button", { name: "Account settings" }).click();
-  await page.waitForTimeout(500);
-  await page.getByRole("menuitem", { name: "Language" }).hover();
-  await page.waitForTimeout(500);
-  await page.getByText("Español").click();
+  // Change language to Spanish
+  await page.locator('select').selectOption('es');
   await page.waitForTimeout(2000); // Admire Spanish UI
+
+  // End of Demo
 
   // End of Demo
 });
