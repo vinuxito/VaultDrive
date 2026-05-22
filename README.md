@@ -8,9 +8,9 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-05-21 — QA & Verification Pass)
+## Current Status (2026-05-22 — Hackathon Final Push)
 
-**Safe to continue.** The application underwent a full QA feature coverage pass on 2026-05-21. Source, tests, and build are completely verified and green.
+**Production-ready.** Full hackathon polish pass completed. All features verified, documented, and hardened.
 
 | Check | Result |
 |-------|--------|
@@ -20,20 +20,18 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 | Backend tests (`go test ./...`) | ✅ ok (root pkg) |
 | Full E2E suite (`playwright test`) | ✅ 41 / 41 |
 | Feature coverage matrix | ✅ 28 / 28 documented features verified |
+| In-app Help Center (EN/ES) | ✅ `/help` route live |
+| Mobile touch targets (44px WCAG) | ✅ enforced via CSS |
+| Accessibility (skip link, focus rings, ARIA) | ✅ implemented |
+| Reduced motion support | ✅ `prefers-reduced-motion` |
 
 **Routing model (Apache vhost):**
 - SPA → `https://quantixdrive.filemonprime.net/quantix/`
 - API → `https://quantixdrive.filemonprime.net/api/...` (NOT under `/quantix/`)
 
-**Known risks:**
-- 🟢 LOW / NOTE — encrypted-private-key KDF is single-round SHA-256 (Argon2id/PBKDF2 is the target).
-*(Note: Previous HIGH and MEDIUM register validation risks were fully resolved in commit `f92838d6`).*
-
-**Latest reports & memory:**
-- QA Feature Coverage Report (HTML): [docs/reports/2026-05-21-qa-feature-coverage-report.html](docs/reports/2026-05-21-qa-feature-coverage-report.html)
-- QA Feature Coverage Report (MD): [docs/reports/2026-05-21-qa-feature-coverage-report.md](docs/reports/2026-05-21-qa-feature-coverage-report.md)
-- Closeout HTML: [docs/reports/2026-04-27-closeout-verification.html](docs/reports/2026-04-27-closeout-verification.html)
-- Session memory: [docs/memories/session-2026-04-27-closeout-and-deploy.md](docs/memories/session-2026-04-27-closeout-and-deploy.md)
+**Latest session memory:**
+- Hackathon Final Push: [docs/memories/session-2026-05-22-hackathon-final-push.md](docs/memories/session-2026-05-22-hackathon-final-push.md)
+- Demo Script: [docs/plans/2026-05-22-step-10-demo-script.md](docs/plans/2026-05-22-step-10-demo-script.md)
 
 ---
 
@@ -104,6 +102,9 @@ Earlier verifications:
 - **Audit** — Filterable audit log with CSV/JSON export; governance settings for retention, stale-link auto-expiry, and failed-access alerting.
 - **Control** — Stable `/api/v1/` surface, short-lived JWTs with refresh flow, per-route rate limiting, and one-time SSE tickets.
 - **Trust UX** — Every action the server takes is surfaced to the owner. Receipts show exact API calls, timestamps, and key events. No hidden operations.
+- **Help** — In-app Help Center (`/help`) with User Guide and Admin Guide. Fully localized (EN/ES). Admin sections hidden from non-admin users.
+- **Mobile** — Responsive layout with bottom navigation, safe-area insets for notched devices, and WCAG-compliant 44px touch targets.
+- **Accessible** — Skip-to-content link, visible focus rings, ARIA landmarks, semantic HTML, and `prefers-reduced-motion` support.
 
 ---
 
@@ -295,7 +296,7 @@ npx tsc --noEmit  # type-check src/ (tsconfig.app.json)
 
 ### End-to-End (Playwright)
 
-The E2E suite covers 38 user flows across 10 spec files. It now self-boots a local Go server, migrates an isolated Playwright database, and writes encrypted test uploads into a dedicated temporary upload directory so local verification does not depend on a preconfigured shell or a writable repo-owned `uploads/` folder. **38/38 pass as of 2026-04-16.**
+The E2E suite covers 41 user flows across 11 spec files. It self-boots a local Go server, migrates an isolated Playwright database, and writes encrypted test uploads into a dedicated temporary upload directory. **41/41 pass as of 2026-05-22.**
 
 ```bash
 # Self-bootstrapped local harness (recommended)

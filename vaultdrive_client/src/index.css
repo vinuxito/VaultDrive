@@ -39,6 +39,42 @@
     font-weight: var(--weight-semibold);
     letter-spacing: var(--tracking-normal);
   }
+
+  /* Step 6: Mobile safe-area insets for notched devices */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Step 7: Accessibility — visible focus rings */
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
+  }
+
+  /* Step 7: Accessibility — screen reader only utility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Step 6: Mobile touch targets — minimum 44px per WCAG */
+  @media (pointer: coarse) {
+    button, a, [role="button"], [role="menuitem"], [role="tab"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
 }
 
 @layer utilities {
