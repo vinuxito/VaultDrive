@@ -81,7 +81,7 @@ test("Hackathon 60-second Golden Path", async ({ page, request, context }) => {
   await uploadFileAsOwner(page, account, {
     name: "demo-file.txt",
     mimeType: "text/plain",
-    buffer: Buffer.from("Hello World, this is a secure upload demonstration for QuantiX."),
+    buffer: Buffer.from(`Hello World, this is a secure upload demonstration for ${productName}.`),
   });
   
   // Wait for the upload to complete and file row to appear
