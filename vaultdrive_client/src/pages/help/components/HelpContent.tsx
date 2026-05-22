@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { branding } from "../../../config/branding";
 import type { HelpSection } from "../index";
+import { AlertTriangle, ShieldCheck } from "lucide-react";
 
 interface HelpContentProps {
   activeSection: HelpSection;
@@ -8,36 +9,56 @@ interface HelpContentProps {
 
 export function HelpContent({ activeSection }: HelpContentProps) {
   const { t } = useTranslation(["help"]);
+  
+  // Use returnObjects to get the full JSON tree for the active section
+  const sectionData = t(`help:content.${activeSection}`, { 
+    returnObjects: true,
+    product: branding.productName 
+  }) as any;
+
+  if (!sectionData || typeof sectionData !== "object") {
+    return <div className="text-muted-foreground p-8">Loading manual...</div>;
+  }
+
+  const { title, paragraphs = [], bulletPoints = [], callout } = sectionData;
 
   return (
-    <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">
-          {t(`help:content.${activeSection}.title` as any)}
-        </h2>
-        <div className="prose prose-neutral dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-lg">
-          <p>
-            {t(`help:content.${activeSection}.body` as any, { product: branding.productName })}
-          </p>
-        </div>
+    <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
+      <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6">
+        {title}
+      </h2>
+
+      <div className="space-y-6 text-lg text-foreground/90 leading-relaxed">
+        {paragraphs.map((p: string, idx: number) => (
+          <p key={idx}>{p}</p>
+        ))}
+
+        {bulletPoints.length > 0 && (
+          <ul className="list-disc list-outside ml-6 space-y-2 mt-6">
+            {bulletPoints.map((bp: string, idx: number) => (
+              <li key={idx} className="pl-2">{bp}</li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {/* Conditional rendering for specific interactive elements or rich media per section could go here */}
-      {activeSection === "vault_pin" && (
-        <div className="mt-8 p-6 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-          <h4 className="text-amber-600 dark:text-amber-400 font-semibold mb-2">Zero-Knowledge Guarantee</h4>
-          <p className="text-amber-700/80 dark:text-amber-400/80">
-            Because {branding.productName} uses Zero-Knowledge architecture, we cannot recover your files if you lose your PIN. Your encryption keys never leave your browser unencrypted.
-          </p>
-        </div>
-      )}
-
-      {activeSection === "uploads_shares" && (
-        <div className="mt-8 p-6 bg-primary/10 border border-primary/20 rounded-xl">
-          <h4 className="text-primary font-semibold mb-2">End-to-End Encryption</h4>
-          <p className="text-primary/80">
-            Every file is encrypted on your device using AES-256-GCM before it is uploaded. Our servers only store the encrypted ciphertext.
-          </p>
+      {callout && callout.title && (
+        <div className={`mt-10 p-6 rounded-xl border flex gap-4 items-start ${
+          callout.type === 'warning' 
+            ? 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400' 
+            : 'bg-primary/10 border-primary/20 text-primary dark:text-primary'
+        }`}>
+          <div className="shrink-0 mt-1">
+            {callout.type === 'warning' ? (
+              <AlertTriangle className="w-6 h-6" />
+            ) : (
+              <ShieldCheck className="w-6 h-6" />
+            )}
+          </div>
+          <div>
+            <h4 className="font-semibold text-lg mb-2">{callout.title}</h4>
+            <p className="opacity-90 leading-relaxed">{callout.text}</p>
+          </div>
         </div>
       )}
     </div>

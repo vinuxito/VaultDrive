@@ -39,29 +39,36 @@
   border: 1px solid rgba(0,0,0,0.06);
   border-radius: 12px;
   box-shadow: var(--elevation-low);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.4s ease,
+              border-color 0.4s ease;
 }
 
-.elegant-card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--elevation-medium);
+.elegant-card:hover, .elegant-card-hover:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--elevation-high), 0 0 24px color-mix(in srgb, var(--accent-primary), transparent 85%);
+  border-color: color-mix(in srgb, var(--accent-primary), transparent 70%);
+}
+
+.elegant-card:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: 0.1s;
 }
 
 .elegant-fade-in {
   opacity: 0;
-  animation: elegant-fade-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: elegant-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes elegant-fade-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
