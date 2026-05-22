@@ -23,6 +23,7 @@ const Groups = lazy(() => import("./pages/groups"));
 const Admin = lazy(() => import("./pages/admin"));
 const AdminTests = lazy(() => import("./pages/admin-tests"));
 const AccessCenter = lazy(() => import("./pages/access-center"));
+const HelpCenter = lazy(() => import("./pages/help"));
 
 function PageLoader() {
   return (
@@ -62,6 +63,7 @@ function App() {
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/tests" element={<AdminTests />} />
               <Route path="/access-center" element={<AccessCenter />} />
+              <Route path="/help" element={<HelpCenter />} />
             </Route>
           </Route>
         </Routes>
