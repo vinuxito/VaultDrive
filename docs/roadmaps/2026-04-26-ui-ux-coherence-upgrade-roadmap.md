@@ -12,7 +12,7 @@
 
 ### 1.1 Project direction (one paragraph)
 
-QuantiX Drive is a **zero-knowledge encrypted file control plane** that doubles as a reusable upstream product (downstream overlays like ABRN-Drive only override branding/config). The product's center of gravity is **trust**: every server action is surfaced to the owner, all encryption is browser-side, every share/drop/request has receipts. The next phase is *not* a new feature domain — it is converting hard-won technical hardening into a **coherent, calm, guided user surface** that an unassisted real user can navigate without a builder standing next to them.
+QuantiX Drive is a **zero-knowledge encrypted file control plane** that doubles as a reusable upstream product (downstream overlays like QuantiX Drive only override branding/config). The product's center of gravity is **trust**: every server action is surfaced to the owner, all encryption is browser-side, every share/drop/request has receipts. The next phase is *not* a new feature domain — it is converting hard-won technical hardening into a **coherent, calm, guided user surface** that an unassisted real user can navigate without a builder standing next to them.
 
 ### 1.2 Momentum check
 

@@ -15,10 +15,10 @@ This follow-through session verified the current ABRN Drive visual refinement pa
 ### Static verification
 
 - `lsp_diagnostics` reported no issues across the modified trust-related frontend files.
-- `cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run test` -> PASS (`17/17`)
-- `cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build` -> PASS
-- `cd /lamp/www/ABRN-Drive && go test ./...` -> PASS
-- `cd /lamp/www/ABRN-Drive && go build ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive/vaultdrive_client && npm run test` -> PASS (`17/17`)
+- `cd /lamp/www/QuantiX Drive/vaultdrive_client && npm run build` -> PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` -> PASS
 
 ### Live browser verification
 

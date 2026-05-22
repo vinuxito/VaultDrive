@@ -107,10 +107,20 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Encrypt Private Key
-	encryptedPrivKey, err := encryptPrivateKey(privKeyPEM, newUser.Password)
-	if err != nil {
-		log.Printf("Error encrypting private key: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "Error securing user keys", err)
+	var encryptedPrivKey string
+	var errEncrypt error
+	kekVersion := int32(1)
+
+	if cfg.Product.EnableArgon2id {
+		encryptedPrivKey, errEncrypt = encryptPrivateKeyV2(privKeyPEM, newUser.Password)
+		kekVersion = 2
+	} else {
+		encryptedPrivKey, errEncrypt = encryptPrivateKey(privKeyPEM, newUser.Password)
+	}
+
+	if errEncrypt != nil {
+		log.Printf("Error encrypting private key: %v", errEncrypt)
+		respondWithError(w, http.StatusInternalServerError, "Error securing user keys", errEncrypt)
 		return
 	}
 
@@ -122,6 +132,7 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 		PasswordHash:        hashedPassword,
 		PublicKey:           pubKeyPEM,
 		PrivateKeyEncrypted: encryptedPrivKey,
+		KekEnvelopeVersion:  kekVersion,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           time.Now(),
 	})

@@ -83,8 +83,8 @@ Proves:
 Latest verified state after the final follow-up fix:
 
 - `cd vaultdrive_client && npm test` -> PASS (`17/17`)
-- `cd /lamp/www/ABRN-Drive && go test ./...` -> PASS
-- `cd /lamp/www/ABRN-Drive && go build ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` -> PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` -> PASS
 - `cd vaultdrive_client && npm run test:e2e` -> PASS (`4/4`)
 
 The Playwright harness self-hosts the current Go app on:

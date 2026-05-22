@@ -58,8 +58,8 @@ Second contrast refinement pass. Attack the contrast failures that Pass 1 didn't
 ## Verification Truth
 
 - `cd vaultdrive_client && npx vitest run` → PASS (21/21)
-- `cd /lamp/www/ABRN-Drive && go build ./...` → PASS
-- `cd /lamp/www/ABRN-Drive && go test ./...` → PASS
+- `cd /lamp/www/QuantiX Drive && go build ./...` → PASS
+- `cd /lamp/www/QuantiX Drive && go test ./...` → PASS
 - `npm run build` → PASS (each iteration verified)
 - Playwright: login page renders at http://localhost:8082/abrn/login — PASS
 - Playwright: drop link expired error renders correctly at production URL — PASS

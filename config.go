@@ -38,6 +38,8 @@ type ProductConfig struct {
 	// AdminBootstrap is an optional list of emails that should be promoted
 	// to admin on server startup. Idempotent — safe to run every boot.
 	AdminBootstrap []string
+	// EnableArgon2id determines if new KEK envelopes should be encrypted with Argon2id.
+	EnableArgon2id bool
 }
 
 // LoadProductConfig reads product branding and base-path settings from the
@@ -50,6 +52,7 @@ func LoadProductConfig() ProductConfig {
 		BasePath:       envOr("BASE_PATH", "/quantix/"),
 		AgentKeyPrefix: envOr("AGENT_KEY_PREFIX", "qxak"),
 		PublicBaseURL:  envOr("PUBLIC_BASE_URL", "https://app.quantixdrive.io"),
+		EnableArgon2id: envOr("ENABLE_ARGON2ID", "true") == "true",
 	}
 
 	if legacy := os.Getenv("AGENT_KEY_LEGACY_PREFIXES"); legacy != "" {

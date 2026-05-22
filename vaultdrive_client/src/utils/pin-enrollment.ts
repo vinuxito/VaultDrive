@@ -53,11 +53,23 @@ export async function createPinProtectedPrivateKey({
 
   let privateKeyPem: string;
   let usedRecovery = false;
+  
+  let kekEnvelopeVersion = 1;
+  try {
+    const userJson = localStorage.getItem("user");
+    if (userJson) {
+      const userObj = JSON.parse(userJson);
+      if (userObj && userObj.kek_envelope_version) {
+        kekEnvelopeVersion = userObj.kek_envelope_version;
+      }
+    }
+  } catch(e) {}
 
   try {
     privateKeyPem = await decryptPrivateKeyWithPassword(
       password,
       privateKeyEncrypted,
+      kekEnvelopeVersion
     );
   } catch (error: unknown) {
     if (previousPassword) {
@@ -65,6 +77,7 @@ export async function createPinProtectedPrivateKey({
         privateKeyPem = await decryptPrivateKeyWithPassword(
           previousPassword,
           privateKeyEncrypted,
+          kekEnvelopeVersion
         );
         usedRecovery = true;
       } catch (secondError: unknown) {
@@ -75,7 +88,7 @@ export async function createPinProtectedPrivateKey({
     }
   }
 
-  const privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pin, privateKeyPem);
+  const privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pin, privateKeyPem, kekEnvelopeVersion);
   const result: PinEnrollmentResult = { privateKeyPinEncrypted };
 
   if (usedRecovery) {

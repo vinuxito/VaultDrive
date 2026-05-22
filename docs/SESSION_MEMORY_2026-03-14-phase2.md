@@ -2,7 +2,7 @@
 
 ## Goal
 
-Execute the 7-step Phase 2 upgrade plan from `plans/abrn-drive-phase2-execution-plan.md`. All 7 steps implemented, verified, and deployed.
+Execute the 7-step Phase 2 upgrade plan from `plans/quantix-drive-phase2-execution-plan.md`. All 7 steps implemented, verified, and deployed.
 
 ## Context at Session Start
 

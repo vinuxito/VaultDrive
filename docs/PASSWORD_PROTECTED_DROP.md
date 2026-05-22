@@ -662,7 +662,7 @@ Authorization: Bearer <user_jwt>
 ### 1. Get Authentication Token
 
 ```bash
-TOKEN=$(curl -s -X POST https://dev-app.filemonprime.net/abrn/api/login \
+TOKEN=$(curl -s -X POST https://quantixdrive.filemonprime.net/quantix/api/login \
   -H "Content-Type: application/json" \
   -d '{"email":"filemon@abrn.mx","password":"986532"}' | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 ```
@@ -670,7 +670,7 @@ TOKEN=$(curl -s -X POST https://dev-app.filemonprime.net/abrn/api/login \
 ### 2. Create Upload Link with Password
 
 ```bash
-curl -s -X POST https://dev-app.filemonprime.net/abrn/api/drop/create \
+curl -s -X POST https://quantixdrive.filemonprime.net/quantix/api/drop/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"target_folder_id":"012c1aca-4954-4621-8450-c4cac1ffba8c","password":"mySecret123"}' | jq .
@@ -691,7 +691,7 @@ curl -s "${UPLOAD_URL}" | jq .
 ```bash
 TOKEN="a2f9ed746b83c0590b396a125d7ca0dbef5911d403fd7e3fd8f3954eb7553868"
 
-curl -s -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload" \
+curl -s -X POST "https://quantixdrive.filemonprime.net/quantix/api/drop/${TOKEN}/upload" \
   -F "file=@test.txt" \
   -F "password=" | jq .
 ```
@@ -709,7 +709,7 @@ curl -s -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload"
 TOKEN="a2f9ed746b83c0590b396a125d7ca0dbef5911d403fd7e3fd8f3954eb7553868"
 WRONG_KEY="2c20da99485291c0a1a5e4e76d48da806ea06e95f88bced2f337af4bede5bafa"
 
-curl -s -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload?key=${WRONG_KEY}" \
+curl -s -X POST "https://quantixdrive.filemonprime.net/quantix/api/drop/${TOKEN}/upload?key=${WRONG_KEY}" \
   -F "file=@test.txt" \
   -F "password=${WRONG_KEY}" | jq .
 ```
@@ -731,7 +731,7 @@ KEY=$(echo $RESPONSE | jq -r '.upload_url' | sed 's/.*key=//')
 
 # Upload file
 echo "test content" > /tmp/test.txt
-curl -s -X POST "https://dev-app.filemonprime.net/abrn/api/drop/${TOKEN}/upload?key=${KEY}" \
+curl -s -X POST "https://quantixdrive.filemonprime.net/quantix/api/drop/${TOKEN}/upload?key=${KEY}" \
   -F "file=@/tmp/test.txt" \
   -F "password=${KEY}"
 ```

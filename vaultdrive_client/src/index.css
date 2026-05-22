@@ -138,4 +138,94 @@
     background: linear-gradient(180deg, rgba(6, 78, 59, 0.52) 0%, rgba(6, 95, 70, 0.38) 100%);
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
   }
+
+  /* 5.1 Modal Slide-Up Animation */
+  [data-state="open"] > [role="dialog"] {
+    animation: dialogSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes dialogSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97) translate(-50%, -50%); /* Adjusted for center pos */
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1) translate(-50%, -50%);
+    }
+  }
+
+  [data-state="open"].dialog-overlay, [data-state="open"] .fixed.inset-0 {
+    animation: overlayFadeIn 0.2s ease-out;
+  }
+
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* 5.2 Toast Notification Slide-In */
+  [data-sonner-toast][data-mounted="true"] {
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes toastSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(100%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  [data-sonner-toast][data-removed="true"] {
+    animation: toastSlideOut 0.2s ease-in forwards;
+  }
+
+  @keyframes toastSlideOut {
+    to {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+
+  /* 5.3 Card Hover Lift & Glow */
+  .brand-glass-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .brand-glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  }
+
+  [data-theme="quantix"] .brand-glass-card:hover,
+  [data-theme="cyberpunk"] .brand-glass-card:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+
+  /* 5.4 Theme Transition Smoothing */
+  body,
+  .brand-glass-card,
+  .brand-sidebar,
+  .brand-header,
+  .brand-btn-primary,
+  [role="dialog"] {
+    transition: background-color 0.3s ease, 
+                border-color 0.2s ease, 
+                color 0.2s ease,
+                box-shadow 0.2s ease;
+  }
+
+  /* 5.5 Reduced Motion Respect */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

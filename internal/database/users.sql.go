@@ -38,11 +38,12 @@ INSERT INTO users (
   password_hash,
   public_key,
   private_key_encrypted,
+  kek_envelope_version,
   created_at,
   updated_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version
 `
 
 type CreateUserParams struct {
@@ -53,6 +54,7 @@ type CreateUserParams struct {
 	PasswordHash        string
 	PublicKey           string
 	PrivateKeyEncrypted string
+	KekEnvelopeVersion  int32
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
@@ -66,6 +68,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.PasswordHash,
 		arg.PublicKey,
 		arg.PrivateKeyEncrypted,
+		arg.KekEnvelopeVersion,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -89,6 +92,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PinLockedUntil,
 		&i.OrganizationName,
 		&i.ForcePasswordChange,
+		&i.AuditRetentionDays,
+		&i.AutoExpireStaleDays,
+		&i.FailureAlertThreshold,
+		&i.KekEnvelopeVersion,
 	)
 	return i, err
 }
@@ -114,7 +121,7 @@ func (q *Queries) DeleteUserAsAdmin(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version FROM users
 ORDER BY created_at DESC
 `
 
@@ -147,6 +154,10 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.PinLockedUntil,
 			&i.OrganizationName,
 			&i.ForcePasswordChange,
+			&i.AuditRetentionDays,
+			&i.AutoExpireStaleDays,
+			&i.FailureAlertThreshold,
+			&i.KekEnvelopeVersion,
 		); err != nil {
 			return nil, err
 		}
@@ -162,7 +173,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version FROM users
 WHERE email = $1
 `
 
@@ -188,12 +199,16 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PinLockedUntil,
 		&i.OrganizationName,
 		&i.ForcePasswordChange,
+		&i.AuditRetentionDays,
+		&i.AutoExpireStaleDays,
+		&i.FailureAlertThreshold,
+		&i.KekEnvelopeVersion,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version FROM users
 WHERE id = $1
 `
 
@@ -219,12 +234,16 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PinLockedUntil,
 		&i.OrganizationName,
 		&i.ForcePasswordChange,
+		&i.AuditRetentionDays,
+		&i.AutoExpireStaleDays,
+		&i.FailureAlertThreshold,
+		&i.KekEnvelopeVersion,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change FROM users
+SELECT id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version FROM users
 WHERE username = $1
 `
 
@@ -250,6 +269,10 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.PinLockedUntil,
 		&i.OrganizationName,
 		&i.ForcePasswordChange,
+		&i.AuditRetentionDays,
+		&i.AutoExpireStaleDays,
+		&i.FailureAlertThreshold,
+		&i.KekEnvelopeVersion,
 	)
 	return i, err
 }
@@ -438,7 +461,7 @@ SET
   email = $4,
   updated_at = $5
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version
 `
 
 type UpdateUserParams struct {
@@ -477,6 +500,10 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.PinLockedUntil,
 		&i.OrganizationName,
 		&i.ForcePasswordChange,
+		&i.AuditRetentionDays,
+		&i.AutoExpireStaleDays,
+		&i.FailureAlertThreshold,
+		&i.KekEnvelopeVersion,
 	)
 	return i, err
 }
@@ -490,7 +517,7 @@ SET
   username = $5,
   updated_at = $6
 WHERE id = $1
-RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change
+RETURNING id, first_name, last_name, username, email, password_hash, public_key, private_key_encrypted, created_at, updated_at, is_admin, pin_hash, pin_set_at, private_key_pin_encrypted, pin_failed_attempts, pin_locked_until, organization_name, force_password_change, audit_retention_days, auto_expire_stale_days, failure_alert_threshold, kek_envelope_version
 `
 
 type UpdateUserAsAdminParams struct {
@@ -531,8 +558,35 @@ func (q *Queries) UpdateUserAsAdmin(ctx context.Context, arg UpdateUserAsAdminPa
 		&i.PinLockedUntil,
 		&i.OrganizationName,
 		&i.ForcePasswordChange,
+		&i.AuditRetentionDays,
+		&i.AutoExpireStaleDays,
+		&i.FailureAlertThreshold,
+		&i.KekEnvelopeVersion,
 	)
 	return i, err
+}
+
+const updateUserKEK = `-- name: UpdateUserKEK :exec
+UPDATE users
+SET private_key_encrypted = $2, kek_envelope_version = $3, updated_at = $4
+WHERE id = $1
+`
+
+type UpdateUserKEKParams struct {
+	ID                  uuid.UUID
+	PrivateKeyEncrypted string
+	KekEnvelopeVersion  int32
+	UpdatedAt           time.Time
+}
+
+func (q *Queries) UpdateUserKEK(ctx context.Context, arg UpdateUserKEKParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserKEK,
+		arg.ID,
+		arg.PrivateKeyEncrypted,
+		arg.KekEnvelopeVersion,
+		arg.UpdatedAt,
+	)
+	return err
 }
 
 const updateUserPassword = `-- name: UpdateUserPassword :exec

@@ -44,16 +44,15 @@ export default function Login() {
     password: "",
   });
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (email: string, passwordOrPin: string, mode: "password" | "pin") => {
     setError("");
     setLoading(true);
 
     try {
       const body =
-        loginMode === "pin"
-          ? { email: loginData.email, pin: pinValue }
-          : { email: loginData.email, password: loginData.password };
+        mode === "pin"
+          ? { email: email, pin: passwordOrPin }
+          : { email: email, password: passwordOrPin };
 
       const response = await fetch(`${API_URL}/login`, {
         method: "POST",
@@ -97,19 +96,20 @@ export default function Login() {
       }
 
       try {
-        if (loginMode === "password" && data.private_key_encrypted) {
+        if (mode === "password" && data.private_key_encrypted) {
           const pem = await decryptPrivateKeyWithPassword(
-            loginData.password,
+            passwordOrPin,
             data.private_key_encrypted,
+            data.kek_envelope_version,
           );
           const cryptoKey = await importRSAPrivateKey(pem);
           setPrivateKey(cryptoKey);
-          setCredential(loginData.password, "password");
-        } else if (loginMode === "pin" && data.private_key_pin_encrypted) {
-          const pem = await decryptPrivateKeyWithPIN(pinValue, data.private_key_pin_encrypted);
+          setCredential(passwordOrPin, "password");
+        } else if (mode === "pin" && data.private_key_pin_encrypted) {
+          const pem = await decryptPrivateKeyWithPIN(passwordOrPin, data.private_key_pin_encrypted, data.kek_envelope_version);
           const cryptoKey = await importRSAPrivateKey(pem);
           setPrivateKey(cryptoKey);
-          setCredential(pinValue, "pin");
+          setCredential(passwordOrPin, "pin");
           localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
         }
       } catch (_pinError) {
@@ -122,6 +122,11 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(loginData.email, loginMode === "pin" ? pinValue : loginData.password, loginMode);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -148,12 +153,10 @@ export default function Login() {
         throw new Error(data.error || "Registration failed");
       }
 
-      setLoginData({ email: registerData.email, password: registerData.password });
-      setIsLogin(true);
-      setError("");
+      // Auto-login after successful registration
+      await performLogin(registerData.email, registerData.password, "password");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
-    } finally {
       setLoading(false);
     }
   };

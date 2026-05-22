@@ -20,10 +20,18 @@ function generateIV(): Uint8Array {
   return window.crypto.getRandomValues(new Uint8Array(12)); // 96 bits for GCM
 }
 
+export type CryptoEvent =
+  | { type: "generating-key"; algorithm: string; keyLength: number }
+  | { type: "encrypting"; inputSize: number }
+  | { type: "encrypted"; inputSize: number; outputSize: number; durationMs: number; ivLength: number }
+  | { type: "uploading"; ciphertextSize: number }
+  | { type: "complete" };
+
 // Encrypt a file using AES-256-GCM
 export async function encryptFile(
   file: File,
-  key: CryptoKey
+  key: CryptoKey,
+  onCryptoEvent?: (event: CryptoEvent) => void
 ): Promise<{
   encryptedData: ArrayBuffer;
   iv: Uint8Array;
@@ -33,11 +41,16 @@ export async function encryptFile(
     mimeType: string;
   };
 }> {
+  onCryptoEvent?.({ type: "generating-key", algorithm: "AES-256-GCM", keyLength: 256 });
+  
   // Read file as ArrayBuffer
   const fileBuffer = await file.arrayBuffer();
 
   // Generate random IV for this encryption
   const iv = generateIV();
+
+  onCryptoEvent?.({ type: "encrypting", inputSize: file.size });
+  const start = performance.now();
 
   // Encrypt the file data
   const encryptedData = await window.crypto.subtle.encrypt(
@@ -48,6 +61,15 @@ export async function encryptFile(
     key,
     fileBuffer as ArrayBuffer
   );
+
+  const duration = performance.now() - start;
+  onCryptoEvent?.({
+    type: "encrypted",
+    inputSize: file.size,
+    outputSize: encryptedData.byteLength,
+    durationMs: duration,
+    ivLength: iv.length,
+  });
 
   return {
     encryptedData,
@@ -273,9 +295,12 @@ export async function unwrapKey(password: string, wrappedKeyHex: string): Promis
   return rawKey;
 }
 
+import { argon2id } from "hash-wasm";
+
 export async function decryptPrivateKeyWithPassword(
   password: string,
   encryptedPrivateKeyB64: string,
+  kekEnvelopeVersion: number = 1
 ): Promise<string> {
   const encryptedBuffer = base64ToArrayBuffer(encryptedPrivateKeyB64);
   const data = new Uint8Array(encryptedBuffer);
@@ -289,19 +314,43 @@ export async function decryptPrivateKeyWithPassword(
   const ciphertext = data.slice(28);
 
   const decryptWithPasswordBytes = async (candidatePassword: string): Promise<string> => {
-    const passwordBytes = new TextEncoder().encode(candidatePassword);
-    const combined = new Uint8Array(salt.length + passwordBytes.length);
-    combined.set(salt, 0);
-    combined.set(passwordBytes, salt.length);
+    let aesKey: CryptoKey;
 
-    const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
-    const aesKey = await crypto.subtle.importKey(
-      "raw",
-      hashBuffer,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"],
-    );
+    if (kekEnvelopeVersion === 2) {
+      // Argon2id KDF
+      const derivedKeyBytes = await argon2id({
+        password: candidatePassword,
+        salt: salt,
+        parallelism: 4,
+        iterations: 3,
+        memorySize: 64 * 1024, // 64 MiB in KiB
+        hashLength: 32,
+        outputType: "binary",
+      });
+
+      aesKey = await crypto.subtle.importKey(
+        "raw",
+        derivedKeyBytes,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["decrypt"]
+      );
+    } else {
+      // Legacy SHA-256 KDF
+      const passwordBytes = new TextEncoder().encode(candidatePassword);
+      const combined = new Uint8Array(salt.length + passwordBytes.length);
+      combined.set(salt, 0);
+      combined.set(passwordBytes, salt.length);
+
+      const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+      aesKey = await crypto.subtle.importKey(
+        "raw",
+        hashBuffer,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["decrypt"]
+      );
+    }
 
     const decrypted = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
@@ -605,10 +654,32 @@ export async function unwrapKeyWithRSA(privateKey: CryptoKey, wrappedKeyB64: str
 
 // Encrypt the user's RSA private key (PEM string) with their PIN using AES-256-GCM
 // Returns hex string in same format as unwrapKey() [16B salt][12B IV][ciphertext]
-export async function encryptPrivateKeyWithPIN(pin: string, privateKeyPem: string): Promise<string> {
+export async function encryptPrivateKeyWithPIN(pin: string, privateKeyPem: string, kekEnvelopeVersion: number = 1): Promise<string> {
   const salt = window.crypto.getRandomValues(new Uint8Array(16));
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
-  const wrappingKey = await deriveKeyFromPassword(pin, salt, 100000);
+  
+  let wrappingKey: CryptoKey;
+  if (kekEnvelopeVersion === 2) {
+    const derivedKeyBytes = await argon2id({
+      password: pin,
+      salt: salt,
+      parallelism: 4,
+      iterations: 3,
+      memorySize: 64 * 1024, // 64 MiB in KiB
+      hashLength: 32,
+      outputType: "binary",
+    });
+    wrappingKey = await crypto.subtle.importKey(
+      "raw",
+      derivedKeyBytes,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"]
+    );
+  } else {
+    wrappingKey = await deriveKeyFromPassword(pin, salt, 100000);
+  }
+
   const encoder = new TextEncoder();
   const privateKeyBytes = encoder.encode(privateKeyPem);
   const encrypted = await window.crypto.subtle.encrypt(
@@ -625,7 +696,7 @@ export async function encryptPrivateKeyWithPIN(pin: string, privateKeyPem: strin
 
 // Decrypt the user's RSA private key using their PIN
 // Reverses encryptPrivateKeyWithPIN — returns the PEM string
-export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string): Promise<string> {
+export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string, kekEnvelopeVersion: number = 1): Promise<string> {
   const data = hexToBytes(encryptedHex);
   if (data.length < 16 + 12 + 16) {
     throw new Error("Invalid encrypted private key length");
@@ -633,7 +704,29 @@ export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string
   const salt = data.slice(0, 16);
   const iv = data.slice(16, 28);
   const ciphertext = data.slice(28);
-  const wrappingKey = await deriveKeyFromPassword(pin, salt, 100000);
+
+  let wrappingKey: CryptoKey;
+  if (kekEnvelopeVersion === 2) {
+    const derivedKeyBytes = await argon2id({
+      password: pin,
+      salt: salt,
+      parallelism: 4,
+      iterations: 3,
+      memorySize: 64 * 1024, // 64 MiB in KiB
+      hashLength: 32,
+      outputType: "binary",
+    });
+    wrappingKey = await crypto.subtle.importKey(
+      "raw",
+      derivedKeyBytes,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"]
+    );
+  } else {
+    wrappingKey = await deriveKeyFromPassword(pin, salt, 100000);
+  }
+
   const decrypted = await window.crypto.subtle.decrypt(
     { name: "AES-GCM", iv },
     wrappingKey,

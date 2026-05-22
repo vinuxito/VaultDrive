@@ -119,7 +119,7 @@ Goose migration version: **33**
 | `handle_user_update.go` | `PUT /api/users/organization` |
 | `vaultdrive_client/src/components/vault/AccessPanel.tsx` | Who-can-see-this modal |
 | `sql/schema/030–033_*.sql` | DB migrations |
-| `plans/abrn-drive-phase2-execution-plan.md` | Implementation plan |
+| `plans/quantix-drive-phase2-execution-plan.md` | Implementation plan |
 | `docs/SESSION_MEMORY_2026-03-14-phase2.md` | Session memory |
 
 ---
