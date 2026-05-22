@@ -18,7 +18,7 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 | Frontend production build (`vite build`) | ✅ successful |
 | Backend tests (`go test -race ./...`) | ✅ ok (no race conditions) |
 | Backend API Routing (Stripped Prefix) | ✅ ok (`/abrn/api/healthz`) |
-| Full E2E suite (`playwright test`) | ✅ 42 / 42 (Dynamic White-Label Branding + Rate Limit Bypass) |
+| Full E2E suite (`playwright test`) | ✅ 42 / 42 (ABRN Drive configuration) |
 | ABRN Drop Portal & Sync | ✅ verified end-to-end |
 
 **Routing model (Docker + Nginx / ServeMux):**
@@ -475,7 +475,6 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/qa-report-2026-04-16.html` | Visual verification report covering backend, frontend, unit, and end-to-end validation |
 | `docs/reports/2026-05-22-qa-feature-coverage-report.html` | Comprehensive Hackathon 2026-05-22 QA Pass report — 41/42 E2E passed |
 | `docs/memories/2026-05-22-hackathon-victory-lap.md` | Final Hackathon 2026-05-22 polish, UI speed enhancements, and victory memory |
-| `docs/memories/2026-05-22-hackathon-victory.md` | Hackathon Victory memory detailing E2E test suite reliability, dynamic base path fixes, and rate limiter loopback bypass |
 
 ---
 

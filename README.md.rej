@@ -1,0 +1,10 @@
+--- README.md
++++ README.md
+@@ -101,6 +101,7 @@
+ 1. Backend completely handles BasePath prefix stripping.
+ 2. Playwright E2E verifies UI end-to-end behind `/abrn/`.
+ 3. Unit, Go Backend, and System tests passing cleanly.
++4. Playwright framework dynamically matches UI strings and completely bypasses backend rate limiters during parallel E2E verification.
+ 
+ - **Safe to continue.** 
+ - **Next Action:** Push deployment configuration and begin client onboarding.

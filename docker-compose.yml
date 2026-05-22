@@ -48,6 +48,7 @@ services:
       PUBLIC_BASE_URL: http://localhost:8090
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8090
       ADMIN_BOOTSTRAP_EMAILS: ${ADMIN_BOOTSTRAP_EMAILS:-}
+      ENABLE_ARGON2ID: "false"
     ports:
       - "8090:8090"
     depends_on:

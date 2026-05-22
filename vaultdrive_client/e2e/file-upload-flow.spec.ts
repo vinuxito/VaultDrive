@@ -6,6 +6,7 @@ import {
   completeOnboarding,
   gotoStable,
   uploadFileAsOwner,
+  productName
 } from "./helpers/trust";
 
 test.describe("File upload with browser-side encryption", () => {
@@ -21,7 +22,7 @@ test.describe("File upload with browser-side encryption", () => {
     await uploadFileAsOwner(page, account, {
       name: "test-upload.txt",
       mimeType: "text/plain",
-      buffer: Buffer.from("QuantiX Drive encryption proof — iteration 1"),
+      buffer: Buffer.from("${productName} encryption proof — iteration 1"),
     });
 
     // Verify the file appears in the vault list

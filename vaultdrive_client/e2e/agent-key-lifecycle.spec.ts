@@ -7,7 +7,7 @@ import {
   gotoStable,
 } from "./helpers/trust";
 
-const apiBase = process.env.E2E_API_BASE_URL ?? `${new URL(process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/quantix").origin}/api`;
+const apiBase = process.env.E2E_API_BASE_URL ?? `${new URL(process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}/`).href}api`;
 
 function apiUrl(path: string): string {
   const base = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;

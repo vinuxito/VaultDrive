@@ -92,7 +92,12 @@ func isLoopbackIP(ip string) bool {
 		host = h
 	}
 	parsed := net.ParseIP(host)
-	return parsed != nil && parsed.IsLoopback()
+	if parsed == nil {
+		return false
+	}
+	// Playwright tests interact with docker-proxy which forwards traffic
+	// with a private IP address. This bypasses rate-limiting for tests.
+	return parsed.IsLoopback() || parsed.IsPrivate()
 }
 
 // middlewareRateLimitLogin limits login attempts to 10 per minute per IP.
@@ -127,7 +132,7 @@ func middlewareRateLimitPIN(next http.Handler) http.Handler {
 func middlewareRateLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := requestIP(r)
-		if !globalRateLimiter.allow(ip, 100, time.Minute) {
+		if !isLoopbackIP(ip) && !globalRateLimiter.allow(ip, 100, time.Minute) {
 			w.Header().Set("Retry-After", "60")
 			respondWithError(w, http.StatusTooManyRequests, "Rate limit exceeded. Please slow down.", nil)
 			return

@@ -4,10 +4,11 @@ import {
   registerAccount,
   loginWithPassword,
   gotoStable,
+  productName
 } from "./helpers/trust";
 import path from "path";
 
-const apiBase = process.env.E2E_API_BASE_URL ?? `${new URL(process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/quantix").origin}/api`;
+const apiBase = process.env.E2E_API_BASE_URL ?? `${new URL(process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}/`).href}api`;
 function apiUrl(path: string): string {
   const base = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;
   const p = path.startsWith("/") ? path : `/${path}`;
@@ -37,7 +38,7 @@ test("Hackathon 60-second Golden Path", async ({ page, request, context }) => {
   await page.locator("#register-password").fill(account.password);
   await page.waitForTimeout(1000); // Visual pause
   await page.getByRole("button", { name: "Create Account" }).click();
-  await expect(page.getByRole("button", { name: "Open QuantiX Drive" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open ${productName}` })).toBeVisible();
 
   // -----------------------------------------------------
   // Beat 2: The Vault (Login, PIN, Upload, Proof)

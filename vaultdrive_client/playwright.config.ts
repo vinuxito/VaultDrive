@@ -1,6 +1,8 @@
 import { defineConfig } from "@playwright/test";
+import dotenv from "dotenv";
+dotenv.config();
 
-const configuredBaseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/abrn";
+const configuredBaseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}`;
 const baseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
 const e2eUploadDir = process.env.E2E_UPLOAD_DIR ?? "/tmp/quantix-playwright-uploads";
 const e2eDbName = process.env.E2E_DB_NAME ?? "vaultdrive_playwright";
