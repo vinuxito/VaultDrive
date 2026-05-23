@@ -501,11 +501,19 @@ func main() {
 		// Try to serve actual file if it exists
 		filePath := "vaultdrive_client/dist" + cleanPath
 		if _, err := os.Stat(filePath); err == nil {
+			// Content-hashed assets (JS, CSS) are immutable — cache for 1 year.
+			// HTML files must always revalidate to pick up new deploys.
+			if strings.HasPrefix(cleanPath, "/assets/") {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			} else if strings.HasSuffix(cleanPath, ".html") {
+				w.Header().Set("Cache-Control", "no-cache")
+			}
 			http.ServeFile(w, r, filePath)
 			return
 		}
 
 		// SPA catch-all: serve index.html for all client-side routes
+		w.Header().Set("Cache-Control", "no-cache")
 		http.ServeFile(w, r, "vaultdrive_client/dist/index.html")
 	})
 
@@ -537,12 +545,23 @@ func main() {
 
 }
 
+// startTime records when the process started, used to report uptime.
+var startTime = time.Now()
+
+// version is set at build time via -ldflags="-X main.version=...".
+// Falls back to "dev" for local development.
+var version = "dev"
+
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
+	uptime := time.Since(startTime).Truncate(time.Second).String()
+
 	response := map[string]string{
-		"status": "ok",
+		"status":  "ok",
+		"version": version,
+		"uptime":  uptime,
 	}
 	json.NewEncoder(w).Encode(response)
 }

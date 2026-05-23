@@ -8,7 +8,9 @@
 set -euo pipefail
 
 # ── Configuration ──────────────────────────────────────────────────────────
-BACKUP_DIR="${BACKUP_DIR:-/var/backups/quantix-drive}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+BACKUP_DIR="${BACKUP_DIR:-${PROJECT_DIR}/backups}"
 TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
 RETAIN_DAYS="${RETAIN_DAYS:-30}"
 PG_HOST="${PG_HOST:-localhost}"
@@ -26,6 +28,7 @@ DATABASES=("quantixdrive" "vaultdrive")
 
 # Upload directories to back up
 UPLOAD_DIRS=(
+  "${PROJECT_DIR}/uploads"
   "/var/quantix-drive/uploads"
   "/lamp/www/ABRN-Drive/uploads"
 )

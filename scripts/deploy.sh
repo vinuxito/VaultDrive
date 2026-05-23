@@ -23,11 +23,12 @@ deploy_quantix() {
   npm run build
   log "Frontend build complete"
 
-  # Build Go binary
+  # Build Go binary with version info
   log "Building Go binary..."
   cd "$PROJECT_DIR"
-  go build -ldflags="-w -s" -o quantixdrive .
-  log "Binary built: $(ls -lh quantixdrive | awk '{print $5}')"
+  GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  go build -ldflags="-w -s -X main.version=${GIT_HASH}" -o quantixdrive .
+  log "Binary built: $(ls -lh quantixdrive | awk '{print $5}') (version: $GIT_HASH)"
 
   # Backup current binary
   if [ -f /usr/local/bin/quantixdrive ]; then
@@ -78,11 +79,12 @@ deploy_abrn() {
   fi
   log "Frontend build complete"
 
-  # Build Go binary
+  # Build Go binary with version info
   log "Building Go binary..."
   cd "$PROJECT_DIR"
-  go build -ldflags="-w -s" -o abrndrive .
-  log "Binary built: $(ls -lh abrndrive | awk '{print $5}')"
+  GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  go build -ldflags="-w -s -X main.version=${GIT_HASH}" -o abrndrive .
+  log "Binary built: $(ls -lh abrndrive | awk '{print $5}') (version: $GIT_HASH)"
 
   # Backup current binary
   if [ -f /lamp/www/ABRN-Drive/abrndrive ]; then
