@@ -38,7 +38,8 @@ deploy_quantix() {
 
   # Run migrations
   log "Running database migrations..."
-  source /etc/quantix/quantixdrive.env 2>/dev/null || true
+  # Source env (strip \r from CRLF files)
+  eval "$(sed 's/\r$//' /etc/quantix/quantixdrive.env 2>/dev/null)" 2>/dev/null || true
   if [ -n "${DB_URL:-}" ]; then
     go run github.com/pressly/goose/v3/cmd/goose@latest \
       -dir sql/schema postgres "$DB_URL" up 2>&1 || log "Migration warning — check output"
@@ -46,9 +47,12 @@ deploy_quantix() {
     log "WARNING: DB_URL not set — skipping migrations"
   fi
 
+  # Stop service before replacing binary (prevents 'Text file busy')
+  sudo systemctl stop quantixdrive 2>/dev/null || true
+
   # Deploy binary
   sudo cp quantixdrive /usr/local/bin/quantixdrive
-  sudo systemctl restart quantixdrive
+  sudo systemctl start quantixdrive
   log "Service restarted"
 
   # Smoke test
@@ -94,7 +98,8 @@ deploy_abrn() {
 
   # Run migrations
   log "Running database migrations..."
-  source /lamp/www/ABRN-Drive/.env 2>/dev/null || true
+  # Source env (strip \r from CRLF files to prevent URL parse failures)
+  eval "$(sed 's/\r$//' /lamp/www/ABRN-Drive/.env 2>/dev/null)" 2>/dev/null || true
   if [ -n "${DB_URL:-}" ]; then
     go run github.com/pressly/goose/v3/cmd/goose@latest \
       -dir sql/schema -allow-missing postgres "$DB_URL" up 2>&1 || log "Migration warning — check output"
@@ -102,10 +107,13 @@ deploy_abrn() {
     log "WARNING: DB_URL not set — skipping migrations"
   fi
 
+  # Stop service before replacing binary (prevents 'Text file busy')
+  sudo systemctl stop abrndrive 2>/dev/null || true
+
   # Deploy binary + dist
   cp abrndrive /lamp/www/ABRN-Drive/abrndrive
   cp -r vaultdrive_client/dist /lamp/www/ABRN-Drive/vaultdrive_client/dist
-  sudo systemctl restart abrndrive
+  sudo systemctl start abrndrive
   log "Service restarted"
 
   # Smoke test
