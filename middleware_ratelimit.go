@@ -76,10 +76,12 @@ func (sw *slidingWindow) purge() {
 
 // Global rate limiters — one per sensitive endpoint group.
 var (
-	loginRateLimiter    = newSlidingWindow()
-	pinRateLimiter      = newSlidingWindow()
-	globalRateLimiter   = newSlidingWindow()
-	agentKeyRateLimiter = newSlidingWindow()
+	loginRateLimiter      = newSlidingWindow()
+	pinRateLimiter        = newSlidingWindow()
+	globalRateLimiter     = newSlidingWindow()
+	agentKeyRateLimiter   = newSlidingWindow()
+	registerRateLimiter   = newSlidingWindow()
+	dropUploadRateLimiter = newSlidingWindow()
 )
 
 // isLoopbackIP returns true for 127.x.x.x and ::1, which are always local
@@ -140,3 +142,33 @@ func middlewareRateLimit(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// middlewareRateLimitRegister limits registration attempts to 5 per minute per IP.
+// Prevents automated account creation spam.
+func middlewareRateLimitRegister(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := requestIP(r)
+		if !isLoopbackIP(ip) && !registerRateLimiter.allow(ip, 5, time.Minute) {
+			w.Header().Set("Retry-After", "60")
+			respondWithError(w, http.StatusTooManyRequests, "Too many registration attempts. Please wait before trying again.", nil)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// middlewareRateLimitDropUpload limits public drop-upload attempts to 20 per
+// minute per IP. This is a public endpoint — no auth required — so stricter
+// limits protect disk space from abuse.
+func middlewareRateLimitDropUpload(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := requestIP(r)
+		if !isLoopbackIP(ip) && !dropUploadRateLimiter.allow(ip, 20, time.Minute) {
+			w.Header().Set("Retry-After", "60")
+			respondWithError(w, http.StatusTooManyRequests, "Too many upload attempts. Please wait before trying again.", nil)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+

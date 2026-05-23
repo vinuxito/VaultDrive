@@ -119,7 +119,7 @@ func main() {
 
 	mux.HandleFunc("DELETE /api/upload-links/{id}", apiConfig.handlerDeleteDropToken)
 
-	mux.Handle("POST /api/register", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler)))
+	mux.Handle("POST /api/register", middlewareRateLimitRegister(apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler))))
 
 	mux.Handle("POST /api/login", middlewareRateLimitLogin(apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin))))
 
@@ -167,7 +167,7 @@ func main() {
 	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
 	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
 	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
-	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
+	mux.Handle("POST /api/drop/{token}/upload", middlewareRateLimitDropUpload(http.HandlerFunc(apiConfig.handlerDropUpload)))
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 	mux.HandleFunc("POST /api/drop/{token}/recover-key", apiConfig.handlerDropTokenRecoverKey)
 
@@ -522,7 +522,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:    ":" + port,
-		Handler: middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(finalHandler)),
+		Handler: middlewareSecurityHeaders(middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(finalHandler))),
 		// Timeouts configured for 2GB uploads (30 minutes)
 
 		ReadTimeout:    30 * time.Minute, // Maximum time to read request body
