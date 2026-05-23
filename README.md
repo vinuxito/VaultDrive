@@ -25,12 +25,13 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 | Service & database isolation | ✅ Separate PIDs, ports, databases |
 
 **Latest Session Memory:**
+- Pre-Phase V Sanity Check: [docs/memories/session-2026-05-23-phase5-prep.md](docs/memories/session-2026-05-23-phase5-prep.md)
 - Production Verification & Closeout: [docs/memories/session-2026-05-23-production-deployment.md](docs/memories/session-2026-05-23-production-deployment.md)
 - Undeniable UX Phase: [docs/memories/session-2026-05-23-ux-phase.md](docs/memories/session-2026-05-23-ux-phase.md)
 - Decoupling Environments: [docs/memories/session-2026-05-23-decoupling-environments.md](docs/memories/session-2026-05-23-decoupling-environments.md)
 - Production Polish: [docs/memories/session-2026-05-22-production-polish.md](docs/memories/session-2026-05-22-production-polish.md)
 
-**Latest Verification Report:** [docs/reports/2026-05-23-production-deployment-verification.html](docs/reports/2026-05-23-production-deployment-verification.html)
+**Latest Verification Report:** [docs/reports/2026-05-23-phase5-prep-verification.html](docs/reports/2026-05-23-phase5-prep-verification.html)
 
 ---
 
