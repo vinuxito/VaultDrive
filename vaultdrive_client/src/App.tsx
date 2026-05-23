@@ -12,6 +12,7 @@ import ForcePasswordChange from "./pages/force-password-change";
 import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
 import { BASE_PATH } from "./utils/base-path";
+import { CommandPalette } from "./components/ui/command-palette";
 
 // Heavy authenticated pages — code-split to reduce initial bundle size.
 const Dashboard = lazy(() => import("./pages/dashboard"));
@@ -39,6 +40,7 @@ function App() {
   return (
     <SessionVaultProvider>
       <Router basename={basename}>
+        <CommandPalette />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/force-password-change" element={<ForcePasswordChange />} />

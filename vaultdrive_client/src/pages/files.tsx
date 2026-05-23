@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import useSWR from "swr";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -227,7 +229,13 @@ export default function Files() {
   const sessionVault = useSessionVault();
   const { t } = useTranslation(["drive"]);
 
-  const [myFiles, setMyFiles] = useState<FileData[]>([]);
+  const { data: myFiles = [], mutate: mutateMyFiles, isLoading: isMyFilesLoading } = useSWR<FileData[]>(`${API_URL}/files`, {
+    onError: (err) => {
+      if (err.message?.includes("401") || err.status === 401) {
+        navigate("/login");
+      }
+    }
+  });
 
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -327,25 +335,10 @@ export default function Files() {
   const [moveFolders, setMoveFolders] = useState<Folder[]>([]);
 
   const fetchFiles = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/files`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        if (response.status === 401) { navigate("/login"); return; }
-        throw new Error("Failed to fetch files");
-      }
-      const data = await response.json();
-      setMyFiles(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load files");
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
+    // SWR handles fetching automatically, but this function is kept for backward compatibility
+    // in places that explicitly expect to trigger a refresh.
+    await mutateMyFiles();
+  }, [mutateMyFiles]);
 
   const fetchSharedFiles = useCallback(async () => {
     try {
@@ -673,16 +666,23 @@ export default function Files() {
 
   const toggleStar = async (fileId: string) => {
     const token = localStorage.getItem("token");
+    
+    // Optimistic UI update
+    mutateMyFiles(
+      (prev = []) => prev.map((f) => (f.id === fileId ? { ...f, starred: !f.starred } : f)),
+      { revalidate: false }
+    );
+
     try {
       await fetch(`${API_URL}/files/${fileId}/star`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMyFiles((prev) =>
-        prev.map((f) => (f.id === fileId ? { ...f, starred: !f.starred } : f))
-      );
+      // Revalidate to ensure server state matches
+      mutateMyFiles();
     } catch {
-      return;
+      // Revert on failure
+      mutateMyFiles();
     }
   };
 
@@ -1126,7 +1126,8 @@ export default function Files() {
         if (response.status === 401) { navigate("/login"); return; }
         throw new Error("Failed to delete file");
       }
-      setMyFiles((prev) => prev.filter((f) => f.id !== fileToDelete.id));
+      mutateMyFiles((prev = []) => prev.filter((f) => f.id !== fileToDelete.id), { revalidate: false });
+      mutateMyFiles();
       setSelectedFileIds((prev) => { const n = new Set(prev); n.delete(fileToDelete.id); return n; });
       setShowDeleteModal(false);
       setFileToDelete(null);
@@ -1182,7 +1183,8 @@ export default function Files() {
 
       if (succeededIds.length > 0) {
         const deletedIds = new Set(succeededIds);
-        setMyFiles((prev) => prev.filter((file) => !deletedIds.has(file.id)));
+        mutateMyFiles((prev = []) => prev.filter((file) => !deletedIds.has(file.id)), { revalidate: false });
+        mutateMyFiles();
         setSelectedFileIds((prev) => {
           const next = new Set(prev);
           succeededIds.forEach((id) => {
@@ -2010,20 +2012,26 @@ export default function Files() {
         </div>
       )}
 
-      {fileContextMenu && (
-        <div
-          className="fixed z-50 min-w-[180px] rounded-xl border border-border bg-card shadow-xl py-1"
-          style={{ left: fileContextMenu.x, top: fileContextMenu.y }}
-        >
-          <button
-            type="button"
-            onClick={() => { void handleMoveClick(fileContextMenu.file); }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
+      <AnimatePresence>
+        {fileContextMenu && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="fixed z-50 min-w-[180px] rounded-xl border border-border bg-card shadow-xl py-1 backdrop-blur-xl"
+            style={{ left: fileContextMenu.x, top: fileContextMenu.y }}
           >
-            <FolderOpen className="w-3.5 h-3.5" /> Move to folder
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={() => { void handleMoveClick(fileContextMenu.file); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
+            >
+              <FolderOpen className="w-3.5 h-3.5" /> Move to folder
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {cryptoEvent && (
         <div className="fixed bottom-6 left-6 z-50 w-80">

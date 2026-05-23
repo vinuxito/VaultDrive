@@ -12,6 +12,18 @@ import { cn } from "../../lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BrandLogo } from "../branding";
 import { useTranslation } from "react-i18next";
+import { preload } from "swr";
+import { API_URL } from "../../utils/api";
+
+const fetcher = (url: string) => {
+  const token = localStorage.getItem("token");
+  return fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  }).then((res) => {
+    if (!res.ok) throw new Error("API error");
+    return res.json();
+  });
+};
 
 interface SidebarProps {
 
@@ -73,6 +85,14 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                     "/access-center": () => import("../../pages/access-center"),
                   };
                   prefetchMap[item.path]?.();
+
+                  // Preload data aggressively
+                  if (item.path === "/files") {
+                    preload(`${API_URL}/files`, fetcher);
+                    preload(`${API_URL}/folders`, fetcher);
+                  } else if (item.path === "/shared") {
+                    preload(`${API_URL}/files/shared`, fetcher);
+                  }
                 }}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",

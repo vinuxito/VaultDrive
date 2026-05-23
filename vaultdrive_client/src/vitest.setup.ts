@@ -1,15 +1,21 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
+import { mutate } from "swr";
 
 afterEach(() => {
   cleanup();
+  // Clear SWR cache globally after each test
+  mutate(() => true, undefined, { revalidate: false });
 });
 
 import enAuth from "./locales/en/auth.json";
 import enDrive from "./locales/en/drive.json";
 import enCommon from "./locales/en/common.json";
 import enSettings from "./locales/en/settings.json";
+import { MotionGlobalConfig } from "framer-motion";
+
+MotionGlobalConfig.skipAnimations = true;
 
 const resources: Record<string, Record<string, any>> = {
   auth: enAuth,
