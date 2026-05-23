@@ -104,9 +104,16 @@ deploy_abrn() {
     log "Previous binary backed up to abrndrive.prev"
   fi
   mv abrndrive.new /lamp/www/ABRN-Drive/abrndrive
+  rm -rf /lamp/www/ABRN-Drive/vaultdrive_client/dist
   cp -r vaultdrive_client/dist /lamp/www/ABRN-Drive/vaultdrive_client/dist
   sudo systemctl start abrndrive
   log "Service restarted"
+
+  # Restore default QuantiX frontend build in the repo directory
+  log "Restoring default QuantiX frontend build..."
+  cd "$PROJECT_DIR/vaultdrive_client"
+  npm run build
+  cd "$PROJECT_DIR"
 
   # Smoke test
   sleep 2

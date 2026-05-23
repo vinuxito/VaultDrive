@@ -492,7 +492,10 @@ func main() {
 		// but the files in dist/ live at the root of dist (not in a subdir).
 		// Old domains strip the base via Apache ProxyPass; new dedicated
 		// domains do not, so we normalise here for both cases.
-		cleanPath := strings.TrimPrefix(path, basePathNoSlash)
+		cleanPath := path
+		if basePathNoSlash != "" && strings.HasPrefix(path, basePathNoSlash+"/") {
+			cleanPath = path[len(basePathNoSlash):]
+		}
 
 		if cleanPath == "" || cleanPath == "/" {
 			cleanPath = "/index.html"
