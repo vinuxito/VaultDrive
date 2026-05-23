@@ -22,6 +22,8 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 | Production URL | ✅ `https://quantixdrive.filemonprime.net/quantix/` |
 
 **Latest Session Memory:**
+- Undeniable UX Phase: [docs/memories/session-2026-05-23-ux-phase.md](docs/memories/session-2026-05-23-ux-phase.md)
+- Decoupling Environments: [docs/memories/session-2026-05-23-decoupling-environments.md](docs/memories/session-2026-05-23-decoupling-environments.md)
 - Production Polish: [docs/memories/session-2026-05-22-production-polish.md](docs/memories/session-2026-05-22-production-polish.md)
 - ABRN Closeout: [docs/memories/session-2026-05-22-abrn-closeout.md](docs/memories/session-2026-05-22-abrn-closeout.md)
 - Hackathon Victory Lap: [docs/memories/2026-05-22-hackathon-victory-lap.md](docs/memories/2026-05-22-hackathon-victory-lap.md)
@@ -473,6 +475,8 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/memories/session-2026-05-22-i18n-completion.md` | i18n implementation and hardcoded string removal across the UI |
 | `docs/memories/2026-05-22-hackathon-victory.md` | Hackathon Victory memory detailing E2E test suite reliability, dynamic base path fixes, and rate limiter loopback bypass |
 | `docs/memories/session-2026-05-22-e2e-demo-victory.md` | Final E2E Demo victory with Playwright Golden Path matching the beautiful new UI, executing flawlessly in 31 seconds |
+| `docs/memories/session-2026-05-23-decoupling-environments.md` | Decoupled ABRN Drive from QuantiX Drive |
+| `docs/memories/session-2026-05-23-ux-phase.md` | Undeniable UX Phase: Cmd+K, Optimistic UI, SWR Hover Prefetching, and Framer Motion micro-animations |
 
 ---
 
