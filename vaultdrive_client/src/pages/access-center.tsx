@@ -37,10 +37,10 @@ type Tab = "shares" | "drop" | "all";
 type StatusFilter = "all" | "active" | "expired" | "revoked" | "never_used" | "stale";
 
 const STATUS_BADGE: Record<string, { label: string; icon: React.ReactNode; cls: string }> = {
-  active: { label: "Active", icon: <CheckCircle className="w-3 h-3" />, cls: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  expired: { label: "Expired", icon: <Clock className="w-3 h-3" />, cls: "text-amber-700 bg-amber-50 border-amber-200" },
-  revoked: { label: "Revoked", icon: <Ban className="w-3 h-3" />, cls: "text-red-700 bg-red-50 border-red-200" },
-  stale: { label: "Stale", icon: <AlertTriangle className="w-3 h-3" />, cls: "text-orange-700 bg-orange-50 border-orange-200" },
+  active: { label: "Active", icon: <CheckCircle className="w-3 h-3" />, cls: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-800" },
+  expired: { label: "Expired", icon: <Clock className="w-3 h-3" />, cls: "text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-900/30 dark:border-amber-800" },
+  revoked: { label: "Revoked", icon: <Ban className="w-3 h-3" />, cls: "text-red-700 bg-red-50 border-red-200 dark:text-red-300 dark:bg-red-900/30 dark:border-red-800" },
+  stale: { label: "Stale", icon: <AlertTriangle className="w-3 h-3" />, cls: "text-orange-700 bg-orange-50 border-orange-200 dark:text-orange-300 dark:bg-orange-900/30 dark:border-orange-800" },
   never_used: { label: "Never used", icon: <XCircle className="w-3 h-3" />, cls: "text-muted-foreground bg-muted border-border" },
 };
 
@@ -164,7 +164,7 @@ export default function AccessCenter() {
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                 statusFilter === s
                   ? "bg-primary text-white border-primary"
-                  : "bg-white text-muted-foreground border-border hover:border-primary/40"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
               }`}
             >
               {s === "all" ? "All" : s === "never_used" ? "Never used" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -244,8 +244,8 @@ function ShareCard({ item, baseURL, copiedId, onCopy }: ShareCardProps) {
   const shareURL = `${baseURL}/${item.type === "folder" ? "folder-share" : "share"}/${item.token}`;
   return (
     <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
-      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-        <Link2 className="w-4 h-4 text-blue-600" />
+      <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
+        <Link2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{item.resource_name}</p>

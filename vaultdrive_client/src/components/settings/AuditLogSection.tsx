@@ -46,10 +46,10 @@ const ACTION_LABELS: Record<string, string> = {
 
 function actionTone(action: string): string {
   if (action.includes("revoked") || action.includes("denied") || action.includes("expired")) {
-    return "text-amber-700 bg-amber-50 border-amber-200";
+    return "text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-900/30 dark:border-amber-800";
   }
   if (action.includes("created") || action.includes("uploaded") || action.includes("received")) {
-    return "text-sky-700 bg-sky-50 border-sky-200";
+    return "text-sky-700 bg-sky-50 border-sky-200 dark:text-sky-300 dark:bg-sky-900/30 dark:border-sky-800";
   }
   return "text-muted-foreground bg-muted border-border";
 }

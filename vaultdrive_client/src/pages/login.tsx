@@ -446,7 +446,7 @@ export default function Login() {
                         password: e.target.value,
                       })
                     }
-                    className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-10 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                     minLength={8}
                     maxLength={64}

@@ -457,7 +457,7 @@ export default function Settings() {
               <Button
                 variant="outline"
                 onClick={() => { setShowPinForm(true); setPinError(""); setPinSuccess(""); setPinInput(""); setOldPinInput(""); }}
-                className="border-primary/40 bg-white/80 text-primary hover:bg-muted"
+                className="border-primary/40 bg-background text-primary hover:bg-muted"
               >
                 {pinSet ? "Change PIN" : "Set PIN"}
               </Button>
@@ -614,7 +614,7 @@ export default function Settings() {
             <div className="rounded-[1.6rem] border border-border bg-card px-5 py-5 shadow-[0_16px_36px_rgba(0,0,0,0.08)]">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-200">Ciphertext only</span>
-                <span className="inline-flex items-center rounded-full border border-border bg-white/90 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Reviewable control</span>
+                <span className="inline-flex items-center rounded-full border border-border bg-muted/80 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Reviewable control</span>
               </div>
               <p className="mt-4 text-base font-semibold text-foreground">How your files are protected</p>
               <p className="mt-2 leading-relaxed text-foreground">
@@ -625,17 +625,17 @@ export default function Settings() {
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
-                <p className="font-medium text-emerald-900 mb-2">The server tracks</p>
-                <ul className="space-y-1.5 text-emerald-800">
+              <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-4">
+                <p className="font-medium text-emerald-900 dark:text-emerald-100 mb-2">The server tracks</p>
+                <ul className="space-y-1.5 text-emerald-800 dark:text-emerald-200">
                   <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-emerald-500 shrink-0" />File ownership and folder structure</li>
                   <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-emerald-500 shrink-0" />When links and requests were created or revoked</li>
                   <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-emerald-500 shrink-0" />Agent key activity and scope denials</li>
                 </ul>
               </div>
-              <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-4">
-                <p className="font-medium text-sky-900 mb-2">The server cannot see</p>
-                <ul className="space-y-1.5 text-sky-800">
+              <div className="rounded-2xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/40 px-4 py-4">
+                <p className="font-medium text-sky-900 dark:text-sky-100 mb-2">The server cannot see</p>
+                <ul className="space-y-1.5 text-sky-800 dark:text-sky-200">
                   <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-sky-500 shrink-0" />Your file contents — only encrypted bytes</li>
                   <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-sky-500 shrink-0" />The decryption key in public share link fragments</li>
                   <li className="flex items-start gap-2"><span className="mt-1 w-1 h-1 rounded-full bg-sky-500 shrink-0" />Your PIN or the vault unlock material it derives</li>

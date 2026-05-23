@@ -206,7 +206,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                     onDelete();
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-red-600 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-red-600 dark:text-red-400 transition-colors text-left"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete

@@ -163,22 +163,22 @@ export default function Dashboard() {
       label: "Active Links",
       value: stats.links,
       icon: Link2,
-      color: "text-violet-600",
-      bg: "bg-violet-100",
+      color: "text-violet-600 dark:text-violet-400",
+      bg: "bg-violet-500/15",
     },
     {
       label: "Shared Files",
       value: stats.shared,
       icon: Share2,
-      color: "text-emerald-600",
-      bg: "bg-emerald-100",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-500/15",
     },
     {
       label: "Groups",
       value: stats.groups,
       icon: Users,
-      color: "text-amber-600",
-      bg: "bg-amber-100",
+      color: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-500/15",
     },
   ];
 

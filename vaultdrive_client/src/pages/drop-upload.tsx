@@ -370,7 +370,7 @@ export default function DropUpload() {
       <div className="min-h-screen bg-gradient-to-br from-background to-background/90 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <BrandLogo className="h-14 mx-auto" />
-          <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center mx-auto">
+          <div className="w-24 h-24 rounded-full bg-emerald-500/15 border-4 border-emerald-200 dark:border-emerald-800 flex items-center justify-center mx-auto">
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <div className="space-y-2">
@@ -382,13 +382,13 @@ export default function DropUpload() {
           </div>
 
           <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
-            <p className="text-sm font-semibold text-emerald-900">Delivery receipt</p>
-            <p className="mt-1 text-xs leading-relaxed text-emerald-800">
+            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Delivery receipt</p>
+            <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">
               The route worked, the upload is complete, and the owner can now review the delivery from the vault without the server learning the key from your link.
             </p>
           </div>
 
-          <div className="text-left bg-white/80 rounded-2xl border border-border p-4 space-y-2 text-sm">
+          <div className="text-left bg-card/80 rounded-2xl border border-border p-4 space-y-2 text-sm">
             {tokenInfo.owner_display_name && (
               <p className="font-medium text-foreground">
                 {tokenInfo.owner_display_name}
@@ -402,7 +402,7 @@ export default function DropUpload() {
             {deliveryRef && <p className="text-muted-foreground text-xs">Ref: {deliveryRef}</p>}
           </div>
 
-          <div className="text-left bg-white/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
+          <div className="text-left bg-card/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
             <p className="font-medium text-foreground">What happened</p>
             <p className="text-muted-foreground leading-relaxed">
               {`Your files were encrypted in this browser before upload. ${branding.productName} received the protected files and delivery metadata, not the decryption key from your link.`}
@@ -419,7 +419,7 @@ export default function DropUpload() {
               setReceiptCopied(true);
               setTimeout(() => setReceiptCopied(false), 2000);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-white text-muted-foreground text-sm hover:bg-muted transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card text-muted-foreground text-sm hover:bg-muted transition-colors cursor-pointer"
           >
             {receiptCopied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
             {receiptCopied ? "Copied!" : "Copy receipt"}
@@ -442,7 +442,7 @@ export default function DropUpload() {
         </div>
 
         {(tokenInfo.owner_display_name || tokenInfo.owner_organization) && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/70 border border-border/60">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/70 border border-border/60">
             <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
             <div className="text-sm">
               <span className="font-medium text-foreground">
@@ -466,8 +466,8 @@ export default function DropUpload() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
-            <p className="font-medium text-emerald-900">What stays private</p>
+          <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-800 dark:text-emerald-200">
+            <p className="font-medium text-emerald-900 dark:text-emerald-100">What stays private</p>
             <p className="mt-1.5 leading-relaxed">
               Your files are encrypted in this browser before upload. The link key stays with the URL fragment rather than the server.
             </p>
@@ -554,7 +554,7 @@ export default function DropUpload() {
                       className="sr-only"
                       onChange={handleFileChange}
                     />
-                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 cursor-pointer">
+                    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 cursor-pointer">
                       <FileIcon className="w-8 h-8 mx-auto mb-3 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                         Select Files
@@ -571,7 +571,7 @@ export default function DropUpload() {
                       onChange={handleFolderChange}
                       {...{ webkitdirectory: "", directory: "" } as Record<string, string>}
                     />
-                    <div className="relative overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 cursor-pointer">
+                    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 cursor-pointer">
                       <FolderOpen className="w-8 h-8 mx-auto mb-3 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                         Select Folder
@@ -668,7 +668,7 @@ export default function DropUpload() {
                   onChange={(e) => setClientMessage(e.target.value.slice(0, 500))}
                   placeholder="e.g. Here are the files you requested. Let me know if you need anything else."
                   rows={2}
-                  className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:bg-white focus:outline-none resize-none transition-all"
+                  className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:bg-background focus:outline-none resize-none transition-all"
                 />
                 {clientMessage.length > 0 && (
                   <p className="text-xs text-muted-foreground text-right">{clientMessage.length}/500</p>

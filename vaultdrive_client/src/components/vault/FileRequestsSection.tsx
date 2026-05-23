@@ -131,8 +131,8 @@ function CreateRequestModal({
         {createdRequest ? (
           <div className="space-y-4">
             <div className="brand-receipt-surface rounded-2xl px-4 py-4">
-              <p className="text-sm font-semibold text-emerald-900">Request created and ready to share</p>
-              <p className="mt-1 text-xs text-emerald-800 leading-relaxed">
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Request created and ready to share</p>
+              <p className="mt-1 text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed">
                 This link is live, reviewable, and revocable from your vault. Senders can only upload through the request route you just created.
               </p>
             </div>

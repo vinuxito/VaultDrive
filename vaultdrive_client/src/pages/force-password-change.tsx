@@ -153,7 +153,7 @@ export default function ForcePasswordChange() {
             <BrandLogo className="w-16 h-16" />
           </div>
           <div className="flex justify-center mb-3">
-            <div className="rounded-full bg-amber-100 p-3">
+            <div className="rounded-full bg-amber-100 dark:bg-amber-900/40 p-3">
               <ShieldAlert className="w-6 h-6 text-amber-600" />
             </div>
           </div>
@@ -165,8 +165,8 @@ export default function ForcePasswordChange() {
 
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
 
