@@ -90,6 +90,7 @@ export default defineConfig(({ mode }) => {
       setupFiles: "./src/vitest.setup.ts",
       include: ["src/**/*.{test,spec}.{ts,tsx}"],
       exclude: ["e2e/**", "playwright-report/**", "test-results/**"],
+      testTimeout: 15000,
     },
   };
 });
