@@ -23,18 +23,12 @@ deploy_quantix() {
   npm run build
   log "Frontend build complete"
 
-  # Build Go binary with version info
+  # Build Go binary with version info (to temp name to avoid 'Text file busy')
   log "Building Go binary..."
   cd "$PROJECT_DIR"
   GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-  go build -ldflags="-w -s -X main.version=${GIT_HASH}" -o quantixdrive .
-  log "Binary built: $(ls -lh quantixdrive | awk '{print $5}') (version: $GIT_HASH)"
-
-  # Backup current binary
-  if [ -f /usr/local/bin/quantixdrive ]; then
-    sudo cp /usr/local/bin/quantixdrive /usr/local/bin/quantixdrive.prev
-    log "Previous binary backed up to quantixdrive.prev"
-  fi
+  go build -ldflags="-w -s -X main.version=${GIT_HASH}" -o quantix-drive.new .
+  log "Binary built: $(ls -lh quantix-drive.new | awk '{print $5}') (version: $GIT_HASH)"
 
   # Run migrations
   log "Running database migrations..."
@@ -47,11 +41,13 @@ deploy_quantix() {
     log "WARNING: DB_URL not set — skipping migrations"
   fi
 
-  # Stop service before replacing binary (prevents 'Text file busy')
+  # Stop service → backup → swap → start
   sudo systemctl stop quantixdrive 2>/dev/null || true
-
-  # Deploy binary
-  sudo cp quantixdrive /usr/local/bin/quantixdrive
+  if [ -f "$PROJECT_DIR/quantix-drive" ]; then
+    cp "$PROJECT_DIR/quantix-drive" "$PROJECT_DIR/quantix-drive.prev"
+    log "Previous binary backed up to quantix-drive.prev"
+  fi
+  mv quantix-drive.new quantix-drive
   sudo systemctl start quantixdrive
   log "Service restarted"
 
@@ -87,14 +83,8 @@ deploy_abrn() {
   log "Building Go binary..."
   cd "$PROJECT_DIR"
   GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-  go build -ldflags="-w -s -X main.version=${GIT_HASH}" -o abrndrive .
-  log "Binary built: $(ls -lh abrndrive | awk '{print $5}') (version: $GIT_HASH)"
-
-  # Backup current binary
-  if [ -f /lamp/www/ABRN-Drive/abrndrive ]; then
-    cp /lamp/www/ABRN-Drive/abrndrive /lamp/www/ABRN-Drive/abrndrive.prev
-    log "Previous binary backed up to abrndrive.prev"
-  fi
+  go build -ldflags="-w -s -X main.version=${GIT_HASH}" -o abrndrive.new .
+  log "Binary built: $(ls -lh abrndrive.new | awk '{print $5}') (version: $GIT_HASH)"
 
   # Run migrations
   log "Running database migrations..."
@@ -107,11 +97,13 @@ deploy_abrn() {
     log "WARNING: DB_URL not set — skipping migrations"
   fi
 
-  # Stop service before replacing binary (prevents 'Text file busy')
+  # Stop service → backup → swap → start
   sudo systemctl stop abrndrive 2>/dev/null || true
-
-  # Deploy binary + dist
-  cp abrndrive /lamp/www/ABRN-Drive/abrndrive
+  if [ -f /lamp/www/ABRN-Drive/abrndrive ]; then
+    cp /lamp/www/ABRN-Drive/abrndrive /lamp/www/ABRN-Drive/abrndrive.prev
+    log "Previous binary backed up to abrndrive.prev"
+  fi
+  mv abrndrive.new /lamp/www/ABRN-Drive/abrndrive
   cp -r vaultdrive_client/dist /lamp/www/ABRN-Drive/vaultdrive_client/dist
   sudo systemctl start abrndrive
   log "Service restarted"
@@ -119,7 +111,7 @@ deploy_abrn() {
   # Smoke test
   sleep 2
   local status
-  status=$(curl -s -o /dev/null -w '%{http_code}' https://abrndrive.filemonprime.net/api/healthz 2>/dev/null || echo "000")
+  status=$(curl -s -o /dev/null -w '%{http_code}' https://abrndrive.filemonprime.net/abrn/api/healthz 2>/dev/null || echo "000")
   if [ "$status" = "200" ]; then
     log "✅ ABRN Drive deployed successfully (healthz: 200)"
   else
