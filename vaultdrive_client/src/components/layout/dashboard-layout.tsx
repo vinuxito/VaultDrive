@@ -1,5 +1,3 @@
-
-
 import { useState, useRef, type ReactNode, useEffect } from "react";
 import { Menu, Search, Bell, Command } from "lucide-react";
 import { Sidebar } from "./sidebar";
@@ -39,7 +37,6 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const sessionVault = useSessionVault();
   const { t } = useTranslation(["common", "drive"]);
   const { clearVault } = useSessionVault();
 

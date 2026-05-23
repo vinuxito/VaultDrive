@@ -229,7 +229,7 @@ export default function Files() {
   const sessionVault = useSessionVault();
   const { t } = useTranslation(["drive"]);
 
-  const { data: myFiles = [], mutate: mutateMyFiles, isLoading: isMyFilesLoading } = useSWR<FileData[]>(`${API_URL}/files`, {
+  const { data: myFiles = [], mutate: mutateMyFiles, isLoading } = useSWR<FileData[]>(`${API_URL}/files`, {
     onError: (err) => {
       if (err.message?.includes("401") || err.status === 401) {
         navigate("/login");
@@ -242,7 +242,7 @@ export default function Files() {
   const [dropTokens, setDropTokens] = useState<DropTokenInfo[]>([]);
   const [dropLinkFiles, setDropLinkFiles] = useState<Record<string, FileData[]>>({});
 
-  const [loading, setLoading] = useState(false);
+  // loading state removed
   const [uploading, setUploading] = useState(false);
   const [cryptoEvent, setCryptoEvent] = useState<CryptoEvent | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -1684,7 +1684,7 @@ export default function Files() {
             )}
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              {loading && (
+              {isLoading && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <Loader2 className="w-6 h-6 animate-spin mb-3" />
                   <p className="text-sm">{t("drive:vault.loading")}</p>
@@ -1692,7 +1692,7 @@ export default function Files() {
               )}
 
 
-              {!loading && visibleFiles.length === 0 && (
+              {!isLoading && visibleFiles.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
                     <Lock className="w-6 h-6 text-muted-foreground" />
@@ -1712,7 +1712,7 @@ export default function Files() {
                 </div>
               )}
 
-              {!loading && visibleFiles.length > 0 && (
+              {!isLoading && visibleFiles.length > 0 && (
                 <div className="space-y-1">
                   <div className="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <div className="w-4 shrink-0 flex items-center justify-center">
