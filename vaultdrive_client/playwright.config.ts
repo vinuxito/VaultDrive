@@ -1,6 +1,13 @@
 import { defineConfig } from "@playwright/test";
 import dotenv from "dotenv";
-dotenv.config();
+import fs from "fs";
+
+// Load test environment variables if .env.test exists, otherwise fall back to .env
+if (fs.existsSync(".env.test")) {
+  dotenv.config({ path: ".env.test" });
+} else {
+  dotenv.config();
+}
 
 const configuredBaseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}`;
 const baseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
@@ -12,8 +19,17 @@ const e2eAdminDbUrl =
 const e2eDbUrl =
   process.env.E2E_DB_URL ??
   `postgres://postgres:postgres@localhost:5432/${e2eDbName}?sslmode=disable`;
+
+// Filter out VITE_ variables from process.env to prevent overriding the build-time env vars
+const cleanProcessEnv = Object.keys(process.env).reduce((acc, key) => {
+  if (!key.startsWith("VITE_")) {
+    acc[key] = process.env[key]!;
+  }
+  return acc;
+}, {} as Record<string, string>);
+
 const e2eBackendEnv = {
-  ...process.env,
+  ...cleanProcessEnv,
   PORT: process.env.PORT ?? "8090",
   DB_URL: process.env.DB_URL ?? e2eDbUrl,
   JWT_SECRET:

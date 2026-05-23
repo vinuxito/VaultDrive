@@ -70,6 +70,7 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             vendor: ["react", "react-dom", "react-router-dom"],
             lucide: ["lucide-react"],
+            cmdk: ["cmdk"],
             i18n: ["i18next", "react-i18next", "i18next-browser-languagedetector"],
             crypto: ["jszip"],
             radix: [

@@ -1,20 +1,21 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/navbar";
-import Home from "./pages/home";
-import Login from "./pages/login";
-import About from "./pages/about";
-import DropUpload from "./pages/drop-upload";
-import PublicSharePage from "./pages/PublicSharePage";
-import PublicFolderSharePage from "./pages/PublicFolderSharePage";
-import FileRequestPage from "./pages/FileRequestPage";
-import ForcePasswordChange from "./pages/force-password-change";
 import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
 import { BASE_PATH } from "./utils/base-path";
 import { CommandPalette } from "./components/ui/command-palette";
 
-// Heavy authenticated pages — code-split to reduce initial bundle size.
+// Lazy-loaded routes for both public and private views to shrink initial bundle
+const Home = lazy(() => import("./pages/home"));
+const Login = lazy(() => import("./pages/login"));
+const About = lazy(() => import("./pages/about"));
+const DropUpload = lazy(() => import("./pages/drop-upload"));
+const PublicSharePage = lazy(() => import("./pages/PublicSharePage"));
+const PublicFolderSharePage = lazy(() => import("./pages/PublicFolderSharePage"));
+const FileRequestPage = lazy(() => import("./pages/FileRequestPage"));
+const ForcePasswordChange = lazy(() => import("./pages/force-password-change"));
+
 const Dashboard = lazy(() => import("./pages/dashboard"));
 const Files = lazy(() => import("./pages/files"));
 const Shared = lazy(() => import("./pages/shared"));
@@ -41,20 +42,19 @@ function App() {
     <SessionVaultProvider>
       <Router basename={basename}>
         <CommandPalette />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/force-password-change" element={<ForcePasswordChange />} />
-          {/* Public pages with Navbar */}
-          <Route path="/" element={<Navbar><Home /></Navbar>} />
-          <Route path="/about" element={<Navbar><About /></Navbar>} />
-          <Route path="/drop/:token" element={<DropUpload />} />
-          <Route path="/share/:token" element={<PublicSharePage />} />
-          <Route path="/folder-share/:token" element={<PublicFolderSharePage />} />
-          <Route path="/request/:token" element={<FileRequestPage />} />
-          {/* Authenticated pages - ProtectedRoute handles auth check + DashboardLayout */}
-          <Route element={<ProtectedRoute />}>
-            {/* Suspense layout: wraps Outlet so lazy chunks show a spinner */}
-            <Route element={<Suspense fallback={<PageLoader />}><Outlet /></Suspense>}>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/force-password-change" element={<ForcePasswordChange />} />
+            {/* Public pages with Navbar */}
+            <Route path="/" element={<Navbar><Home /></Navbar>} />
+            <Route path="/about" element={<Navbar><About /></Navbar>} />
+            <Route path="/drop/:token" element={<DropUpload />} />
+            <Route path="/share/:token" element={<PublicSharePage />} />
+            <Route path="/folder-share/:token" element={<PublicFolderSharePage />} />
+            <Route path="/request/:token" element={<FileRequestPage />} />
+            {/* Authenticated pages - ProtectedRoute handles auth check + DashboardLayout */}
+            <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/files" element={<Files />} />
               <Route path="/shared" element={<Shared />} />
@@ -67,12 +67,11 @@ function App() {
               <Route path="/access-center" element={<AccessCenter />} />
               <Route path="/help" element={<HelpCenter />} />
             </Route>
-          </Route>
-        </Routes>
+          </Routes>
+        </Suspense>
       </Router>
     </SessionVaultProvider>
   );
 }
 
 export default App;
-// 20260204-170831

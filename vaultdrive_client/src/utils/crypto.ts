@@ -295,7 +295,48 @@ export async function unwrapKey(password: string, wrappedKeyHex: string): Promis
   return rawKey;
 }
 
-import { argon2id } from "hash-wasm";
+async function runArgon2(options: {
+  password: string;
+  salt: Uint8Array;
+  parallelism?: number;
+  iterations?: number;
+  memorySize?: number;
+  hashLength?: number;
+}): Promise<Uint8Array> {
+  if (typeof window !== "undefined" && typeof window.Worker !== "undefined") {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(
+        new URL("../workers/argon2.worker.ts", import.meta.url),
+        { type: "module" }
+      );
+      worker.onmessage = (e) => {
+        if (e.data.success) {
+          resolve(e.data.derivedKeyBytes);
+        } else {
+          reject(new Error(e.data.error || "Argon2 worker failed"));
+        }
+        worker.terminate();
+      };
+      worker.onerror = (err) => {
+        reject(err);
+        worker.terminate();
+      };
+      worker.postMessage(options);
+    });
+  } else {
+    // Fallback for Node/Vitest environment
+    const { argon2id } = await import("hash-wasm");
+    return await argon2id({
+      password: options.password,
+      salt: options.salt,
+      parallelism: options.parallelism || 4,
+      iterations: options.iterations || 3,
+      memorySize: options.memorySize || 64 * 1024,
+      hashLength: options.hashLength || 32,
+      outputType: "binary",
+    });
+  }
+}
 
 export async function decryptPrivateKeyWithPassword(
   password: string,
@@ -318,14 +359,13 @@ export async function decryptPrivateKeyWithPassword(
 
     if (kekEnvelopeVersion === 2) {
       // Argon2id KDF
-      const derivedKeyBytes = await argon2id({
+      const derivedKeyBytes = await runArgon2({
         password: candidatePassword,
         salt: salt,
         parallelism: 4,
         iterations: 3,
         memorySize: 64 * 1024, // 64 MiB in KiB
         hashLength: 32,
-        outputType: "binary",
       });
 
       aesKey = await crypto.subtle.importKey(
@@ -669,14 +709,13 @@ export async function encryptPrivateKeyWithPIN(pin: string, privateKeyPem: strin
   
   let wrappingKey: CryptoKey;
   if (kekEnvelopeVersion === 2) {
-    const derivedKeyBytes = await argon2id({
+    const derivedKeyBytes = await runArgon2({
       password: pin,
       salt: salt,
       parallelism: 4,
       iterations: 3,
       memorySize: 64 * 1024, // 64 MiB in KiB
       hashLength: 32,
-      outputType: "binary",
     });
     wrappingKey = await crypto.subtle.importKey(
       "raw",
@@ -716,14 +755,13 @@ export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string
 
   let wrappingKey: CryptoKey;
   if (kekEnvelopeVersion === 2) {
-    const derivedKeyBytes = await argon2id({
+    const derivedKeyBytes = await runArgon2({
       password: pin,
       salt: salt,
       parallelism: 4,
       iterations: 3,
       memorySize: 64 * 1024, // 64 MiB in KiB
       hashLength: 32,
-      outputType: "binary",
     });
     wrappingKey = await crypto.subtle.importKey(
       "raw",
