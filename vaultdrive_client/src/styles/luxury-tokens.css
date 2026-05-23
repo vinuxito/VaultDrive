@@ -74,19 +74,6 @@
   --glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
-.dark {
-  --glass-bg:          rgba(44, 50, 64, 0.65);
-  --glass-bg-hover:    rgba(44, 50, 64, 0.82);
-  --glass-bg-heavy:    rgba(44, 50, 64, 0.78);
-  --glass-bg-subtle:   rgba(44, 50, 64, 0.35);
-
-  --glass-border:        1px solid rgba(255, 255, 255, 0.10);
-  --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.06);
-  --glass-border-strong: 1px solid rgba(196, 153, 155, 0.20);
-
-  --glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
 /* ========== LAYERED SHADOW SYSTEM ========== */
 /* Warm-tinted shadows instead of pure gray — the luxury signature */
 :root {

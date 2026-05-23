@@ -5,32 +5,24 @@
 
 /* CSS Variables for theming — bridging legacy elegant system to luxury tokens */
 :root {
-  --surface-primary: var(--lux-neutral-50);
-  --surface-secondary: var(--lux-neutral-200);
-  --surface-tertiary: var(--lux-neutral-300);
-  --text-primary: var(--lux-slate-700);
-  --text-secondary: var(--lux-slate-500);
-  --text-tertiary: var(--lux-slate-400);
-  --accent-primary: var(--lux-burgundy-600);
-  --accent-secondary: var(--lux-burgundy-300);
-  --accent-success: var(--lux-emerald);
-  --accent-warning: var(--lux-amber);
-  --accent-danger: var(--lux-ruby);
+  --surface-primary: hsl(var(--card));
+  --surface-secondary: hsl(var(--muted));
+  --surface-tertiary: hsl(var(--input));
+  --text-primary: hsl(var(--foreground));
+  --text-secondary: hsl(var(--muted-foreground));
+  --text-tertiary: hsl(var(--muted-foreground) / 0.8);
+  --accent-primary: hsl(var(--primary));
+  --accent-secondary: hsl(var(--secondary));
+  --accent-success: hsl(var(--accent-success-raw, 142 76% 36%));
+  --accent-warning: hsl(var(--accent-warning-raw, 38 92% 50%));
+  --accent-danger: hsl(var(--destructive));
   --elevation-low: var(--shadow-sm);
   --elevation-medium: var(--shadow-md);
   --elevation-high: var(--shadow-lg);
 }
 
-.dark {
-  --surface-primary: var(--lux-slate-900);
-  --surface-secondary: var(--lux-slate-800);
-  --surface-tertiary: var(--lux-slate-800);
-  --text-primary: var(--lux-neutral-200);
-  --text-secondary: var(--lux-slate-400);
-  --text-tertiary: var(--lux-slate-500);
-  --elevation-low: var(--shadow-sm);
-  --elevation-medium: var(--shadow-md);
-  --elevation-high: var(--shadow-lg);
+.dark .elegant-card {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ========== Elegant Card ========== */
@@ -142,11 +134,9 @@
   color: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  .elegant-modal {
-    background: linear-gradient(135deg, var(--lux-burgundy-700) 0%, var(--lux-burgundy-800) 100%);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-  }
+.dark .elegant-modal {
+  background: linear-gradient(135deg, var(--lux-burgundy-700) 0%, var(--lux-burgundy-800) 100%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
 }
 
 /* Warning/Alert boxes inside modals */

@@ -14,6 +14,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { BrandLogo } from "./branding";
 import { Shield } from "lucide-react";
 import { branding } from "../config/branding";
+import { useTranslation } from "react-i18next";
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -21,6 +22,12 @@ interface NavbarProps {
 
 export default function Navbar({ children }: NavbarProps) {
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language.startsWith("es") ? "en" : "es";
+    void i18n.changeLanguage(nextLang);
+  };
 
   // Initialize state from localStorage
   const getInitialAuthState = () => {
@@ -156,6 +163,14 @@ const getInitials = (name: string) => {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-card hover:bg-primary/10 transition-colors text-xs font-semibold text-foreground uppercase cursor-pointer"
+              aria-label="Toggle language"
+            >
+              {i18n.language.startsWith("es") ? "EN" : "ES"}
+            </button>
             <ThemeToggle />
             {isLoggedIn && user ? (
               <DropdownMenu>

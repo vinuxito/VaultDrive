@@ -37,8 +37,13 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation(["common", "drive"]);
+  const { t, i18n } = useTranslation(["common", "drive"]);
   const { clearVault } = useSessionVault();
+  
+  const toggleLanguage = () => {
+    const nextLang = i18n.language.startsWith("es") ? "en" : "es";
+    void i18n.changeLanguage(nextLang);
+  };
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -239,6 +244,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="p-2 rounded-full hover:bg-primary/10 transition-colors text-xs font-semibold text-foreground uppercase cursor-pointer w-9 h-9 flex items-center justify-center"
+              aria-label="Toggle language"
+            >
+              {i18n.language.startsWith("es") ? "EN" : "ES"}
             </button>
 
             <DropdownMenu>

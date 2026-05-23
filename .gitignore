@@ -4,6 +4,9 @@
 
 # Go build output
 quantix-drive
+quantixdrive
+abrndrive
+*.prev
 vaultdrive-frontend
 vaultdrive-backend
 vaultdrive

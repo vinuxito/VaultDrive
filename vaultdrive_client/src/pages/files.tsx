@@ -18,7 +18,6 @@ import {
   X,
   Loader2,
   Users,
-  Search,
   Upload,
   ChevronRight,
   Menu,
@@ -55,6 +54,8 @@ import {
   FileGrid,
   FileActionsMenu,
   UploadZone,
+  FileSearch,
+  type FileTypeFilter,
 } from "../components/vault";
 import type { TreeNode, DropTokenInfo, BulkDownloadFile } from "../components/vault";
 import type { Folder } from "../components/files/FolderBreadcrumb";
@@ -114,8 +115,6 @@ interface UploadTrayItem {
   progress: number;
   status: "uploading" | "done" | "error";
 }
-
-type FileTypeFilter = "all" | "images" | "documents" | "audio" | "video" | "archives";
 
 const FILE_TYPE_EXTENSIONS: Record<string, string[]> = {
   images: ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"],
@@ -1412,15 +1411,6 @@ export default function Files() {
     }
   })();
 
-  const TYPE_FILTER_LABELS: Record<FileTypeFilter, string> = {
-    all: "All",
-    images: "Images",
-    documents: "Docs",
-    audio: "Audio",
-    video: "Video",
-    archives: "Archives",
-  };
-
   return (
     <>
       <div className="h-full flex flex-col">
@@ -1432,46 +1422,12 @@ export default function Files() {
         </div>
 
 
-        <div className="px-6 py-3 border-b border-border/60 bg-background shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("drive:vault.search")}
-                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
-              />
-
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-1 flex-wrap">
-              {(Object.keys(TYPE_FILTER_LABELS) as FileTypeFilter[]).map((type) => (
-                <button
-                  type="button"
-                  key={type}
-                  onClick={() => setTypeFilter(type)}
-                  className={`text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap ${
-                    typeFilter === type
-                      ? "bg-primary text-white"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  {TYPE_FILTER_LABELS[type]}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <FileSearch
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+        />
 
         <div className="flex flex-1 overflow-hidden">
           {sidebarOpen && (
