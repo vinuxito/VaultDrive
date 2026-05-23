@@ -14,11 +14,12 @@ import "net/http"
 func middlewareSecurityHeaders(next http.Handler) http.Handler {
 	// CSP built once at startup — no per-request allocation.
 	csp := "default-src 'self'; " +
-		"script-src 'self' 'unsafe-inline'; " + // unsafe-inline needed for theme preload script in index.html
+		"script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; " + // unsafe-inline: theme preload; wasm-unsafe-eval: hash-wasm (Argon2id)
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
 		"font-src 'self' https://fonts.gstatic.com; " +
 		"img-src 'self' data: blob:; " +
 		"connect-src 'self'; " +
+		"worker-src 'self' blob:; " + // Web Workers for crypto operations
 		"frame-ancestors 'none'; " +
 		"base-uri 'self'; " +
 		"form-action 'self'"
