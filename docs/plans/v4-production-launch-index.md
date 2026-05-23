@@ -195,7 +195,7 @@ This plan takes us from "hackathon winner" to "production product."
 
 | Criterion | Status |
 |-----------|--------|
-| Phase I–III landed, deployed, verified (Steps 1–10) | 7/10 |
+| Phase I–IV landed, deployed, verified (Steps 1–13) | 10/13 |
 | Phase IV security hardening complete (Steps 11–13) | ✅ 3/3 |
 | Lighthouse Performance score ≥ 90 (Steps 14–16) | ⚠️ Cache headers done, rest pending |
 | CI/CD pipeline automated (Steps 17–18) | ✅ CI exists + deploy.sh done |
