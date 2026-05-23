@@ -1,5 +1,6 @@
 import { Files, Share2, Settings, User, LogOut, X, Users } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
 import { BrandLogo, PoweredByBadge } from "../branding";
@@ -23,6 +24,7 @@ interface NavLinkProps {
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation(["common"]);
   const user = getStoredUserFromLocalStorage() ?? {};
 
   const handleLogout = () => {
@@ -58,11 +60,11 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   };
 
   const navItems = [
-    { to: "/files", icon: <Files />, label: "Files" },
-    { to: "/groups", icon: <Users />, label: "Groups" },
-    { to: "/shared", icon: <Share2 />, label: "Shared with Me" },
-    { to: "/profile", icon: <User />, label: "Profile" },
-    { to: "/settings", icon: <Settings />, label: "Settings" },
+    { to: "/files", icon: <Files />, label: t("common:nav.files", "Files") },
+    { to: "/groups", icon: <Users />, label: t("common:nav.groups", "Groups") },
+    { to: "/shared", icon: <Share2 />, label: t("common:nav.shared", "Shared with Me") },
+    { to: "/profile", icon: <User />, label: t("common:nav.profile", "Profile") },
+    { to: "/settings", icon: <Settings />, label: t("common:nav.settings", "Settings") },
   ];
 
   return (
@@ -124,7 +126,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
               aria-label="Logout"
             >
               <LogOut className="w-5 h-5" />
-              <span className="font-medium text-sm">Logout</span>
+              <span className="font-medium text-sm">{t("common:nav.logout", "Logout")}</span>
             </button>
           </div>
         )}

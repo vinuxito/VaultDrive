@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -52,6 +53,7 @@ function shouldFallbackToPinPrompt(error: unknown): boolean {
 
 export default function SharedFiles() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["drive", "common"]);
   const { getPrivateKey, getCredential, setCredential, setPrivateKey } = useSessionVault();
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -242,8 +244,8 @@ export default function SharedFiles() {
               <Share2 className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Shared With Me</h1>
-              <p className="text-muted-foreground">Files shared with you by other vault owners.</p>
+              <h1 className="text-3xl font-bold">{t("drive:shared.title", "Shared With Me")}</h1>
+              <p className="text-muted-foreground">{t("drive:shared.subtitle", "Files shared with you by other vault owners.")}</p>
             </div>
           </div>
         </div>
@@ -259,12 +261,12 @@ export default function SharedFiles() {
           <div className="mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
-              Shared Files
+              {t("drive:shared.listTitle", "Shared Files")}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {loading
-                ? "Loading shared files..."
-                : `${sharedFiles.length} file${sharedFiles.length !== 1 ? "s" : ""} shared with you`}
+                ? t("drive:shared.loading", "Loading shared files...")
+                : t("drive:shared.count", "{{count}} files shared with you", { count: sharedFiles.length })}
             </p>
           </div>
           <div>
@@ -285,9 +287,9 @@ export default function SharedFiles() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
                   <Share2 className="w-8 h-8 text-primary" />
                 </div>
-                <p className="text-muted-foreground font-medium">No shared files yet</p>
+                <p className="text-muted-foreground font-medium">{t("drive:shared.noFiles", "No shared files yet")}</p>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-                  Ask someone to share a file with you using your vault address.
+                  {t("drive:shared.noFilesDesc", "Ask someone to share a file with you using your vault address.")}
                 </p>
               </div>
             ) : (
@@ -321,9 +323,9 @@ export default function SharedFiles() {
               <Lock className="w-5 h-5 text-primary" />
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-sm">About Shared Files</p>
+              <p className="font-medium text-sm">{t("drive:shared.aboutTitle", "About Shared Files")}</p>
               <p className="text-sm text-muted-foreground">
-                Shared files are decrypted using your 4-digit PIN. No passwords are exchanged between users.
+                {t("drive:shared.aboutDesc", "Shared files are decrypted using your 4-digit PIN. No passwords are exchanged between users.")}
               </p>
             </div>
           </div>
@@ -335,10 +337,10 @@ export default function SharedFiles() {
               <CardHeader className="border-b border-white/10">
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Lock className="w-5 h-5 text-primary-foreground" />
-                  Decrypt Shared File
+                  {t("drive:shared.modal.title", "Decrypt Shared File")}
                 </CardTitle>
                 <CardDescription className="text-white/80">
-                  Enter your 4-digit PIN to decrypt this file
+                  {t("drive:shared.modal.desc", "Enter your 4-digit PIN to decrypt this file")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
@@ -352,7 +354,7 @@ export default function SharedFiles() {
                 <div className="space-y-2">
                   <label htmlFor="shared-file-pin" className="text-sm font-medium flex items-center gap-2">
                     <Key className="w-4 h-4" />
-                    Your PIN
+                    {t("drive:shared.modal.pinLabel", "Your PIN")}
                   </label>
                   <input
                     id="shared-file-pin"
@@ -361,7 +363,7 @@ export default function SharedFiles() {
                     maxLength={4}
                     value={pinValue}
                     onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
-                    placeholder="4-digit PIN"
+                    placeholder={t("drive:shared.modal.placeholder", "4-digit PIN")}
                     className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
@@ -379,14 +381,14 @@ export default function SharedFiles() {
                     }}
                     className="flex-1"
                   >
-                    Cancel
+                    {t("drive:vault.passwordModal.cancel", "Cancel")}
                   </Button>
                   <Button
                     onClick={handlePinSubmit}
                     disabled={pinValue.length !== 4}
                     className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                   >
-                    Decrypt & Download
+                    {t("drive:shared.modal.button", "Decrypt & Download")}
                   </Button>
                 </div>
               </CardContent>

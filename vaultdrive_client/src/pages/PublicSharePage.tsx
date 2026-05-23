@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { API_URL } from "../utils/api";
 import { decryptFile, base64ToArrayBuffer } from "../utils/crypto";
 import BrandLogo from "../components/branding/brand-logo";
@@ -38,10 +39,13 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function formatExpiry(expiresAt: string | null): string {
-  if (!expiresAt) return "No expiry";
+function formatExpiry(expiresAt: string | null, t: any): string {
+  if (!expiresAt) return t("drive:publicShare.noExpiry", "No expiry");
   const date = new Date(expiresAt);
-  return `Expires ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
+  // Optional: We can keep the basic date string for now or pass format params
+  return t("drive:publicShare.expiresOn", "Expires {{date}}", { 
+    date: date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+  });
 }
 
 function getFileIcon(filename: string) {
@@ -57,6 +61,7 @@ function getFileIcon(filename: string) {
 
 export default function PublicSharePage() {
   const { token } = useParams<{ token: string }>();
+  const { t } = useTranslation(["drive"]);
   const [state, setState] = useState<PageState>("loading");
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
   const [savedFilename, setSavedFilename] = useState<string>("");
@@ -184,14 +189,14 @@ export default function PublicSharePage() {
             <BrandLogo className="h-12 object-contain" />
           </div>
           <h1 className="text-xl font-bold text-white">{branding.productName}</h1>
-          <p className="text-white/80 text-sm">Secure File Share</p>
+          <p className="text-white/80 text-sm">{t("drive:publicShare.secureShare", "Secure File Share")}</p>
         </div>
 
         <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl shadow-2xl border border-white/10 p-8 text-white">
           {state === "loading" && (
             <div className="flex flex-col items-center gap-4 py-4">
               <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
-              <p className="text-white/90">Verifying share link…</p>
+              <p className="text-white/90">{t("drive:publicShare.verifying", "Verifying share link…")}</p>
             </div>
           )}
 
@@ -212,7 +217,7 @@ export default function PublicSharePage() {
                     {formatFileSize(shareInfo.file_size)}
                   </p>
                   <p className="text-xs text-white/80 mt-1">
-                    {formatExpiry(shareInfo.expires_at)}
+                    {formatExpiry(shareInfo.expires_at, t)}
                   </p>
                 </div>
               </div>
@@ -223,7 +228,7 @@ export default function PublicSharePage() {
                     {shareInfo.owner_display_name.charAt(0).toUpperCase()}
                   </div>
                   <span>
-                    Shared by{" "}
+                    {t("drive:publicShare.sharedBy", "Shared by")}{" "}
                     <span className="text-white/90 font-medium">
                       {shareInfo.owner_display_name}
                     </span>
@@ -240,7 +245,7 @@ export default function PublicSharePage() {
               <div className="flex items-center gap-2 px-3 py-2.5 bg-white/15 rounded-lg border border-white/10">
                 <Shield className="w-4 h-4 text-primary-foreground shrink-0" />
                 <p className="text-xs text-white/85">
-                  End-to-end encrypted · Key never leaves your browser
+                  {t("drive:publicShare.e2eInfo", "End-to-end encrypted · Key never leaves your browser")}
                 </p>
               </div>
 
@@ -250,7 +255,7 @@ export default function PublicSharePage() {
                 className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-white text-primary/90 font-semibold rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 <Download className="w-5 h-5" />
-                Download File
+                {t("drive:publicShare.download", "Download File")}
               </button>
             </div>
           )}
@@ -259,9 +264,9 @@ export default function PublicSharePage() {
             <div className="flex flex-col items-center gap-4 py-4 text-center">
               <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
               <div>
-                <p className="text-white/85 font-medium">Decrypting…</p>
+                <p className="text-white/85 font-medium">{t("drive:publicShare.decrypting", "Decrypting…")}</p>
                 <p className="text-xs text-white/80 mt-1">
-                  Decryption happens entirely in your browser
+                  {t("drive:publicShare.decryptingDesc", "Decryption happens entirely in your browser")}
                 </p>
               </div>
             </div>
@@ -271,7 +276,7 @@ export default function PublicSharePage() {
             <div className="flex flex-col items-center gap-4 py-2 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
               <CheckCircle2 className="w-12 h-12 text-emerald-400" />
               <div>
-                <p className="text-lg font-semibold text-white">File Decrypted & Saved!</p>
+                <p className="text-lg font-semibold text-white">{t("drive:publicShare.doneTitle", "File Decrypted & Saved!")}</p>
                 {savedFilename && (
                   <p className="text-sm text-white/80 mt-1 break-all">{savedFilename}</p>
                 )}
@@ -280,25 +285,25 @@ export default function PublicSharePage() {
               <div className="w-full text-left bg-black/30 backdrop-blur-md border border-white/10 rounded-lg p-4 font-mono text-xs space-y-2 mt-2">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-400 font-semibold uppercase tracking-wider">Zero-Knowledge Proof</span>
+                  <span className="text-emerald-400 font-semibold uppercase tracking-wider">{t("drive:publicShare.zkp", "Zero-Knowledge Proof")}</span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between border-b border-white/5 pb-1">
-                    <span className="text-zinc-500">Algorithm:</span>
+                    <span className="text-zinc-500">{t("drive:publicShare.algo", "Algorithm:")}</span>
                     <span>AES-256-GCM</span>
                   </div>
                   <div className="flex justify-between border-b border-white/5 pb-1">
-                    <span className="text-zinc-500">Key Source:</span>
+                    <span className="text-zinc-500">{t("drive:publicShare.keySource", "Key Source:")}</span>
                     <span>URL fragment (Local)</span>
                   </div>
                   {decryptDuration !== null && (
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span className="text-zinc-500">Performance:</span>
+                      <span className="text-zinc-500">{t("drive:publicShare.performance", "Performance:")}</span>
                       <span className="text-emerald-400">⚡ {decryptDuration.toFixed(0)}ms</span>
                     </div>
                   )}
                   <div className="text-xs text-zinc-500 mt-2 italic border-l-2 border-emerald-500/30 pl-2">
-                    Server never saw the encryption key. Decryption happened entirely on this device.
+                    {t("drive:publicShare.zkpDesc", "Server never saw the encryption key. Decryption happened entirely on this device.")}
                   </div>
                 </div>
               </div>
@@ -309,12 +314,12 @@ export default function PublicSharePage() {
             <div className="flex flex-col items-center gap-4 py-2 text-center">
               <Clock className="w-12 h-12 text-amber-400" />
               <div>
-                <p className="text-lg font-semibold text-white">This link has expired</p>
+                <p className="text-lg font-semibold text-white">{t("drive:publicShare.expiredTitle", "This link has expired")}</p>
                 <p className="text-sm text-white/80 mt-2">
-                  This share link is no longer valid.
+                  {t("drive:publicShare.expiredDesc", "This share link is no longer valid.")}
                 </p>
                 <p className="text-sm text-white/80 mt-1">
-                  Contact the file owner to request a new link.
+                  {t("drive:publicShare.expiredContact", "Contact the file owner to request a new link.")}
                 </p>
               </div>
             </div>
@@ -324,11 +329,11 @@ export default function PublicSharePage() {
             <div className="flex flex-col items-center gap-4 py-2 text-center">
               <AlertCircle className="w-12 h-12 text-red-400" />
               <div>
-                <p className="text-lg font-semibold text-white">Something went wrong</p>
+                <p className="text-lg font-semibold text-white">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
                 <p className="text-sm text-red-300 mt-2 break-words">{errorMsg}</p>
               </div>
               <p className="text-xs text-white/80">
-                Make sure you have the complete share link, including the key after #.
+                {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}
               </p>
             </div>
           )}

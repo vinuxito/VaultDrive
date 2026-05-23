@@ -470,6 +470,7 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/qa-report-2026-04-16.html` | Visual verification report covering backend, frontend, unit, and end-to-end validation |
 | `docs/reports/2026-05-22-qa-feature-coverage-report.html` | Comprehensive Hackathon 2026-05-22 QA Pass report — 41/42 E2E passed |
 | `docs/memories/2026-05-22-hackathon-victory-lap.md` | Final Hackathon 2026-05-22 polish, UI speed enhancements, and victory memory |
+| `docs/memories/session-2026-05-22-i18n-completion.md` | i18n implementation and hardcoded string removal across the UI |
 | `docs/memories/2026-05-22-hackathon-victory.md` | Hackathon Victory memory detailing E2E test suite reliability, dynamic base path fixes, and rate limiter loopback bypass |
 | `docs/memories/session-2026-05-22-e2e-demo-victory.md` | Final E2E Demo victory with Playwright Golden Path matching the beautiful new UI, executing flawlessly in 31 seconds |
 

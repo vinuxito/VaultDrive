@@ -50,5 +50,111 @@
       "placeholderPin": "••••",
       "placeholderCredential": "Enter credential"
     }
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "Good morning, {{name}}.",
+      "afternoon": "Good afternoon, {{name}}.",
+      "evening": "Good evening, {{name}}."
+    },
+    "secure": "Your vault is secure.",
+    "attention": {
+      "title": "Attention",
+      "healthy": "Everything looks healthy",
+      "healthyDesc": "No active links expiring soon, no stale shares",
+      "items": "{{count}} items need attention",
+      "item": "{{count}} item needs attention",
+      "uploadLinkExpires": "Upload link <strong>{{name}}</strong> expires {{time}}",
+      "staleLink": "Share link {{token}}… was created {{time}} and has never been accessed"
+    },
+    "overview": {
+      "title": "Vault Overview",
+      "totalFiles": "Total Files",
+      "activeLinks": "Active Links",
+      "sharedFiles": "Shared Files",
+      "groups": "Groups"
+    },
+    "start": {
+      "title": "Start Here",
+      "upload": "Upload File",
+      "uploadDesc": "Add encrypted files to your vault",
+      "createLink": "Create Client Upload Link",
+      "createLinkDesc": "Create a secure link for client file delivery",
+      "share": "Share a File",
+      "shareDesc": "Securely share with a user"
+    },
+    "activity": {
+      "title": "Activity",
+      "getStarted": "Get started with your vault",
+      "step1": "Upload a file to your vault",
+      "step2": "Create a client upload link",
+      "step3": "Share a file with a colleague",
+      "noActivity": "No activity yet",
+      "noActivityDesc": "Upload or share a file to begin."
+    }
+  },
+  "shared": {
+    "title": "Shared With Me",
+    "subtitle": "Files shared with you by other vault owners.",
+    "listTitle": "Shared Files",
+    "loading": "Loading shared files...",
+    "count": "{{count}} files shared with you",
+    "count_one": "{{count}} file shared with you",
+    "noFiles": "No shared files yet",
+    "noFilesDesc": "Ask someone to share a file with you using your vault address.",
+    "aboutTitle": "About Shared Files",
+    "aboutDesc": "Shared files are decrypted using your 4-digit PIN. No passwords are exchanged between users.",
+    "modal": {
+      "title": "Decrypt Shared File",
+      "desc": "Enter your 4-digit PIN to decrypt this file",
+      "pinLabel": "Your PIN",
+      "placeholder": "4-digit PIN",
+      "button": "Decrypt & Download"
+    }
+  },
+  "publicShare": {
+    "secureShare": "Secure File Share",
+    "verifying": "Verifying share link…",
+    "noExpiry": "No expiry",
+    "sharedBy": "Shared by",
+    "e2eInfo": "End-to-end encrypted · Key never leaves your browser",
+    "download": "Download File",
+    "decrypting": "Decrypting…",
+    "decryptingDesc": "Decryption happens entirely in your browser",
+    "doneTitle": "File Decrypted & Saved!",
+    "zkp": "Zero-Knowledge Proof",
+    "algo": "Algorithm:",
+    "keySource": "Key Source:",
+    "performance": "Performance:",
+    "zkpDesc": "Server never saw the encryption key. Decryption happened entirely on this device.",
+    "expiredTitle": "This link has expired",
+    "expiredDesc": "This share link is no longer valid.",
+    "expiredContact": "Contact the file owner to request a new link.",
+    "errorTitle": "Something went wrong",
+    "errorDesc": "Make sure you have the complete share link, including the key after #."
+  },
+  "publicFolder": {
+    "secureShare": "Secure Folder Share",
+    "verifying": "Verifying folder share link…",
+    "fileCount": "{{count}} files",
+    "fileCount_one": "{{count}} file",
+    "e2eInfo": "End-to-end encrypted · Keys never leave your browser",
+    "ownerTools": "Owner tools",
+    "ownerToolsDesc": "You own this link. If new files were added after sharing, you can repair and update this same link here.",
+    "enterPin": "Enter your current PIN",
+    "enterPassword": "Enter your current password",
+    "placeholderPin": "••••",
+    "placeholderPassword": "Current password",
+    "ownerDesc": "This stays in your browser and is only used to repair this link.",
+    "repairing": "Repairing…",
+    "downloadAll": "Download All as ZIP",
+    "decrypting": "Decrypting files… {{current}}/{{total}}",
+    "preparing": "Preparing download…",
+    "decryptingDesc": "Each file is decrypted in your browser before packaging",
+    "doneTitle": "ZIP saved!",
+    "backToFolder": "Back to folder",
+    "expiredTitle": "This link has expired",
+    "expiredDesc": "This folder share link is no longer valid.",
+    "expiredContact": "Contact the folder owner to request a new link."
   }
 }
