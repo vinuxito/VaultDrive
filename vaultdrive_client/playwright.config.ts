@@ -44,17 +44,17 @@ export default defineConfig({
     timeout: 15000,
   },
   timeout: 120000,
-  // webServer: {
-  //   command:
-  //     "npm run build -- --mode test" +
-  //     " && cd .." +
-  //     " && mkdir -p \"$UPLOAD_DIR\"" +
-  //     " && (psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\" || true)" +
-  //     " && go run github.com/pressly/goose/v3/cmd/goose@latest -dir sql/schema postgres \"$DB_URL\" up" +
-  //     " && PORT=8090 go run .",
-  //   env: e2eBackendEnv,
-  //   url: baseURL,
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 300000,
-  // },
+  webServer: {
+    command:
+      "npm run build -- --mode test" +
+      " && cd .." +
+      " && mkdir -p \"$UPLOAD_DIR\"" +
+      " && (psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\" || true)" +
+      " && go run github.com/pressly/goose/v3/cmd/goose@latest -dir sql/schema postgres \"$DB_URL\" up" +
+      " && go run .",
+    env: e2eBackendEnv,
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 300000,
+  },
 });

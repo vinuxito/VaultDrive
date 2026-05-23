@@ -78,7 +78,7 @@
 <tr><td>ABRN healthz</td><td><span class="pass-badge">HTTP 200</span></td><td><code>abrndrive.filemonprime.net/api/healthz</code></td></tr>
 <tr><td>ABRN frontend</td><td><span class="pass-badge">HTTP 200</span></td><td><code>abrndrive.filemonprime.net/abrn/</code></td></tr>
 <tr><td>Service isolation</td><td><span class="pass-badge">PASS</span></td><td>Separate PIDs, ports (8083/8082), databases</td></tr>
-<tr><td>E2E Playwright</td><td><span class="fail-badge">34 FAIL / 1 PASS</span></td><td>Pre-existing: <code>webServer</code> commented out in <code>playwright.config.ts</code>, no backend on port 8090. All tests 404 at login page. Not a UX phase regression.</td></tr>
+<tr><td>E2E Playwright</td><td><span class="pass-badge">42 PASSED (3.2m)</span></td><td><code>webServer</code> restored in <code>playwright.config.ts</code>, <code>.env.test</code> API URL fixed to <code>/quantix/api</code>. Full green bar.</td></tr>
 </tbody>
 </table>
 

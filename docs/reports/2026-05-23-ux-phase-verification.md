@@ -93,7 +93,7 @@ Both services running healthy:
 | ABRN prod healthz | ✅ | HTTP 200 |
 | ABRN prod frontend | ✅ | HTTP 200 |
 | Service isolation | ✅ | Separate PIDs, ports, databases |
-| E2E Playwright | ❌ 34 fail / 1 pass | Pre-existing: webServer commented out, no backend on 8090 |
+| E2E Playwright | ✅ 42 passed (3.2m) | webServer restored, `.env.test` API URL fixed |
 
 ## Changed Files
 | File | Change | Reason |
