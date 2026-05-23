@@ -140,14 +140,15 @@ test.describe("Trust and safety UX flows", () => {
 
     // Create an upload link via API
     const token = await page.evaluate(() => localStorage.getItem("token") ?? "");
+    const basePath = process.env.VITE_BASE_PATH ?? "/quantix";
     const foldersRes = await page.request.get(
-      `${new URL(page.url()).origin}/api/folders`,
+      `${new URL(page.url()).origin}${basePath}/api/folders`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
     const folders = (await foldersRes.json()) as Array<{ id: string }>;
 
     const dropRes = await page.request.post(
-      `${new URL(page.url()).origin}/api/drop/create`,
+      `${new URL(page.url()).origin}${basePath}/api/drop/create`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -54,8 +54,9 @@ test.describe("File upload with browser-side encryption", () => {
 
     // Verify via API that the file has correct encryption metadata
     const token = await page.evaluate(() => localStorage.getItem("token") ?? "");
+    const basePath = process.env.VITE_BASE_PATH ?? "/quantix";
     const filesRes = await page.request.get(
-      `${new URL(page.url()).origin}/api/files`,
+      `${new URL(page.url()).origin}${basePath}/api/files`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
     expect(filesRes.ok()).toBeTruthy();
