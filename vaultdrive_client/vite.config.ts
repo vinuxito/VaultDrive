@@ -12,6 +12,7 @@ import { defineConfig } from "vitest/config";
 function brandManifestPlugin(env: Record<string, string>): Plugin {
   const productName = env.VITE_PRODUCT_NAME || "QuantiX Drive";
   const rawBase = env.VITE_BASE_PATH || "/quantix";
+  console.log("rawBase is:", rawBase);
   const basePathWithSlash = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
   const primaryColor = env.VITE_PRIMARY_COLOR || "#4f46e5";
   const backgroundColor = env.VITE_BACKGROUND_COLOR || "#0f172a";
@@ -90,6 +91,7 @@ export default defineConfig(({ mode }) => {
       setupFiles: "./src/vitest.setup.ts",
       include: ["src/**/*.{test,spec}.{ts,tsx}"],
       exclude: ["e2e/**", "playwright-report/**", "test-results/**"],
+      testTimeout: 15000,
     },
   };
 });

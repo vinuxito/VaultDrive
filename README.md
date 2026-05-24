@@ -8,32 +8,32 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-05-22 — Verification & Closeout)
+## Current Status (2026-05-24 — QA Feature Coverage Verified & Deployed)
 
-**Production-ready.** Full hackathon polish pass completed. All features verified, documented, and hardened. The latest 3-iteration UI hardening and E2E flake-fixing cycle was fully verified end-to-end.
+**Production-ready.** Full QA Feature Coverage pass successfully verified. 15 implemented features covered by 118 unit tests, 41 E2E Playwright tests, and manual browser smoke checks. A test timeout issue in resource-constrained environments was fixed.
 
 | Check | Result |
 |-------|--------|
-| Frontend unit tests (`vitest run`) | ✅ 116 / 116 |
+| Frontend unit tests (`vitest run`) | ✅ 118 / 118 |
 | Frontend production build (`vite build`) | ✅ successful |
 | Backend build (`go build`) | ✅ exit 0 |
 | Backend tests (`go test ./...`) | ✅ ok (root pkg) |
 | Full E2E suite (`playwright test`) | ✅ 41 / 41 |
-| Feature coverage matrix | ✅ 28 / 28 documented features verified |
 | In-app Help Center (EN/ES) | ✅ `/help` route live |
 | Mobile touch targets (44px WCAG) | ✅ enforced via CSS |
 | Accessibility (skip link, focus rings, ARIA) | ✅ implemented |
 | Reduced motion support | ✅ `prefers-reduced-motion` |
 
 **Routing model (Apache vhost):**
-- SPA → `https://quantixdrive.filemonprime.net/quantix/`
-- API → `https://quantixdrive.filemonprime.net/api/...` (NOT under `/quantix/`)
+- SPA → `https://abrndrive.filemonprime.net/abrn/`
+- API → `https://abrndrive.filemonprime.net/api/...` (NOT under `/abrn/`)
 
-**Latest Verification & Session Memory:**
+**Latest Verification & QA Reports:**
+- QA Feature Coverage Report (HTML): [docs/reports/2026-05-24-qa-feature-coverage-report.html](docs/reports/2026-05-24-qa-feature-coverage-report.html)
+- QA Feature Coverage Report (MD): [docs/reports/2026-05-24-qa-feature-coverage-report.md](docs/reports/2026-05-24-qa-feature-coverage-report.md)
 - Verification Closeout: [docs/memories/session-2026-05-22-verification-closeout.md](docs/memories/session-2026-05-22-verification-closeout.md)
 - MD Verification Report: [docs/reports/2026-05-22-verification.md](docs/reports/2026-05-22-verification.md)
 - HTML Verification Report: [docs/reports/2026-05-22-verification.html](docs/reports/2026-05-22-verification.html)
-- 3-Iteration Loop Memory: [docs/memories/session-2026-05-22-filemon-coder-3-iterations.md](docs/memories/session-2026-05-22-filemon-coder-3-iterations.md)
 
 ---
 

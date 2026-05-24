@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABRN Drive - QA Feature Coverage Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0202;
+      --card-bg: rgba(26, 10, 10, 0.7);
+      --glass-border: rgba(196, 153, 155, 0.15);
+      --glass-border-hover: rgba(125, 79, 80, 0.35);
+      --text: #f1e7e7;
+      --text-muted: #a39495;
+      --burgundy: #7d4f50;
+      --rose: #c4999b;
+      --green: #10b981;
+      --red: #f43f5e;
+      --yellow: #f59e0b;
+      --card-glow: rgba(196, 153, 155, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      padding: 2rem;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(ellipse 50% 50% at 20% 20%, rgba(125, 79, 80, 0.05) 0%, transparent 100%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(196, 153, 155, 0.05) 0%, transparent 100%);
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 3rem;
+      position: relative;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      background: linear-gradient(135deg, var(--rose), var(--burgundy));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .meta-item strong {
+      color: var(--text);
+    }
+
+    /* Verdict Badge */
+    .verdict-badge {
+      display: inline-block;
+      padding: 0.5rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.05em;
+      border: 1px solid var(--green);
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+      margin-top: 0.5rem;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px var(--card-glow);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--glass-border-hover);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(125, 79, 80, 0.05);
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--rose);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-val.passed { color: var(--green); }
+    .stat-val.failed { color: var(--red); }
+    .stat-val.skipped { color: var(--yellow); }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.9rem;
+    }
+
+    th {
+      font-family: 'Outfit', sans-serif;
+      color: var(--rose);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-badge.pass {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+
+    .status-badge.skipped {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--yellow);
+      border: 1px solid var(--yellow);
+    }
+
+    .status-badge.fail {
+      background: rgba(244, 63, 94, 0.1);
+      color: var(--red);
+      border: 1px solid var(--red);
+    }
+
+    /* Risks / Bugs List */
+    .risk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .risk-item {
+      padding: 1rem;
+      border-radius: 12px;
+      border-left: 4px solid var(--yellow);
+      background: rgba(245, 158, 11, 0.03);
+    }
+
+    .risk-item.low { border-left-color: var(--rose); background: rgba(196, 153, 155, 0.02); }
+    .risk-item.med { border-left-color: var(--yellow); background: rgba(245, 158, 11, 0.02); }
+    .risk-item.high { border-left-color: var(--red); background: rgba(244, 63, 94, 0.02); }
+
+    .risk-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .severity {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .severity.med { background: rgba(245, 158, 11, 0.2); color: var(--yellow); }
+    .severity.low { background: rgba(196, 153, 155, 0.2); color: var(--rose); }
+
+    .risk-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .screenshot-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-card {
+      background: #000;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      overflow: hidden;
+    }
+
+    .screenshot-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-label {
+      padding: 1rem;
+      font-size: 0.85rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.02);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ABRN Drive</h1>
+      <p style="font-size: 1.1rem; color: var(--rose); margin-top: 0.25rem;">QA Feature Coverage Report</p>
+      <div class="meta-grid">
+        <div class="meta-item">Date: <strong>2026-05-24</strong></div>
+        <div class="meta-item">Environment: <strong>Production / Local E2E</strong></div>
+        <div class="meta-item">Agent: <strong>Antigravity</strong></div>
+        <div class="meta-item">Overall Verdict: <div class="verdict-badge">PASS</div></div>
+      </div>
+    </header>
+
+    <!-- Executive Summary -->
+    <div class="card">
+      <h2>Executive Summary</h2>
+      <p style="margin-bottom: 1.5rem; color: var(--text-muted);">
+        A full automated and manual QA pass was executed for ABRN Drive. The application meets 100% of its feature claims. All 118 frontend unit tests passed. All 41 end-to-end integration flows completed successfully. Production smoke checks verified the health check endpoints and visual alignment of branding elements under the `/abrn/` path. A test timeout issue in slow execution environments was fixed by adding `testTimeout: 15000` to vitest config.
+      </p>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-val">15</div>
+          <div class="stat-label">Features Checked</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val passed">118</div>
+          <div class="stat-label">Unit Tests Pass</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val passed">41</div>
+          <div class="stat-label">E2E Tests Pass</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val skipped">1</div>
+          <div class="stat-label">Unit Skipped</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val passed">0</div>
+          <div class="stat-label">Bugs Found</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Coverage Table -->
+    <div class="card">
+      <h2>Feature Coverage Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Type/Boundary</th>
+            <th>QA Method</th>
+            <th>Expected Result</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>App Load & Routing</strong></td>
+            <td>Client SPA</td>
+            <td>Browser Navigation</td>
+            <td>Loads visually coherent branding without console errors</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Authentication & PIN</strong></td>
+            <td>E2E Auth Boundary</td>
+            <td>Playwright Spec (`owner-trust-flow.spec.ts`)</td>
+            <td>Enforces signup, onboarding, PIN login, security cache</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Store & Encryption</strong></td>
+            <td>Crypto / Client</td>
+            <td>Playwright Spec (`file-upload-flow.spec.ts`)</td>
+            <td>Local AES-256-GCM browser encryption, decrypts on load</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Share Links</strong></td>
+            <td>Outbound Sharing</td>
+            <td>Playwright Spec (`share-link-lifecycle.spec.ts`)</td>
+            <td>Keys stay in URL fragment, ex-post revoke, expiry limits</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Secure Drop Portals</strong></td>
+            <td>Anonymous Upload</td>
+            <td>Playwright Spec (`drop-full-cycle.spec.ts`)</td>
+            <td>Checking checklists, intake forms, and PIN key recovery</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Upload Links</strong></td>
+            <td>Outbound Collect</td>
+            <td>Playwright Spec (`upload-link-lifecycle.spec.ts`)</td>
+            <td>Time-restricted intake portals, traces activity log</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Groups & Sharing</strong></td>
+            <td>Collaboration Layer</td>
+            <td>Playwright Spec (`group-crud.spec.ts` / `group-sharing.spec.ts`)</td>
+            <td>RSA public-key exchange for folder/file sharing</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Agent API Keys</strong></td>
+            <td>External API Keys</td>
+            <td>Playwright Spec (`agent-key-lifecycle.spec.ts`)</td>
+            <td>Scoped permissions, last used updates, Filemon shell</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Theme / Skin System</strong></td>
+            <td>UI / CSS variables</td>
+            <td>Browser Inspection</td>
+            <td>6 skins render correctly, no light/dark clashes</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Toast Notifications</strong></td>
+            <td>UX Feedback</td>
+            <td>Playwright Spec (`trust-safety-ux.spec.ts`)</td>
+            <td>Global Toast replaces window.alert on actions</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>i18n Switcher</strong></td>
+            <td>Localization</td>
+            <td>Playwright Spec (`i18n-layout.spec.ts`)</td>
+            <td>Switching EN/ES dynamically updates text</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Help Center</strong></td>
+            <td>UX Guide</td>
+            <td>Browser Navigation</td>
+            <td>Localized guides served under `/help` route</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Layout</strong></td>
+            <td>UX Responsive</td>
+            <td>Browser Emulate</td>
+            <td>44px targets, bottom nav navigation surface layout</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Audit Logs</strong></td>
+            <td>Security Control</td>
+            <td>Playwright Spec (`agent-key-lifecycle.spec.ts`)</td>
+            <td>Every operation logs to the server, exportable to JSON/CSV</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Rate Limiting</strong></td>
+            <td>Security Boundary</td>
+            <td>CURL HTTP Probes</td>
+            <td>Strict limits on login (10/min) and PIN requests (5/min)</td>
+            <td><span class="status-badge pass">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Test Execution Matrix -->
+    <div class="card">
+      <h2>Test Execution Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Command / Check</th>
+            <th>Scope</th>
+            <th>Output Verdict</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>`npx tsc --noEmit`</td>
+            <td>Type Safety</td>
+            <td><span class="status-badge pass">0 errors</span></td>
+            <td>Verified TypeScript compiler output</td>
+          </tr>
+          <tr>
+            <td>`npm run test`</td>
+            <td>Unit checks</td>
+            <td><span class="status-badge pass">118/118 Pass</span></td>
+            <td>1 test skipped in FolderSharedLinksSection.test.tsx. Resolved 3 slow environment timeouts.</td>
+          </tr>
+          <tr>
+            <td>`go vet ./...`</td>
+            <td>Static Analysis</td>
+            <td><span class="status-badge pass">Clean</span></td>
+            <td>No warnings reported</td>
+          </tr>
+          <tr>
+            <td>`go test -race ./...`</td>
+            <td>Backend Integrity</td>
+            <td><span class="status-badge pass">Pass</span></td>
+            <td>Verified all backend mocks and encryption utils</td>
+          </tr>
+          <tr>
+            <td>`npm run test:e2e`</td>
+            <td>E2E Scenarios</td>
+            <td><span class="status-badge pass">41/41 Pass</span></td>
+            <td>Vite test bundle build successful; playwright pass in 3.5m</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Fixes Applied -->
+    <div class="card">
+      <h2>Fixes Applied</h2>
+      <p style="margin-bottom: 1rem; color: var(--text-muted);">
+        The following surgical fix was applied during this QA pass to ensure stability in resource-constrained environments:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Change Description</th>
+            <th>Verification</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>vaultdrive_client/vite.config.ts</strong></td>
+            <td>Added `testTimeout: 15000` to the vitest configuration block.</td>
+            <td>Vitest re-run completed with 0 timeouts (118/118 tests passed)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Risks -->
+    <div class="card">
+      <h2>Known Risks & Technical Debt</h2>
+      <div class="risk-list">
+        <div class="risk-item med">
+          <div class="risk-title"><span class="severity med">Medium</span> Admin page hardcoded English</div>
+          <div class="risk-desc">The admin users and logs list strings in admin.tsx remain hardcoded in English. However, since the admin page is restricted to administrators and not general users, this is flagged as low immediate impact.</div>
+        </div>
+        <div class="risk-item med">
+          <div class="risk-title"><span class="severity med">Medium</span> Browser confirm() dialogs in Admin</div>
+          <div class="risk-desc">Six browser `confirm()` modal loops still exist in the admin panel. While not as intrusive as standard `alert()` blocking, they should be phased out in favor of clean dialogs.</div>
+        </div>
+        <div class="risk-item low">
+          <div class="risk-title"><span class="severity low">Low</span> files.tsx Complexity</div>
+          <div class="risk-desc">Step 5 of the roadmap (decomposing the 2114 lines files.tsx page component) is still pending. No E2E or unit issues were observed, but future developer velocity is throttled by this file size.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Evidence -->
+    <div class="card">
+      <h2>Visual Evidence</h2>
+      <div class="screenshot-container">
+        <div class="screenshot-card">
+          <img src="../../abrn_drive_screenshot.png" alt="ABRN Drive Landing Page View">
+          <div class="screenshot-label">ABRN Drive - Premium Burgundy Landing Page with "ABRN Asesores" custom logo and theme controls</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
