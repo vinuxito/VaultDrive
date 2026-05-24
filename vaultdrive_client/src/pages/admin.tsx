@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { API_URL } from "../utils/api";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import { useToast } from "../context/ToastContext";
 
 interface User {
   id: string;
@@ -58,6 +59,7 @@ export default function Admin() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const currentUser = getStoredUserFromLocalStorage() ?? {};
+  const { addToast } = useToast();
 
   // Users that can be selected for bulk delete (not self)
   const selectableUsers = users.filter(
@@ -136,12 +138,12 @@ export default function Admin() {
 
       if (response.ok) {
         const data = await response.json();
-        alert(data.message);
+        addToast(data.message, "success");
         setSelected(new Set());
         await fetchUsers();
       } else {
         const data = await response.json();
-        alert(data.error || "Error deleting users");
+        addToast(data.error || "Error deleting users", "error");
       }
     } catch (err) {
       console.error("Error bulk deleting:", err);
@@ -211,11 +213,11 @@ export default function Admin() {
         setEditingUser(null);
       } else {
         const data = await response.json();
-        alert(data.error || "Error updating user");
+        addToast(data.error || "Error updating user", "error");
       }
     } catch (err) {
       console.error("Error updating user:", err);
-      alert("Network error updating user");
+      addToast("Network error updating user", "error");
     }
   };
 
@@ -235,14 +237,14 @@ export default function Admin() {
       if (response.ok) {
         setResetPasswordUser(null);
         setNewPassword("");
-        alert("Password reset successfully!");
+        addToast("Password reset successfully!", "success");
       } else {
         const data = await response.json();
-        alert(data.error || "Error resetting password");
+        addToast(data.error || "Error resetting password", "error");
       }
     } catch (err) {
       console.error("Error resetting password:", err);
-      alert("Network error resetting password");
+      addToast("Network error resetting password", "error");
     }
   };
 
@@ -264,14 +266,14 @@ export default function Admin() {
       );
 
       if (response.ok) {
-        alert("PIN cleared successfully.");
+        addToast("PIN cleared successfully.", "success");
       } else {
         const data = await response.json();
-        alert(data.error || "Error resetting PIN");
+        addToast(data.error || "Error resetting PIN", "error");
       }
     } catch (err) {
       console.error("Error resetting PIN:", err);
-      alert("Network error resetting PIN");
+      addToast("Network error resetting PIN", "error");
     }
   };
 
@@ -298,7 +300,7 @@ export default function Admin() {
         await fetchUsers();
       } else {
         const data = await response.json();
-        alert(data.error || "Error updating admin status");
+        addToast(data.error || "Error updating admin status", "error");
       }
     } catch (err) {
       console.error("Error toggling admin:", err);
@@ -324,14 +326,14 @@ export default function Admin() {
 
       if (response.ok) {
         await fetchUsers();
-        alert("User will be required to change password on next login.");
+        addToast("User will be required to change password on next login.", "success");
       } else {
         const data = await response.json();
-        alert(data.error || "Error setting force password change");
+        addToast(data.error || "Error setting force password change", "error");
       }
     } catch (err) {
       console.error("Error forcing password change:", err);
-      alert("Network error");
+      addToast("Network error", "error");
     }
   };
 
@@ -352,11 +354,11 @@ export default function Admin() {
         await fetchUsers();
       } else {
         const data = await response.json();
-        alert(data.error || "Error deleting user");
+        addToast(data.error || "Error deleting user", "error");
       }
     } catch (err) {
       console.error("Error deleting user:", err);
-      alert("Network error deleting user");
+      addToast("Network error deleting user", "error");
     }
   };
 

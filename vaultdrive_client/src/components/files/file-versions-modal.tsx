@@ -4,6 +4,7 @@ import { ElegantModal } from '../elegant';
 import { Button } from '../ui/button';
 import { getFileVersions, restoreFileVersion } from '../../utils/api';
 import { formatSize, formatDate } from '../../utils/format';
+import { useToast } from '../../context/ToastContext';
 
 interface Version {
   id: string;
@@ -33,6 +34,7 @@ export function FileVersionsModal({
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (isOpen && fileId) {
@@ -63,7 +65,7 @@ export function FileVersionsModal({
     setError(null);
     try {
       await restoreFileVersion(fileId, versionId, token);
-      alert('Version restored successfully!');
+      addToast('Version restored successfully!', 'success');
       onVersionRestored?.();
       onClose();
     } catch (err) {

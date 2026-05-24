@@ -6,6 +6,7 @@ import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { LanguageToggle } from "../ui/language-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +24,7 @@ import { useSSE } from "../../hooks";
 import type { ActivityEvent } from "../../hooks";
 import { ActivityFeedPanel } from "./ActivityFeedPanel";
 import { Toast } from "./Toast";
-import type { ToastMessage } from "./Toast";
+import { useToast } from "../../context/ToastContext";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { requiresPinSetup } from "../../utils/pin-trust";
 import { API_URL } from "../../utils/api";
@@ -45,7 +46,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [activityFeedOpen, setActivityFeedOpen] = useState(false);
   const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const { toasts, addToast, dismissToast } = useToast();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const user = getStoredUserFromLocalStorage() ?? {};
@@ -99,13 +100,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (toasts.length === 0) return;
-    const timer = setTimeout(() => {
-      setToasts((prev) => prev.slice(1));
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [toasts]);
+
 
   // Burst consolidation: events arriving within 800 ms are grouped into one toast.
   const burstCount = useRef(0);
@@ -141,7 +136,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           ? t("common:notifications.dropUpload")
           : t("common:notifications.newActivity", { type: first?.event_type ?? "" });
 
-      setToasts((prev) => [...prev, { id: crypto.randomUUID(), message, type: "info" } as ToastMessage]);
+      addToast(message, "info");
     }, 800);
 
   });
@@ -241,6 +236,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               )}
             </button>
 
+            <LanguageToggle />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button type="button" className="flex items-center gap-2">
@@ -288,7 +285,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
       <Toast
         toasts={toasts}
-        onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+        onDismiss={(id) => dismissToast(id)}
       />
     </div>
   );

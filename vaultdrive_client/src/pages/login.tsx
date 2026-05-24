@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LanguageToggle } from "../components/ui/language-toggle";
 import { Button } from "../components/ui/button";
 import {
   CardContent,
@@ -171,7 +172,11 @@ export default function Login() {
   };
 
   return (
-    <div className="brand-page-bg flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 80px)" }}>
+    <div className="brand-page-bg flex flex-col items-center justify-center p-4 relative" style={{ minHeight: "100vh" }}>
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <LanguageToggle />
+      </div>
+
       <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden shadow-[var(--shadow-glow-primary)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">

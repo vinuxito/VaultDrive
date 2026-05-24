@@ -5,33 +5,22 @@
 
 /* CSS Variables for theming — bridging legacy elegant system to luxury tokens */
 :root {
-  --surface-primary: var(--lux-neutral-50);
-  --surface-secondary: var(--lux-neutral-200);
-  --surface-tertiary: var(--lux-neutral-300);
-  --text-primary: var(--lux-slate-700);
-  --text-secondary: var(--lux-slate-500);
-  --text-tertiary: var(--lux-slate-400);
-  --accent-primary: var(--lux-burgundy-600);
-  --accent-secondary: var(--lux-burgundy-300);
-  --accent-success: var(--lux-emerald);
-  --accent-warning: var(--lux-amber);
-  --accent-danger: var(--lux-ruby);
+  --surface-primary: hsl(var(--card));
+  --surface-secondary: hsl(var(--muted));
+  --surface-tertiary: hsl(var(--input));
+  --text-primary: hsl(var(--foreground));
+  --text-secondary: hsl(var(--muted-foreground));
+  --text-tertiary: hsl(var(--muted-foreground) / 0.8);
+  --accent-primary: hsl(var(--primary));
+  --accent-secondary: hsl(var(--secondary));
+  --accent-success: hsl(var(--accent-success-raw, 142 76% 36%));
+  --accent-warning: hsl(var(--accent-warning-raw, 38 92% 50%));
+  --accent-danger: hsl(var(--destructive));
   --elevation-low: var(--shadow-sm);
   --elevation-medium: var(--shadow-md);
   --elevation-high: var(--shadow-lg);
 }
 
-.dark {
-  --surface-primary: var(--lux-slate-900);
-  --surface-secondary: var(--lux-slate-800);
-  --surface-tertiary: var(--lux-slate-800);
-  --text-primary: var(--lux-neutral-200);
-  --text-secondary: var(--lux-slate-400);
-  --text-tertiary: var(--lux-slate-500);
-  --elevation-low: var(--shadow-sm);
-  --elevation-medium: var(--shadow-md);
-  --elevation-high: var(--shadow-lg);
-}
 
 /* ========== Elegant Card ========== */
 .elegant-card {
@@ -39,29 +28,36 @@
   border: 1px solid rgba(0,0,0,0.06);
   border-radius: 12px;
   box-shadow: var(--elevation-low);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.4s ease,
+              border-color 0.4s ease;
 }
 
-.elegant-card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--elevation-medium);
+.elegant-card:hover, .elegant-card-hover:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--elevation-high), 0 0 24px color-mix(in srgb, var(--accent-primary), transparent 85%);
+  border-color: color-mix(in srgb, var(--accent-primary), transparent 70%);
+}
+
+.elegant-card:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: 0.1s;
 }
 
 .elegant-fade-in {
   opacity: 0;
-  animation: elegant-fade-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: elegant-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes elegant-fade-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -135,12 +131,7 @@
   color: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  .elegant-modal {
-    background: linear-gradient(135deg, var(--lux-burgundy-700) 0%, var(--lux-burgundy-800) 100%);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-  }
-}
+
 
 /* Warning/Alert boxes inside modals */
 .elegant-modal-warning {
@@ -417,17 +408,11 @@
 }
 
 .elegant-overlay {
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--glass-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid color-mix(in srgb, var(--accent-primary), transparent 88%);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
-}
-
-.dark .elegant-overlay {
-  background: rgba(22, 27, 38, 0.92);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
 /* ========== Perception Speed — Stat Card Staggered Entry ========== */
