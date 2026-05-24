@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { API_URL } from "../utils/api";
 import { useSessionVault } from "../context/SessionVaultContext";
+import { useToast } from "../context/ToastContext";
 import {
   decryptFile,
   base64ToArrayBuffer,
@@ -195,6 +196,7 @@ export default function PublicFolderSharePage() {
   const [repairing, setRepairing] = useState(false);
   const [repairMessage, setRepairMessage] = useState("");
   const [ownerCredentialInput, setOwnerCredentialInput] = useState("");
+  const { addToast } = useToast();
 
   const currentUser = useMemo(() => {
     const storedUser = localStorage.getItem("user");
@@ -386,7 +388,7 @@ export default function PublicFolderSharePage() {
         document.body.removeChild(a);
       } catch (err) {
         // Show error inline without breaking ready state for single-file failures
-        alert(err instanceof Error ? err.message : "Failed to download file");
+        addToast(err instanceof Error ? err.message : "Failed to download file", "error");
       } finally {
         setDownloadingFileId(null);
       }

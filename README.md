@@ -8,30 +8,31 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-05-23 — Production Hardening Phase Verified & Closed Out)
+## Current Status (2026-05-24 — UX Roadmap Steps 1-4 Verified & Deployed)
 
-**Production-ready.** Phase IV (Security Headers, Rate Limiting, Backups) deployed and verified end-to-end. Both QuantiX and ABRN drives are live, fully isolated, with Strict Transport Security, Content-Security-Policy, and other headers active. Deployment pipeline fixed to handle Text file busy & Windows CRLF edge-cases.
+**Production-ready.** Phase V UX Roadmap Steps 1-4 (Theme Coherence, Language Switcher, Toast System, i18n Completion) deployed and verified end-to-end. All previous Phase IV protections (Security Headers, Rate Limiting, Backups) remain active.
 
 | Check | Result |
 |-------|--------|
 | TypeScript typecheck | ✅ 0 errors |
-| Frontend production build | ✅ pass |
+| Frontend production build | ✅ pass (~22s) |
 | Backend `go vet` + `go test -race` | ✅ pass |
 | Unit tests (vitest) | ✅ 116 passed, 1 skipped, 0 failed |
-| QuantiX production healthz | ✅ HTTP 200 (version `ed1cbfa`) |
-| QuantiX security headers | ✅ 7/7 present |
-| ABRN production healthz | ✅ HTTP 200 (version `9074a55`) |
-| ABRN security headers | ✅ 7/7 present |
-| Service & database isolation | ✅ Separate PIDs, ports, databases |
+| QuantiX production healthz | ✅ HTTP 200 |
+| Production `/quantix/` | ✅ HTTP 200 |
+| Production `POST /api/register {}` | ✅ HTTP 400 (expected) |
+| `alert()` calls in production code | ✅ 0 remaining (18 replaced with toast) |
+| EN/ES locale key parity | ✅ all 3 namespaces at parity |
+| `make deploy` smoke | ✅ all 3 probes pass |
 
 **Latest Session Memory:**
+- UX Roadmap Steps 1-4: [docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md](docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md)
 - Pre-Phase V Sanity Check: [docs/memories/session-2026-05-23-phase5-prep.md](docs/memories/session-2026-05-23-phase5-prep.md)
-- Production Verification & Closeout: [docs/memories/session-2026-05-23-production-deployment.md](docs/memories/session-2026-05-23-production-deployment.md)
 - Undeniable UX Phase: [docs/memories/session-2026-05-23-ux-phase.md](docs/memories/session-2026-05-23-ux-phase.md)
 - Decoupling Environments: [docs/memories/session-2026-05-23-decoupling-environments.md](docs/memories/session-2026-05-23-decoupling-environments.md)
-- Production Polish: [docs/memories/session-2026-05-22-production-polish.md](docs/memories/session-2026-05-22-production-polish.md)
+- Production Deployment: [docs/memories/session-2026-05-23-production-deployment.md](docs/memories/session-2026-05-23-production-deployment.md)
 
-**Latest Verification Report:** [docs/reports/2026-05-23-phase5-prep-verification.html](docs/reports/2026-05-23-phase5-prep-verification.html)
+**Latest Verification Report:** [docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.html](docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.html)
 
 ---
 
@@ -74,11 +75,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/a
 Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/etc/quantix/quantixdrive.env`. Logs: `journalctl -u quantixdrive -f`.
 
 **What's new since the last verification:**
-- Three coherence primitives shipped: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` (see [docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md](docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md)).
-- First adoption surface: Upload Links (UploadLinkCard now exposes Seal / Remove via a header-level row action menu; UploadLinksSection renders loading/empty via `<DataState>`).
-- Two surgical fixes to E2E test code that had drifted out of sync with upstream UI changes — see [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md).
+- **Phase V UX Roadmap Steps 1-4 (2026-05-24):**
+  - Step 1: Theme coherence — removed `.dark` CSS override blocks conflicting with skin system.
+  - Step 2: Language switcher — new `<LanguageToggle />` component on login, dashboard, and public navbar.
+  - Step 3: Toast system — centralized `ToastContext` with `useToast()` hook, replaced all 18 `alert()` calls with non-blocking toasts.
+  - Step 4: i18n completion — OnboardingWizard (52 keys), navbar (12 keys), and all locale files at EN/ES parity.
+- Previous: Three coherence primitives (`<RowActionMenu>`, `constants/copy.ts`, `<DataState>`), Undeniable UX Phase (Cmd+K, SWR optimistic UI, hover prefetch, framer-motion).
 
-**Roadmap:** [docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md](docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) — 7 steps focused on UI/UX coherence. Steps 1–3 (foundations) shipped; next is adoption on AccessPanel and FileRequestsSection.
+**Roadmap:** Steps 5-7 remain: files.tsx decomposition, SWR everywhere, accessibility audit. See [docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md](docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md).
 
 **Latest verification (Filemón Coder 3-iteration loop, 2026-04-27 11:31 CST):**
 - Session memory: [docs/memories/session-2026-04-27-filemon-coder-3-iterations.md](docs/memories/session-2026-04-27-filemon-coder-3-iterations.md)
@@ -485,6 +489,9 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/memories/session-2026-05-23-verification-closeout.md` | Verification & closeout of UX phase — all checks passed, testTimeout fix applied |
 | `docs/reports/2026-05-23-ux-phase-verification.md` | UX Phase verification report (Markdown) |
 | `docs/reports/2026-05-23-ux-phase-verification.html` | UX Phase verification report (HTML — browser-readable) |
+| `docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md` | Phase V UX Roadmap Steps 1-4: Theme Coherence, Language Switcher, Toast System, i18n Completion |
+| `docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.md` | UX Roadmap Steps 1-4 verification report (Markdown) |
+| `docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.html` | UX Roadmap Steps 1-4 verification report (HTML — browser-readable) |
 
 ---
 

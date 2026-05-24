@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./components/theme-provider";
 import { SWRConfig } from "swr";
+import { ToastProvider } from "./context/ToastContext";
 import "./i18n";
 
 const fetcher = (url: string) => {
@@ -21,7 +22,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider defaultSkin="quantix" storageKey="quantixdrive-skin">
       <SWRConfig value={{ fetcher, keepPreviousData: true, errorRetryCount: 1 }}>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </SWRConfig>
     </ThemeProvider>
   </StrictMode>

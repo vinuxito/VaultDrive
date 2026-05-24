@@ -3,6 +3,7 @@
     "toggle": "Language"
   },
   "nav": {
+    "home": "Home",
     "dashboard": "Dashboard",
     "files": "Files",
     "groups": "Groups",
@@ -10,11 +11,16 @@
     "accessCenter": "Access Center",
     "settings": "Settings",
     "help": "Help Center",
+    "about": "About",
+    "admin": "Admin",
+    "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
-    "search": "Search..."
+    "search": "Search...",
+    "greeting": "Hi, {{name}}"
   },
   "userMenu": {
+    "myAccount": "My Account",
     "profile": "Profile",
     "settings": "Settings",
     "help": "Help Center",

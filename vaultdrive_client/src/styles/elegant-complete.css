@@ -21,9 +21,6 @@
   --elevation-high: var(--shadow-lg);
 }
 
-.dark .elegant-card {
-  border-color: rgba(255, 255, 255, 0.08);
-}
 
 /* ========== Elegant Card ========== */
 .elegant-card {
@@ -134,10 +131,7 @@
   color: #ffffff;
 }
 
-.dark .elegant-modal {
-  background: linear-gradient(135deg, var(--lux-burgundy-700) 0%, var(--lux-burgundy-800) 100%);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-}
+
 
 /* Warning/Alert boxes inside modals */
 .elegant-modal-warning {
@@ -414,17 +408,11 @@
 }
 
 .elegant-overlay {
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--glass-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid color-mix(in srgb, var(--accent-primary), transparent 88%);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
-}
-
-.dark .elegant-overlay {
-  background: rgba(22, 27, 38, 0.92);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
 /* ========== Perception Speed — Stat Card Staggered Entry ========== */

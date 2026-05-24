@@ -3,6 +3,8 @@ import { Menu, Search, Bell, Command } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
+import { LanguageToggle } from "../ui/language-toggle";
+
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -22,7 +24,7 @@ import { useSSE } from "../../hooks";
 import type { ActivityEvent } from "../../hooks";
 import { ActivityFeedPanel } from "./ActivityFeedPanel";
 import { Toast } from "./Toast";
-import type { ToastMessage } from "./Toast";
+import { useToast } from "../../context/ToastContext";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { requiresPinSetup } from "../../utils/pin-trust";
 import { API_URL } from "../../utils/api";
@@ -37,20 +39,15 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, i18n } = useTranslation(["common", "drive"]);
+  const { t } = useTranslation(["common", "drive"]);
   const { clearVault } = useSessionVault();
-  
-  const toggleLanguage = () => {
-    const nextLang = i18n.language.startsWith("es") ? "en" : "es";
-    void i18n.changeLanguage(nextLang);
-  };
+  const { toasts, addToast, dismissToast } = useToast();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   // Command palette state moved to global component
   const [activityFeedOpen, setActivityFeedOpen] = useState(false);
   const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const user = getStoredUserFromLocalStorage() ?? {};
@@ -104,13 +101,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (toasts.length === 0) return;
-    const timer = setTimeout(() => {
-      setToasts((prev) => prev.slice(1));
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [toasts]);
+  // Auto-dismiss is now handled by ToastProvider
 
   // Burst consolidation: events arriving within 800 ms are grouped into one toast.
   const burstCount = useRef(0);
@@ -146,7 +137,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           ? t("common:notifications.dropUpload")
           : t("common:notifications.newActivity", { type: first?.event_type ?? "" });
 
-      setToasts((prev) => [...prev, { id: crypto.randomUUID(), message, type: "info" } as ToastMessage]);
+      addToast(message, "info");
     }, 800);
 
   });
@@ -246,14 +237,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="p-2 rounded-full hover:bg-primary/10 transition-colors text-xs font-semibold text-foreground uppercase cursor-pointer w-9 h-9 flex items-center justify-center"
-              aria-label="Toggle language"
-            >
-              {i18n.language.startsWith("es") ? "EN" : "ES"}
-            </button>
+            <LanguageToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -313,7 +297,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
       <Toast
         toasts={toasts}
-        onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+        onDismiss={dismissToast}
       />
     </div>
   );

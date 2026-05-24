@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -31,6 +32,7 @@ type Step = 1 | 2 | 3 | 4;
 
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const { setCredential } = useSessionVault();
+  const { t } = useTranslation(['drive']);
   const [step, setStep] = useState<Step>(1);
 
   const [pin, setPin] = useState("");
@@ -51,15 +53,15 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const handleSetPin = async () => {
     setPinError("");
     if (!/^\d{4}$/.test(pin)) {
-      setPinError("PIN must be exactly 4 digits.");
+      setPinError(t("drive:onboarding.pinMustBe4Digits"));
       return;
     }
     if (pin !== confirmPin) {
-      setPinError("PINs do not match.");
+      setPinError(t("drive:onboarding.pinsDoNotMatch"));
       return;
     }
     if (!passwordInput) {
-      setPinError("Enter your account password to finish PIN setup.");
+      setPinError(t("drive:onboarding.enterPasswordForPin"));
       return;
     }
     setSettingPin(true);
@@ -112,7 +114,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
   const handleCreateFolder = async () => {
     if (!folderName.trim()) {
-      setFolderError("Please enter a folder name.");
+      setFolderError(t("drive:onboarding.enterFolderName"));
       return;
     }
     setFolderError("");
@@ -147,10 +149,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   };
 
   const steps = [
-    { num: 1, label: "Privacy", icon: Lock },
-    { num: 2, label: "Set PIN", icon: Shield },
-    { num: 3, label: "Create Folder", icon: FolderPlus },
-    { num: 4, label: "Ready!", icon: CheckCircle2 },
+    { num: 1, label: t("drive:onboarding.stepPrivacy"), icon: Lock },
+    { num: 2, label: t("drive:onboarding.stepSetPin"), icon: Shield },
+    { num: 3, label: t("drive:onboarding.stepCreateFolder"), icon: FolderPlus },
+    { num: 4, label: t("drive:onboarding.stepReady"), icon: CheckCircle2 },
   ];
 
   return (
@@ -162,7 +164,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         <div className="px-8 pt-8 pb-0">
           <div className="flex justify-center mb-5">
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-white/30 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-primary-foreground">
-              Owner setup
+              {t("drive:onboarding.ownerSetup")}
             </span>
           </div>
 
@@ -216,14 +218,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </div>
                 <div className="flex justify-center">
                   <span className="inline-flex items-center rounded-full border border-white/10 bg-white/30 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-primary-foreground">
-                    One PIN. One trusted session.
+                    {t("drive:onboarding.privacyTagline")}
                   </span>
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                  Your files, your control
+                  {t("drive:onboarding.privacyTitle")}
                 </h2>
                 <p className="text-sm text-white/90 max-w-md mx-auto leading-relaxed">
-                  Files are encrypted in your browser before they leave your device. The server only ever sees locked data and the access record you can review.
+                  {t("drive:onboarding.privacyDescription")}
                 </p>
               </div>
 
@@ -231,23 +233,23 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                   <p className="font-medium text-white flex items-center gap-2">
                     <Lock className="w-4 h-4 text-primary-foreground" />
-                    What stays private
+                    {t("drive:onboarding.whatStaysPrivate")}
                   </p>
-                  <p className="mt-1 text-white/90 leading-relaxed">Your file contents. Even with full database access, files cannot be read without your PIN and the key material it unlocks.</p>
+                  <p className="mt-1 text-white/90 leading-relaxed">{t("drive:onboarding.whatStaysPrivateDesc")}</p>
                 </div>
                 <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                   <p className="font-medium text-white flex items-center gap-2">
                     <Eye className="w-4 h-4 text-primary-foreground" />
-                    What you control
+                    {t("drive:onboarding.whatYouControl")}
                   </p>
-                  <p className="mt-1 text-white/90 leading-relaxed">Who can access each file, when links expire, and the ability to revoke any external access immediately when something changes.</p>
+                  <p className="mt-1 text-white/90 leading-relaxed">{t("drive:onboarding.whatYouControlDesc")}</p>
                 </div>
                 <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                   <p className="font-medium text-white flex items-center gap-2">
                     <Bot className="w-4 h-4 text-primary-foreground" />
-                    Agents work within bounds
+                    {t("drive:onboarding.agentsBounded")}
                   </p>
-                  <p className="mt-1 text-white/90 leading-relaxed">AI systems and automation get scoped credentials. They can help move encrypted data, but they cannot quietly read your files.</p>
+                  <p className="mt-1 text-white/90 leading-relaxed">{t("drive:onboarding.agentsBoundedDesc")}</p>
                 </div>
               </div>
 
@@ -255,7 +257,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={() => setStep(2)}
               >
-                Continue <ArrowRight className="w-4 h-4" />
+                {t("drive:onboarding.continue")} <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           )}
@@ -267,26 +269,26 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <Shield className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                  Set your PIN
+                  {t("drive:onboarding.pinTitle")}
                 </h2>
                 <p className="text-sm text-white/90 max-w-xs mx-auto">
-                  A 4-digit PIN secures your vault, future shares, Secure Drop, and quick login.
+                  {t("drive:onboarding.pinDescription")}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-white/20 bg-white/30 px-4 py-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary-foreground">After this step</p>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary-foreground">{t("drive:onboarding.afterThisStep")}</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3 text-left text-xs text-white/90">
-                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">Unlock the vault without extra friction</div>
-                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">Create secure links with the same trusted session</div>
-                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">Keep control visible across every share and sender route</div>
+                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">{t("drive:onboarding.afterStep1")}</div>
+                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">{t("drive:onboarding.afterStep2")}</div>
+                  <div className="rounded-xl border border-white/10 bg-black/70 px-3 py-2">{t("drive:onboarding.afterStep3")}</div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="onboarding-pin" className="text-white/90 text-xs font-medium uppercase tracking-wider">
-                    4-Digit PIN
+                    {t("drive:onboarding.pinLabel")}
                   </Label>
                   <div className="relative">
                     <Input
@@ -311,7 +313,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="onboarding-confirm-pin" className="text-white/90 text-xs font-medium uppercase tracking-wider">
-                    Confirm PIN
+                    {t("drive:onboarding.confirmPinLabel")}
                   </Label>
                   <Input
                     id="onboarding-confirm-pin"
@@ -328,38 +330,38 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="onboarding-account-password" className="text-white/90 text-xs font-medium uppercase tracking-wider">
-                    Account Password
+                    {t("drive:onboarding.accountPasswordLabel")}
                   </Label>
                   <Input
                     id="onboarding-account-password"
                     type="password"
-                    placeholder="Enter your login password"
+                    placeholder={t("drive:onboarding.accountPasswordPlaceholder")}
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
                     className="bg-white/30 border-white/20 text-white placeholder:text-white/90 focus:border-primary/60 focus:ring-primary/20 h-12"
                   />
                   <p className="text-xs text-white/90 leading-relaxed">
-                    {`We use this once to re-wrap your private key so your one PIN works everywhere in ${branding.productName}.`}
+                    {t("drive:onboarding.accountPasswordHelp", { productName: branding.productName })}
                   </p>
                 </div>
 
                 {showRecovery && (
                   <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
                     <Label htmlFor="onboarding-previous-password" className="text-amber-200/90 text-xs font-medium uppercase tracking-wider">
-                      Previous Password
+                      {t("drive:onboarding.previousPasswordLabel")}
                     </Label>
                     <Input
                       id="onboarding-previous-password"
                       type="password"
-                      placeholder="Enter your previous password"
+                      placeholder={t("drive:onboarding.previousPasswordPlaceholder")}
                       value={previousPassword}
                       onChange={(e) => setPreviousPassword(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
                       className="bg-amber-500/30 border-amber-500/30 text-white placeholder:text-white/90 focus:border-amber-500/40 focus:ring-amber-500/10 h-12"
                     />
                     <p className="text-xs text-amber-200/90 leading-relaxed">
-                      Your administrator may have reset your password. Enter your previous password to recover your encryption key.
+                      {t("drive:onboarding.previousPasswordHelp")}
                     </p>
                   </div>
                 )}
@@ -381,7 +383,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    Set PIN <ArrowRight className="w-4 h-4" />
+                    {t("drive:onboarding.setPin")} <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </Button>
@@ -395,22 +397,22 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <FolderPlus className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                  Create a client folder
+                  {t("drive:onboarding.folderTitle")}
                 </h2>
                 <p className="text-sm text-white/90 max-w-xs mx-auto">
-                  Organize incoming files from clients with a dedicated folder.
+                  {t("drive:onboarding.folderDescription")}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="onboarding-folder-name" className="text-white/90 text-xs font-medium uppercase tracking-wider">
-                    Folder Name
+                    {t("drive:onboarding.folderNameLabel")}
                   </Label>
                   <Input
                     id="onboarding-folder-name"
                     type="text"
-                    placeholder="e.g. Client Uploads"
+                    placeholder={t("drive:onboarding.folderNamePlaceholder")}
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
@@ -436,7 +438,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      Create Folder <ArrowRight className="w-4 h-4" />
+                      {t("drive:onboarding.createFolder")} <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </Button>
@@ -446,7 +448,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   onClick={handleSkipFolder}
                   disabled={creatingFolder}
                 >
-                  Skip for now
+                  {t("drive:onboarding.skipForNow")}
                 </Button>
               </div>
             </div>
@@ -460,31 +462,31 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </div>
                 <div className="flex justify-center">
                   <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/20 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-200">
-                    Trust established
+                    {t("drive:onboarding.readyBadge")}
                   </span>
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
-                  Vault is ready
+                  {t("drive:onboarding.readyTitle")}
                 </h2>
                 <p className="text-sm text-white/90 max-w-sm mx-auto leading-relaxed">
-                  Your PIN is set, your encryption key is protected, and the app can now work with you instead of interrupting you.
+                  {t("drive:onboarding.readyDescription")}
                 </p>
               </div>
 
               <div className="rounded-[1.6rem] border border-white/20 bg-white/30 px-4 py-4 text-left">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary-foreground">Ready checklist</p>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary-foreground">{t("drive:onboarding.readyChecklist")}</p>
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/70 border border-white/10">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-sm text-white/90">Your one PIN now protects the vault and every owner-controlled secure route</p>
+                    <p className="text-sm text-white/90">{t("drive:onboarding.readyCheck1")}</p>
                   </div>
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/70 border border-white/10">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-sm text-white/90">Secure Drop and shared-download recovery can reuse the same trusted session</p>
+                    <p className="text-sm text-white/90">{t("drive:onboarding.readyCheck2")}</p>
                   </div>
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/70 border border-white/10">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-sm text-white/90">You can see, review, and revoke outside access without losing your calm overview</p>
+                    <p className="text-sm text-white/90">{t("drive:onboarding.readyCheck3")}</p>
                   </div>
                 </div>
               </div>
@@ -492,7 +494,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <div className="text-left space-y-2">
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/30 border border-white/20">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <p className="text-sm text-white/90">{`You only set this once. ${branding.productName} now carries that trust through normal owner flows.`}</p>
+                  <p className="text-sm text-white/90">{t("drive:onboarding.readyCheck4", { productName: branding.productName })}</p>
                 </div>
               </div>
 
@@ -500,7 +502,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all duration-200 gap-2"
                 onClick={handleComplete}
               >
-                Enter Protected Vault <ArrowRight className="w-4 h-4" />
+                {t("drive:onboarding.enterVault")} <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           )}

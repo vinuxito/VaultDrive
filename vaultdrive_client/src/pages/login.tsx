@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "../components/ui/button";
+import { LanguageToggle } from "../components/ui/language-toggle";
 import {
   CardContent,
   CardDescription,
@@ -7,6 +8,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Lock, Mail, User, Eye, EyeOff, Fingerprint } from "lucide-react";
+// Globe icon used via LanguageToggle component
 import { BrandLogo, PoweredByBadge } from "../components/branding";
 import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
@@ -22,12 +24,7 @@ import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(["auth"]);
-  
-  const toggleLanguage = () => {
-    const nextLang = i18n.language.startsWith("es") ? "en" : "es";
-    void i18n.changeLanguage(nextLang);
-  };
+  const { t } = useTranslation(["auth"]);
 
   const { setPrivateKey, setCredential, clearVault } = useSessionVault();
   const [isLogin, setIsLogin] = useState(true);
@@ -178,14 +175,7 @@ export default function Login() {
   return (
     <div className="brand-page-bg flex flex-col items-center justify-center p-4 relative" style={{ minHeight: "100vh" }}>
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={toggleLanguage}
-          className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-card hover:bg-primary/10 transition-colors text-xs font-semibold text-foreground uppercase cursor-pointer"
-          aria-label="Toggle language"
-        >
-          {i18n.language.startsWith("es") ? "EN" : "ES"}
-        </button>
+        <LanguageToggle />
       </div>
 
       <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden shadow-[var(--shadow-glow-primary)]">

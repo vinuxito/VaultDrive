@@ -3,6 +3,7 @@
     "toggle": "Idioma"
   },
   "nav": {
+    "home": "Inicio",
     "dashboard": "Inicio",
     "files": "Archivos",
     "groups": "Grupos",
@@ -10,11 +11,16 @@
     "accessCenter": "Centro de Acceso",
     "settings": "Configuración",
     "help": "Centro de Ayuda",
+    "about": "Acerca de",
+    "admin": "Admin",
+    "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
     "profile": "Perfil",
-    "search": "Buscar..."
+    "search": "Buscar...",
+    "greeting": "Hola, {{name}}"
   },
   "userMenu": {
+    "myAccount": "Mi Cuenta",
     "profile": "Perfil",
     "settings": "Configuración",
     "help": "Centro de Ayuda",

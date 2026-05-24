@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DashboardLayout } from "./dashboard-layout";
+import { ToastProvider } from "../../context/ToastContext";
 
 vi.mock("../../context/SessionVaultContext", () => ({
   useSessionVault: () => ({ clearVault: vi.fn() }),
@@ -79,9 +80,11 @@ describe("DashboardLayout", () => {
   it("still blocks the authenticated shell when the user has not set a pin", () => {
     render(
       <MemoryRouter>
-        <DashboardLayout>
-          <div>Vault content</div>
-        </DashboardLayout>
+        <ToastProvider>
+          <DashboardLayout>
+            <div>Vault content</div>
+          </DashboardLayout>
+        </ToastProvider>
       </MemoryRouter>,
     );
 
@@ -91,9 +94,11 @@ describe("DashboardLayout", () => {
   it("keeps onboarding active until completion and then dismisses it", async () => {
     render(
       <MemoryRouter>
-        <DashboardLayout>
-          <div>Vault content</div>
-        </DashboardLayout>
+        <ToastProvider>
+          <DashboardLayout>
+            <div>Vault content</div>
+          </DashboardLayout>
+        </ToastProvider>
       </MemoryRouter>,
     );
 

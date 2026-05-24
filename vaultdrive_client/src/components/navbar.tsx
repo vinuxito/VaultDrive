@@ -15,6 +15,7 @@ import { BrandLogo } from "./branding";
 import { Shield } from "lucide-react";
 import { branding } from "../config/branding";
 import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "./ui/language-toggle";
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -22,12 +23,7 @@ interface NavbarProps {
 
 export default function Navbar({ children }: NavbarProps) {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
-
-  const toggleLanguage = () => {
-    const nextLang = i18n.language.startsWith("es") ? "en" : "es";
-    void i18n.changeLanguage(nextLang);
-  };
+  const { t } = useTranslation(["common"]);
 
   // Initialize state from localStorage
   const getInitialAuthState = () => {
@@ -117,7 +113,7 @@ const getInitials = (name: string) => {
             <ul className="flex gap-6">
               <li>
                 <Link to="/" className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm">
-                  Home
+                  {t("common:nav.home")}
                 </Link>
               </li>
               {isLoggedIn && (
@@ -127,7 +123,7 @@ const getInitials = (name: string) => {
                       to="/files"
                       className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm"
                     >
-                      Files
+                      {t("common:nav.files")}
                     </Link>
                   </li>
                   <li>
@@ -135,7 +131,7 @@ const getInitials = (name: string) => {
                       to="/shared"
                       className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm"
                     >
-                      Shared
+                      {t("common:nav.shared")}
                     </Link>
                   </li>
                   {user?.is_admin && (
@@ -145,7 +141,7 @@ const getInitials = (name: string) => {
                         className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm flex items-center gap-1"
                       >
                         <Shield className="h-4 w-4" />
-                        Admin
+                        {t("common:nav.admin")}
                       </Link>
                     </li>
                   )}
@@ -156,28 +152,21 @@ const getInitials = (name: string) => {
                   to="/about"
                   className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm"
                 >
-                  About
+                  {t("common:nav.about")}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-card hover:bg-primary/10 transition-colors text-xs font-semibold text-foreground uppercase cursor-pointer"
-              aria-label="Toggle language"
-            >
-              {i18n.language.startsWith("es") ? "EN" : "ES"}
-            </button>
+            <LanguageToggle />
             <ThemeToggle />
             {isLoggedIn && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <span className="text-sm font-medium text-foreground">
-                      Hi, {user.username}
+                      {t("common:nav.greeting", { name: user.username })}
                     </span>
                     <Avatar>
                       <AvatarImage src="" alt={user.username} />
@@ -188,24 +177,24 @@ const getInitials = (name: string) => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("common:userMenu.myAccount")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>{t("common:userMenu.profile")}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>{t("common:userMenu.settings")}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/files")}>
-                    My Files
+                    {t("common:nav.files")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/shared")}>
-                    Shared With Me
+                    {t("common:nav.shared")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
-                    Log out
+                    {t("common:userMenu.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={handleLogin}>Login</Button>
+              <Button onClick={handleLogin}>{t("common:nav.login")}</Button>
             )}
           </div>
         </div>
