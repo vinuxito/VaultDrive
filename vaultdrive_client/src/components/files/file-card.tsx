@@ -96,6 +96,7 @@ export function FileCard({
               size="icon"
               variant="ghost"
               className="w-8 h-8"
+              aria-label="More actions"
               onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
             >
               <MoreVertical size={16} />

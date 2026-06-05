@@ -491,13 +491,13 @@ export function CreateFolderShareLinkModal({
           {step === "done" && (
             <>
               <div className="brand-receipt-surface rounded-2xl px-4 py-4">
-                <div className="flex items-center gap-2 text-emerald-800">
+                <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
                     <p className="text-sm font-semibold">
                       Folder share link created
                     </p>
-                    <p className="text-xs mt-1 text-emerald-700">
+                    <p className="text-xs mt-1 text-emerald-700 dark:text-emerald-300">
                       {progress.total} files included. Revocable at any time.
                     </p>
                   </div>

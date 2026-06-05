@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git
@@ -13,7 +13,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Install goose for migrations
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.24.1
 
 # Copy the source code
 COPY . .
@@ -31,6 +31,9 @@ RUN apk --no-cache add ca-certificates bash
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/vaultdrive-backend .
+
+# Copy frontend build
+COPY --from=builder /app/vaultdrive_client/dist ./vaultdrive_client/dist
 
 # Copy goose binary
 COPY --from=builder /go/bin/goose .

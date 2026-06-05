@@ -1,6 +1,15 @@
 import { defineConfig } from "@playwright/test";
+import dotenv from "dotenv";
+import fs from "fs";
 
-const configuredBaseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:8090/quantix";
+// Load test environment variables if .env.test exists, otherwise fall back to .env
+if (fs.existsSync(".env.test")) {
+  dotenv.config({ path: ".env.test" });
+} else {
+  dotenv.config();
+}
+
+const configuredBaseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}`;
 const baseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
 const e2eUploadDir = process.env.E2E_UPLOAD_DIR ?? "/tmp/quantix-playwright-uploads";
 const e2eDbName = process.env.E2E_DB_NAME ?? "vaultdrive_playwright";
@@ -10,8 +19,17 @@ const e2eAdminDbUrl =
 const e2eDbUrl =
   process.env.E2E_DB_URL ??
   `postgres://postgres:postgres@localhost:5432/${e2eDbName}?sslmode=disable`;
+
+// Filter out VITE_ variables from process.env to prevent overriding the build-time env vars
+const cleanProcessEnv = Object.keys(process.env).reduce((acc, key) => {
+  if (!key.startsWith("VITE_")) {
+    acc[key] = process.env[key]!;
+  }
+  return acc;
+}, {} as Record<string, string>);
+
 const e2eBackendEnv = {
-  ...process.env,
+  ...cleanProcessEnv,
   PORT: process.env.PORT ?? "8090",
   DB_URL: process.env.DB_URL ?? e2eDbUrl,
   JWT_SECRET:
@@ -32,6 +50,24 @@ export default defineConfig({
   reporter: process.env.CI
     ? [["github"], ["html", { open: "never" }]]
     : [["list"], ["html", { open: "never" }]],
+  projects: [
+    {
+      name: "Desktop Chrome",
+      use: {
+        viewport: { width: 1280, height: 720 },
+      },
+      testIgnore: "**/mobile/**",
+    },
+    {
+      name: "Mobile Chrome",
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+      testMatch: "**/mobile/**",
+    },
+  ],
   use: {
     baseURL,
     trace: "on-first-retry",
@@ -44,15 +80,12 @@ export default defineConfig({
   timeout: 120000,
   webServer: {
     command:
-      // 1. Rebuild frontend with .env.test (QuantiX branding) so dist paths + labels match E2E expectations.
-      // 2. cd to project root, provision the test database and run migrations.
-      // 3. Start the Go backend which serves from vaultdrive_client/dist/.
       "npm run build -- --mode test" +
       " && cd .." +
       " && mkdir -p \"$UPLOAD_DIR\"" +
       " && (psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\" || true)" +
       " && go run github.com/pressly/goose/v3/cmd/goose@latest -dir sql/schema postgres \"$DB_URL\" up" +
-      " && PORT=8090 go run .",
+      " && go run .",
     env: e2eBackendEnv,
     url: baseURL,
     reuseExistingServer: !process.env.CI,

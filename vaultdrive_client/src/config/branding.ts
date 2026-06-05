@@ -45,8 +45,7 @@ export interface BrandingConfig {
   agentKeyEnvVar: string;
 }
 
-function envOr(key: string, fallback: string): string {
-  const value = (import.meta.env as Record<string, string | undefined>)[key];
+function cleanEnv(value: string | undefined, fallback: string): string {
   return value && value.trim().length > 0 ? value.trim() : fallback;
 }
 
@@ -58,21 +57,21 @@ function parseCSV(value: string): string[] {
 }
 
 export const branding: BrandingConfig = {
-  productName: envOr("VITE_PRODUCT_NAME", "QuantiX Drive"),
-  productSlug: envOr("VITE_PRODUCT_SLUG", "quantix-drive"),
-  companyName: envOr("VITE_COMPANY_NAME", "QuantiX"),
-  logoVariant: (envOr("VITE_LOGO_VARIANT", "quantix") as BrandLogoVariant),
-  primaryColor: envOr("VITE_PRIMARY_COLOR", "#4f46e5"),
-  accentColor: envOr("VITE_ACCENT_COLOR", "#6366f1"),
-  landingTagline: envOr("VITE_LANDING_TAGLINE", "Coded for Excellence"),
-  copyrightNotice: envOr("VITE_COPYRIGHT_NOTICE", ""),
-  publicBaseURL: envOr("VITE_PUBLIC_BASE_URL", "https://app.quantixdrive.io"),
-  marketingURL: envOr("VITE_MARKETING_URL", "https://quantixdrive.io"),
-  apiBasePath: envOr("VITE_API_URL", "/api"),
-  basePath: envOr("VITE_BASE_PATH", "/quantix").replace(/\/$/, ""),
-  rootHostedHosts: parseCSV(envOr("VITE_ROOT_HOSTED_HOSTS", "")),
-  agentKeyPrefix: envOr("VITE_AGENT_KEY_PREFIX", "qx_ak"),
-  agentKeyEnvVar: envOr("VITE_AGENT_KEY_ENV_VAR", "QX_KEY"),
+  productName: cleanEnv(import.meta.env.VITE_PRODUCT_NAME, "QuantiX Drive"),
+  productSlug: cleanEnv(import.meta.env.VITE_PRODUCT_SLUG, "quantix-drive"),
+  companyName: cleanEnv(import.meta.env.VITE_COMPANY_NAME, "QuantiX"),
+  logoVariant: (cleanEnv(import.meta.env.VITE_LOGO_VARIANT, "quantix") as BrandLogoVariant),
+  primaryColor: cleanEnv(import.meta.env.VITE_PRIMARY_COLOR, "#4f46e5"),
+  accentColor: cleanEnv(import.meta.env.VITE_ACCENT_COLOR, "#6366f1"),
+  landingTagline: cleanEnv(import.meta.env.VITE_LANDING_TAGLINE, "Coded for Excellence"),
+  copyrightNotice: cleanEnv(import.meta.env.VITE_COPYRIGHT_NOTICE, ""),
+  publicBaseURL: cleanEnv(import.meta.env.VITE_PUBLIC_BASE_URL, "https://app.quantixdrive.io"),
+  marketingURL: cleanEnv(import.meta.env.VITE_MARKETING_URL, "https://quantixdrive.io"),
+  apiBasePath: cleanEnv(import.meta.env.VITE_API_URL, "/api"),
+  basePath: cleanEnv(import.meta.env.VITE_BASE_PATH, "/quantix").replace(/\/$/, ""),
+  rootHostedHosts: parseCSV(cleanEnv(import.meta.env.VITE_ROOT_HOSTED_HOSTS, "")),
+  agentKeyPrefix: cleanEnv(import.meta.env.VITE_AGENT_KEY_PREFIX, "qx_ak"),
+  agentKeyEnvVar: cleanEnv(import.meta.env.VITE_AGENT_KEY_ENV_VAR, "QX_KEY"),
 };
 
 /** Default copyright line derived from companyName if none provided. */

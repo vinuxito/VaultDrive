@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { API_URL } from "../utils/api";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import {
@@ -84,6 +85,7 @@ function SkeletonCard() {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["drive", "common"]);
   const user = getStoredUserFromLocalStorage() ?? {};
   const firstName = user.first_name || user.email?.split("@")[0] || "there";
 
@@ -153,53 +155,53 @@ export default function Dashboard() {
 
   const statCards: StatCard[] = [
     {
-      label: "Total Files",
+      label: t("drive:dashboard.overview.totalFiles", "Total Files"),
       value: stats.files,
       icon: FolderOpen,
       color: "text-primary",
       bg: "bg-primary/10",
     },
     {
-      label: "Active Links",
+      label: t("drive:dashboard.overview.activeLinks", "Active Links"),
       value: stats.links,
       icon: Link2,
-      color: "text-violet-600",
-      bg: "bg-violet-100",
+      color: "text-violet-600 dark:text-violet-400",
+      bg: "bg-violet-500/15",
     },
     {
-      label: "Shared Files",
+      label: t("drive:dashboard.overview.sharedFiles", "Shared Files"),
       value: stats.shared,
       icon: Share2,
-      color: "text-emerald-600",
-      bg: "bg-emerald-100",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-500/15",
     },
     {
-      label: "Groups",
+      label: t("drive:dashboard.overview.groups", "Groups"),
       value: stats.groups,
       icon: Users,
-      color: "text-amber-600",
-      bg: "bg-amber-100",
+      color: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-500/15",
     },
   ];
 
   const quickActions = [
     {
-      label: "Upload File",
-      description: "Add encrypted files to your vault",
+      label: t("drive:dashboard.start.upload", "Upload File"),
+      description: t("drive:dashboard.start.uploadDesc", "Add encrypted files to your vault"),
       icon: Upload,
       color: "bg-primary hover:bg-primary/90 text-white",
       onClick: () => navigate("/files"),
     },
     {
-      label: "Create Client Upload Link",
-      description: "Create a secure link for client file delivery",
+      label: t("drive:dashboard.start.createLink", "Create Client Upload Link"),
+      description: t("drive:dashboard.start.createLinkDesc", "Create a secure link for client file delivery"),
       icon: FolderPlus,
       color: "bg-violet-600 hover:bg-violet-700 text-white",
       onClick: () => navigate("/files"),
     },
     {
-      label: "Share a File",
-      description: "Securely share with a user",
+      label: t("drive:dashboard.start.share", "Share a File"),
+      description: t("drive:dashboard.start.shareDesc", "Securely share with a user"),
       icon: Share2,
       color: "bg-emerald-600 hover:bg-emerald-700 text-white",
       onClick: () => navigate("/files"),
@@ -210,45 +212,51 @@ export default function Dashboard() {
     <div className="max-w-5xl mx-auto space-y-8 pb-8">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            Good {getGreeting()}, {firstName}.
+            {t(`drive:dashboard.greeting.${getGreeting()}`, `Good ${getGreeting()}, {{name}}.`, { name: firstName })}
           </h1>
           <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            Your vault is secure.
+            {t("drive:dashboard.secure", "Your vault is secure.")}
           </p>
         </div>
 
         {posture && (
           <section>
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-              Attention
+              {t("drive:dashboard.attention.title", "Attention")}
             </h2>
             <div className="rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-sm p-5">
               {posture.attention_count === 0 ? (
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">Everything looks healthy</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">No active links expiring soon, no stale shares</p>
+                    <p className="text-sm font-medium text-foreground">{t("drive:dashboard.attention.healthy", "Everything looks healthy")}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("drive:dashboard.attention.healthyDesc", "No active links expiring soon, no stale shares")}</p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                    <p className="text-sm font-medium text-foreground">{posture.attention_count} item{posture.attention_count > 1 ? "s" : ""} need attention</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {posture.attention_count > 1 
+                        ? t("drive:dashboard.attention.items", "{{count}} items need attention", { count: posture.attention_count })
+                        : t("drive:dashboard.attention.item", "{{count}} item needs attention", { count: posture.attention_count })}
+                    </p>
                   </div>
-                  {posture.expiring_tokens.map((t) => (
-                    <div key={t.id} className="flex items-start gap-2 pl-6">
+                  {posture.expiring_tokens.map((tObj) => (
+                    <div key={tObj.id} className="flex items-start gap-2 pl-6">
                       <p className="text-xs text-amber-700">
-                        Upload link <strong>{t.link_name || t.id.slice(0, 8)}</strong> expires {formatRelativeTime(t.expires_at)}
+                        <Trans i18nKey="drive:dashboard.attention.uploadLinkExpires" values={{ name: tObj.link_name || tObj.id.slice(0, 8), time: formatRelativeTime(tObj.expires_at) }}>
+                          Upload link <strong>{ tObj.link_name || tObj.id.slice(0, 8) }</strong> expires { formatRelativeTime(tObj.expires_at) }
+                        </Trans>
                       </p>
                     </div>
                   ))}
                   {posture.stale_links.map((l) => (
                     <div key={l.id} className="flex items-start gap-2 pl-6">
                       <p className="text-xs text-muted-foreground">
-                        Share link {l.token.slice(0, 8)}… was created {formatRelativeTime(l.created_at)} and has never been accessed
+                        {t("drive:dashboard.attention.staleLink", "Share link {{token}}… was created {{time}} and has never been accessed", { token: l.token.slice(0, 8), time: formatRelativeTime(l.created_at) })}
                       </p>
                     </div>
                   ))}
@@ -260,7 +268,7 @@ export default function Dashboard() {
 
         <section>
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-            Vault Overview
+            {t("drive:dashboard.overview.title", "Vault Overview")}
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {statsLoading
@@ -287,7 +295,7 @@ export default function Dashboard() {
 
         <section>
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-            Start Here
+            {t("drive:dashboard.start.title", "Start Here")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {quickActions.map((action) => (
@@ -307,7 +315,7 @@ export default function Dashboard() {
 
         <section>
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-            Activity
+            {t("drive:dashboard.activity.title", "Activity")}
           </h2>
           <div className="rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-sm overflow-hidden">
             {activityLoading ? (
@@ -328,12 +336,12 @@ export default function Dashboard() {
                   <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
                     <Activity className="w-5 h-5 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-foreground mb-4">Get started with your vault</p>
+                  <p className="text-sm font-medium text-foreground mb-4">{t("drive:dashboard.activity.getStarted", "Get started with your vault")}</p>
                   <div className="w-full max-w-xs space-y-2 text-left">
                     {[
-                      { step: "1", text: "Upload a file to your vault" },
-                      { step: "2", text: "Create a client upload link" },
-                      { step: "3", text: "Share a file with a colleague" },
+                      { step: "1", text: t("drive:dashboard.activity.step1", "Upload a file to your vault") },
+                      { step: "2", text: t("drive:dashboard.activity.step2", "Create a client upload link") },
+                      { step: "3", text: t("drive:dashboard.activity.step3", "Share a file with a colleague") },
                     ].map(({ step, text }) => (
                       <div key={step} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted border border-border">
                         <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center shrink-0">{step}</span>
@@ -347,8 +355,8 @@ export default function Dashboard() {
                   <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
                     <Clock className="w-5 h-5 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Upload or share a file to begin.</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("drive:dashboard.activity.noActivity", "No activity yet")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("drive:dashboard.activity.noActivityDesc", "Upload or share a file to begin.")}</p>
                 </div>
               )
             ) : (

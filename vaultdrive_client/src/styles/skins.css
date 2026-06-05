@@ -37,15 +37,16 @@
   --radius:                 0.5rem;
 
   /* Luxury token overrides */
-  --glass-bg:               rgba(255, 255, 255, 0.12);
-  --glass-bg-hover:         rgba(255, 255, 255, 0.18);
-  --glass-bg-heavy:         rgba(255, 255, 255, 0.15);
-  --glass-bg-subtle:        rgba(255, 255, 255, 0.08);
+  --glass-bg:               rgba(10, 10, 26, 0.65);
+  --glass-bg-hover:         rgba(10, 10, 26, 0.82);
+  --glass-bg-heavy:         rgba(10, 10, 26, 0.78);
+  --glass-bg-subtle:        rgba(10, 10, 26, 0.35);
   --glass-border:           1px solid rgba(255, 255, 255, 0.10);
   --glass-border-subtle:    1px solid rgba(255, 255, 255, 0.06);
-  --glass-border-strong:    1px solid rgba(1, 255, 247, 0.20);
+  --glass-border-strong:    1px solid rgba(1, 255, 247, 0.25);
   --glass-blur-md:          blur(24px);
   --glass-blur-lg:          blur(32px);
+  --glass-inner-glow:       inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
   --shadow-glow-primary:    0 0 30px rgba(1, 255, 247, 0.40);
   --shadow-glow-accent:     0 0 30px rgba(234, 18, 255, 0.35);
@@ -109,7 +110,15 @@
   --font-display:           var(--font-body);
 
   --glass-bg:               rgba(255, 255, 255, 0.72);
+  --glass-bg-hover:          rgba(255, 255, 255, 0.82);
+  --glass-bg-heavy:          rgba(255, 255, 255, 0.85);
+  --glass-bg-subtle:         rgba(255, 255, 255, 0.55);
   --glass-border:           1px solid rgba(255, 255, 255, 0.55);
+  --glass-border-subtle:    1px solid rgba(0, 0, 0, 0.04);
+  --glass-border-strong:    1px solid rgba(125, 79, 80, 0.20);
+  --glass-blur-md:          blur(24px);
+  --glass-blur-lg:          blur(32px);
+  --shadow-glow-primary:    0 4px 20px rgba(125, 79, 80, 0.12);
   --gradient-page:          linear-gradient(180deg, #fdfcfb 0%, #faf8f5 100%);
 }
 
@@ -131,7 +140,7 @@
   --secondary-foreground:   36 15% 94%;
 
   --muted:                  214 15% 29%;
-  --muted-foreground:       220 9% 46%;
+  --muted-foreground:       220 12% 65%;   /* bumped from 46% → 65% to hit WCAG AA 4.5:1 on card */
 
   --accent:                 357 23% 68%;
   --accent-foreground:      225 23% 16%;
@@ -147,7 +156,15 @@
   --font-display:           var(--font-body);
 
   --glass-bg:               rgba(44, 50, 64, 0.65);
+  --glass-bg-hover:         rgba(44, 50, 64, 0.75);
+  --glass-bg-heavy:         rgba(44, 50, 64, 0.80);
+  --glass-bg-subtle:        rgba(44, 50, 64, 0.40);
   --glass-border:           1px solid rgba(255, 255, 255, 0.10);
+  --glass-border-subtle:    1px solid rgba(255, 255, 255, 0.06);
+  --glass-border-strong:    1px solid rgba(196, 153, 155, 0.25);
+  --glass-blur-md:          blur(24px);
+  --glass-blur-lg:          blur(32px);
+  --shadow-glow-primary:    0 4px 20px rgba(196, 153, 155, 0.15);
   --gradient-page:          linear-gradient(180deg, #1e2330 0%, #181d2a 100%);
 }
 
@@ -183,10 +200,14 @@
 
   --radius:                 0.125rem;      /* sharp corners — cyberpunk */
 
-  --glass-bg:               rgba(255, 255, 255, 0.12);
-  --glass-bg-hover:         rgba(255, 255, 255, 0.18);
-  --glass-border:           1px solid rgba(240, 255, 0, 0.15);
-  --glass-border-strong:    1px solid rgba(240, 255, 0, 0.30);
+  --glass-bg:               rgba(13, 13, 13, 0.65);
+  --glass-bg-hover:         rgba(13, 13, 13, 0.82);
+  --glass-bg-heavy:         rgba(13, 13, 13, 0.78);
+  --glass-bg-subtle:        rgba(13, 13, 13, 0.35);
+  --glass-border:           1px solid rgba(255, 255, 255, 0.10);
+  --glass-border-subtle:    1px solid rgba(255, 255, 255, 0.06);
+  --glass-border-strong:    1px solid rgba(240, 255, 0, 0.25);
+  --glass-inner-glow:       inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --shadow-glow-primary:    0 0 20px rgba(240, 255, 0, 0.50);
   --shadow-glow-accent:     0 0 20px rgba(255, 0, 144, 0.45);
   --gradient-page:          linear-gradient(180deg, #0d0d0d 0%, #111108 100%);
@@ -241,10 +262,14 @@
 
   --radius:                 0.375rem;
 
-  --glass-bg:               rgba(184, 134, 11, 0.12);
-  --glass-bg-hover:         rgba(184, 134, 11, 0.18);
-  --glass-border:           1px solid rgba(184, 134, 11, 0.20);
-  --glass-border-strong:    1px solid rgba(212, 160, 23, 0.35);
+  --glass-bg:               rgba(26, 18, 8, 0.65);
+  --glass-bg-hover:         rgba(26, 18, 8, 0.82);
+  --glass-bg-heavy:         rgba(26, 18, 8, 0.78);
+  --glass-bg-subtle:        rgba(26, 18, 8, 0.35);
+  --glass-border:           1px solid rgba(255, 255, 255, 0.10);
+  --glass-border-subtle:    1px solid rgba(255, 255, 255, 0.06);
+  --glass-border-strong:    1px solid rgba(184, 134, 11, 0.25);
+  --glass-inner-glow:       inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --shadow-glow-primary:    0 0 20px rgba(184, 134, 11, 0.35);
   --gradient-page:          linear-gradient(180deg, #1a1208 0%, #1e1609 100%);
 
@@ -300,7 +325,15 @@
   --font-display:           var(--font-body);
 
   --glass-bg:               rgba(255, 255, 255, 0.85);
+  --glass-bg-hover:         rgba(255, 255, 255, 0.92);
+  --glass-bg-heavy:         rgba(255, 255, 255, 0.90);
+  --glass-bg-subtle:        rgba(255, 255, 255, 0.65);
   --glass-border:           1px solid rgba(30, 64, 175, 0.12);
+  --glass-border-subtle:    1px solid rgba(30, 64, 175, 0.06);
+  --glass-border-strong:    1px solid rgba(30, 64, 175, 0.25);
+  --glass-blur-md:          blur(24px);
+  --glass-blur-lg:          blur(32px);
+  --shadow-glow-primary:    0 4px 20px rgba(30, 64, 175, 0.12);
   --gradient-page:          linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 
   scrollbar-color: #1e40af #f8fafc;

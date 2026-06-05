@@ -41,12 +41,12 @@ deploy-restart:
 # Probe the live URL — fails the make target on non-2xx for /api/healthz
 # and on a non-400 response when /api/register is called with an empty body.
 deploy-smoke:
-	@echo "Smoke: GET /api/healthz"
-	@code=$$(curl -s -o /dev/null -w '%{http_code}' $(PROD_URL)/api/healthz); \
+	@echo "Smoke: GET /quantix/api/healthz"
+	@code=$$(curl -s -o /dev/null -w '%{http_code}' $(PROD_URL)/quantix/api/healthz); \
 	  if [ "$$code" != "200" ]; then echo "healthz failed: HTTP $$code"; exit 1; fi; \
 	  echo "  healthz: HTTP $$code"
-	@echo "Smoke: POST /api/register {}"
-	@code=$$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' $(PROD_URL)/api/register); \
+	@echo "Smoke: POST /quantix/api/register {}"
+	@code=$$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' $(PROD_URL)/quantix/api/register); \
 	  if [ "$$code" != "400" ]; then echo "register{} expected 400 got $$code"; exit 1; fi; \
 	  echo "  register{}: HTTP $$code"
 	@echo "Smoke: GET /abrn/"

@@ -25,7 +25,9 @@ test("owner trust flow supports signup, onboarding, and PIN login", async ({ pag
 
   await clearLocalAuth(page);
   await loginWithPin(page, account);
-  await expect(page).toHaveURL(/quantix$/);
+  const basePath = process.env.VITE_BASE_PATH ?? "/quantix";
+  const regex = new RegExp(`${basePath}$`);
+  await expect(page).toHaveURL(regex);
 });
 
 test("owner action receipts expose the underlying API calls", async ({ page }) => {

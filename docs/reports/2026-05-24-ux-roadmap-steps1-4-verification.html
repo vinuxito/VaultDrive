@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantiX Drive — UX Roadmap Steps 1-4 Verification Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4ea; line-height: 1.6; padding: 2rem; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; color: #fff; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.3rem; color: #c4b5fd; margin: 2rem 0 1rem; border-bottom: 1px solid #2d2f3a; padding-bottom: 0.5rem; }
+  h3 { font-size: 1rem; color: #94a3b8; margin: 1.5rem 0 0.5rem; }
+  .meta { color: #8b949e; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .verdict { display: inline-block; padding: 0.5rem 1.2rem; border-radius: 0.5rem; font-weight: 700; font-size: 1.1rem; margin: 1rem 0; }
+  .verdict.pass { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+  .verdict.fail { background: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .card { background: #1a1d27; border: 1px solid #2d2f3a; border-radius: 0.75rem; padding: 1.25rem; }
+  .card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #8b949e; }
+  .card .value { font-size: 1.5rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
+  .card .value.green { color: #34d399; }
+  .card .value.red { color: #f87171; }
+  .card .value.amber { color: #fbbf24; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { text-align: left; padding: 0.6rem 0.8rem; background: #1a1d27; color: #c4b5fd; border-bottom: 2px solid #2d2f3a; }
+  td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #1e2028; }
+  tr:hover td { background: #1a1d2780; }
+  .pass-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; background: #064e3b; color: #34d399; }
+  .fail-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; background: #7f1d1d; color: #fca5a5; }
+  .skip-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; background: #78350f; color: #fbbf24; }
+  .risk { background: #1a1d27; border-left: 3px solid #fbbf24; padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0 0.5rem 0.5rem 0; font-size: 0.88rem; }
+  .fix { background: #1a1d27; border-left: 3px solid #34d399; padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0 0.5rem 0.5rem 0; font-size: 0.88rem; }
+  code { background: #2d2f3a; padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; }
+  .step-done { color: #34d399; }
+  .step-pending { color: #8b949e; }
+</style>
+</head>
+<body>
+
+<h1>QuantiX Drive — Verification Report</h1>
+<p class="meta">Date: 2026-05-24 &bull; Build: UX Roadmap Steps 1-4 &bull; Base: <code>3ebffc1</code></p>
+
+<div class="verdict pass">✅ ALL CHECKS PASS — SAFE TO CONTINUE</div>
+
+<h2>Summary</h2>
+<div class="cards">
+  <div class="card"><div class="label">TypeScript</div><div class="value green">0 errors</div></div>
+  <div class="card"><div class="label">Build</div><div class="value green">✓ 22s</div></div>
+  <div class="card"><div class="label">Unit Tests</div><div class="value green">116/116</div></div>
+  <div class="card"><div class="label">Go Tests</div><div class="value green">Pass</div></div>
+  <div class="card"><div class="label">Prod Health</div><div class="value green">HTTP 200</div></div>
+  <div class="card"><div class="label">alert() Calls</div><div class="value green">0 left</div></div>
+  <div class="card"><div class="label">Locale Parity</div><div class="value green">EN ≈ ES</div></div>
+  <div class="card"><div class="label">Files Changed</div><div class="value">17</div></div>
+</div>
+
+<h2>Roadmap Progress</h2>
+<table>
+  <tr><th>#</th><th>Step</th><th>Status</th><th>Key Metric</th></tr>
+  <tr><td>1</td><td>Theme Coherence</td><td><span class="pass-badge">DONE</span></td><td>3 .dark blocks removed</td></tr>
+  <tr><td>2</td><td>Language Switcher</td><td><span class="pass-badge">DONE</span></td><td>LanguageToggle on 3 surfaces</td></tr>
+  <tr><td>3</td><td>Toast System</td><td><span class="pass-badge">DONE</span></td><td>18 alert() → addToast(), 0 remaining</td></tr>
+  <tr><td>4</td><td>i18n Completion</td><td><span class="pass-badge">DONE</span></td><td>52 onboarding + 117 locale keys added</td></tr>
+  <tr><td>5</td><td>files.tsx Decomposition</td><td><span class="skip-badge">PENDING</span></td><td>—</td></tr>
+  <tr><td>6</td><td>SWR Everywhere</td><td><span class="skip-badge">PENDING</span></td><td>—</td></tr>
+  <tr><td>7</td><td>Accessibility Audit</td><td><span class="skip-badge">PENDING</span></td><td>—</td></tr>
+</table>
+
+<h2>Verification Matrix</h2>
+<table>
+  <tr><th>#</th><th>Check</th><th>Command</th><th>Result</th><th>Status</th></tr>
+  <tr><td>1</td><td>TypeScript</td><td><code>npx tsc --noEmit</code></td><td>0 errors</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>2</td><td>Vite Build</td><td><code>npm run build</code></td><td>✓ built in 22s</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>3</td><td>Unit Tests</td><td><code>npx vitest run</code></td><td>116 passed, 1 skipped</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>4</td><td>Go Vet</td><td><code>go vet ./...</code></td><td>clean</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>5</td><td>Go Tests</td><td><code>go test -race ./...</code></td><td>pass</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>6</td><td>Prod healthz</td><td><code>curl .../api/healthz</code></td><td>HTTP 200</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>7</td><td>Prod index</td><td><code>curl .../quantix/</code></td><td>HTTP 200</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>8</td><td>Prod register</td><td><code>curl POST register{}</code></td><td>HTTP 400</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>9</td><td>Zero alert()</td><td><code>grep -rn 'alert('</code></td><td>0 matches</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>10</td><td>Locale Parity</td><td>Python key counter</td><td>EN≈ES</td><td><span class="pass-badge">PASS</span></td></tr>
+  <tr><td>11</td><td>Deploy Pipeline</td><td><code>make deploy</code></td><td>smoke verified</td><td><span class="pass-badge">PASS</span></td></tr>
+</table>
+
+<h2>Changed Files</h2>
+<h3>New Files (2)</h3>
+<table>
+  <tr><th>File</th><th>Purpose</th></tr>
+  <tr><td><code>src/components/ui/language-toggle.tsx</code></td><td>Reusable EN↔ES toggle component</td></tr>
+  <tr><td><code>src/context/ToastContext.tsx</code></td><td>Global toast provider with useToast hook</td></tr>
+</table>
+
+<h3>Modified Files (15)</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>elegant-complete.css</code></td><td>Removed 3 .dark override blocks</td></tr>
+  <tr><td><code>Toast.tsx</code></td><td>ARIA roles, type icons, animations</td></tr>
+  <tr><td><code>dashboard-layout.tsx</code></td><td>useToast, LanguageToggle</td></tr>
+  <tr><td><code>dashboard-layout.test.tsx</code></td><td>ToastProvider wrapper</td></tr>
+  <tr><td><code>main.tsx</code></td><td>ToastProvider wrapping App</td></tr>
+  <tr><td><code>navbar.tsx</code></td><td>i18n t() calls, LanguageToggle</td></tr>
+  <tr><td><code>login.tsx</code></td><td>LanguageToggle</td></tr>
+  <tr><td><code>OnboardingWizard.tsx</code></td><td>i18n 52 strings</td></tr>
+  <tr><td><code>admin.tsx</code></td><td>16× alert() → addToast()</td></tr>
+  <tr><td><code>PublicFolderSharePage.tsx</code></td><td>1× alert() → addToast()</td></tr>
+  <tr><td><code>file-versions-modal.tsx</code></td><td>1× alert() → addToast()</td></tr>
+  <tr><td><code>en/common.json</code></td><td>+7 keys</td></tr>
+  <tr><td><code>es/common.json</code></td><td>+7 keys</td></tr>
+  <tr><td><code>en/drive.json</code></td><td>+52 onboarding keys</td></tr>
+  <tr><td><code>es/drive.json</code></td><td>+159 keys (all missing sections)</td></tr>
+</table>
+
+<h2>Bugs Fixed</h2>
+<div class="fix"><strong>Test failure:</strong> <code>dashboard-layout.test.tsx</code> — 2 tests failed with "useToast must be used within ToastProvider". Fixed by wrapping renders in <code>&lt;ToastProvider&gt;</code>. Rerun: all 116 pass.</div>
+
+<h2>Risks</h2>
+<div class="risk"><strong>Low:</strong> Admin page strings remain hardcoded English (admin-only surface)</div>
+<div class="risk"><strong>Low:</strong> 6 <code>confirm()</code> browser dialogs in admin.tsx not addressed</div>
+<div class="risk"><strong>Medium:</strong> Steps 5-7 (decomposition, SWR, accessibility) pending</div>
+
+<h2>Final State</h2>
+<table>
+  <tr><th>Aspect</th><th>State</th></tr>
+  <tr><td>Production</td><td><span class="pass-badge">LIVE & HEALTHY</span></td></tr>
+  <tr><td>Build</td><td><span class="pass-badge">CLEAN</span></td></tr>
+  <tr><td>Tests</td><td><span class="pass-badge">116/116 PASS</span></td></tr>
+  <tr><td>Git</td><td>17 files uncommitted (ready to commit)</td></tr>
+  <tr><td>Safe to continue</td><td><span class="pass-badge">YES</span></td></tr>
+</table>
+
+<h2>Next Steps</h2>
+<ol>
+  <li>Commit & push current changes</li>
+  <li>Step 5: files.tsx decomposition (extract hooks, modals, upload logic)</li>
+  <li>Step 7: Accessibility audit (skip-to-content, focus trapping, Lighthouse ≥ 90)</li>
+  <li>Step 6: SWR everywhere (convert remaining manual fetches)</li>
+</ol>
+
+</body>
+</html>

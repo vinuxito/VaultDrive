@@ -53,7 +53,7 @@ func middlewareCORS(origins []string) func(http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
+			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name, Retry-After")
 
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
@@ -119,7 +119,7 @@ func main() {
 
 	mux.HandleFunc("DELETE /api/upload-links/{id}", apiConfig.handlerDeleteDropToken)
 
-	mux.Handle("POST /api/register", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler)))
+	mux.Handle("POST /api/register", middlewareRateLimitRegister(apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.registerUserHandler))))
 
 	mux.Handle("POST /api/login", middlewareRateLimitLogin(apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerLogin))))
 
@@ -167,7 +167,7 @@ func main() {
 	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
 	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
 	mux.HandleFunc("GET /api/drop/{token}/files", apiConfig.handlerDropTokenFiles)
-	mux.HandleFunc("POST /api/drop/{token}/upload", apiConfig.handlerDropUpload)
+	mux.Handle("POST /api/drop/{token}/upload", middlewareRateLimitDropUpload(http.HandlerFunc(apiConfig.handlerDropUpload)))
 	mux.HandleFunc("POST /api/drop/{token}/done", apiConfig.handlerDropDone)
 	mux.HandleFunc("POST /api/drop/{token}/recover-key", apiConfig.handlerDropTokenRecoverKey)
 
@@ -478,11 +478,8 @@ func main() {
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
-		// Redirect bare root to BasePath so React Router (basename=BasePath) finds routes.
-		if path == "/" {
-			http.Redirect(w, r, basePath, http.StatusFound)
-			return
-		}
+		// Root redirect is handled by parent mux if BasePath is set.
+		// If BasePath is not set, path == "/" will just serve index.html via cleanPath.
 
 		// Skip API paths - they should be handled by API routes above.
 		// Catches both /api/ and /<base>/api/ patterns.
@@ -495,7 +492,10 @@ func main() {
 		// but the files in dist/ live at the root of dist (not in a subdir).
 		// Old domains strip the base via Apache ProxyPass; new dedicated
 		// domains do not, so we normalise here for both cases.
-		cleanPath := strings.TrimPrefix(path, basePathNoSlash)
+		cleanPath := path
+		if basePathNoSlash != "" && strings.HasPrefix(path, basePathNoSlash+"/") {
+			cleanPath = path[len(basePathNoSlash):]
+		}
 
 		if cleanPath == "" || cleanPath == "/" {
 			cleanPath = "/index.html"
@@ -504,19 +504,39 @@ func main() {
 		// Try to serve actual file if it exists
 		filePath := "vaultdrive_client/dist" + cleanPath
 		if _, err := os.Stat(filePath); err == nil {
+			// Content-hashed assets (JS, CSS) are immutable — cache for 1 year.
+			// HTML files must always revalidate to pick up new deploys.
+			if strings.HasPrefix(cleanPath, "/assets/") {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			} else if strings.HasSuffix(cleanPath, ".html") {
+				w.Header().Set("Cache-Control", "no-cache")
+			}
 			http.ServeFile(w, r, filePath)
 			return
 		}
 
 		// SPA catch-all: serve index.html for all client-side routes
+		w.Header().Set("Cache-Control", "no-cache")
 		http.ServeFile(w, r, "vaultdrive_client/dist/index.html")
 	})
 
 	log.Printf("Server listening on port %s", port)
-	// Configure server with explicit timeouts for large file uploads
+	var finalHandler http.Handler = mux
+	if basePathNoSlash != "" {
+		parentMux := http.NewServeMux()
+		parentMux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, basePath, http.StatusFound)
+		})
+		parentMux.Handle(basePathNoSlash+"/", http.StripPrefix(basePathNoSlash, mux))
+		parentMux.Handle("/drop/", mux)
+		parentMux.Handle("/folder-share/", mux)
+		parentMux.Handle("/request/", mux)
+		finalHandler = parentMux
+	}
+
 	server := &http.Server{
 		Addr:    ":" + port,
-		Handler: middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(mux)),
+		Handler: middlewareSecurityHeaders(middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(finalHandler))),
 		// Timeouts configured for 2GB uploads (30 minutes)
 
 		ReadTimeout:    30 * time.Minute, // Maximum time to read request body
@@ -531,12 +551,23 @@ func main() {
 
 }
 
+// startTime records when the process started, used to report uptime.
+var startTime = time.Now()
+
+// version is set at build time via -ldflags="-X main.version=...".
+// Falls back to "dev" for local development.
+var version = "dev"
+
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
+	uptime := time.Since(startTime).Truncate(time.Second).String()
+
 	response := map[string]string{
-		"status": "ok",
+		"status":  "ok",
+		"version": version,
+		"uptime":  uptime,
 	}
 	json.NewEncoder(w).Encode(response)
 }

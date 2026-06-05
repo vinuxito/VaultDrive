@@ -179,13 +179,13 @@ const getInitials = (name: string) => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>{t("common:userMenu.myAccount")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>{t("common:userMenu.profile")}</DropdownMenuItem>
-                  <DropdownMenuItem>{t("common:userMenu.settings")}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>{t("common:userMenu.profile")}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>{t("common:userMenu.settings")}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/files")}>
-                    My Files
+                    {t("common:nav.files")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/shared")}>
-                    Shared With Me
+                    {t("common:nav.shared")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>

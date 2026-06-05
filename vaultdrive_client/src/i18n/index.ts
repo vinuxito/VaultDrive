@@ -2,54 +2,69 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Import local translations
-import enCommon from '../locales/en/common.json';
-import esCommon from '../locales/es/common.json';
-import enSettings from '../locales/en/settings.json';
-import esSettings from '../locales/es/settings.json';
-import enAuth from '../locales/en/auth.json';
-import esAuth from '../locales/es/auth.json';
-import enDrive from '../locales/en/drive.json';
-import esDrive from '../locales/es/drive.json';
-import enHelp from '../locales/en/help.json';
-import esHelp from '../locales/es/help.json';
-
 import abrnEnOverrides from '../locales/overrides/abrn/en.json';
 import abrnEsOverrides from '../locales/overrides/abrn/es.json';
 import { branding } from '../config/branding';
 import { deepMerge } from './merge';
 
-const enResources = {
-  common: enCommon,
-  settings: enSettings,
-  auth: enAuth,
-  drive: enDrive,
-  help: enHelp,
+const dynamicLocales: Record<string, Record<string, () => Promise<any>>> = {
+  en: {
+    common: () => import('../locales/en/common.json'),
+    settings: () => import('../locales/en/settings.json'),
+    auth: () => import('../locales/en/auth.json'),
+    drive: () => import('../locales/en/drive.json'),
+    help: () => import('../locales/en/help.json'),
+  },
+  es: {
+    common: () => import('../locales/es/common.json'),
+    settings: () => import('../locales/es/settings.json'),
+    auth: () => import('../locales/es/auth.json'),
+    drive: () => import('../locales/es/drive.json'),
+    help: () => import('../locales/es/help.json'),
+  }
 };
 
-const esResources = {
-  common: esCommon,
-  settings: esSettings,
-  auth: esAuth,
-  drive: esDrive,
-  help: esHelp,
+const dynamicLoaderBackend = {
+  type: 'backend' as const,
+  init() {},
+  read(language: string, namespace: string, callback: (err: any, data: any) => void) {
+    const load = dynamicLocales[language]?.[namespace];
+    if (!load) {
+      callback(new Error(`Locale namespace not found: ${language}/${namespace}`), null);
+      return;
+    }
+    load()
+      .then((module) => {
+        const resources = { ...module.default };
+        
+        // Merge branding overrides if ABRN Drive
+        if (branding.productSlug === 'abrn-drive') {
+          if (language === 'en') {
+            const override = (abrnEnOverrides as any)[namespace];
+            if (override) {
+              deepMerge(resources, override);
+            }
+          } else if (language === 'es') {
+            const override = (abrnEsOverrides as any)[namespace];
+            if (override) {
+              deepMerge(resources, override);
+            }
+          }
+        }
+        
+        callback(null, resources);
+      })
+      .catch((err) => {
+        callback(err, null);
+      });
+  }
 };
-
-if (branding.productSlug === 'abrn-drive') {
-  deepMerge(enResources, abrnEnOverrides);
-  deepMerge(esResources, abrnEsOverrides);
-}
-
 
 i18n
-
+  .use(dynamicLoaderBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      en: enResources,
-      es: esResources,
-    },
     fallbackLng: 'en',
     supportedLngs: ['en', 'es'],
     ns: ['common', 'settings', 'auth', 'drive', 'help'],
@@ -59,7 +74,7 @@ i18n
       escapeValue: false, // React already escapes by default
     },
     react: {
-      useSuspense: false,
+      useSuspense: true, // Suspend rendering while namespace is loading
     },
   });
 
@@ -68,6 +83,7 @@ i18n
 i18n.on('languageChanged', (lng: string) => {
   document.documentElement.lang = lng;
 });
+
 // Set initial lang in case LanguageDetector chose a non-default
 document.documentElement.lang = i18n.language || 'en';
 

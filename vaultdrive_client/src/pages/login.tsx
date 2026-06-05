@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LanguageToggle } from "../components/ui/language-toggle";
 import { Button } from "../components/ui/button";
+import { LanguageToggle } from "../components/ui/language-toggle";
 import {
   CardContent,
   CardDescription,
@@ -8,6 +9,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Lock, Mail, User, Eye, EyeOff, Fingerprint } from "lucide-react";
+// Globe icon used via LanguageToggle component
 import { BrandLogo, PoweredByBadge } from "../components/branding";
 import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +35,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [pinValue, setPinValue] = useState("");
@@ -60,6 +63,25 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        const seconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+        setLockoutSeconds(seconds);
+        
+        const interval = setInterval(() => {
+          setLockoutSeconds((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || t("auth:login.errorRateLimit"));
+      }
 
       const data = await response.json();
 
@@ -150,6 +172,25 @@ export default function Login() {
         body: JSON.stringify(registerData),
       });
 
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        const seconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+        setLockoutSeconds(seconds);
+        
+        const interval = setInterval(() => {
+          setLockoutSeconds((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || t("auth:login.errorRateLimit"));
+      }
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || "Registration failed");
@@ -205,6 +246,19 @@ export default function Login() {
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          {lockoutSeconds > 0 && (
+            <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border-2 border-amber-500/30 text-amber-500 text-sm flex flex-col gap-2">
+              <div className="flex items-center gap-2 font-semibold">
+                <Fingerprint className="h-5 w-5 animate-pulse" />
+                {t("auth:login.lockoutTitle")}
+              </div>
+              <p>{t("auth:login.lockoutMessage", { seconds: lockoutSeconds })}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("auth:login.lockoutWarning")}
+              </p>
             </div>
           )}
 
@@ -266,6 +320,7 @@ export default function Login() {
                     }
                     className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
+                    disabled={lockoutSeconds > 0}
                   />
                 </div>
               </div>
@@ -286,11 +341,13 @@ export default function Login() {
                       }
                     className="w-full pl-10 pr-10 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                       required
+                      disabled={lockoutSeconds > 0}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                      disabled={lockoutSeconds > 0}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -319,6 +376,7 @@ export default function Login() {
                     }
                     className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all text-center tracking-widest text-xl"
                     required
+                    disabled={lockoutSeconds > 0}
                   />
                   <p className="text-xs text-muted-foreground text-center">
                     {t("auth:login.noPin")}{" "}
@@ -326,6 +384,7 @@ export default function Login() {
                       type="button"
                       onClick={() => switchLoginMode("password")}
                       className="text-primary hover:underline"
+                      disabled={lockoutSeconds > 0}
                     >
                       {t("auth:login.loginWithPassword")}
                     </button>
@@ -336,14 +395,16 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 cursor-pointer"
                 disabled={
                   loading ||
-                  (loginMode === "pin" && pinValue.length !== 4)
+                  (loginMode === "pin" && pinValue.length !== 4) ||
+                  lockoutSeconds > 0
                 }
               >
                 {loading ? t("auth:login.buttonLoading") : isLogin ? t("auth:login.buttonOpen", { product: branding.productName }) : t("auth:login.buttonSecure")}
               </Button>
+
 
             </form>
           ) : (
@@ -367,6 +428,7 @@ export default function Login() {
                       }
                       className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                       required
+                      disabled={lockoutSeconds > 0}
                     />
                   </div>
                 </div>
@@ -387,6 +449,7 @@ export default function Login() {
                     }
                     className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
+                    disabled={lockoutSeconds > 0}
                   />
                 </div>
               </div>
@@ -409,6 +472,7 @@ export default function Login() {
                     }
                     className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
+                    disabled={lockoutSeconds > 0}
                   />
                 </div>
               </div>
@@ -431,6 +495,7 @@ export default function Login() {
                     }
                     className="w-full pl-10 pr-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
+                    disabled={lockoutSeconds > 0}
                   />
                 </div>
               </div>
@@ -451,16 +516,18 @@ export default function Login() {
                         password: e.target.value,
                       })
                     }
-                    className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full pl-10 pr-10 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all"
                     required
                     minLength={8}
                     maxLength={64}
                     aria-describedby="register-password-help"
+                    disabled={lockoutSeconds > 0}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    disabled={lockoutSeconds > 0}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -476,8 +543,8 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-glow-primary)] rounded-[var(--radius)] border-2 border-primary/50"
-                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-glow-primary)] rounded-[var(--radius)] border-2 border-primary/50 cursor-pointer"
+                disabled={loading || lockoutSeconds > 0}
               >
                 {loading ? t("auth:register.buttonLoading") : t("auth:register.buttonCreate")}
               </Button>

@@ -6,6 +6,7 @@ import {
   completeOnboarding,
   gotoStable,
   uploadFileAsOwner,
+  productName
 } from "./helpers/trust";
 
 test.describe("File upload with browser-side encryption", () => {
@@ -21,7 +22,7 @@ test.describe("File upload with browser-side encryption", () => {
     await uploadFileAsOwner(page, account, {
       name: "test-upload.txt",
       mimeType: "text/plain",
-      buffer: Buffer.from("QuantiX Drive encryption proof — iteration 1"),
+      buffer: Buffer.from("${productName} encryption proof — iteration 1"),
     });
 
     // Verify the file appears in the vault list
@@ -53,8 +54,9 @@ test.describe("File upload with browser-side encryption", () => {
 
     // Verify via API that the file has correct encryption metadata
     const token = await page.evaluate(() => localStorage.getItem("token") ?? "");
+    const basePath = process.env.VITE_BASE_PATH ?? "/quantix";
     const filesRes = await page.request.get(
-      `${new URL(page.url()).origin}/api/files`,
+      `${new URL(page.url()).origin}${basePath}/api/files`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
     expect(filesRes.ok()).toBeTruthy();

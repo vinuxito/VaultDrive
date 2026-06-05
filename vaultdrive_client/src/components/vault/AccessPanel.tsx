@@ -132,9 +132,9 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
   };
 
   const stateClasses = (state: string) => {
-    if (state === "expired") return "bg-amber-100 text-amber-700 border border-amber-200";
-    if (state === "revoked") return "bg-rose-100 text-rose-700 border border-rose-200";
-    return "bg-emerald-100 text-emerald-700 border border-emerald-200";
+    if (state === "expired") return "bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
+    if (state === "revoked") return "bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800";
+    return "bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800";
   };
 
   const hasExternal = data && data.entries.length > 0;

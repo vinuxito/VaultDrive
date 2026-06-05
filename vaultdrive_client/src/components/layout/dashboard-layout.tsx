@@ -1,12 +1,11 @@
-
-
 import { useState, useRef, type ReactNode, useEffect } from "react";
 import { Menu, Search, Bell, Command } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { LanguageToggle } from "../ui/language-toggle";
+
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
-import { CommandPalette } from "./command-palette";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+// Local command palette removed to use global one
 import { PoweredByBadge } from "../branding";
 import { cn } from "../../lib/utils";
 import { useSessionVault } from "../../context/SessionVaultContext";
@@ -38,15 +38,16 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
-  const { t } = useTranslation(["common"]);
+  const location = useLocation();
+  const { t } = useTranslation(["common", "drive"]);
   const { clearVault } = useSessionVault();
+  const { toasts, addToast, dismissToast } = useToast();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  // Command palette state moved to global component
   const [activityFeedOpen, setActivityFeedOpen] = useState(false);
   const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const { toasts, addToast, dismissToast } = useToast();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const user = getStoredUserFromLocalStorage() ?? {};
@@ -93,14 +94,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        setShowCommandPalette(true);
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-
+  // Auto-dismiss is now handled by ToastProvider
 
   // Burst consolidation: events arriving within 800 ms are grouped into one toast.
   const burstCount = useRef(0);
@@ -168,7 +169,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <OnboardingWizard onComplete={handleOnboardingComplete} />
         )}
       
-      <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} />
+      {/* Global CommandPalette renders via App.tsx */}
 
       <Sidebar
         collapsed={sidebarCollapsed}
@@ -201,7 +202,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             
             <button 
               type="button"
-              onClick={() => setShowCommandPalette(true)}
+              onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
               className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
             >
               <Search className="w-4 h-4" />
@@ -216,7 +217,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center gap-3">
             <button 
               type="button"
-              onClick={() => setShowCommandPalette(true)}
+              onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
               className="p-2 rounded-full hover:bg-primary/10 transition-colors sm:hidden" aria-label="Search"
             >
               <Search className="w-5 h-5" />
@@ -271,8 +272,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-4 sm:p-6">
-          {children}
+        <div className="flex-1 overflow-auto p-4 sm:p-6 relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="h-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 
@@ -285,7 +297,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
       <Toast
         toasts={toasts}
-        onDismiss={(id) => dismissToast(id)}
+        onDismiss={dismissToast}
       />
     </div>
   );
