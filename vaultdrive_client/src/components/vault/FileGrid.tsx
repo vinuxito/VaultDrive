@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { File, Download, Link2, Star, StarOff, Shield, Share2, Users, FolderOpen, Trash2, Zap } from "lucide-react";
 import { OriginBadge } from "./OriginBadge";
 import type { FileOrigin } from "./OriginBadge";
+import { RowActionMenu } from "../ui/row-action-menu";
 
 export interface FileData {
   id: string;
@@ -96,8 +97,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
   onDeleteClick,
   onPreviewClick,
   onContextMenu,
-  setOpenActionMenu,
-  openActionMenu,
+  // setOpenActionMenu and openActionMenu are omitted because mobile actions are unified into RowActionMenu
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -278,93 +278,100 @@ export const FileGrid: React.FC<FileGridProps> = ({
               </div>
             </div>
 
-            {/* Mobile actions dropdown */}
+            {/* Mobile actions via RowActionMenu */}
             <div className="md:hidden relative shrink-0">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpenActionMenu(openActionMenu === file.id ? null : file.id);
-                }}
-                className="p-1 rounded-lg text-muted-foreground hover:bg-muted"
-                aria-label="File actions"
-              >
-                <Users className="w-4 h-4" />
-              </button>
-
-              {openActionMenu === file.id && (
-                <div className="absolute right-0 mt-1 z-30 min-w-[160px] rounded-lg border border-border bg-card shadow-lg py-1">
-                  <button
-                    type="button"
-                    onClick={() => onDownload(file)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                  >
-                    <Download className="w-3.5 h-3.5" /> {t("drive:vault.actions.download")}
-                  </button>
-
-                  {file.is_owner !== false && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => onCreateShareLink(file)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                      >
-                        <Link2 className="w-3.5 h-3.5" /> Link
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                      >
-                        <Share2 className="w-3.5 h-3.5" /> User
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onQuickShare(file.id)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-700 hover:bg-violet-50 text-left"
-                      >
-                        <Zap className="w-3.5 h-3.5" /> Quick Share
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onManageSharesClick({ id: file.id, filename: file.filename })}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                      >
-                        <Users className="w-3.5 h-3.5" /> Manage
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onAccessPanel({ id: file.id, filename: file.filename })}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                      >
-                        <Shield className="w-3.5 h-3.5" /> Privacy
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onMoveClick(file)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                      >
-                        <FolderOpen className="w-3.5 h-3.5" /> Move
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onToggleStar(file.id)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted text-left"
-                      >
-                        <Star className="w-3.5 h-3.5" /> {file.starred ? "Unstar" : "Star"}
-                      </button>
-                      <hr className="border-border/60 my-1" />
-                      <button
-                        type="button"
-                        onClick={() => onDeleteClick({ id: file.id, filename: file.filename })}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 text-left font-medium"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
+              <RowActionMenu
+                actions={[
+                  {
+                    id: "download",
+                    label: t("drive:vault.actions.download"),
+                    icon: Download,
+                    onSelect: () => onDownload(file),
+                  },
+                  ...(file.is_owner !== false
+                    ? [
+                        {
+                          id: "link",
+                          label: t("drive:vault.actions.createShareLink"),
+                          icon: Link2,
+                          onSelect: () => onCreateShareLink(file),
+                        },
+                        {
+                          id: "share",
+                          label: t("drive:vault.actions.share"),
+                          icon: Share2,
+                          onSelect: () =>
+                            onShareClick(
+                              file.id,
+                              file.filename,
+                              file.metadata,
+                              file.pin_wrapped_key || undefined
+                            ),
+                        },
+                        {
+                          id: "quick-share",
+                          label: t("drive:vault.actions.quickShare"),
+                          icon: Zap,
+                          onSelect: () => onQuickShare(file.id),
+                        },
+                        {
+                          id: "manage",
+                          label: t("drive:vault.actions.manageShares"),
+                          icon: Users,
+                          onSelect: () =>
+                            onManageSharesClick({
+                              id: file.id,
+                              filename: file.filename,
+                            }),
+                        },
+                        {
+                          id: "privacy",
+                          label: t("drive:vault.actions.accessControl"),
+                          icon: Shield,
+                          onSelect: () =>
+                            onAccessPanel({
+                              id: file.id,
+                              filename: file.filename,
+                            }),
+                        },
+                        {
+                          id: "move",
+                          label: t("drive:vault.actions.moveToFolder"),
+                          icon: FolderOpen,
+                          onSelect: () => onMoveClick(file),
+                        },
+                        {
+                          id: "star",
+                          label: file.starred
+                            ? t("drive:vault.actions.unstar")
+                            : t("drive:vault.actions.star"),
+                          icon: Star,
+                          onSelect: () => onToggleStar(file.id),
+                        },
+                        {
+                          id: "divider-destructive",
+                          label: "",
+                          kind: "divider" as const,
+                        },
+                        {
+                          id: "delete",
+                          label: t("drive:vault.actions.delete"),
+                          icon: Trash2,
+                          kind: "destructive" as const,
+                          onSelect: () =>
+                            onDeleteClick({
+                              id: file.id,
+                              filename: file.filename,
+                            }),
+                        },
+                      ]
+                    : []),
+                ]}
+                label={file.filename}
+                density="compact"
+                triggerAriaLabel="File actions"
+                triggerTestId={`file-actions-${file.id}`}
+              />
             </div>
           </div>
         );

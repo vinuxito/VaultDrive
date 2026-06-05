@@ -50,6 +50,24 @@ export default defineConfig({
   reporter: process.env.CI
     ? [["github"], ["html", { open: "never" }]]
     : [["list"], ["html", { open: "never" }]],
+  projects: [
+    {
+      name: "Desktop Chrome",
+      use: {
+        viewport: { width: 1280, height: 720 },
+      },
+      testIgnore: "**/mobile/**",
+    },
+    {
+      name: "Mobile Chrome",
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+      testMatch: "**/mobile/**",
+    },
+  ],
   use: {
     baseURL,
     trace: "on-first-retry",

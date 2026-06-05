@@ -53,7 +53,7 @@ func middlewareCORS(origins []string) func(http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name")
+			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name, Retry-After")
 
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)

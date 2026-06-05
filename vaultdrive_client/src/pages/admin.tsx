@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Shield,
   ShieldAlert,
@@ -15,6 +16,14 @@ import {
 import { API_URL } from "../utils/api";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useToast } from "../context/ToastContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../components/ui/dialog";
 
 interface User {
   id: string;
@@ -45,8 +54,24 @@ const emptyNewUser: NewUserForm = {
 };
 
 export default function Admin() {
+  const { t } = useTranslation(["drive"]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    body: string;
+    confirmLabel: string;
+    cancelLabel: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: "",
+    body: "",
+    confirmLabel: "",
+    cancelLabel: "",
+    onConfirm: () => {},
+  });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [resetPasswordUser, setResetPasswordUser] = useState<string | null>(
     null
@@ -121,35 +146,37 @@ export default function Admin() {
     if (selected.size === 0) return;
 
     const count = selected.size;
-    if (
-      !confirm(
-        `Are you sure you want to delete ${count} user${count > 1 ? "s" : ""}? This cannot be undone.`
-      )
-    )
-      return;
+    setConfirmDialog({
+      open: true,
+      title: t("drive:admin.confirmDeleteUsersTitle"),
+      body: t("drive:admin.confirmDeleteUsersBody", { count }),
+      confirmLabel: t("drive:admin.confirmDeleteUsersBtn"),
+      cancelLabel: t("drive:admin.cancel"),
+      onConfirm: async () => {
+        setBulkDeleting(true);
+        try {
+          const response = await fetch(`${API_URL}/admin/users/bulk-delete`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ user_ids: Array.from(selected) }),
+          });
 
-    setBulkDeleting(true);
-    try {
-      const response = await fetch(`${API_URL}/admin/users/bulk-delete`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({ user_ids: Array.from(selected) }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        addToast(data.message, "success");
-        setSelected(new Set());
-        await fetchUsers();
-      } else {
-        const data = await response.json();
-        addToast(data.error || "Error deleting users", "error");
-      }
-    } catch (err) {
-      console.error("Error bulk deleting:", err);
-    } finally {
-      setBulkDeleting(false);
-    }
+          if (response.ok) {
+            const data = await response.json();
+            addToast(data.message, "success");
+            setSelected(new Set());
+            await fetchUsers();
+          } else {
+            const data = await response.json();
+            addToast(data.error || t("drive:admin.errorDeleteUsers"), "error");
+          }
+        } catch (err) {
+          console.error("Error bulk deleting:", err);
+        } finally {
+          setBulkDeleting(false);
+        }
+      },
+    });
   };
 
   const handleCreateUser = async () => {
@@ -161,11 +188,11 @@ export default function Admin() {
       !newUser.email ||
       !newUser.password
     ) {
-      setError("All fields are required");
+      setError(t("drive:admin.errorFieldsRequired"));
       return;
     }
     if (newUser.password.length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(t("drive:admin.errorPasswordLength"));
       return;
     }
 
@@ -182,11 +209,11 @@ export default function Admin() {
         setNewUser(emptyNewUser);
       } else {
         const data = await response.json();
-        setError(data.error || "Error creating user");
+        setError(data.error || t("drive:admin.errorCreateUser"));
       }
     } catch (err) {
       console.error("Error creating user:", err);
-      setError("Network error");
+      setError(t("drive:admin.networkError"));
     }
   };
 
@@ -213,11 +240,11 @@ export default function Admin() {
         setEditingUser(null);
       } else {
         const data = await response.json();
-        addToast(data.error || "Error updating user", "error");
+        addToast(data.error || t("drive:admin.errorUpdateUser"), "error");
       }
     } catch (err) {
       console.error("Error updating user:", err);
-      addToast("Network error updating user", "error");
+      addToast(t("drive:admin.networkErrorUpdateUser"), "error");
     }
   };
 
@@ -237,135 +264,149 @@ export default function Admin() {
       if (response.ok) {
         setResetPasswordUser(null);
         setNewPassword("");
-        addToast("Password reset successfully!", "success");
+        addToast(t("drive:admin.successResetPassword"), "success");
       } else {
         const data = await response.json();
-        addToast(data.error || "Error resetting password", "error");
+        addToast(data.error || t("drive:admin.errorResetPassword"), "error");
       }
     } catch (err) {
       console.error("Error resetting password:", err);
-      addToast("Network error resetting password", "error");
+      addToast(t("drive:admin.networkErrorResetPassword"), "error");
     }
   };
 
   const handleResetPIN = async (userId: string, userName: string) => {
-    if (
-      !confirm(
-        `Clear PIN for ${userName}? They will need to set a new one on next login.`
-      )
-    )
-      return;
+    setConfirmDialog({
+      open: true,
+      title: t("drive:admin.confirmResetPinTitle"),
+      body: t("drive:admin.confirmResetPinBody", { name: userName }),
+      confirmLabel: t("drive:admin.confirmResetPinBtn"),
+      cancelLabel: t("drive:admin.cancel"),
+      onConfirm: async () => {
+        try {
+          const response = await fetch(
+            `${API_URL}/admin/users/${userId}/reset-pin`,
+            {
+              method: "POST",
+              headers: authHeaders(),
+            }
+          );
 
-    try {
-      const response = await fetch(
-        `${API_URL}/admin/users/${userId}/reset-pin`,
-        {
-          method: "POST",
-          headers: authHeaders(),
+          if (response.ok) {
+            addToast(t("drive:admin.successResetPin"), "success");
+          } else {
+            const data = await response.json();
+            addToast(data.error || t("drive:admin.errorResetPin"), "error");
+          }
+        } catch (err) {
+          console.error("Error resetting PIN:", err);
+          addToast(t("drive:admin.networkErrorResetPin"), "error");
         }
-      );
-
-      if (response.ok) {
-        addToast("PIN cleared successfully.", "success");
-      } else {
-        const data = await response.json();
-        addToast(data.error || "Error resetting PIN", "error");
-      }
-    } catch (err) {
-      console.error("Error resetting PIN:", err);
-      addToast("Network error resetting PIN", "error");
-    }
+      },
+    });
   };
 
   const handleToggleAdmin = async (user: User) => {
-    const action = user.is_admin ? "revoke admin from" : "grant admin to";
-    if (
-      !confirm(
-        `Are you sure you want to ${action} ${user.first_name} ${user.last_name}?`
-      )
-    )
-      return;
+    const userName = `${user.first_name} ${user.last_name}`;
+    setConfirmDialog({
+      open: true,
+      title: t("drive:admin.confirmToggleAdminTitle"),
+      body: t("drive:admin.confirmToggleAdminBody", { name: userName }),
+      confirmLabel: t("drive:admin.confirmToggleAdminBtn"),
+      cancelLabel: t("drive:admin.cancel"),
+      onConfirm: async () => {
+        try {
+          const response = await fetch(
+            `${API_URL}/admin/users/${user.id}/admin-status`,
+            {
+              method: "PUT",
+              headers: authHeaders(),
+              body: JSON.stringify({ is_admin: !user.is_admin }),
+            }
+          );
 
-    try {
-      const response = await fetch(
-        `${API_URL}/admin/users/${user.id}/admin-status`,
-        {
-          method: "PUT",
-          headers: authHeaders(),
-          body: JSON.stringify({ is_admin: !user.is_admin }),
+          if (response.ok) {
+            await fetchUsers();
+          } else {
+            const data = await response.json();
+            addToast(data.error || t("drive:admin.errorToggleAdmin"), "error");
+          }
+        } catch (err) {
+          console.error("Error toggling admin:", err);
         }
-      );
-
-      if (response.ok) {
-        await fetchUsers();
-      } else {
-        const data = await response.json();
-        addToast(data.error || "Error updating admin status", "error");
-      }
-    } catch (err) {
-      console.error("Error toggling admin:", err);
-    }
+      },
+    });
   };
 
   const handleForcePasswordChange = async (user: User) => {
-    if (
-      !confirm(
-        `Require ${user.first_name} ${user.last_name} to change their password on next login?`
-      )
-    )
-      return;
+    const userName = `${user.first_name} ${user.last_name}`;
+    setConfirmDialog({
+      open: true,
+      title: t("drive:admin.confirmForcePassTitle"),
+      body: t("drive:admin.confirmForcePassBody", { name: userName }),
+      confirmLabel: t("drive:admin.confirmForcePassBtn"),
+      cancelLabel: t("drive:admin.cancel"),
+      onConfirm: async () => {
+        try {
+          const response = await fetch(
+            `${API_URL}/admin/users/${user.id}/force-password-change`,
+            {
+              method: "POST",
+              headers: authHeaders(),
+            }
+          );
 
-    try {
-      const response = await fetch(
-        `${API_URL}/admin/users/${user.id}/force-password-change`,
-        {
-          method: "POST",
-          headers: authHeaders(),
+          if (response.ok) {
+            await fetchUsers();
+            addToast(t("drive:admin.successForcePass"), "success");
+          } else {
+            const data = await response.json();
+            addToast(data.error || t("drive:admin.errorForcePass"), "error");
+          }
+        } catch (err) {
+          console.error("Error forcing password change:", err);
+          addToast(t("drive:admin.networkError"), "error");
         }
-      );
-
-      if (response.ok) {
-        await fetchUsers();
-        addToast("User will be required to change password on next login.", "success");
-      } else {
-        const data = await response.json();
-        addToast(data.error || "Error setting force password change", "error");
-      }
-    } catch (err) {
-      console.error("Error forcing password change:", err);
-      addToast("Network error", "error");
-    }
+      },
+    });
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    setConfirmDialog({
+      open: true,
+      title: t("drive:admin.confirmDeleteUserTitle"),
+      body: t("drive:admin.confirmDeleteUserBody"),
+      confirmLabel: t("drive:admin.confirmDeleteUserBtn"),
+      cancelLabel: t("drive:admin.cancel"),
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/admin/users/${userId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const next = new Set(selected);
-        next.delete(userId);
-        setSelected(next);
-        await fetchUsers();
-      } else {
-        const data = await response.json();
-        addToast(data.error || "Error deleting user", "error");
-      }
-    } catch (err) {
-      console.error("Error deleting user:", err);
-      addToast("Network error deleting user", "error");
-    }
+          if (response.ok) {
+            const next = new Set(selected);
+            next.delete(userId);
+            setSelected(next);
+            await fetchUsers();
+          } else {
+            const data = await response.json();
+            addToast(data.error || t("drive:admin.errorDeleteUser"), "error");
+          }
+        } catch (err) {
+          console.error("Error deleting user:", err);
+          addToast(t("drive:admin.networkErrorDeleteUser"), "error");
+        }
+      },
+    });
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">Loading...</div>
+        <div className="text-xl">{t("drive:admin.loading")}</div>
       </div>
     );
   }
@@ -375,17 +416,17 @@ export default function Admin() {
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t("drive:admin.dashboardTitle")}</h1>
         </div>
         <button
           onClick={() => {
             setShowCreateUser(true);
             setError("");
           }}
-          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2"
+          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2 cursor-pointer"
         >
           <UserPlus className="h-4 w-4" />
-          New User
+          {t("drive:admin.newUser")}
         </button>
       </div>
 
@@ -393,28 +434,28 @@ export default function Admin() {
       {selected.size > 0 && (
         <div className="mb-4 flex items-center gap-4 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-3">
           <span className="text-sm font-medium text-destructive">
-            {selected.size} user{selected.size > 1 ? "s" : ""} selected
+            {t("drive:admin.usersSelected", { count: selected.size })}
           </span>
           <button
             type="button"
             onClick={handleBulkDelete}
             disabled={bulkDeleting}
-            className="bg-destructive text-white px-3 py-1.5 rounded-md hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2 text-sm"
+            className="bg-destructive text-white px-3 py-1.5 rounded-md hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2 text-sm cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            {bulkDeleting ? "Deleting..." : "Delete Selected"}
+            {bulkDeleting ? t("drive:admin.deleting") : t("drive:admin.bulkDeleteTitle")}
           </button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-sm text-muted-foreground hover:text-foreground ml-auto"
+            className="text-sm text-muted-foreground hover:text-foreground ml-auto cursor-pointer"
           >
-            Clear selection
+            {t("drive:admin.clearSelection")}
           </button>
         </div>
       )}
 
       <div className="bg-card rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-border">
+        <table className="min-w-full divide-y divide-border" aria-label={t("drive:admin.tableLabel")}>
           <thead className="bg-muted">
             <tr>
               <th className="px-4 py-3 w-10">
@@ -422,27 +463,28 @@ export default function Admin() {
                   type="checkbox"
                   checked={allSelectableSelected}
                   onChange={toggleSelectAll}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                  title="Select all"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                  title={t("drive:admin.selectAll")}
+                  aria-label={t("drive:admin.selectAll")}
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Name
+                {t("drive:admin.thName")}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Username
+                {t("drive:admin.thUsername")}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Email
+                {t("drive:admin.thEmail")}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Role
+                {t("drive:admin.thRole")}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Joined
+                {t("drive:admin.thJoined")}
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Actions
+                {t("drive:admin.thActions")}
               </th>
             </tr>
           </thead>
@@ -463,7 +505,8 @@ export default function Admin() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(user.id)}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                        aria-label={t("drive:admin.selectUser", { name: `${user.first_name} ${user.last_name}` })}
                       />
                     )}
                   </td>
@@ -489,22 +532,22 @@ export default function Admin() {
                         }`}
                         title={
                           isSelf
-                            ? "Cannot change own admin status"
-                            : "Click to revoke admin"
+                            ? t("drive:admin.cannotChangeOwnAdmin")
+                            : t("drive:admin.revokeAdminHelp")
                         }
                         disabled={isSelf}
                       >
                         <ShieldCheck className="h-3 w-3 mr-1 mt-0.5" />
-                        Admin
+                        {t("drive:admin.roleAdmin")}
                       </button>
                     ) : (
                       <button
                         onClick={() => handleToggleAdmin(user)}
                         className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-muted text-muted-foreground hover:bg-muted cursor-pointer"
-                        title="Click to grant admin"
+                        title={t("drive:admin.grantAdminHelp")}
                       >
                         <ShieldOff className="h-3 w-3 mr-1 mt-0.5" />
-                        User
+                        {t("drive:admin.roleUser")}
                       </button>
                     )}
                   </td>
@@ -514,15 +557,15 @@ export default function Admin() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => setEditingUser(user)}
-                      className="text-primary hover:text-primary/90 mr-3"
-                      title="Edit user"
+                      className="text-primary hover:text-primary/90 mr-3 cursor-pointer"
+                      title={t("drive:admin.editUserHelp")}
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => setResetPasswordUser(user.id)}
-                      className="text-green-600 hover:text-green-900 mr-3"
-                      title="Reset password"
+                      className="text-green-600 hover:text-green-900 mr-3 cursor-pointer"
+                      title={t("drive:admin.resetPasswordHelp")}
                     >
                       <Key className="h-4 w-4" />
                     </button>
@@ -533,23 +576,23 @@ export default function Admin() {
                           `${user.first_name} ${user.last_name}`
                         )
                       }
-                      className="text-orange-500 hover:text-orange-700 mr-3"
-                      title="Reset PIN"
+                      className="text-orange-500 hover:text-orange-700 mr-3 cursor-pointer"
+                      title={t("drive:admin.resetPinHelp")}
                     >
                       <Lock className="h-4 w-4" />
                     </button>
                     {!isSelf && (
                       <button
                         onClick={() => handleForcePasswordChange(user)}
-                        className={`mr-3 ${
+                        className={`mr-3 cursor-pointer ${
                           user.force_password_change
                             ? "text-amber-600 dark:text-amber-400"
                             : "text-amber-400 hover:text-amber-600 dark:text-amber-500 dark:hover:text-amber-400"
                         }`}
                         title={
                           user.force_password_change
-                            ? "Password change already required"
-                            : "Force password change on next login"
+                            ? t("drive:admin.passwordChangeRequired")
+                            : t("drive:admin.forcePasswordChangeHelp")
                         }
                         disabled={user.force_password_change}
                       >
@@ -559,8 +602,8 @@ export default function Admin() {
                     {!isSelf && (
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="text-destructive hover:text-destructive/80"
-                        title="Delete user"
+                        className="text-destructive hover:text-destructive/80 cursor-pointer"
+                        title={t("drive:admin.deleteUserHelp")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -578,14 +621,14 @@ export default function Admin() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Create New User</h2>
+              <h2 className="text-xl font-bold">{t("drive:admin.createUserTitle")}</h2>
               <button
                 onClick={() => {
                   setShowCreateUser(false);
                   setNewUser(emptyNewUser);
                   setError("");
                 }}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -599,7 +642,7 @@ export default function Admin() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
-                    First Name
+                    {t("drive:admin.firstName")}
                   </label>
                   <input
                     type="text"
@@ -612,7 +655,7 @@ export default function Admin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
-                    Last Name
+                    {t("drive:admin.lastName")}
                   </label>
                   <input
                     type="text"
@@ -626,7 +669,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Username
+                  {t("drive:admin.username")}
                 </label>
                 <input
                   type="text"
@@ -639,7 +682,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Email
+                  {t("drive:admin.email")}
                 </label>
                 <input
                   type="email"
@@ -652,7 +695,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Password
+                  {t("drive:admin.password")}
                 </label>
                 <input
                   type="password"
@@ -661,15 +704,15 @@ export default function Admin() {
                     setNewUser({ ...newUser, password: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-border rounded-md"
-                  placeholder="Min. 6 characters"
+                  placeholder={t("drive:admin.passwordPlaceholder")}
                 />
               </div>
               <button
                 onClick={handleCreateUser}
-                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
-                Create User
+                {t("drive:admin.btnCreateUser")}
               </button>
             </div>
           </div>
@@ -681,10 +724,10 @@ export default function Admin() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit User</h2>
+              <h2 className="text-xl font-bold">{t("drive:admin.editUserTitle")}</h2>
               <button
                 onClick={() => setEditingUser(null)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -692,7 +735,7 @@ export default function Admin() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  First Name
+                  {t("drive:admin.firstName")}
                 </label>
                 <input
                   type="text"
@@ -708,7 +751,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Last Name
+                  {t("drive:admin.lastName")}
                 </label>
                 <input
                   type="text"
@@ -724,7 +767,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Username
+                  {t("drive:admin.username")}
                 </label>
                 <input
                   type="text"
@@ -740,7 +783,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Email
+                  {t("drive:admin.email")}
                 </label>
                 <input
                   type="email"
@@ -753,10 +796,10 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleUpdateUser}
-                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2"
+                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
-                Save Changes
+                {t("drive:admin.btnSaveChanges")}
               </button>
             </div>
           </div>
@@ -768,13 +811,13 @@ export default function Admin() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Reset Password</h2>
+              <h2 className="text-xl font-bold">{t("drive:admin.resetPasswordTitle")}</h2>
               <button
                 onClick={() => {
                   setResetPasswordUser(null);
                   setNewPassword("");
                 }}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -782,27 +825,61 @@ export default function Admin() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  New Password
+                  {t("drive:admin.newPassword")}
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-md"
-                  placeholder="Enter new password"
+                  placeholder={t("drive:admin.placeholderNewPassword")}
                 />
               </div>
               <button
                 onClick={handleResetPassword}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center justify-center gap-2"
+                className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Key className="h-4 w-4" />
-                Reset Password
+                {t("drive:admin.btnResetPassword")}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Custom Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDialog((prev) => ({ ...prev, open }))
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{confirmDialog.title}</DialogTitle>
+            <DialogDescription>{confirmDialog.body}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              onClick={() =>
+                setConfirmDialog((prev) => ({ ...prev, open: false }))
+              }
+              className="px-4 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white rounded-md mr-2 transition-colors cursor-pointer"
+            >
+              {confirmDialog.cancelLabel}
+            </button>
+            <button
+              onClick={() => {
+                confirmDialog.onConfirm();
+                setConfirmDialog((prev) => ({ ...prev, open: false }));
+              }}
+              className="px-4 py-2 text-sm font-medium bg-destructive hover:bg-destructive/90 text-white rounded-md transition-colors cursor-pointer"
+            >
+              {confirmDialog.confirmLabel}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

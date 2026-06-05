@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -24,8 +25,9 @@ import {
   type TestCategory,
   type TestResult,
 } from "../utils/test-runner";
-
+ 
 export default function AdminTests() {
+  const { t } = useTranslation(["drive"]);
   const [categories, setCategories] = useState<TestCategory[]>([]);
   const [running, setRunning] = useState(false);
   const [currentTest, setCurrentTest] = useState<string>("");
@@ -105,9 +107,9 @@ export default function AdminTests() {
       <div className="container mx-auto p-6 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">System Tests</h1>
+          <h1 className="text-3xl font-bold mb-2">{t("drive:admin.systemTestsTitle")}</h1>
           <p className="text-muted-foreground">
-            {`Run comprehensive tests to verify ${branding.productName} functionality`}
+            {t("drive:admin.systemTestsDesc", { productName: branding.productName })}
           </p>
         </div>
 
@@ -118,18 +120,18 @@ export default function AdminTests() {
               <Button
                 onClick={handleRunAllTests}
                 disabled={running}
-                className="gap-2"
+                className="gap-2 cursor-pointer"
                 size="lg"
               >
                 {running ? (
                   <>
                     <Clock className="w-5 h-5 animate-spin" />
-                    Running Tests...
+                    {t("drive:admin.runningTests")}
                   </>
                 ) : (
                   <>
                     <Play className="w-5 h-5" />
-                    Run All Tests
+                    {t("drive:admin.btnRunAllTests")}
                   </>
                 )}
               </Button>
@@ -138,18 +140,18 @@ export default function AdminTests() {
                 onClick={handleCleanup}
                 disabled={cleaning || running}
                 variant="outline"
-                className="gap-2"
+                className="gap-2 cursor-pointer"
                 size="lg"
               >
                 {cleaning ? (
                   <>
                     <Clock className="w-5 h-5 animate-spin" />
-                    Cleaning...
+                    {t("drive:admin.cleaning")}
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-5 h-5" />
-                    Clear Test Data
+                    {t("drive:admin.btnClearTestData")}
                   </>
                 )}
               </Button>
@@ -158,11 +160,11 @@ export default function AdminTests() {
                 <Button
                   onClick={handleExportResults}
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 cursor-pointer"
                   size="lg"
                 >
                   <Download className="w-5 h-5" />
-                  Export Results
+                  {t("drive:admin.btnExportResults")}
                 </Button>
               )}
             </div>
@@ -179,27 +181,27 @@ export default function AdminTests() {
         {categories.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Test Summary</CardTitle>
+              <CardTitle>{t("drive:admin.testSummary")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="text-3xl font-bold">{stats.total}</div>
                   <div className="text-sm text-muted-foreground">
-                    Total Tests
+                    {t("drive:admin.totalTests")}
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600">
                     {stats.passed}
                   </div>
-                  <div className="text-sm text-muted-foreground">Passed</div>
+                  <div className="text-sm text-muted-foreground">{t("drive:admin.passed")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-red-600">
                     {stats.failed}
                   </div>
-                  <div className="text-sm text-muted-foreground">Failed</div>
+                  <div className="text-sm text-muted-foreground">{t("drive:admin.failed")}</div>
                 </div>
               </div>
             </CardContent>
@@ -212,7 +214,7 @@ export default function AdminTests() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 animate-spin text-primary" />
-                <span className="font-medium">Running: {currentTest}</span>
+                <span className="font-medium">{t("drive:admin.runningLabel")}{currentTest}</span>
               </div>
             </CardContent>
           </Card>
@@ -226,11 +228,11 @@ export default function AdminTests() {
                 <span>{category.name}</span>
                 <span className="text-sm font-normal text-muted-foreground">
                   {category.tests.filter((t) => t.pass).length} /{" "}
-                  {category.tests.length} passed
+                  {category.tests.length} {t("drive:admin.passedLower")}
                 </span>
               </CardTitle>
               <CardDescription>
-                {category.tests.length} test{category.tests.length !== 1 ? "s" : ""}
+                {t("drive:admin.testCount", { count: category.tests.length })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -287,10 +289,10 @@ export default function AdminTests() {
             <CardContent className="py-12 text-center">
               <Play className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">
-                No tests run yet
+                {t("drive:admin.noTestsRun")}
               </h3>
               <p className="text-muted-foreground mb-4">
-                Click "Run All Tests" to start testing the system
+                {t("drive:admin.clickToStartTests")}
               </p>
             </CardContent>
           </Card>
