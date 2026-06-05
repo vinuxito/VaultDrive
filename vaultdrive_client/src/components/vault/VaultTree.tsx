@@ -293,11 +293,11 @@ export function VaultTree({
               {used ? "sealed" : "expired"}
             </span>
           ) : expiringSoon ? (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 shrink-0">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
               expiring
             </span>
           ) : (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 shrink-0">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0">
               active
             </span>
           );

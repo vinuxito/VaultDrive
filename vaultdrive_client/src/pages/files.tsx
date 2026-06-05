@@ -1466,7 +1466,7 @@ export default function Files() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t("drive:vault.search")}
-                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-white focus:border-primary/40 focus:outline-none transition-all"
+                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
               />
 
                 {searchQuery && (
@@ -1510,7 +1510,7 @@ export default function Files() {
 
           <aside
             className={`
-              w-60 shrink-0 border-r border-border/60 bg-white overflow-y-auto
+              w-60 shrink-0 border-r border-border/60 bg-card overflow-y-auto
               md:relative md:translate-x-0
               fixed inset-y-0 left-0 z-50 transition-transform duration-300
               ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
@@ -1673,11 +1673,11 @@ export default function Files() {
             )}
 
             {successMessage && (
-              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm shrink-0">
-                <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm shrink-0">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <span className="text-emerald-800 font-medium">{successMessage}</span>
+                <span className="text-emerald-800 dark:text-emerald-200 font-medium">{successMessage}</span>
               </div>
             )}
 
@@ -1801,7 +1801,7 @@ export default function Files() {
                             <button
                               type="button"
                               onClick={() => handleCreateShareLink(file)}
-                              className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
                               title="Create share link"
                             >
                               <Link2 className="w-3.5 h-3.5" />
@@ -1815,7 +1815,7 @@ export default function Files() {
                               className={`p-1.5 rounded-lg transition-colors ${
                                 file.starred
                                   ? "text-amber-400 hover:text-amber-500"
-                                  : "text-muted-foreground hover:text-amber-400 hover:bg-amber-50"
+                                  : "text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10"
                               }`}
                               title={file.starred ? "Unstar" : "Star"}
                             >
@@ -1843,7 +1843,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
                                 title="Share with user"
                               >
                                 <Share2 className="w-3.5 h-3.5" />
@@ -1854,7 +1854,7 @@ export default function Files() {
                               <button
                                 type="button"
                                 onClick={() => handleQuickShare(file.id)}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
                                 title="Quick Share (7-day link, copied to clipboard)"
                               >
                                 <Zap className="w-3.5 h-3.5" />
@@ -1909,7 +1909,7 @@ export default function Files() {
                             <MoreHorizontal className="w-4 h-4" />
                           </button>
                           {openActionMenu === file.id && (
-                            <div className="absolute right-0 bottom-full mb-1 bg-white border border-border rounded-xl shadow-xl z-30 py-1 min-w-[160px]">
+                            <div className="absolute right-0 bottom-full mb-1 bg-popover border border-border rounded-xl shadow-xl z-30 py-1 min-w-[160px]">
                               <button
                                 type="button"
                                 onClick={() => { handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner); setOpenActionMenu(null); }}
