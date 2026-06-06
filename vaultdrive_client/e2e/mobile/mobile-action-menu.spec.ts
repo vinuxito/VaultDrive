@@ -51,8 +51,8 @@ test.describe("Mobile action menu bottom sheet", () => {
       expect(boundingBox.height).toBeGreaterThanOrEqual(44);
     }
 
-    // Dismiss drawer by clicking the backdrop
-    await backdrop.click({ force: true });
+    // Dismiss drawer by clicking the backdrop in the uncovered top area
+    await backdrop.click({ position: { x: 10, y: 10 }, force: true });
 
     // Verify it is closed
     await expect(content).not.toBeVisible();

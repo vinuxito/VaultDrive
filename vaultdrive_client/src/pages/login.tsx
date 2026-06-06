@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { LanguageToggle } from "../components/ui/language-toggle";
 import { Button } from "../components/ui/button";
-import { LanguageToggle } from "../components/ui/language-toggle";
 import {
   CardContent,
   CardDescription,
