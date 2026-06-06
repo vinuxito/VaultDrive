@@ -33,7 +33,8 @@
       "moveToFolder": "Mover a carpeta",
       "delete": "Eliminar",
       "manageShares": "Administrar acceso",
-      "preview": "Vista previa"
+      "preview": "Vista previa",
+      "viewReceipt": "Ver recibo de seguridad"
     },
     "passwordModal": {
       "usePin": "Usa tu PIN",
@@ -302,6 +303,41 @@
     "testCount_plural": "{{count}} pruebas",
     "noTestsRun": "Aún no se han ejecutado pruebas",
     "clickToStartTests": "Haga clic en \"Ejecutar Todas las Pruebas\" para comenzar a probar el sistema"
+  },
+  "receiptDrawer": {
+    "title": "Recibo de Seguridad",
+    "subtitle": "Pista de auditoría criptográfica",
+    "close": "Cerrar",
+    "zeroKnowledgeBoundary": "Protección de Conocimiento Cero",
+    "zkExplanation": "Este archivo está cifrado de extremo a extremo usando AES-256-GCM. La clave de descifrado se generó en el navegador del propietario y nunca se compartió con el servidor en texto claro. El servidor solo transfiere el texto cifrado y registra los eventos de acceso, lo que significa que tiene cero conocimiento del contenido del archivo.",
+    "noActivity": "Aún no hay entradas de auditoría registradas para este archivo.",
+    "actor": "Tipo de Actor",
+    "ipAddress": "Dirección IP",
+    "action": "Acción",
+    "timestamp": "Fecha y hora",
+    "details": "Detalles",
+    "hideDetails": "Ocultar detalles",
+    "metadata": "Metadatos",
+    "activeAuditing": "Auditoría en tiempo real activa",
+    "actorTypes": {
+      "owner": "Propietario",
+      "anonymous_link": "Enlace Anónimo",
+      "agent_key": "Clave de Agente Acotada",
+      "user": "Usuario Compartido"
+    },
+    "actions": {
+      "uploaded": "Archivo subido",
+      "file_uploaded": "Archivo subido",
+      "shared": "Archivo compartido",
+      "file_shared": "Archivo compartido",
+      "moved": "Archivo movido",
+      "file_moved": "Archivo movido",
+      "downloaded": "Archivo descifrado/descargado",
+      "file_downloaded": "Archivo descifrado/descargado",
+      "external_access_revoked": "Acceso externo revocado",
+      "public_share_link_created": "Enlace compartido creado",
+      "public_share_link_revoked": "Enlace compartido revocado"
+    }
   }
 }
 

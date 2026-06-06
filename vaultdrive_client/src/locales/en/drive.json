@@ -33,7 +33,8 @@
       "moveToFolder": "Move to folder",
       "delete": "Delete",
       "manageShares": "Manage shares",
-      "preview": "Preview"
+      "preview": "Preview",
+      "viewReceipt": "View security receipt"
     },
     "passwordModal": {
       "usePin": "Use Your PIN",
@@ -301,6 +302,41 @@
     "testCount_plural": "{{count}} tests",
     "noTestsRun": "No tests run yet",
     "clickToStartTests": "Click \"Run All Tests\" to start testing the system"
+  },
+  "receiptDrawer": {
+    "title": "Security Receipt",
+    "subtitle": "Cryptographic audit trail",
+    "close": "Close",
+    "zeroKnowledgeBoundary": "Zero-Knowledge Protection",
+    "zkExplanation": "This file is encrypted end-to-end using AES-256-GCM. The decryption key was generated in the owner's browser and was never shared with the server in cleartext. The server only routes encrypted ciphertext and logs access events, meaning it has zero knowledge of the file's contents.",
+    "noActivity": "No audit entries recorded yet for this file.",
+    "actor": "Actor Type",
+    "ipAddress": "IP Address",
+    "action": "Action",
+    "timestamp": "Timestamp",
+    "details": "Details",
+    "hideDetails": "Hide details",
+    "metadata": "Metadata",
+    "activeAuditing": "Real-time auditing active",
+    "actorTypes": {
+      "owner": "Owner",
+      "anonymous_link": "Anonymous Link",
+      "agent_key": "Scoped Agent Key",
+      "user": "Shared User"
+    },
+    "actions": {
+      "uploaded": "File uploaded",
+      "file_uploaded": "File uploaded",
+      "shared": "File shared",
+      "file_shared": "File shared",
+      "moved": "File moved",
+      "file_moved": "File moved",
+      "downloaded": "File decrypted/downloaded",
+      "file_downloaded": "File decrypted/downloaded",
+      "external_access_revoked": "External access revoked",
+      "public_share_link_created": "Share link created",
+      "public_share_link_revoked": "Share link revoked"
+    }
   }
 }
 

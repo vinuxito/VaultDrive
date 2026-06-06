@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { File, Download, Link2, Star, StarOff, Shield, Share2, Users, FolderOpen, Trash2, Zap } from "lucide-react";
+import { File, Download, Link2, Star, StarOff, Shield, Share2, Users, FolderOpen, Trash2, Zap, Clock } from "lucide-react";
 import { OriginBadge } from "./OriginBadge";
 import type { FileOrigin } from "./OriginBadge";
 import { RowActionMenu } from "../ui/row-action-menu";
@@ -48,6 +48,7 @@ interface FileGridProps {
   onContextMenu: (event: React.MouseEvent, file: FileData) => void;
   setOpenActionMenu: (fileId: string | null) => void;
   openActionMenu: string | null;
+  onOpenReceipt: (file: FileData) => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -97,7 +98,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
   onDeleteClick,
   onPreviewClick,
   onContextMenu,
-  // setOpenActionMenu and openActionMenu are omitted because mobile actions are unified into RowActionMenu
+  onOpenReceipt,
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -145,7 +146,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
 
             <button
               type="button"
-              className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer text-left"
+              className="flex items-center gap-2 cursor-pointer text-left shrink-0"
               onContextMenu={(event) => onContextMenu(event, file)}
               onClick={() => onPreviewClick(file)}
             >
@@ -154,6 +155,19 @@ export const FileGrid: React.FC<FileGridProps> = ({
                 {file.filename}
               </span>
             </button>
+
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenReceipt(file);
+              }}
+              className="relative flex h-2.5 w-2.5 shrink-0 cursor-pointer select-none rounded-full items-center justify-center p-0 hover:scale-125 transition-transform"
+              title={t("drive:vault.actions.viewReceipt")}
+              data-testid={`receipt-pulse-${file.id}`}
+            >
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
 
             <div className="w-28 hidden sm:block shrink-0">
               <OriginBadge origin={origin} />
@@ -216,6 +230,18 @@ export const FileGrid: React.FC<FileGridProps> = ({
                   title="Who can access this file?"
                 >
                   <Shield className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  onClick={() => onOpenReceipt(file)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors cursor-pointer animate-none"
+                  title={t("drive:vault.actions.viewReceipt")}
+                  data-testid={`receipt-action-${file.id}`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
                 </button>
               )}
 
@@ -333,6 +359,12 @@ export const FileGrid: React.FC<FileGridProps> = ({
                               id: file.id,
                               filename: file.filename,
                             }),
+                        },
+                        {
+                          id: "receipt",
+                          label: t("drive:vault.actions.viewReceipt"),
+                          icon: Clock,
+                          onSelect: () => onOpenReceipt(file),
                         },
                         {
                           id: "move",

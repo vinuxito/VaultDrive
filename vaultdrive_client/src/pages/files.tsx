@@ -56,6 +56,7 @@ import {
   UploadZone,
   FileSearch,
   type FileTypeFilter,
+  ActivityReceiptDrawer,
 } from "../components/vault";
 import type { TreeNode, DropTokenInfo, BulkDownloadFile } from "../components/vault";
 import type { Folder } from "../components/files/FolderBreadcrumb";
@@ -251,6 +252,7 @@ export default function Files() {
   const [fileToShare, setFileToShare] = useState<{ id: string; filename: string; metadata?: string; pin_wrapped_key?: string } | null>(null);
 
   const [accessPanelFile, setAccessPanelFile] = useState<{ id: string; filename: string } | null>(null);
+  const [receiptFile, setReceiptFile] = useState<FileData | null>(null);
 
   const [showManageSharesModal, setShowManageSharesModal] = useState(false);
   const [fileToManage, setFileToManage] = useState<{ id: string; filename: string } | null>(null);
@@ -1671,6 +1673,7 @@ export default function Files() {
                   }}
                   setOpenActionMenu={setOpenActionMenu}
                   openActionMenu={openActionMenu}
+                  onOpenReceipt={setReceiptFile}
                 />
               )}
             </div>
@@ -2107,6 +2110,14 @@ export default function Files() {
           fileId={accessPanelFile.id}
           filename={accessPanelFile.filename}
           onClose={() => setAccessPanelFile(null)}
+        />
+      )}
+      {receiptFile && (
+        <ActivityReceiptDrawer
+          isOpen={!!receiptFile}
+          onClose={() => setReceiptFile(null)}
+          fileId={receiptFile.id}
+          filename={receiptFile.filename}
         />
       )}
     </>

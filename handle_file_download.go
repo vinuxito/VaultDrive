@@ -121,4 +121,23 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 		// Just log it if we had a logger, or ignore
 		return
 	}
+
+	// Log download audit event
+	var actorType = "owner"
+	var actorDetails = map[string]interface{}{}
+	if userID != dbFile.OwnerID.UUID {
+		actorType = "user"
+		var email string
+		_ = cfg.db.QueryRowContext(r.Context(), "SELECT email FROM users WHERE id = $1", userID).Scan(&email)
+		actorDetails["email"] = email
+	} else {
+		var email string
+		_ = cfg.db.QueryRowContext(r.Context(), "SELECT email FROM users WHERE id = $1", userID).Scan(&email)
+		actorDetails["email"] = email
+	}
+	actorDetails["actor_type"] = actorType
+	actorDetails["filename"] = dbFile.Filename
+	actorDetails["file_size"] = dbFile.FileSize
+
+	cfg.insertAudit(r.Context(), dbFile.OwnerID.UUID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
 }

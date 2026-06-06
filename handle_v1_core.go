@@ -222,6 +222,31 @@ func (cfg *ApiConfig) handlerV1DownloadFile(w http.ResponseWriter, r *http.Reque
 		w.Header().Set("X-Wrapped-Key", wrappedKey)
 	}
 	_, _ = io.Copy(w, file)
+
+	// Log download audit event
+	var actorType = "owner"
+	var actorDetails = map[string]interface{}{}
+	if actor, ok := actorFromContext(r.Context()); ok {
+		if actor.AuthType == "agent_api_key" {
+			actorType = "agent_key"
+			if actor.KeyID != nil {
+				var keyName, keyPrefix string
+				_ = cfg.db.QueryRowContext(r.Context(), "SELECT name, key_prefix FROM agent_api_keys WHERE id = $1", actor.KeyID).Scan(&keyName, &keyPrefix)
+				actorDetails["key_name"] = keyName
+				actorDetails["key_prefix"] = keyPrefix
+			}
+		} else if actor.User.ID != dbFile.OwnerID.UUID {
+			actorType = "user"
+			actorDetails["email"] = actor.User.Email
+		} else {
+			actorDetails["email"] = actor.User.Email
+		}
+	}
+	actorDetails["actor_type"] = actorType
+	actorDetails["filename"] = dbFile.Filename
+	actorDetails["file_size"] = dbFile.FileSize
+
+	cfg.insertAudit(r.Context(), dbFile.OwnerID.UUID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
 }
 
 func (cfg *ApiConfig) handlerV1ListFolders(w http.ResponseWriter, r *http.Request, user database.User) {
