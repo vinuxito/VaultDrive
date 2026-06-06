@@ -8,32 +8,32 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-05-24 — QA Feature Coverage Verified & Deployed)
+## Current Status (2026-06-06 — UI/UX Upgrade Roadmap Step 3 Verified & Deployed)
 
-**Production-ready.** Full QA Feature Coverage pass successfully verified. 15 implemented features covered by 118 unit tests, 41 E2E Playwright tests, and manual browser smoke checks. A test timeout issue in resource-constrained environments was fixed.
+**Production-ready.** UI/UX Upgrade Roadmap Step 3 (Mobile Bottom Sheets & Viewport Optimization) has been fully verified and deployed end-to-end upstream and downstream. All previous Phase IV & V protections and enhancements remain active.
 
 | Check | Result |
 |-------|--------|
-| Frontend unit tests (`vitest run`) | ✅ 118 / 118 |
-| Frontend production build (`vite build`) | ✅ successful |
-| Backend build (`go build`) | ✅ exit 0 |
-| Backend tests (`go test ./...`) | ✅ ok (root pkg) |
-| Full E2E suite (`playwright test`) | ✅ 41 / 41 |
-| In-app Help Center (EN/ES) | ✅ `/help` route live |
-| Mobile touch targets (44px WCAG) | ✅ enforced via CSS |
-| Accessibility (skip link, focus rings, ARIA) | ✅ implemented |
-| Reduced motion support | ✅ `prefers-reduced-motion` |
+| TypeScript typecheck | ✅ 0 errors |
+| Frontend production build | ✅ pass (~36s / ~27s downstream) |
+| Backend unit tests | ✅ pass |
+| Unit tests (vitest) | ✅ 119 passed upstream / 121 passed downstream |
+| E2E tests (playwright) | ✅ 43 passed (including mobile Chrome viewports) |
+| QuantiX production healthz | ✅ HTTP 200 |
+| Production `/quantix/` | ✅ HTTP 200 |
+| Production `POST /api/register {}` | ✅ HTTP 400 (expected) |
+| EN/ES locale key parity | ✅ 100% parity |
+| Downstream integration | ✅ Cleanly merged and verified |
 
-**Routing model (Apache vhost):**
-- SPA → `https://abrndrive.filemonprime.net/abrn/`
-- API → `https://abrndrive.filemonprime.net/api/...` (NOT under `/abrn/`)
+**Latest Session Memory:**
+- Mobile Bottom Sheets Closeout (2026-06-06): [docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md](docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md)
+- UX Roadmap Steps 1-4 (2026-05-24): [docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md](docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md)
+- Pre-Phase V Sanity Check: [docs/memories/session-2026-05-23-phase5-prep.md](docs/memories/session-2026-05-23-phase5-prep.md)
+- Undeniable UX Phase: [docs/memories/session-2026-05-23-ux-phase.md](docs/memories/session-2026-05-23-ux-phase.md)
 
-**Latest Verification & QA Reports:**
-- QA Feature Coverage Report (HTML): [docs/reports/2026-05-24-qa-feature-coverage-report.html](docs/reports/2026-05-24-qa-feature-coverage-report.html)
-- QA Feature Coverage Report (MD): [docs/reports/2026-05-24-qa-feature-coverage-report.md](docs/reports/2026-05-24-qa-feature-coverage-report.md)
-- Verification Closeout: [docs/memories/session-2026-05-22-verification-closeout.md](docs/memories/session-2026-05-22-verification-closeout.md)
-- MD Verification Report: [docs/reports/2026-05-22-verification.md](docs/reports/2026-05-22-verification.md)
-- HTML Verification Report: [docs/reports/2026-05-22-verification.html](docs/reports/2026-05-22-verification.html)
+**Latest Verification Reports:**
+- HTML Verification Report: [docs/reports/2026-06-06-mobile-bottom-sheets-verification.html](docs/reports/2026-06-06-mobile-bottom-sheets-verification.html)
+- Markdown Verification Report: [docs/reports/2026-06-06-mobile-bottom-sheets-verification.md](docs/reports/2026-06-06-mobile-bottom-sheets-verification.md)
 
 ---
 
@@ -76,19 +76,18 @@ curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/a
 Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/etc/quantix/quantixdrive.env`. Logs: `journalctl -u quantixdrive -f`.
 
 **What's new since the last verification:**
-- Three coherence primitives shipped: `<RowActionMenu>`, `constants/copy.ts`, `<DataState>` (see [docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md](docs/SESSION_MEMORY_2026-04-27-coherence-foundations.md)).
-- First adoption surface: Upload Links (UploadLinkCard now exposes Seal / Remove via a header-level row action menu; UploadLinksSection renders loading/empty via `<DataState>`).
-- Two surgical fixes to E2E test code that had drifted out of sync with upstream UI changes — see [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md).
+- **UI/UX Upgrade Roadmap Step 3 (2026-06-06):**
+  - Mobile bottom sheets: Replaced Radix desktop popover dropdowns with responsive gestural bottom sheet drawers for viewports `< 640px`.
+  - Swipe-to-dismiss: Integrated Framer Motion drag gestures (drag threshold `100px`) for native-feeling mobile interactions.
+  - Notch safe area: Integrated safe-area bottom padding (`env(safe-area-inset-bottom, 0px)`) into bottom sheets and navigation.
+  - WCAG touch targets: Expanded button option clickable surfaces to `48px` height (exceeding WCAG's `44px` requirement).
+  - Downstream merge: Successfully synced and resolved merge issues on ABRN-Drive overlay.
+- Previous: Phase V Steps 1-4 (Theme Coherence, Language Switcher, Toast System, i18n Completion).
 
-**Roadmap:** [docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md](docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md) — 7 steps focused on UI/UX coherence. Steps 1–3 (foundations) shipped; next is adoption on AccessPanel and FileRequestsSection.
-
-**Latest verification (Filemón Coder 3-iteration loop, 2026-04-27 11:31 CST):**
-- Session memory: [docs/memories/session-2026-04-27-filemon-coder-3-iterations.md](docs/memories/session-2026-04-27-filemon-coder-3-iterations.md)
-- MD report: [docs/reports/2026-04-27-filemon-coder-iterations-verification.md](docs/reports/2026-04-27-filemon-coder-iterations-verification.md)
-- HTML report: [docs/reports/2026-04-27-filemon-coder-iterations-verification.html](docs/reports/2026-04-27-filemon-coder-iterations-verification.html)
-
-Earlier verifications:
-- Coherence foundations: [docs/reports/2026-04-27-coherence-verification.md](docs/reports/2026-04-27-coherence-verification.md)
+**Latest verification (Filemón Coder loop, 2026-06-06):**
+- Session memory: [docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md](docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md)
+- MD report: [docs/reports/2026-06-06-mobile-bottom-sheets-verification.md](docs/reports/2026-06-06-mobile-bottom-sheets-verification.md)
+- HTML report: [docs/reports/2026-06-06-mobile-bottom-sheets-verification.html](docs/reports/2026-06-06-mobile-bottom-sheets-verification.html)
 
 ---
 
@@ -477,6 +476,19 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/28_BUILD_VERIFICATION_2026-04-16.md` | End-to-end build verification pass, session-vault cleanup fix, cached-PIN recovery fix, Playwright isolated-db harness update |
 | `docs/SESSION_MEMORY_2026-04-16-docs-memory-and-verification.md` | Durable checkpoint for this session, including what changed, what was verified, risks, and why the branch is safe to continue |
 | `docs/qa-report-2026-04-16.html` | Visual verification report covering backend, frontend, unit, and end-to-end validation |
+| `docs/reports/2026-05-22-qa-feature-coverage-report.html` | Comprehensive Hackathon 2026-05-22 QA Pass report — 41/42 E2E passed |
+| `docs/memories/2026-05-22-hackathon-victory-lap.md` | Final Hackathon 2026-05-22 polish, UI speed enhancements, and victory memory |
+| `docs/memories/session-2026-05-22-i18n-completion.md` | i18n implementation and hardcoded string removal across the UI |
+| `docs/memories/2026-05-22-hackathon-victory.md` | Hackathon Victory memory detailing E2E test suite reliability, dynamic base path fixes, and rate limiter loopback bypass |
+| `docs/memories/session-2026-05-22-e2e-demo-victory.md` | Final E2E Demo victory with Playwright Golden Path matching the beautiful new UI, executing flawlessly in 31 seconds |
+| `docs/memories/session-2026-05-23-decoupling-environments.md` | Decoupled ABRN Drive from QuantiX Drive |
+| `docs/memories/session-2026-05-23-ux-phase.md` | Undeniable UX Phase: Cmd+K, Optimistic UI, SWR Hover Prefetching, and Framer Motion micro-animations |
+| `docs/memories/session-2026-05-23-verification-closeout.md` | Verification & closeout of UX phase — all checks passed, testTimeout fix applied |
+| `docs/reports/2026-05-23-ux-phase-verification.md` | UX Phase verification report (Markdown) |
+| `docs/reports/2026-05-23-ux-phase-verification.html` | UX Phase verification report (HTML — browser-readable) |
+| `docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md` | Phase V UX Roadmap Steps 1-4: Theme Coherence, Language Switcher, Toast System, i18n Completion |
+| `docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.md` | UX Roadmap Steps 1-4 verification report (Markdown) |
+| `docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.html` | UX Roadmap Steps 1-4 verification report (HTML — browser-readable) |
 
 ---
 
