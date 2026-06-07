@@ -528,6 +528,7 @@ func main() {
 			http.Redirect(w, r, basePath, http.StatusFound)
 		})
 		parentMux.Handle(basePathNoSlash+"/", http.StripPrefix(basePathNoSlash, mux))
+		parentMux.Handle("/api/", mux)
 		parentMux.Handle("/drop/", mux)
 		parentMux.Handle("/folder-share/", mux)
 		parentMux.Handle("/request/", mux)
