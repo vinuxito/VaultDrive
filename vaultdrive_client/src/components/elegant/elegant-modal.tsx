@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { useTheme } from "../theme-provider";
 
 interface ElegantModalProps {
   children: ReactNode;
@@ -19,6 +20,9 @@ export function ElegantModal({
   className,
   size = "md",
 }: ElegantModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   if (!isOpen) return null;
 
   const sizeClasses = {
@@ -35,12 +39,11 @@ export function ElegantModal({
     >
       <div
         className={cn(
-          // Burgundy gradient background
-          "bg-gradient-to-br from-primary to-primary/90",
-          // Border and shadow
-          "border border-white/10 rounded-2xl shadow-2xl",
-          // Text colors
-          "text-white",
+          // Theme-aware backgrounds, borders, and texts
+          isDark
+            ? "bg-gradient-to-br from-primary to-primary/90 border border-white/10 text-white shadow-2xl"
+            : "bg-card border border-border text-foreground shadow-2xl",
+          "rounded-2xl",
           // Size variants
           sizeClasses[size],
           // Animation
@@ -53,10 +56,15 @@ export function ElegantModal({
       >
         {title && (
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">{title}</h2>
+            <h2 className={cn("text-xl font-semibold", isDark ? "text-white" : "text-foreground")}>{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-md hover:bg-white/10 text-white/90 hover:text-white transition-colors"
+              className={cn(
+                "p-1 rounded-md transition-colors",
+                isDark
+                  ? "hover:bg-white/10 text-white/90 hover:text-white"
+                  : "hover:bg-muted text-muted-foreground hover:text-foreground"
+              )}
             >
               <X className="w-5 h-5" />
             </button>

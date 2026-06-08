@@ -18,6 +18,7 @@ import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 import { DataState } from "../ui/data-state";
 import { RowActionMenu } from "../ui/row-action-menu";
 import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
+import { useTheme } from "../theme-provider";
 
 interface FolderSharedLinksSectionProps {
   folder: {
@@ -58,6 +59,8 @@ function getLinkUnavailableReason(link: SyncableFolderShareLink): string | undef
 
 export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage, refreshKey = 0 }: FolderSharedLinksSectionProps) {
   const sessionVault = useSessionVault();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [links, setLinks] = useState<SyncableFolderShareLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -324,6 +327,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                           : "Enter your current password to recover and copy the full share link."}
                         unavailableReason={getLinkUnavailableReason(link)}
                         onResolveUrl={(pin) => buildShareUrlForCopy(link, pin)}
+                        variant={isDark ? "dark" : "light"}
                       />
                     )}
 

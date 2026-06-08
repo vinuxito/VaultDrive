@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
+import { useTheme } from "../theme-provider";
+import { cn } from "../../lib/utils";
 import {
   Inbox,
   RefreshCw,
@@ -43,6 +45,8 @@ function CreateRequestModal({
   onClose,
   onSuccess,
 }: CreateRequestModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [description, setDescription] = useState("");
   const [expiryDays, setExpiryDays] = useState<ExpiryOption>("7");
   const [loading, setLoading] = useState(false);
@@ -112,17 +116,26 @@ function CreateRequestModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6">
+      <div
+        className={cn(
+          "border rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6",
+          isDark
+            ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+            : "bg-card border-border text-foreground"
+        )}
+      >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold flex items-center gap-2 text-white">
-            <Plus className="w-5 h-5 text-primary-foreground" />
+          <h2 className={cn("text-xl font-semibold flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
+            <Plus className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
             New File Request
           </h2>
-            <Button
+          <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white/80 hover:text-white hover:bg-white/15"
+            className={cn(
+              isDark ? "text-white/80 hover:text-white hover:bg-white/15" : "text-muted-foreground hover:text-foreground"
+            )}
           >
             <X className="w-5 h-5" />
           </Button>
@@ -131,20 +144,30 @@ function CreateRequestModal({
         {createdRequest ? (
           <div className="space-y-4">
             <div className="brand-receipt-surface rounded-2xl px-4 py-4">
-              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Request created and ready to share</p>
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                Request created and ready to share
+              </p>
               <p className="mt-1 text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed">
-                This link is live, reviewable, and revocable from your vault. Senders can only upload through the request route you just created.
+                This link is live, reviewable, and revocable from your vault. Senders can only upload through the
+                request route you just created.
               </p>
             </div>
 
             <div>
-              <label htmlFor="req-created-url" className="block text-white/90 text-sm mb-1">Request URL</label>
+              <label htmlFor="req-created-url" className={cn("block text-sm mb-1", isDark ? "text-white/90" : "text-foreground")}>
+                Request URL
+              </label>
               <div className="flex gap-2">
                 <input
                   id="req-created-url"
                   value={requestUrl}
                   readOnly
-                  className="flex-1 rounded-md bg-white/15 border border-white/20 text-white placeholder-white/60 px-3 py-2 text-sm"
+                  className={cn(
+                    "flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none",
+                    isDark
+                      ? "bg-white/15 border-white/20 text-white placeholder-white/60"
+                      : "bg-muted border-border text-foreground placeholder-muted-foreground"
+                  )}
                 />
                 <Button
                   type="button"
@@ -153,17 +176,28 @@ function CreateRequestModal({
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
+                  className={cn(
+                    "font-semibold",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
 
-            <div className="rounded-xl bg-white/12 border border-white/15 p-3 text-sm text-white/85 space-y-1">
-              <p className="font-medium">Trust receipt</p>
-              <p className="text-xs text-white/80 leading-relaxed">
-                The request stays under your control: you can copy it again, track uploads, or revoke it any time from the File Requests view.
+            <div
+              className={cn(
+                "rounded-xl border p-3 text-sm space-y-1",
+                isDark ? "bg-white/12 border-white/15 text-white/85" : "bg-muted border-border text-muted-foreground"
+              )}
+            >
+              <p className={cn("font-medium", isDark ? "text-white" : "text-foreground")}>Trust receipt</p>
+              <p className={cn("text-xs leading-relaxed", isDark ? "text-white/80" : "text-muted-foreground")}>
+                The request stays under your control: you can copy it again, track uploads, or revoke it any time from
+                the File Requests view.
               </p>
             </div>
 
@@ -182,21 +216,27 @@ function CreateRequestModal({
                   setExpiryDays("7");
                   onClose();
                 }}
-                className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
+                className={cn(
+                  "font-semibold",
+                  isDark
+                    ? "bg-white text-primary hover:bg-primary/10"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}
               >
                 Done
               </Button>
             </div>
           </div>
         ) : (
-          <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              void handleSubmit(e);
+            }}
+            className="space-y-4"
+          >
             <div>
-              <label
-                htmlFor="req-description"
-                className="block text-white/90 text-sm mb-1"
-              >
-                Instructions for sender{" "}
-                <span className="text-white/75 font-normal">(optional)</span>
+              <label htmlFor="req-description" className={cn("block text-sm mb-1", isDark ? "text-white/90" : "text-foreground")}>
+                Instructions for sender <span className={isDark ? "text-white/75 font-normal" : "text-muted-foreground font-normal"}>(optional)</span>
               </label>
               <textarea
                 id="req-description"
@@ -204,23 +244,33 @@ function CreateRequestModal({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Please upload your Q1 financial statements here."
                 rows={3}
-                className="w-full rounded-md bg-white/15 border border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20 focus:outline-none px-3 py-2 text-sm resize-none"
+                className={cn(
+                  "w-full rounded-md border text-sm resize-none focus:outline-none px-3 py-2",
+                  isDark
+                    ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                    : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary"
+                )}
               />
             </div>
 
             <div>
-              <p className="text-white/90 text-sm mb-2">Link Expiration</p>
+              <p className={cn("text-sm mb-2", isDark ? "text-white/90" : "text-foreground")}>Link Expiration</p>
               <div className="flex gap-2 flex-wrap">
                 {expiryOptions.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => setExpiryDays(opt.value)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer",
                       expiryDays === opt.value
-                        ? "bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))]"
-                        : "bg-white/15 text-white hover:bg-white/25"
-                    }`}
+                        ? isDark
+                          ? "bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))]"
+                          : "bg-primary text-primary-foreground shadow-sm"
+                        : isDark
+                          ? "bg-white/15 text-white hover:bg-white/25"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
                   >
                     {opt.label}
                   </button>
@@ -229,7 +279,14 @@ function CreateRequestModal({
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm">
+              <div
+                className={cn(
+                  "p-3 rounded-lg border text-sm",
+                  isDark
+                    ? "bg-primary/20 border-primary/30 text-primary-foreground"
+                    : "bg-destructive/10 border-destructive/20 text-destructive"
+                )}
+              >
                 {error}
               </div>
             )}
@@ -240,13 +297,19 @@ function CreateRequestModal({
                 variant="modal-cancel"
                 onClick={onClose}
                 disabled={loading}
+                className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
+                className={cn(
+                  "font-semibold",
+                  isDark
+                    ? "bg-white text-primary hover:bg-primary/10"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}
               >
                 {loading ? (
                   <>

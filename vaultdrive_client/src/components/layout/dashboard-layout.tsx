@@ -4,6 +4,7 @@ import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
 import { LanguageToggle } from "../ui/language-toggle";
+import { useTheme } from "../theme-provider";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -41,6 +42,8 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation(["common", "drive"]);
@@ -404,7 +407,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-gradient-to-br from-primary to-primary/90 backdrop-blur-2xl border-white/20 shadow-xl text-white">
+              <DropdownMenuContent
+                align="end"
+                className={cn(
+                  "w-56 backdrop-blur-2xl shadow-xl",
+                  isDark
+                    ? "bg-gradient-to-br from-primary to-primary/90 border-white/20 text-white"
+                    : "bg-card border-border text-foreground"
+                )}
+              >
                 <DropdownMenuLabel>
                   <p className="font-semibold">{user.first_name} {user.last_name}</p>
                   <p className="text-xs text-muted-foreground font-normal">{user.email}</p>

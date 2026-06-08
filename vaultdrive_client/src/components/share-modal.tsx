@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { X, Users, User, Lock, Loader2, AlertCircle } from "lucide-react";
+import { useTheme } from "./theme-provider";
+import { cn } from "../lib/utils";
 import { API_URL, getUserPublicKey } from "../utils/api";
 import {
   importRSAPublicKey,
@@ -65,6 +67,8 @@ export default function ShareModal({
   onShareComplete,
 }: ShareModalProps) {
   const [tab, setTab] = useState<"users" | "groups">("users");
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<UserResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -254,26 +258,45 @@ export default function ShareModal({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className={cn(
+            "border rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto",
+            isDark
+              ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+              : "bg-card border-border text-foreground"
+          )}
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-white">Share File</h2>
-              <p className="text-sm text-white/80">{fileName}</p>
+              <h2 className={cn("text-xl font-semibold", isDark ? "text-white" : "text-foreground")}>Share File</h2>
+              <p className={cn("text-sm", isDark ? "text-white/80" : "text-muted-foreground")}>{fileName}</p>
             </div>
-            <button type="button" onClick={handleClose} className="text-white/80 hover:text-white transition-colors">
+            <button
+              type="button"
+              onClick={handleClose}
+              className={cn(
+                "transition-colors",
+                isDark ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-400/30 flex items-start gap-2 text-red-200 text-sm">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div
+              className={cn(
+                "mb-4 p-3 rounded-lg border flex items-start gap-2 text-sm",
+                isDark
+                  ? "bg-red-500/20 border-red-400/30 text-red-200"
+                  : "bg-destructive/10 border-destructive/20 text-destructive"
+              )}
+            >
+              <AlertCircle className={cn("w-4 h-4 mt-0.5 shrink-0", isDark ? "text-red-300" : "text-destructive")} />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="flex gap-2 p-1 bg-white/12 rounded-lg mb-6">
+          <div className={cn("flex gap-2 p-1 rounded-lg mb-6", isDark ? "bg-white/12" : "bg-muted")}>
             {(["users", "groups"] as const).map((t) => (
               <button
                 type="button"
@@ -284,11 +307,16 @@ export default function ShareModal({
                   setSearchResults([]);
                   setRecipient(null);
                 }}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
                   tab === t
-                    ? "bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))]"
-                    : "text-white/80 hover:text-white hover:bg-white/15"
-                }`}
+                    ? isDark
+                      ? "bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))]"
+                      : "bg-background text-foreground shadow-sm"
+                    : isDark
+                      ? "text-white/80 hover:text-white hover:bg-white/15"
+                      : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                )}
               >
                 {t === "users" ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
                 {t === "users" ? "Share with User" : "Share with Group"}
@@ -299,7 +327,10 @@ export default function ShareModal({
           <div className="space-y-4">
             {!recipient && (
               <div>
-                <label htmlFor="share-search" className="block text-sm font-medium text-white mb-2">
+                <label
+                  htmlFor="share-search"
+                  className={cn("block text-sm font-medium mb-2", isDark ? "text-white" : "text-foreground")}
+                >
                   {tab === "users" ? "Search users by username" : "Select a group"}
                 </label>
                 <Input
@@ -307,12 +338,16 @@ export default function ShareModal({
                   placeholder={tab === "users" ? "Type at least 2 characters..." : "Search groups..."}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                  className={cn(
+                    isDark
+                      ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                      : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                  )}
                 />
               </div>
             )}
 
-            {loading && <p className="text-sm text-white/80">Searching...</p>}
+            {loading && <p className={cn("text-sm", isDark ? "text-white/80" : "text-muted-foreground")}>Searching...</p>}
 
             {!recipient && tab === "users" && searchResults.length > 0 && (
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -321,16 +356,26 @@ export default function ShareModal({
                     type="button"
                     key={u.id}
                     onClick={() => setRecipient(u)}
-                    className="w-full flex items-center gap-3 p-3 bg-white/12 hover:bg-white/20 rounded-lg text-left transition-colors"
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
+                      isDark
+                        ? "bg-white/12 hover:bg-white/20 text-white"
+                        : "bg-muted hover:bg-muted/80 text-foreground"
+                    )}
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center font-medium",
+                        isDark ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary"
+                      )}
+                    >
                       {u.username.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm text-white font-medium">
+                      <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>
                         {u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.username}
                       </p>
-                      <p className="text-xs text-white/80">{u.email}</p>
+                      <p className={cn("text-xs", isDark ? "text-white/80" : "text-muted-foreground")}>{u.email}</p>
                     </div>
                   </button>
                 ))}
@@ -346,14 +391,26 @@ export default function ShareModal({
                       type="button"
                       key={g.id}
                       onClick={() => setRecipient(g)}
-                      className="w-full flex items-center gap-3 p-3 bg-white/12 hover:bg-white/20 rounded-lg text-left transition-colors"
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
+                        isDark
+                          ? "bg-white/12 hover:bg-white/20 text-white"
+                          : "bg-muted hover:bg-muted/80 text-foreground"
+                      )}
                     >
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center",
+                          isDark ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary"
+                        )}
+                      >
                         <Users className="w-4 h-4" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-white font-medium">{g.name}</p>
-                        <p className="text-xs text-white/80">{g.member_count} members</p>
+                        <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>{g.name}</p>
+                        <p className={cn("text-xs", isDark ? "text-white/80" : "text-muted-foreground")}>
+                          {g.member_count} members
+                        </p>
                       </div>
                     </button>
                   ))}
@@ -362,44 +419,59 @@ export default function ShareModal({
 
             {recipient && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-primary/20 rounded-lg">
+                <div className={cn("flex items-center justify-between p-3 rounded-lg", isDark ? "bg-primary/20" : "bg-primary/10")}>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center text-primary">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center font-semibold",
+                        isDark ? "bg-primary/30 text-primary" : "bg-primary/20 text-primary"
+                      )}
+                    >
                       {isUser(recipient) ? recipient.username.charAt(0).toUpperCase() : <Users className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm text-white font-medium">
+                      <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>
                         {isUser(recipient)
                           ? recipient.first_name && recipient.last_name
                             ? `${recipient.first_name} ${recipient.last_name}`
                             : recipient.username
                           : recipient.name}
                       </p>
-                      <p className="text-xs text-white/80">
+                      <p className={cn("text-xs", isDark ? "text-white/80" : "text-muted-foreground")}>
                         {isUser(recipient) ? recipient.email : `${recipient.member_count} members`}
                       </p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setRecipient(null)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRecipient(null)}
+                    className={cn(isDark ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground")}
+                  >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
 
                 {hasCachedCred ? (
-                  <div className="p-3 bg-white/12 rounded-lg flex items-center gap-2 text-sm text-white/80">
+                  <div className={cn("p-3 rounded-lg flex items-center gap-2 text-sm", isDark ? "bg-white/12 text-white/80" : "bg-muted text-muted-foreground")}>
                     <Lock className="w-4 h-4 text-green-400 shrink-0" />
                     <span>Credential cached — sharing will proceed automatically.</span>
                   </div>
                 ) : (
-                  <div className="p-4 bg-white/12 rounded-lg space-y-3">
-                    <p className="text-sm font-medium text-white flex items-center gap-2">
+                  <div className={cn("p-4 rounded-lg space-y-3", isDark ? "bg-white/12" : "bg-muted border border-border")}>
+                    <p className={cn("text-sm font-medium flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
                       <Lock className="w-4 h-4" />
                       Your credential to authorize sharing
                     </p>
 
                     {credentialMode === "pin" ? (
                       <div>
-                        <label htmlFor="share-pin" className="block text-xs text-white/80 mb-1">Your PIN</label>
+                        <label
+                          htmlFor="share-pin"
+                          className={cn("block text-xs mb-1", isDark ? "text-white/80" : "text-muted-foreground")}
+                        >
+                          Your PIN
+                        </label>
                         <Input
                           id="share-pin"
                           type="password"
@@ -408,25 +480,38 @@ export default function ShareModal({
                           placeholder="4-digit PIN"
                           value={pinInput}
                           onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
-                          className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                          className={cn(
+                            isDark
+                              ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                              : "bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary"
+                          )}
                         />
-                        <p className="text-xs text-white/75 mt-1">
+                        <p className={cn("text-xs mt-1", isDark ? "text-white/75" : "text-muted-foreground")}>
                           Used to authorize this share without asking for a separate file password
                         </p>
                       </div>
                     ) : (
                       <div>
-                        <label htmlFor="share-credential" className="block text-xs text-white/80 mb-1">File credential</label>
+                        <label
+                          htmlFor="share-credential"
+                          className={cn("block text-xs mb-1", isDark ? "text-white/80" : "text-muted-foreground")}
+                        >
+                          File credential
+                        </label>
                         <Input
                           id="share-credential"
                           type="password"
                           placeholder="Credential used for this file"
                           value={passwordInput}
                           onChange={(e) => setPasswordInput(e.target.value)}
-                          className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                          className={cn(
+                            isDark
+                              ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                              : "bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary"
+                          )}
                         />
-                        <p className="text-xs text-white/75 mt-1">
-                           Used to derive the file key and wrap it with the recipient's RSA public key
+                        <p className={cn("text-xs mt-1", isDark ? "text-white/75" : "text-muted-foreground")}>
+                          Used to derive the file key and wrap it with the recipient's RSA public key
                         </p>
                       </div>
                     )}
@@ -435,19 +520,29 @@ export default function ShareModal({
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+            <div className={cn("flex justify-end gap-3 pt-4 border-t", isDark ? "border-white/10" : "border-border")}>
               <Button
                 type="button"
                 variant="modal-cancel"
                 onClick={handleClose}
+                className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleShare}
-                 disabled={!recipient || sharing || (!hasCachedCred && (credentialMode === "pin" ? !pinInput : !passwordInput))}
-                 className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
-               >
+                disabled={
+                  !recipient ||
+                  sharing ||
+                  (!hasCachedCred && (credentialMode === "pin" ? !pinInput : !passwordInput))
+                }
+                className={cn(
+                  "font-semibold",
+                  isDark
+                    ? "bg-white text-primary hover:bg-primary/10"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}
+              >
                 {sharing ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />

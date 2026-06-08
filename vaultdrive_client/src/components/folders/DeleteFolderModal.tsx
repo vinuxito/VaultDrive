@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
 import { X, Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { useTheme } from "../theme-provider";
+import { cn } from "../../lib/utils";
 
 interface DeleteFolderModalProps {
   isOpen: boolean;
@@ -19,6 +21,8 @@ export default function DeleteFolderModal({
   hasSubfolders,
 }: DeleteFolderModalProps) {
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -40,19 +44,27 @@ export default function DeleteFolderModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-4"
+            className={cn(
+              "w-full max-w-md mx-4 rounded-2xl shadow-2xl border",
+              isDark
+                ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+                : "bg-card border-border text-foreground"
+            )}
           >
             {/* Header with red accent for delete action */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className={cn("flex items-center justify-between p-4 border-b", isDark ? "border-white/10" : "border-border")}>
               <div className="flex items-center gap-2">
                 <Trash2 className="h-5 w-5 text-destructive" />
-                <h2 className="text-xl font-semibold text-white">Delete Folder</h2>
+                <h2 className={cn("text-xl font-semibold", isDark ? "text-white" : "text-foreground")}>Delete Folder</h2>
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="text-white/70 hover:text-white transition-colors"
+                className={cn(
+                  "transition-colors",
+                  isDark ? "text-white/70 hover:text-white" : "text-muted-foreground hover:text-foreground"
+                )}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -60,15 +72,20 @@ export default function DeleteFolderModal({
 
             <div className="p-4">
               <div className="space-y-4">
-                <p className="text-white">
+                <p className={isDark ? "text-white" : "text-foreground"}>
                   Are you sure you want to delete the folder{" "}
-                  <span className="font-semibold text-primary-foreground">"{folderName}"</span>?
+                  <span className={cn("font-semibold", isDark ? "text-primary-foreground" : "text-primary")}>"{folderName}"</span>?
                 </p>
 
                 {hasSubfolders && (
-                  <div className="flex items-start gap-2 p-3 bg-primary/20 border border-primary/30 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-primary/60 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-primary-foreground">
+                  <div className={cn(
+                    "flex items-start gap-2 p-3 border rounded-lg",
+                    isDark
+                      ? "bg-primary/20 border-primary/30 text-primary-foreground"
+                      : "bg-destructive/10 border-destructive/20 text-destructive"
+                  )}>
+                    <AlertTriangle className={cn("h-5 w-5 flex-shrink-0 mt-0.5", isDark ? "text-primary/60" : "text-destructive")} />
+                    <div className="text-sm">
                       <p className="font-semibold mb-1">Warning</p>
                       <p>
                         This folder contains subfolders. All subfolders and their contents
@@ -78,7 +95,7 @@ export default function DeleteFolderModal({
                   </div>
                 )}
 
-                <p className="text-sm text-white/70">
+                <p className={cn("text-sm", isDark ? "text-white/70" : "text-muted-foreground")}>
                   This action cannot be undone.
                 </p>
 

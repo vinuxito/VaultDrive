@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { X, Folder, Loader2, AlertCircle } from "lucide-react";
+import { useTheme } from "../theme-provider";
+import { cn } from "../../lib/utils";
 
 interface FolderModalProps {
   isOpen: boolean;
@@ -24,6 +26,8 @@ export default function FolderModal({
   const [name, setName] = useState(initialName);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     if (isOpen) {
@@ -77,18 +81,26 @@ export default function FolderModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md mx-4"
+            className={cn(
+              "w-full max-w-md mx-4 rounded-2xl shadow-2xl border",
+              isDark
+                ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+                : "bg-card border-border text-foreground"
+            )}
           >
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className={cn("flex items-center justify-between p-4 border-b", isDark ? "border-white/10" : "border-border")}>
               <div className="flex items-center gap-2">
-                <Folder className="h-5 w-5 text-primary-foreground" />
-                <h2 className="text-xl font-semibold text-white">{getTitle()}</h2>
+                <Folder className={cn("h-5 w-5", isDark ? "text-primary-foreground" : "text-primary")} />
+                <h2 className={cn("text-xl font-semibold", isDark ? "text-white" : "text-foreground")}>{getTitle()}</h2>
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="text-white/80 hover:text-white transition-colors"
+                className={cn(
+                  "transition-colors",
+                  isDark ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"
+                )}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -97,7 +109,7 @@ export default function FolderModal({
             <form onSubmit={handleSubmit} className="p-4">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="folder-name" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="folder-name" className={cn("block text-sm font-medium mb-2", isDark ? "text-white" : "text-foreground")}>
                     Folder Name
                   </label>
                   <Input
@@ -109,14 +121,23 @@ export default function FolderModal({
                     disabled={loading}
                     autoFocus
                     placeholder="Enter folder name"
-                    className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                    className={cn(
+                      isDark
+                        ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                        : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                    )}
                   />
                 </div>
 
                 {error && (
-                  <div className="flex items-start gap-2 p-3 bg-primary/20 border border-primary/30 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-primary/60 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-primary-foreground">{error}</p>
+                  <div className={cn(
+                    "flex items-start gap-2 p-3 border rounded-lg",
+                    isDark
+                      ? "bg-primary/20 border-primary/30"
+                      : "bg-destructive/10 border-destructive/20 text-destructive"
+                  )}>
+                    <AlertCircle className={cn("h-5 w-5 flex-shrink-0 mt-0.5", isDark ? "text-primary/60" : "text-destructive")} />
+                    <p className="text-sm">{error}</p>
                   </div>
                 )}
 

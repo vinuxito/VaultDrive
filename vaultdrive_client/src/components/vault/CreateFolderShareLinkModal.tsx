@@ -29,6 +29,8 @@ import {
 } from "../../utils/crypto";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { resolveFolderShareFileKey } from "../../utils/folder-share";
+import { useTheme } from "../theme-provider";
+import { cn } from "../../lib/utils";
 
 export interface CreateFolderShareLinkModalProps {
   isOpen: boolean;
@@ -82,6 +84,8 @@ export function CreateFolderShareLinkModal({
   onCreated,
   onUseUploadLink,
 }: CreateFolderShareLinkModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const { getCredential } = useSessionVault();
   const cached = getCredential();
   const hasCachedPin = cached && cached.type === "pin";
@@ -299,29 +303,43 @@ export function CreateFolderShareLinkModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-        <CardHeader className="border-b border-white/10">
+      <Card
+        className={cn(
+          "w-full max-w-md mx-4 border",
+          isDark
+            ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+            : "bg-card border-border text-foreground"
+        )}
+      >
+        <CardHeader className={cn("border-b", isDark ? "border-white/10" : "border-border")}>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <FolderOpen className="w-5 h-5 text-primary-foreground" />
+            <CardTitle className={cn("flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
+              <FolderOpen className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
               Share Folder
             </CardTitle>
             <button
               type="button"
               onClick={handleClose}
-              className="text-white/75 hover:text-white/85 transition-colors"
+              className={cn(
+                "transition-colors",
+                isDark ? "text-white/75 hover:text-white" : "text-muted-foreground hover:text-foreground"
+              )}
               aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <CardDescription className="text-white/80 truncate">
+          <CardDescription className={isDark ? "text-white/80 truncate" : "text-muted-foreground truncate"}>
             {folder.name}
           </CardDescription>
-          <div className="mt-3 rounded-2xl border border-white/10 bg-white/12 px-3 py-3 text-xs leading-relaxed text-white/85">
-            Share this folder and all its contents via a single link. Each
-            file&apos;s key is wrapped with a folder key that travels in the URL
-            fragment — the server never sees it.
+          <div
+            className={cn(
+              "mt-3 rounded-2xl border px-3 py-3 text-xs leading-relaxed",
+              isDark ? "border-white/10 bg-white/12 text-white/85" : "bg-muted border-border text-muted-foreground"
+            )}
+          >
+            Share this folder and all its contents via a single link. Each file&apos;s key is wrapped with a folder key
+            that travels in the URL fragment — the server never sees it.
           </div>
         </CardHeader>
 
@@ -329,14 +347,21 @@ export function CreateFolderShareLinkModal({
           {step === "credential" && (
             <>
               {errorMsg && (
-                <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
-                  <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-200">{errorMsg}</p>
+                <div
+                  className={cn(
+                    "flex items-start gap-2 p-3 border rounded-md",
+                    isDark
+                      ? "bg-red-500/20 border-red-400/30 text-red-200"
+                      : "bg-destructive/10 border-destructive/20 text-destructive"
+                  )}
+                >
+                  <AlertCircle className={cn("w-4 h-4 shrink-0 mt-0.5", isDark ? "text-red-300" : "text-destructive")} />
+                  <p className="text-sm">{errorMsg}</p>
                 </div>
               )}
 
               <div className="space-y-2">
-                <p className="text-sm font-medium flex items-center gap-1.5 text-white">
+                <p className={cn("text-sm font-medium flex items-center gap-1.5", isDark ? "text-white" : "text-foreground")}>
                   <Calendar className="w-3.5 h-3.5" />
                   Link Expiry
                 </p>
@@ -346,11 +371,16 @@ export function CreateFolderShareLinkModal({
                       key={value}
                       type="button"
                       onClick={() => setExpiryDays(value)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                      className={cn(
+                        "px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer",
                         expiryDays === value
-                          ? "bg-white text-primary/90"
-                          : "bg-white/15 text-white/85 hover:bg-white/25"
-                      }`}
+                          ? isDark
+                            ? "bg-white text-primary/90"
+                            : "bg-primary text-primary-foreground"
+                          : isDark
+                            ? "bg-white/15 text-white/85 hover:bg-white/25"
+                            : "bg-muted text-muted-foreground hover:bg-muted/85"
+                      )}
                     >
                       {label}
                     </button>
@@ -358,11 +388,16 @@ export function CreateFolderShareLinkModal({
                   <button
                     type="button"
                     onClick={() => setExpiryDays("custom")}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer",
                       expiryDays === "custom"
-                        ? "bg-white text-primary/90"
-                        : "bg-white/15 text-white/85 hover:bg-white/25"
-                    }`}
+                        ? isDark
+                          ? "bg-white text-primary/90"
+                          : "bg-primary text-primary-foreground"
+                        : isDark
+                          ? "bg-white/15 text-white/85 hover:bg-white/25"
+                          : "bg-muted text-muted-foreground hover:bg-muted/85"
+                    )}
                   >
                     Custom
                   </button>
@@ -373,7 +408,12 @@ export function CreateFolderShareLinkModal({
                     value={customDate}
                     min={todayISO}
                     onChange={(e) => setCustomDate(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
+                    className={cn(
+                      "w-full px-3 py-2 border rounded-md text-sm focus:outline-none",
+                      isDark
+                        ? "bg-white/15 border-white/20 text-white focus:border-white/40"
+                        : "bg-muted border-border text-foreground focus:border-primary"
+                    )}
                   />
                 )}
               </div>
@@ -382,12 +422,12 @@ export function CreateFolderShareLinkModal({
                 <div className="space-y-1.5">
                   <label
                     htmlFor="fsl-pin"
-                    className="text-sm font-medium flex items-center gap-1.5 text-white"
+                    className={cn("text-sm font-medium flex items-center gap-1.5", isDark ? "text-white" : "text-foreground")}
                   >
                     <Key className="w-3.5 h-3.5" />
                     4-digit PIN
                   </label>
-                  <p className="text-xs text-white/75">
+                  <p className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                     Enter your PIN to unlock file keys for sharing
                   </p>
                   <input
@@ -396,14 +436,16 @@ export function CreateFolderShareLinkModal({
                     inputMode="numeric"
                     maxLength={4}
                     value={pin}
-                    onChange={(e) =>
-                      setPin(e.target.value.replace(/\D/g, "").slice(0, 4))
-                    }
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     placeholder="••••"
-                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:outline-none text-center tracking-widest text-xl"
+                    className={cn(
+                      "w-full px-3 py-2 border rounded-md text-center tracking-widest text-xl focus:outline-none",
+                      isDark
+                        ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                        : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary"
+                    )}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && pin.length === 4)
-                        void handleGenerate();
+                      if (e.key === "Enter" && pin.length === 4) void handleGenerate();
                     }}
                   />
                 </div>
@@ -413,17 +455,19 @@ export function CreateFolderShareLinkModal({
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1"
+                  className={cn("flex-1", isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => void handleGenerate()}
-                  disabled={
-                    (!useCachedPin && pin.length !== 4) ||
-                    (expiryDays === "custom" && customDate === "")
-                  }
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                  disabled={(!useCachedPin && pin.length !== 4) || (expiryDays === "custom" && customDate === "")}
+                  className={cn(
+                    "flex-1 font-semibold",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   Generate Link
                 </Button>
@@ -433,20 +477,18 @@ export function CreateFolderShareLinkModal({
 
           {step === "generating" && (
             <div className="flex flex-col items-center gap-3 py-4">
-              <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
-              <p className="text-sm text-white/85">
+              <Loader2 className={cn("w-8 h-8 animate-spin", isDark ? "text-primary-foreground" : "text-primary")} />
+              <p className={cn("text-sm", isDark ? "text-white/85" : "text-muted-foreground")}>
                 {progress.total > 0
                   ? `Wrapping keys… ${progress.current}/${progress.total} files`
                   : "Preparing folder share…"}
               </p>
               {progress.total > 0 && (
-                <div className="w-full bg-white/15 rounded-full h-1.5">
+                <div className={cn("w-full rounded-full h-1.5", isDark ? "bg-white/15" : "bg-muted")}>
                   <div
-                    className="bg-primary/10 h-1.5 rounded-full transition-all"
+                    className="bg-primary h-1.5 rounded-full transition-all"
                     style={{
-                      width: `${Math.round(
-                        (progress.current / progress.total) * 100
-                      )}%`,
+                      width: `${Math.round((progress.current / progress.total) * 100)}%`,
                     }}
                   />
                 </div>
@@ -456,17 +498,31 @@ export function CreateFolderShareLinkModal({
 
           {step === "empty-folder" && (
             <>
-              <div className="rounded-2xl border border-amber-200/40 bg-amber-500/10 px-4 py-4 text-sm text-amber-50">
+              <div
+                className={cn(
+                  "rounded-2xl border px-4 py-4 text-sm",
+                  isDark
+                    ? "border-amber-200/40 bg-amber-500/10 text-amber-50"
+                    : "border-amber-500/20 bg-amber-500/10 text-amber-900"
+                )}
+              >
                 <p className="font-semibold text-white">This folder is empty right now</p>
-                <p className="mt-2 leading-relaxed text-white/80">
-                  Folder Share is for files that already exist in this folder. If your goal is to let someone upload into <strong>{folder.name}</strong>, create an upload link instead.
+                <p className={cn("mt-2 leading-relaxed", isDark ? "text-white/80" : "text-amber-800")}>
+                  Folder Share is for files that already exist in this folder. If your goal is to let someone upload
+                  into <strong>{folder.name}</strong>, create an upload link instead.
                 </p>
               </div>
 
-              <div className="rounded-xl bg-white/8 border border-white/15 p-3 text-sm text-white/85 space-y-1">
-                <p className="font-medium">Use the upload flow instead</p>
-                <p className="text-xs text-white/70 leading-relaxed">
-                  Upload Links create a bounded sender route into this folder. The sender can deliver files without getting access to anything else in your vault.
+              <div
+                className={cn(
+                  "rounded-xl border p-3 text-sm space-y-1",
+                  isDark ? "bg-white/8 border-white/15 text-white/85" : "bg-muted border-border text-muted-foreground"
+                )}
+              >
+                <p className={cn("font-medium", isDark ? "text-white" : "text-foreground")}>Use the upload flow instead</p>
+                <p className={cn("text-xs leading-relaxed", isDark ? "text-white/70" : "text-muted-foreground")}>
+                  Upload Links create a bounded sender route into this folder. The sender can deliver files without
+                  getting access to anything else in your vault.
                 </p>
               </div>
 
@@ -474,13 +530,23 @@ export function CreateFolderShareLinkModal({
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  className="flex-1 border-2 border-white/40 text-white hover:bg-white/10 bg-transparent"
+                  className={cn(
+                    "flex-1 border-2 bg-transparent",
+                    isDark
+                      ? "border-white/40 text-white hover:bg-white/10"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  )}
                 >
                   Close
                 </Button>
                 <Button
                   onClick={handleUseUploadLink}
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                  className={cn(
+                    "flex-1 font-semibold",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   Create Upload Link Instead
                 </Button>
@@ -494,9 +560,7 @@ export function CreateFolderShareLinkModal({
                 <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold">
-                      Folder share link created
-                    </p>
+                    <p className="text-sm font-semibold">Folder share link created</p>
                     <p className="text-xs mt-1 text-emerald-700 dark:text-emerald-300">
                       {progress.total} files included. Revocable at any time.
                     </p>
@@ -504,38 +568,41 @@ export function CreateFolderShareLinkModal({
                 </div>
               </div>
 
-              <div className="p-4 bg-white/12 border border-emerald-400/20 rounded-xl">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <div
+                className={cn(
+                  "p-4 border rounded-xl",
+                  isDark
+                    ? "bg-white/12 border-emerald-400/20"
+                    : "bg-emerald-500/10 border-emerald-500/20 text-emerald-900"
+                )}
+              >
+                <CheckCircle2 className={cn("w-5 h-5 shrink-0", isDark ? "text-emerald-400" : "text-emerald-600")} />
                 <div className="mt-3 space-y-1.5">
-                  <p className="text-sm font-medium text-white">
-                    Trust receipt
-                  </p>
-                  <p className="text-xs text-white/80 leading-relaxed">
-                    Each file&apos;s key is individually wrapped with a folder
-                    share key carried in the URL fragment after{" "}
-                    <strong>#</strong>. The server stores wrapped keys but
-                    cannot decrypt them.
+                  <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>Trust receipt</p>
+                  <p className={cn("text-xs leading-relaxed", isDark ? "text-white/80" : "text-muted-foreground")}>
+                    Each file&apos;s key is individually wrapped with a folder share key carried in the URL fragment after{" "}
+                    <strong>#</strong>. The server stores wrapped keys but cannot decrypt them.
                   </p>
                 </div>
               </div>
 
               {expiryDisplay && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/12 border border-white/10 rounded-md">
-                  <Calendar className="w-3.5 h-3.5 text-primary-foreground shrink-0" />
-                  <p className="text-xs text-white/85">
+                <div
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 border rounded-md",
+                    isDark ? "bg-white/12 border-white/10" : "bg-muted border-border"
+                  )}
+                >
+                  <Calendar className={cn("w-3.5 h-3.5 shrink-0", isDark ? "text-primary-foreground" : "text-primary")} />
+                  <p className={cn("text-xs", isDark ? "text-white/85" : "text-muted-foreground")}>
                     Link expires:{" "}
-                    <span className="font-medium text-white">
-                      {expiryDisplay}
-                    </span>
+                    <span className={cn("font-medium", isDark ? "text-white" : "text-foreground")}>{expiryDisplay}</span>
                   </p>
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label
-                  htmlFor="fsl-share-url"
-                  className="text-xs text-white/75"
-                >
+                <label htmlFor="fsl-share-url" className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                   Share URL (folder key embedded after #)
                 </label>
                 <textarea
@@ -543,10 +610,11 @@ export function CreateFolderShareLinkModal({
                   readOnly
                   value={shareUrl}
                   rows={4}
-                  className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white/90 text-xs resize-none focus:outline-none cursor-text"
-                  onClick={(e) =>
-                    (e.target as HTMLTextAreaElement).select()
-                  }
+                  className={cn(
+                    "w-full px-3 py-2 border rounded-md text-xs resize-none focus:outline-none cursor-text",
+                    isDark ? "bg-white/15 border-white/20 text-white/90" : "bg-muted border-border text-foreground"
+                  )}
+                  onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                 />
               </div>
 
@@ -554,13 +622,18 @@ export function CreateFolderShareLinkModal({
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1"
+                  className={cn("flex-1", isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Close
                 </Button>
                 <Button
                   onClick={handleCopy}
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold gap-1.5"
+                  className={cn(
+                    "flex-1 font-semibold gap-1.5",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   {copied ? (
                     <>
@@ -580,15 +653,22 @@ export function CreateFolderShareLinkModal({
 
           {step === "error" && (
             <>
-              <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
-                <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-200">{errorMsg}</p>
+              <div
+                className={cn(
+                  "flex items-start gap-2 p-3 border rounded-md",
+                  isDark
+                    ? "bg-red-500/20 border-red-400/30 text-red-200"
+                    : "bg-destructive/10 border-destructive/20 text-destructive"
+                )}
+              >
+                <AlertCircle className={cn("w-4 h-4 shrink-0 mt-0.5", isDark ? "text-red-300" : "text-destructive")} />
+                <p className="text-sm">{errorMsg}</p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1"
+                  className={cn("flex-1", isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Close
                 </Button>
@@ -599,7 +679,12 @@ export function CreateFolderShareLinkModal({
                       setUseCachedPin(false);
                     }
                   }}
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                  className={cn(
+                    "flex-1 font-semibold",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   Try Again
                 </Button>

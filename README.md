@@ -8,17 +8,17 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-06-07 — Full QA Pass Verified)
+## Current Status (2026-06-08 — Theme Separation & SSSS Verified)
 
-**Production-ready.** A full QA pass has been completed on 2026-06-07, verifying all core backend handlers, frontend component unit tests, and Playwright E2E integration test flows across both subdomains. All features are verified stable.
+**Production-ready.** A full QA pass and visual verification has been completed, verifying all core backend handlers, frontend component unit tests, and Playwright E2E integration test flows across both subdomains. The color theme system has been completely decoupled between dark and light skins.
 
 | Check | Result |
 |-------|--------|
 | TypeScript typecheck | ✅ 0 errors |
-| Frontend production build | ✅ pass (~36s / ~27s downstream) |
+| Frontend production build | ✅ pass (~21s / ~20s downstream) |
 | Backend unit tests | ✅ pass |
-| Unit tests (vitest) | ✅ 119 passed upstream / 121 passed downstream |
-| E2E tests (playwright) | ✅ 44 passed (including mobile Chrome viewports) |
+| Unit tests (vitest) | ✅ 132 passed upstream / 132 passed downstream |
+| E2E tests (playwright) | ✅ 48 passed (including mobile Chrome viewports) |
 | QuantiX production healthz | ✅ HTTP 200 |
 | Production `/quantix/` | ✅ HTTP 200 |
 | Production `POST /api/register {}` | ✅ HTTP 400 (expected validation failure) |
@@ -26,11 +26,15 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 | Downstream integration | ✅ Cleanly merged and verified |
 
 **Latest Session Memory:**
+- Theme Separation (2026-06-08): [docs/memories/session-2026-06-08-theme-separation.md](docs/memories/session-2026-06-08-theme-separation.md)
+- Step 3 Shamir Recovery (2026-06-08): [docs/memories/session-2026-06-08-shamir-recovery.md](docs/memories/session-2026-06-08-shamir-recovery.md)
 - Full QA Session (2026-06-07): [docs/reports/2026-06-07-qa-feature-coverage-report.md](docs/reports/2026-06-07-qa-feature-coverage-report.md)
 - Mobile Bottom Sheets Closeout (2026-06-06): [docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md](docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md)
 - UX Roadmap Steps 1-4 (2026-05-24): [docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md](docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md)
 
 **Latest Verification Reports:**
+- HTML Shamir Recovery Report: [docs/reports/2026-06-08-shamir-recovery-verification.html](docs/reports/2026-06-08-shamir-recovery-verification.html)
+- Markdown Shamir Recovery Report: [docs/reports/2026-06-08-shamir-recovery-verification.md](docs/reports/2026-06-08-shamir-recovery-verification.md)
 - HTML QA Coverage Report: [docs/reports/2026-06-07-qa-feature-coverage-report.html](docs/reports/2026-06-07-qa-feature-coverage-report.html)
 - Markdown QA Coverage Report: [docs/reports/2026-06-07-qa-feature-coverage-report.md](docs/reports/2026-06-07-qa-feature-coverage-report.md)
 
@@ -75,6 +79,11 @@ curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/a
 Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/etc/quantix/quantixdrive.env`. Logs: `journalctl -u quantixdrive -f`.
 
 **What's new since the last verification:**
+- **Step 3: Multi-Custodian Shamir Recovery (2026-06-08):**
+  - Cryptographic key split/reconstruct using SSSS over $GF(256)$.
+  - Decentralized recovery flow with custodian approval mechanism and zero-knowledge database schemas.
+  - Visual theme coherence: hexagonal node network for QuantiX / burgundy progress timeline for ABRN.
+  - Complete downstream alignment on ABRN-Drive with brand-matched E2E test suites.
 - **UI/UX Upgrade Roadmap Step 3 (2026-06-06):**
   - Mobile bottom sheets: Replaced Radix desktop popover dropdowns with responsive gestural bottom sheet drawers for viewports `< 640px`.
   - Swipe-to-dismiss: Integrated Framer Motion drag gestures (drag threshold `100px`) for native-feeling mobile interactions.
@@ -83,10 +92,10 @@ Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/
   - Downstream merge: Successfully synced and resolved merge issues on ABRN-Drive overlay.
 - Previous: Phase V Steps 1-4 (Theme Coherence, Language Switcher, Toast System, i18n Completion).
 
-**Latest verification (Filemón Coder loop, 2026-06-06):**
-- Session memory: [docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md](docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md)
-- MD report: [docs/reports/2026-06-06-mobile-bottom-sheets-verification.md](docs/reports/2026-06-06-mobile-bottom-sheets-verification.md)
-- HTML report: [docs/reports/2026-06-06-mobile-bottom-sheets-verification.html](docs/reports/2026-06-06-mobile-bottom-sheets-verification.html)
+**Latest verification (Filemón Coder loop, 2026-06-08):**
+- Session memory: [docs/memories/session-2026-06-08-shamir-recovery.md](docs/memories/session-2026-06-08-shamir-recovery.md)
+- MD report: [docs/reports/2026-06-08-shamir-recovery-verification.md](docs/reports/2026-06-08-shamir-recovery-verification.md)
+- HTML report: [docs/reports/2026-06-08-shamir-recovery-verification.html](docs/reports/2026-06-08-shamir-recovery-verification.html)
 
 ---
 

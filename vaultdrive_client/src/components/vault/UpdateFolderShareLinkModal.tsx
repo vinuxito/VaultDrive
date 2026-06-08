@@ -9,6 +9,8 @@ import {
   syncFolderShareLinkById,
   type SyncableFolderShareLink,
 } from "../../utils/folder-share-sync";
+import { useTheme } from "../theme-provider";
+import { cn } from "../../lib/utils";
 
 interface UpdateFolderShareLinkModalProps {
   isOpen: boolean;
@@ -26,6 +28,8 @@ export function UpdateFolderShareLinkModal({
   onUpdated,
   folder,
 }: UpdateFolderShareLinkModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const sessionVault = useSessionVault();
   const [links, setLinks] = useState<SyncableFolderShareLink[]>([]);
   const [loading, setLoading] = useState(false);
@@ -127,45 +131,73 @@ export function UpdateFolderShareLinkModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-2xl mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-        <CardHeader className="border-b border-white/10">
+      <Card
+        className={cn(
+          "w-full max-w-2xl mx-4 border",
+          isDark
+            ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+            : "bg-card border-border text-foreground"
+        )}
+      >
+        <CardHeader className={cn("border-b", isDark ? "border-white/10" : "border-border")}>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <RefreshCw className="w-5 h-5 text-primary-foreground" />
+            <CardTitle className={cn("flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
+              <RefreshCw className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
               Update Shared Link
             </CardTitle>
             <button
               type="button"
               onClick={onClose}
-              className="text-white/50 hover:text-white/80 transition-colors"
+              className={cn(
+                "transition-colors",
+                isDark ? "text-white/50 hover:text-white/80" : "text-muted-foreground hover:text-foreground"
+              )}
               aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <CardDescription className="text-white/80 truncate">
+          <CardDescription className={isDark ? "text-white/80 truncate" : "text-muted-foreground truncate"}>
             {folder.name}
           </CardDescription>
-          <div className="mt-3 rounded-2xl border border-white/10 bg-white/12 px-3 py-3 text-xs leading-relaxed text-white/85">
-            Use this to add newly uploaded files into an existing folder share. Newer links update directly. Older links need the original share URL once so the browser can recover the folder key.
+          <div
+            className={cn(
+              "mt-3 rounded-2xl border px-3 py-3 text-xs leading-relaxed",
+              isDark ? "border-white/10 bg-white/12 text-white/85" : "bg-muted border-border text-muted-foreground"
+            )}
+          >
+            Use this to add newly uploaded files into an existing folder share. Newer links update directly. Older links
+            need the original share URL once so the browser can recover the folder key.
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
           {errorMsg && (
-            <div className="flex items-start gap-2 rounded-lg border border-red-300/40 bg-red-500/10 px-3 py-2 text-sm text-white/90">
+            <div
+              className={cn(
+                "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                isDark
+                  ? "border-red-300/40 bg-red-500/10 text-white/90"
+                  : "border-destructive/20 bg-destructive/10 text-destructive"
+              )}
+            >
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {loading ? (
-            <div className="py-8 flex flex-col items-center gap-3 text-white/85">
+            <div className={cn("py-8 flex flex-col items-center gap-3", isDark ? "text-white/85" : "text-muted-foreground")}>
               <Loader2 className="w-6 h-6 animate-spin" />
               <span>Loading shared links…</span>
             </div>
           ) : visibleLinks.length === 0 ? (
-            <div className="rounded-xl border border-white/10 bg-white/12 px-4 py-6 text-sm text-white/80">
+            <div
+              className={cn(
+                "rounded-xl border px-4 py-6 text-sm",
+                isDark ? "border-white/10 bg-white/12 text-white/80" : "border-border bg-muted text-muted-foreground"
+              )}
+            >
               No active shared links exist for this folder yet.
             </div>
           ) : (
@@ -175,37 +207,56 @@ export function UpdateFolderShareLinkModal({
                 const result = results[link.id];
                 const canSync = !needsLegacyUrl || Boolean(legacyUrls[link.id]?.trim());
                 return (
-                  <div key={link.id} className="rounded-xl border border-white/10 bg-white/12 p-4 space-y-3">
+                  <div
+                    key={link.id}
+                    className={cn("rounded-xl border p-4 space-y-3", isDark ? "border-white/10 bg-white/12" : "border-border bg-muted")}
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 text-sm font-medium text-white">
-                          <FolderOpen className="w-4 h-4 text-primary-foreground" />
+                        <div className={cn("flex items-center gap-2 text-sm font-medium", isDark ? "text-white" : "text-foreground")}>
+                          <FolderOpen className={cn("w-4 h-4", isDark ? "text-primary-foreground" : "text-primary")} />
                           <span className="truncate">{link.token.slice(0, 12)}…</span>
                         </div>
-                        <div className="text-xs text-white/75">
+                        <div className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                           {needsLegacyUrl ? "Legacy link, needs original URL" : "Owner-recoverable link"}
                         </div>
                         {link.expires_at && (
-                          <div className="text-xs text-white/75">Expires {new Date(link.expires_at).toLocaleString()}</div>
+                          <div className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
+                            Expires {new Date(link.expires_at).toLocaleString()}
+                          </div>
                         )}
                       </div>
                       <Button
                         type="button"
                         onClick={() => void handleSync(link)}
                         disabled={syncingId === link.id || !canSync}
-                        className="bg-white text-primary/90 hover:bg-white/90"
+                        className={cn(
+                          "font-semibold",
+                          isDark
+                            ? "bg-white text-primary hover:bg-primary/10"
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        )}
                       >
                         {syncingId === link.id ? (
-                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating…</>
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Updating…
+                          </>
                         ) : (
-                          <><RefreshCw className="w-4 h-4 mr-2" />Update Link</>
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Update Link
+                          </>
                         )}
                       </Button>
                     </div>
 
                     {needsLegacyUrl && (
                       <div className="space-y-2">
-                        <label htmlFor={`legacy-share-url-${link.id}`} className="text-xs font-medium text-white/85 flex items-center gap-2">
+                        <label
+                          htmlFor={`legacy-share-url-${link.id}`}
+                          className={cn("text-xs font-medium flex items-center gap-2", isDark ? "text-white/85" : "text-foreground")}
+                        >
                           <Link2 className="w-3.5 h-3.5" />
                           Paste the original share URL
                         </label>
@@ -215,14 +266,37 @@ export function UpdateFolderShareLinkModal({
                           onChange={(event) => setLegacyUrls((prev) => ({ ...prev, [link.id]: event.target.value }))}
                           rows={3}
                           placeholder={`${branding.publicBaseURL}/folder-share/...#...`}
-                          className="w-full rounded-md border border-white/20 bg-white/15 px-3 py-2 text-sm text-white placeholder:text-white/60 focus:border-white/40 focus:outline-none"
+                          className={cn(
+                            "w-full rounded-md border px-3 py-2 text-sm focus:outline-none",
+                            isDark
+                              ? "border-white/20 bg-white/15 text-white placeholder:text-white/60 focus:border-white/40"
+                              : "border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary"
+                          )}
                         />
                       </div>
                     )}
 
                     {result && (
-                      <div className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${result.includes("Failed") || result.includes("Paste") || result.includes("different") ? "bg-red-500/10 text-white/90 border border-red-300/30" : "bg-emerald-500/10 text-white/90 border border-emerald-300/30"}`}>
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
+                      <div
+                        className={cn(
+                          "flex items-start gap-2 rounded-lg px-3 py-2 text-sm border",
+                          result.includes("Failed") || result.includes("Paste") || result.includes("different")
+                            ? isDark
+                              ? "bg-red-500/10 text-white/90 border-red-300/30"
+                              : "bg-destructive/10 text-destructive border-destructive/20"
+                            : isDark
+                              ? "bg-emerald-500/10 text-white/90 border-emerald-300/30"
+                              : "bg-emerald-500/10 text-emerald-900 border-emerald-500/20"
+                        )}
+                      >
+                        <CheckCircle2
+                          className={cn(
+                            "w-4 h-4 mt-0.5 shrink-0",
+                            result.includes("Failed") || result.includes("Paste") || result.includes("different")
+                              ? "text-destructive"
+                              : "text-emerald-600"
+                          )}
+                        />
                         <span>{result}</span>
                       </div>
                     )}

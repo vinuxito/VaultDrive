@@ -5,6 +5,7 @@ import { RowActionMenu, type RowAction } from "../ui/row-action-menu";
 import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 import type { UploadTokenWithFiles } from "./types";
 import { API_URL, BASE_PATH } from "../../utils/api";
+import { useTheme } from "../theme-provider";
 
 interface UploadLinkCardProps {
   token: UploadTokenWithFiles;
@@ -24,6 +25,8 @@ export function UploadLinkCard({
   onDelete,
 }: UploadLinkCardProps) {
   const [revealedKey, setRevealedKey] = useState("");
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const baseUrl = token.upload_url?.startsWith('http')
     ? token.upload_url
@@ -140,30 +143,30 @@ export function UploadLinkCard({
                 </div>
               </div>
             </div>
-
-            <div className="mt-3 space-y-2">
-              <div className="rounded-2xl border border-border bg-muted px-3 py-3 dark:bg-muted/40">
-                <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                  <span>Sender route</span>
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
-                    <ShieldCheck className="w-3 h-3" />
-                    Reviewable
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <ProtectedLinkCopyField
-                    label="Sender route"
-                    rawUrl={revealedKey ? `${baseWithoutFragment}#key=${revealedKey}` : `${baseWithoutFragment}#key=missing`}
-                    expectedPath={new URL(baseWithoutFragment).pathname}
-                    kind="upload-link"
-                    variant="light"
-                    copyButtonLabel="Copy full upload link"
-                    guidanceText="Enter your 4-digit PIN to copy the full URL."
-                    onResolveUrl={handleResolveCopyUrl}
-                    unavailableReason={copyUnavailableReason}
-                  />
-                </div>
-              </div>
+ 
+             <div className="mt-3 space-y-2">
+               <div className="rounded-2xl border border-border bg-muted px-3 py-3 dark:bg-muted/40">
+                 <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                   <span>Sender route</span>
+                   <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
+                     <ShieldCheck className="w-3 h-3" />
+                     Reviewable
+                   </span>
+                 </div>
+                 <div className="mt-2">
+                   <ProtectedLinkCopyField
+                     label="Sender route"
+                     rawUrl={revealedKey ? `${baseWithoutFragment}#key=${revealedKey}` : `${baseWithoutFragment}#key=missing`}
+                     expectedPath={new URL(baseWithoutFragment).pathname}
+                     kind="upload-link"
+                     variant={isDark ? "dark" : "light"}
+                     copyButtonLabel="Copy full upload link"
+                     guidanceText="Enter your 4-digit PIN to copy the full URL."
+                     onResolveUrl={handleResolveCopyUrl}
+                     unavailableReason={copyUnavailableReason}
+                   />
+                 </div>
+               </div>
               <div className="flex items-center gap-2 text-sm">
                 <code className="bg-muted px-2 py-0.5 rounded text-xs flex-1 min-w-0 overflow-hidden">
                   {token.token}

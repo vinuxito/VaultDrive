@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { X, Link2, Loader2, CheckCircle2, AlertCircle, Copy, Key, Calendar, Shield, Lock } from "lucide-react";
 import { Button } from "../ui/button";
+import { useTheme } from "../theme-provider";
+import { cn } from "../../lib/utils";
 import {
   Card,
   CardContent,
@@ -71,6 +73,8 @@ export function CreateShareLinkModal({
   onClose,
   file,
 }: CreateShareLinkModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const isDropFile = !!file.pin_wrapped_key;
   const { getCredential } = useSessionVault();
   const cached = getCredential();
@@ -189,26 +193,34 @@ export function CreateShareLinkModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-        <CardHeader className="border-b border-white/10">
+      <Card className={cn(
+        "w-full max-w-md mx-4 border shadow-2xl",
+        isDark
+          ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
+          : "bg-card border-border text-foreground"
+      )}>
+        <CardHeader className={cn("border-b", isDark ? "border-white/10" : "border-border")}>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Link2 className="w-5 h-5 text-primary-foreground" />
+            <CardTitle className={cn("flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
+              <Link2 className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
               Create Share Link
             </CardTitle>
             <button
               type="button"
               onClick={handleClose}
-              className="text-white/50 hover:text-white/80 transition-colors"
+              className={cn("transition-colors", isDark ? "text-white/50 hover:text-white/80" : "text-muted-foreground hover:text-foreground")}
               aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <CardDescription className="text-white/80 truncate">
+          <CardDescription className={isDark ? "text-white/80 truncate" : "text-muted-foreground truncate"}>
             {file.filename}
           </CardDescription>
-          <div className="mt-3 rounded-2xl border border-white/10 bg-white/12 px-3 py-3 text-xs leading-relaxed text-white/85">
+          <div className={cn(
+            "mt-3 rounded-2xl border px-3 py-3 text-xs leading-relaxed",
+            isDark ? "border-white/10 bg-white/12 text-white/85" : "border-border bg-muted text-muted-foreground"
+          )}>
             This creates a reviewable route you can revoke later. The share record is visible to you; the decryption fragment stays with the recipient link, not the server.
           </div>
         </CardHeader>
@@ -217,7 +229,7 @@ export function CreateShareLinkModal({
           {step === "credential" && (
             <>
               <div className="space-y-2">
-                <p className="text-sm font-medium flex items-center gap-1.5 text-white">
+                <p className={cn("text-sm font-medium flex items-center gap-1.5", isDark ? "text-white" : "text-foreground")}>
                   <Calendar className="w-3.5 h-3.5" />
                   Link Expiry
                 </p>
@@ -227,11 +239,12 @@ export function CreateShareLinkModal({
                       key={value}
                       type="button"
                       onClick={() => setExpiryDays(value)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                      className={cn(
+                        "px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer",
                         expiryDays === value
-                          ? "bg-white text-primary/90"
-                          : "bg-white/15 text-white/85 hover:bg-white/25"
-                      }`}
+                          ? (isDark ? "bg-white text-primary/90" : "bg-primary text-primary-foreground")
+                          : (isDark ? "bg-white/15 text-white/85 hover:bg-white/25" : "bg-muted text-muted-foreground hover:bg-muted/80")
+                      )}
                     >
                       {label}
                     </button>
@@ -239,11 +252,12 @@ export function CreateShareLinkModal({
                   <button
                     type="button"
                     onClick={() => setExpiryDays("custom")}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer",
                       expiryDays === "custom"
-                        ? "bg-white text-primary/90"
-                        : "bg-white/15 text-white/85 hover:bg-white/25"
-                    }`}
+                        ? (isDark ? "bg-white text-primary/90" : "bg-primary text-primary-foreground")
+                        : (isDark ? "bg-white/15 text-white/85 hover:bg-white/25" : "bg-muted text-muted-foreground hover:bg-muted/80")
+                    )}
                   >
                     Custom
                   </button>
@@ -254,27 +268,35 @@ export function CreateShareLinkModal({
                     value={customDate}
                     min={todayISO}
                     onChange={(e) => setCustomDate(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
+                    className={cn(
+                      "w-full px-3 py-2 border rounded-md text-sm focus:outline-none",
+                      isDark
+                        ? "bg-white/15 border-white/20 text-white focus:border-white/40"
+                        : "bg-muted border-border text-foreground focus:border-primary focus:bg-background"
+                    )}
                   />
                 )}
               </div>
 
               {/* Auto-shred and Time-lock Options */}
-              <div className="space-y-3 pt-2 border-t border-white/10">
+              <div className={cn("space-y-3 pt-2 border-t", isDark ? "border-white/10" : "border-border")}>
                 <div className="flex items-center gap-2">
                   <input
                     id="auto-shred-checkbox"
                     type="checkbox"
                     checked={autoShred}
                     onChange={(e) => setAutoShred(e.target.checked)}
-                    className="rounded border-white/20 bg-white/15 text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 cursor-pointer"
+                    className={cn(
+                      "rounded w-4 h-4 cursor-pointer focus:ring-0 focus:ring-offset-0",
+                      isDark ? "border-white/20 bg-white/15 text-primary" : "border-border bg-muted text-primary"
+                    )}
                   />
-                  <label htmlFor="auto-shred-checkbox" className="text-sm font-medium flex items-center gap-1.5 text-white cursor-pointer select-none">
-                    <Shield className="w-3.5 h-3.5 text-primary-foreground" />
+                  <label htmlFor="auto-shred-checkbox" className={cn("text-sm font-medium flex items-center gap-1.5 cursor-pointer select-none", isDark ? "text-white" : "text-foreground")}>
+                    <Shield className={cn("w-3.5 h-3.5", isDark ? "text-primary-foreground" : "text-primary")} />
                     Single-Use Auto-Shredding
                   </label>
                 </div>
-                <p className="text-xs text-white/75 pl-6">
+                <p className={cn("text-xs pl-6", isDark ? "text-white/75" : "text-muted-foreground")}>
                   Destroy the key immediately after the first successful download.
                 </p>
 
@@ -284,10 +306,13 @@ export function CreateShareLinkModal({
                     type="checkbox"
                     checked={enableTimeLock}
                     onChange={(e) => setEnableTimeLock(e.target.checked)}
-                    className="rounded border-white/20 bg-white/15 text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 cursor-pointer"
+                    className={cn(
+                      "rounded w-4 h-4 cursor-pointer focus:ring-0 focus:ring-offset-0",
+                      isDark ? "border-white/20 bg-white/15 text-primary" : "border-border bg-muted text-primary"
+                    )}
                   />
-                  <label htmlFor="time-lock-checkbox" className="text-sm font-medium flex items-center gap-1.5 text-white cursor-pointer select-none">
-                    <Lock className="w-3.5 h-3.5 text-primary-foreground" />
+                  <label htmlFor="time-lock-checkbox" className={cn("text-sm font-medium flex items-center gap-1.5 cursor-pointer select-none", isDark ? "text-white" : "text-foreground")}>
+                    <Lock className={cn("w-3.5 h-3.5", isDark ? "text-primary-foreground" : "text-primary")} />
                     Time-Locked Release
                   </label>
                 </div>
@@ -298,9 +323,14 @@ export function CreateShareLinkModal({
                       value={unlockAtDate}
                       min={new Date().toISOString().slice(0, 16)}
                       onChange={(e) => setUnlockAtDate(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
+                      className={cn(
+                        "w-full px-3 py-2 border rounded-md text-sm focus:outline-none",
+                        isDark
+                          ? "bg-white/15 border-white/20 text-white focus:border-white/40"
+                          : "bg-muted border-border text-foreground focus:border-primary focus:bg-background"
+                      )}
                     />
-                    <p className="text-xs text-white/75">
+                    <p className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                       The file cannot be accessed or downloaded before this date.
                     </p>
                   </div>
@@ -309,11 +339,11 @@ export function CreateShareLinkModal({
 
               {!hasCachedCred && (
               <div className="space-y-1.5">
-                <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white">
+                <label htmlFor="csl-credential" className={cn("text-sm font-medium flex items-center gap-1.5", isDark ? "text-white" : "text-foreground")}>
                   <Key className="w-3.5 h-3.5" />
                   {fileCredentialMode === "pin" ? "4-digit PIN" : "Upload password"}
                 </label>
-                <p className="text-xs text-white/75">
+                <p className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                   {fileCredentialMode === "pin"
                     ? "Enter your PIN to prepare this file for secure sharing"
                     : "Enter the password used when this file was encrypted so the key can be embedded in the share link"}
@@ -321,20 +351,24 @@ export function CreateShareLinkModal({
                 <input
                   id="csl-credential"
                   type="password"
-                    inputMode={fileCredentialMode === "pin" ? "numeric" : undefined}
-                    maxLength={fileCredentialMode === "pin" ? 4 : undefined}
+                  inputMode={fileCredentialMode === "pin" ? "numeric" : undefined}
+                  maxLength={fileCredentialMode === "pin" ? 4 : undefined}
                   value={credential}
                   onChange={(e) =>
                     setCredential(
-                        fileCredentialMode === "pin"
-                          ? e.target.value.replace(/\D/g, "").slice(0, 4)
-                          : e.target.value
+                      fileCredentialMode === "pin"
+                        ? e.target.value.replace(/\D/g, "").slice(0, 4)
+                        : e.target.value
                     )
                   }
-                    placeholder={fileCredentialMode === "pin" ? "••••" : "Enter credential"}
-                    className={`w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:outline-none${
-                      fileCredentialMode === "pin" ? " text-center tracking-widest text-xl" : ""
-                    }`}
+                  placeholder={fileCredentialMode === "pin" ? "••••" : "Enter credential"}
+                  className={cn(
+                    "w-full px-3 py-2 border rounded-md focus:outline-none",
+                    isDark
+                      ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                      : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background",
+                    fileCredentialMode === "pin" ? " text-center tracking-widest text-xl" : ""
+                  )}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && credential) void handleGenerate();
                   }}
@@ -345,18 +379,23 @@ export function CreateShareLinkModal({
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1"
+                  className={cn("flex-1", isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => void handleGenerate()}
-                    disabled={
-                      (!hasCachedCred && (fileCredentialMode === "pin" ? credential.length !== 4 : credential.length === 0)) ||
-                      (expiryDays === "custom" && customDate === "") ||
-                      (enableTimeLock && unlockAtDate === "")
-                    }
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                  disabled={
+                    (!hasCachedCred && (fileCredentialMode === "pin" ? credential.length !== 4 : credential.length === 0)) ||
+                    (expiryDays === "custom" && customDate === "") ||
+                    (enableTimeLock && unlockAtDate === "")
+                  }
+                  className={cn(
+                    "flex-1 font-semibold",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   Generate Link
                 </Button>
@@ -366,8 +405,8 @@ export function CreateShareLinkModal({
 
           {step === "generating" && (
             <div className="flex flex-col items-center gap-3 py-4">
-              <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
-              <p className="text-sm text-white/85">Generating share link…</p>
+              <Loader2 className={cn("w-8 h-8 animate-spin", isDark ? "text-primary-foreground" : "text-primary")} />
+              <p className={cn("text-sm", isDark ? "text-white/85" : "text-foreground")}>Generating share link…</p>
             </div>
           )}
 
@@ -382,21 +421,21 @@ export function CreateShareLinkModal({
                   </div>
                 </div>
               </div>
-              <div className="p-4 bg-white/12 border border-emerald-400/20 rounded-xl">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <div className={cn("p-4 border rounded-xl", isDark ? "bg-white/12 border-emerald-400/20" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-800")}>
+                <CheckCircle2 className={cn("w-5 h-5 shrink-0", isDark ? "text-emerald-400" : "text-emerald-600")} />
                 <div className="mt-3 space-y-1.5">
-                  <p className="text-sm font-medium text-white">Trust receipt</p>
-                  <p className="text-xs text-white/80 leading-relaxed">
+                  <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>Trust receipt</p>
+                  <p className={cn("text-xs leading-relaxed", isDark ? "text-white/80" : "text-muted-foreground")}>
                     The decryption key is carried in the URL fragment after <strong>#</strong>. {branding.productName} stores the share record, but the server never sees that fragment key.
                   </p>
-                  <p className="text-xs text-white/80 leading-relaxed">
+                  <p className={cn("text-xs leading-relaxed", isDark ? "text-white/80" : "text-muted-foreground")}>
                     You can review or revoke this share at any time from the file's access controls.
                   </p>
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-white/12 border border-white/15 space-y-1.5">
-                <p className="text-sm font-medium text-white">Owner control</p>
-                <p className="text-xs text-white/80 leading-relaxed">
+              <div className={cn("p-3 rounded-xl border space-y-1.5", isDark ? "bg-white/12 border-white/15" : "bg-muted border-border")}>
+                <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>Owner control</p>
+                <p className={cn("text-xs leading-relaxed", isDark ? "text-white/80" : "text-muted-foreground")}>
                   The recipient gets a complete link. You keep the ability to inspect when it was created, when it expires, and whether it should remain active.
                 </p>
               </div>
@@ -407,16 +446,16 @@ export function CreateShareLinkModal({
                 note={`${branding.productName} created a revocable share record while the decryption fragment stayed in the URL after #.`}
               />
               {expiryDisplay && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/12 border border-white/10 rounded-md">
-                  <Calendar className="w-3.5 h-3.5 text-primary-foreground shrink-0" />
-                  <p className="text-xs text-white/85">
+                <div className={cn("flex items-center gap-2 px-3 py-2 border rounded-md", isDark ? "bg-white/12 border-white/10" : "bg-muted border-border")}>
+                  <Calendar className={cn("w-3.5 h-3.5 shrink-0", isDark ? "text-primary-foreground" : "text-primary")} />
+                  <p className={cn("text-xs", isDark ? "text-white/85" : "text-muted-foreground")}>
                     Link expires:{" "}
-                    <span className="font-medium text-white">{expiryDisplay}</span>
+                    <span className={cn("font-medium", isDark ? "text-white" : "text-foreground")}>{expiryDisplay}</span>
                   </p>
                 </div>
               )}
               <div className="space-y-1.5">
-                <label htmlFor="csl-share-url" className="text-xs text-white/75">
+                <label htmlFor="csl-share-url" className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                   Share URL (decryption key embedded after #)
                 </label>
                 <textarea
@@ -424,12 +463,17 @@ export function CreateShareLinkModal({
                   readOnly
                   value={shareUrl}
                   rows={4}
-                  className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white/90 text-xs resize-none focus:outline-none cursor-text"
+                  className={cn(
+                    "w-full px-3 py-2 border rounded-md text-xs resize-none focus:outline-none cursor-text",
+                    isDark
+                      ? "bg-white/15 border-white/20 text-white/90"
+                      : "bg-muted border-border text-foreground"
+                  )}
                   onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                 />
               </div>
-              <div className="p-2.5 bg-white/12 border border-white/10 rounded-md">
-                <p className="text-xs text-white/75">
+              <div className={cn("p-2.5 border rounded-md", isDark ? "bg-white/12 border-white/10" : "bg-muted border-border")}>
+                <p className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
                   Share this link with the recipient. The decryption key travels in the link fragment, never through the server. Revoke anytime from the file's access panel.
                 </p>
               </div>
@@ -437,13 +481,18 @@ export function CreateShareLinkModal({
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1"
+                  className={cn("flex-1", isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Close
                 </Button>
                 <Button
                   onClick={handleCopy}
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold gap-1.5"
+                  className={cn(
+                    "flex-1 font-semibold gap-1.5",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   {copied ? (
                     <>
@@ -463,21 +512,26 @@ export function CreateShareLinkModal({
 
           {step === "error" && (
             <>
-              <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md">
+              <div className="flex items-start gap-2 p-3 bg-red-500/20 border border-red-400/30 rounded-md text-red-200">
                 <AlertCircle className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-200">{errorMsg}</p>
+                <p className="text-sm">{errorMsg}</p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className="flex-1"
+                  className={cn("flex-1", isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Close
                 </Button>
                 <Button
                   onClick={() => setStep("credential")}
-                  className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
+                  className={cn(
+                    "flex-1 font-semibold",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
                   Try Again
                 </Button>
