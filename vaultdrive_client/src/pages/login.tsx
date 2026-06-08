@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { LanguageToggle } from "../components/ui/language-toggle";
 import { Button } from "../components/ui/button";
+import { LanguageToggle } from "../components/ui/language-toggle";
 import {
   CardContent,
   CardDescription,
@@ -551,21 +551,32 @@ export default function Login() {
             </form>
           )}
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-6 text-center text-sm space-y-2">
             {isLogin ? (
-              <p>
-                {t("auth:login.noAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(false);
-                    setError("");
-                  }}
-                  className="text-primary font-medium hover:underline"
-                >
-                  {t("auth:login.signUp")}
-                </button>
-              </p>
+              <>
+                <p>
+                  {t("auth:login.noAccount")}{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(false);
+                      setError("");
+                    }}
+                    className="text-primary font-medium hover:underline"
+                  >
+                    {t("auth:login.signUp")}
+                  </button>
+                </p>
+                <p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/recover")}
+                    className="text-primary/80 font-medium hover:underline text-xs"
+                  >
+                    Recover Lost Account
+                  </button>
+                </p>
+              </>
             ) : (
               <p>
                 {t("auth:login.hasAccount")}{" "}

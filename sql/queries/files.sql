@@ -82,3 +82,14 @@ WHERE id = $3;
 SELECT * FROM files
 WHERE folder_id = ANY($1::uuid[])
 ORDER BY folder_id, filename ASC;
+
+-- name: UpdateFileParentHash :exec
+UPDATE files
+SET parent_hash = $2,
+    updated_at = $3
+WHERE id = $1;
+
+-- name: GetFileByParentHash :one
+SELECT * FROM files
+WHERE parent_hash = $1;
+

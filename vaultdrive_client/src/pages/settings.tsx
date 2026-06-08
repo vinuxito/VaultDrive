@@ -38,6 +38,7 @@ import { AuditLogSection } from "../components/settings/AuditLogSection";
 import { CollapsibleSection } from "../components/settings/CollapsibleSection";
 import { ControlPlaneStatusSection } from "../components/settings/ControlPlaneStatusSection";
 import { LanguageSelector } from "../components/settings/LanguageSelector";
+import { CustodianRecoverySection } from "../components/settings/CustodianRecoverySection";
 
 import { Tabs, TabPanel } from "../components/ui/tabs";
 import { useSessionVault } from "../context/SessionVaultContext";
@@ -541,6 +542,8 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+
+        <CustodianRecoverySection />
 
         {/* Security Information */}
         <Card>

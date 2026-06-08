@@ -313,6 +313,27 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerGetBatchAccessKeys)))
 
+	// Recovery endpoints
+	mux.Handle("POST /api/v1/recovery/shares",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerSaveRecoveryShares)))
+	mux.Handle("POST /api/v1/recovery/request",
+		apiConfig.middlewareMetricsInc(
+			http.HandlerFunc(apiConfig.handlerStartRecoveryRequest)))
+	mux.Handle("GET /api/v1/recovery/requests",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerGetRecoveryRequests)))
+	mux.Handle("POST /api/v1/recovery/approve",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerApproveRecoveryShare)))
+	mux.Handle("GET /api/v1/recovery/status",
+		apiConfig.middlewareMetricsInc(
+			http.HandlerFunc(apiConfig.handlerGetRecoveryStatus)))
+	mux.Handle("POST /api/v1/recovery/reset",
+		apiConfig.middlewareMetricsInc(
+			http.HandlerFunc(apiConfig.handlerResetRecoveryPassword)))
+
+
 	// Folder share (public, no auth)
 	mux.HandleFunc("GET /api/folder-share/{token}/info", apiConfig.handlerGetFolderShareInfo)
 	mux.HandleFunc("GET /api/folder-share/{token}/keys", apiConfig.handlerGetFolderShareKeys)
@@ -468,6 +489,9 @@ func main() {
 	mux.HandleFunc("POST /api/events/ticket", apiConfig.handlerSSETicket)
 	mux.HandleFunc("GET /api/v1/rooms/{id}/connect", apiConfig.handlerRoomConnect)
 	mux.HandleFunc("POST /api/v1/rooms/{id}/broadcast", apiConfig.handlerRoomBroadcast)
+	mux.Handle("POST /api/v1/files/sync",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerFilesSync)))
 
 	fmt.Printf("Starting server on port %s...\n", port)
 

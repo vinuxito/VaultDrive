@@ -85,7 +85,7 @@ func (q *Queries) GetFileTags(ctx context.Context, fileID uuid.UUID) ([]Tag, err
 }
 
 const getFilesWithTag = `-- name: GetFilesWithTag :many
-SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id FROM files f
+SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash FROM files f
 INNER JOIN file_tags ft ON f.id = ft.file_id
 WHERE ft.tag_id = $1 AND f.owner_id = $2
 ORDER BY f.created_at DESC
@@ -118,6 +118,7 @@ func (q *Queries) GetFilesWithTag(ctx context.Context, arg GetFilesWithTagParams
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 		); err != nil {
 			return nil, err
 		}

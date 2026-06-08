@@ -125,3 +125,9 @@ WHERE id = $1;
 UPDATE users
 SET private_key_encrypted = $2, kek_envelope_version = $3, updated_at = $4
 WHERE id = $1;
+
+-- name: UpdateUserRecoveryThreshold :exec
+UPDATE users
+SET recovery_threshold = $2, updated_at = $3
+WHERE id = $1;
+

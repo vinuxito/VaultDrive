@@ -50,6 +50,15 @@
       "cancel": "Cancelar",
       "placeholderPin": "••••",
       "placeholderCredential": "Ingresar credencial"
+    },
+    "sync": {
+      "offline": "Modo sin conexión — Los cambios se sincronizarán al restablecer la conexión.",
+      "syncing": "Sincronizando cambios sin conexión...",
+      "success": "Sincronizado con éxito {{count}} cambio sin conexión",
+      "success_plural": "Sincronizados con éxito {{count}} cambios sin conexión",
+      "conflict": "Conflicto de sincronización: el archivo \"{{filename}}\" tiene una versión más reciente en el servidor. Acción omitida.",
+      "queued": "Estás sin conexión. Acción en cola para sincronizar.",
+      "pendingSync": "Sincronización pendiente"
     }
   },
   "dashboard": {
@@ -338,6 +347,28 @@
       "public_share_link_created": "Enlace compartido creado",
       "public_share_link_revoked": "Enlace compartido revocado"
     }
+  },
+  "recovery": {
+    "title": "Recuperación de cuenta",
+    "description": "Recupere sus credenciales de cuenta mediante consenso de custodios",
+    "setupTitle": "Custodios de claves",
+    "setupDesc": "Configure custodios de confianza para recuperar su cuenta si pierde su contraseña.",
+    "custodianSearch": "Buscar custodios por nombre de usuario o correo...",
+    "addCustodian": "Agregar custodio",
+    "thresholdLabel": "Aprobaciones requeridas (Umbral)",
+    "thresholdDesc": "Número de custodios requeridos para aprobar la recuperación",
+    "saveConfig": "Habilitar recuperación por custodios",
+    "savedSuccess": "Configuración de recuperación por custodios guardada con éxito.",
+    "activeCustodians": "Sus custodios",
+    "noCustodians": "No hay custodios configurados aún.",
+    "requestRecovery": "Solicitar recuperación de cuenta",
+    "recoveryStatus": "Estado de la recuperación",
+    "approvals": "Aprobaciones",
+    "reconstructKey": "Reconstruir clave",
+    "resetPassword": "Restablecer contraseña",
+    "resetSuccess": "Contraseña restablecida con éxito. Ahora puede iniciar sesión.",
+    "pendingRequests": "Aprobaciones de custodio",
+    "noRequests": "No hay aprobaciones de recuperación pendientes."
   }
 }
 

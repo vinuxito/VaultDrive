@@ -15,6 +15,7 @@ const PublicSharePage = lazy(() => import("./pages/PublicSharePage"));
 const PublicFolderSharePage = lazy(() => import("./pages/PublicFolderSharePage"));
 const FileRequestPage = lazy(() => import("./pages/FileRequestPage"));
 const ForcePasswordChange = lazy(() => import("./pages/force-password-change"));
+const Recover = lazy(() => import("./pages/recover"));
 
 const Dashboard = lazy(() => import("./pages/dashboard"));
 const Files = lazy(() => import("./pages/files"));
@@ -47,6 +48,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/force-password-change" element={<ForcePasswordChange />} />
+            <Route path="/recover" element={<Recover />} />
             {/* Public pages with Navbar */}
             <Route path="/" element={<Navbar><Home /></Navbar>} />
             <Route path="/about" element={<Navbar><About /></Navbar>} />

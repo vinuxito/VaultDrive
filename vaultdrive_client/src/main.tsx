@@ -16,7 +16,15 @@ const fetcher = (url: string) => {
     return res.json();
   });
 };
-
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    const basePath = import.meta.env.VITE_BASE_PATH || "";
+    const swUrl = `${basePath.endsWith("/") ? basePath : basePath + "/" }sw.js`;
+    navigator.serviceWorker.register(swUrl).catch((err) => {
+      console.error("Service Worker registration failed:", err);
+    });
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

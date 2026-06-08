@@ -50,6 +50,15 @@
       "cancel": "Cancel",
       "placeholderPin": "••••",
       "placeholderCredential": "Enter credential"
+    },
+    "sync": {
+      "offline": "Offline Mode — Changes will sync when connection is restored.",
+      "syncing": "Syncing offline changes...",
+      "success": "Successfully synced {{count}} offline change",
+      "success_plural": "Successfully synced {{count}} offline changes",
+      "conflict": "Sync conflict: file \"{{filename}}\" has a newer version on the server. Action skipped.",
+      "queued": "You are offline. Action queued for sync.",
+      "pendingSync": "Pending Sync"
     }
   },
   "dashboard": {
@@ -337,6 +346,28 @@
       "public_share_link_created": "Share link created",
       "public_share_link_revoked": "Share link revoked"
     }
+  },
+  "recovery": {
+    "title": "Account Recovery",
+    "description": "Recover your account credentials using custodian consensus",
+    "setupTitle": "Key Custodians",
+    "setupDesc": "Configure trusted custodians to recover your account if you lose your password.",
+    "custodianSearch": "Search custodians by username or email...",
+    "addCustodian": "Add Custodian",
+    "thresholdLabel": "Required Approvals (Threshold)",
+    "thresholdDesc": "Number of custodians required to approve recovery",
+    "saveConfig": "Enable Custodian Recovery",
+    "savedSuccess": "Custodian recovery configuration saved successfully.",
+    "activeCustodians": "Your Custodians",
+    "noCustodians": "No custodians configured yet.",
+    "requestRecovery": "Request Account Recovery",
+    "recoveryStatus": "Recovery Status",
+    "approvals": "Approvals",
+    "reconstructKey": "Reconstruct Key",
+    "resetPassword": "Reset Password",
+    "resetSuccess": "Password reset successfully. You can now log in.",
+    "pendingRequests": "Custodian Approvals",
+    "noRequests": "No pending recovery approvals."
   }
 }
 

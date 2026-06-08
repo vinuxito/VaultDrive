@@ -40,7 +40,7 @@ INSERT INTO files (
     folder_id
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash
 `
 
 type CreateFileParams struct {
@@ -83,6 +83,7 @@ func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, e
 		&i.Starred,
 		&i.DropSourceID,
 		&i.FolderID,
+		&i.ParentHash,
 	)
 	return i, err
 }
@@ -108,7 +109,7 @@ func (q *Queries) DeleteFilesByOwnerID(ctx context.Context, ownerID uuid.NullUUI
 }
 
 const getFileByID = `-- name: GetFileByID :one
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash FROM files
 WHERE id = $1
 `
 
@@ -128,12 +129,39 @@ func (q *Queries) GetFileByID(ctx context.Context, id uuid.UUID) (File, error) {
 		&i.Starred,
 		&i.DropSourceID,
 		&i.FolderID,
+		&i.ParentHash,
+	)
+	return i, err
+}
+
+const getFileByParentHash = `-- name: GetFileByParentHash :one
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash FROM files
+WHERE parent_hash = $1
+`
+
+func (q *Queries) GetFileByParentHash(ctx context.Context, parentHash sql.NullString) (File, error) {
+	row := q.db.QueryRowContext(ctx, getFileByParentHash, parentHash)
+	var i File
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.Filename,
+		&i.FilePath,
+		&i.FileSize,
+		&i.EncryptedMetadata,
+		&i.CurrentKeyVersion,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Starred,
+		&i.DropSourceID,
+		&i.FolderID,
+		&i.ParentHash,
 	)
 	return i, err
 }
 
 const getFilesByFolderID = `-- name: GetFilesByFolderID :many
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash FROM files
 WHERE folder_id = $1
 ORDER BY filename ASC
 `
@@ -160,6 +188,7 @@ func (q *Queries) GetFilesByFolderID(ctx context.Context, folderID uuid.NullUUID
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 		); err != nil {
 			return nil, err
 		}
@@ -175,7 +204,7 @@ func (q *Queries) GetFilesByFolderID(ctx context.Context, folderID uuid.NullUUID
 }
 
 const getFilesByFolderIDs = `-- name: GetFilesByFolderIDs :many
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash FROM files
 WHERE folder_id = ANY($1::uuid[])
 ORDER BY folder_id, filename ASC
 `
@@ -202,6 +231,7 @@ func (q *Queries) GetFilesByFolderIDs(ctx context.Context, dollar_1 []uuid.UUID)
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 		); err != nil {
 			return nil, err
 		}
@@ -217,7 +247,7 @@ func (q *Queries) GetFilesByFolderIDs(ctx context.Context, dollar_1 []uuid.UUID)
 }
 
 const getFilesByOwnerID = `-- name: GetFilesByOwnerID :many
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash FROM files
 WHERE owner_id = $1
 ORDER BY created_at DESC
 `
@@ -244,6 +274,7 @@ func (q *Queries) GetFilesByOwnerID(ctx context.Context, ownerID uuid.NullUUID) 
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 		); err != nil {
 			return nil, err
 		}
@@ -259,7 +290,7 @@ func (q *Queries) GetFilesByOwnerID(ctx context.Context, ownerID uuid.NullUUID) 
 }
 
 const getFilesByOwnerIDWithPagination = `-- name: GetFilesByOwnerIDWithPagination :many
-SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id FROM files
+SELECT id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash FROM files
 WHERE owner_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -293,6 +324,7 @@ func (q *Queries) GetFilesByOwnerIDWithPagination(ctx context.Context, arg GetFi
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 		); err != nil {
 			return nil, err
 		}
@@ -312,7 +344,7 @@ UPDATE files
 SET starred = $2,
     updated_at = $3
 WHERE id = $1
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash
 `
 
 type ToggleFileStarredParams struct {
@@ -337,6 +369,7 @@ func (q *Queries) ToggleFileStarred(ctx context.Context, arg ToggleFileStarredPa
 		&i.Starred,
 		&i.DropSourceID,
 		&i.FolderID,
+		&i.ParentHash,
 	)
 	return i, err
 }
@@ -351,7 +384,7 @@ SET
     current_key_version = $6,
     updated_at = $7
 WHERE id = $1
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash
 `
 
 type UpdateFileParams struct {
@@ -388,6 +421,7 @@ func (q *Queries) UpdateFile(ctx context.Context, arg UpdateFileParams) (File, e
 		&i.Starred,
 		&i.DropSourceID,
 		&i.FolderID,
+		&i.ParentHash,
 	)
 	return i, err
 }
@@ -415,7 +449,7 @@ SET
     current_key_version = $3,
     updated_at = $4
 WHERE id = $1
-RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id
+RETURNING id, owner_id, filename, file_path, file_size, encrypted_metadata, current_key_version, created_at, updated_at, starred, drop_source_id, folder_id, parent_hash
 `
 
 type UpdateFileMetadataParams struct {
@@ -446,6 +480,25 @@ func (q *Queries) UpdateFileMetadata(ctx context.Context, arg UpdateFileMetadata
 		&i.Starred,
 		&i.DropSourceID,
 		&i.FolderID,
+		&i.ParentHash,
 	)
 	return i, err
+}
+
+const updateFileParentHash = `-- name: UpdateFileParentHash :exec
+UPDATE files
+SET parent_hash = $2,
+    updated_at = $3
+WHERE id = $1
+`
+
+type UpdateFileParentHashParams struct {
+	ID         uuid.UUID
+	ParentHash sql.NullString
+	UpdatedAt  time.Time
+}
+
+func (q *Queries) UpdateFileParentHash(ctx context.Context, arg UpdateFileParentHashParams) error {
+	_, err := q.db.ExecContext(ctx, updateFileParentHash, arg.ID, arg.ParentHash, arg.UpdatedAt)
+	return err
 }

@@ -279,6 +279,12 @@ export function FileRequestsSection() {
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<string>("");
 
+  useEffect(() => {
+    if (!copiedId) return;
+    const timer = setTimeout(() => setCopiedId(null), 2000);
+    return () => clearTimeout(timer);
+  }, [copiedId]);
+
   const fetchRequests = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -312,7 +318,6 @@ export function FileRequestsSection() {
     const url = `${window.location.origin}${BASE_PATH}/request/${req.token}`;
     await navigator.clipboard.writeText(url);
     setCopiedId(req.id);
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleRevoke = async (req: FileRequest) => {

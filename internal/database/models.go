@@ -13,6 +13,17 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type AccountRecoveryShare struct {
+	ID                  uuid.UUID
+	UserID              uuid.UUID
+	CustodianID         uuid.UUID
+	WrappedSharePayload string
+	Status              string
+	DecryptedSharePart  sql.NullString
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+}
+
 type ActivityLog struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
@@ -77,6 +88,7 @@ type File struct {
 	Starred           bool
 	DropSourceID      uuid.NullUUID
 	FolderID          uuid.NullUUID
+	ParentHash        sql.NullString
 }
 
 type FileAccessKey struct {
@@ -289,4 +301,5 @@ type User struct {
 	FailureAlertThreshold  int32
 	// 1=SHA-256 (legacy), 2=Argon2id
 	KekEnvelopeVersion int32
+	RecoveryThreshold  int32
 }

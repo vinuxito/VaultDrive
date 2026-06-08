@@ -26,6 +26,7 @@ export interface FileData {
   drop_folder_name?: string | null;
   pin_wrapped_key?: string | null;
   folder_id?: string | null;
+  parent_hash?: string | null;
 }
 
 interface FileGridProps {

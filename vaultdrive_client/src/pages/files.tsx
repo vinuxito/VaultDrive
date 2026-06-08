@@ -76,6 +76,8 @@ import type { DragDataTransferItem } from "../utils/drop-drag";
 import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
+import { queueOfflineAction } from "../utils/offline-db";
+
 
 interface FileData {
 
@@ -99,6 +101,7 @@ interface FileData {
   drop_folder_name?: string | null;
   pin_wrapped_key?: string | null;
   folder_id?: string | null;
+  parent_hash?: string | null;
 }
 
 interface SharedFile {
@@ -240,7 +243,7 @@ export default function Files() {
   } | null>(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<{ id: string; filename: string } | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<{ id: string; filename: string; parent_hash?: string | null } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showMoveFileModal, setShowMoveFileModal] = useState(false);
   const [fileToMove, setFileToMove] = useState<FileData | null>(null);
@@ -1035,7 +1038,8 @@ export default function Files() {
   };
 
   const handleDeleteClick = (fileId: string, filename: string) => {
-    setFileToDelete({ id: fileId, filename });
+    const file = myFiles.find((f) => f.id === fileId);
+    setFileToDelete({ id: fileId, filename, parent_hash: file?.parent_hash ?? null });
     setShowDeleteModal(true);
   };
 
@@ -1091,6 +1095,29 @@ export default function Files() {
     setDeleting(true);
     setError("");
     try {
+      if (!navigator.onLine) {
+        await queueOfflineAction({
+          type: "delete",
+          file_id: fileToDelete.id,
+          filename: fileToDelete.filename,
+          parent_hash: fileToDelete.parent_hash || "",
+          updated_at: new Date().toISOString(),
+        });
+        window.dispatchEvent(new Event("offline-action-queued"));
+
+        mutateMyFiles((prev = []) => prev.filter((f) => f.id !== fileToDelete.id), { revalidate: false });
+        setSelectedFileIds((prev) => {
+          const n = new Set(prev);
+          n.delete(fileToDelete.id);
+          return n;
+        });
+        setSuccessMessage(t("drive:vault.sync.queued"));
+        setTimeout(() => setSuccessMessage(""), 5000);
+        setShowDeleteModal(false);
+        setFileToDelete(null);
+        return;
+      }
+
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/${fileToDelete.id}`, {
         method: "DELETE",
@@ -1122,6 +1149,38 @@ export default function Files() {
 
     setBulkDeleting(true);
     setError("");
+
+    if (!navigator.onLine) {
+      try {
+        for (const file of bulkDeleteCandidates) {
+          await queueOfflineAction({
+            type: "delete",
+            file_id: file.id,
+            filename: file.filename,
+            parent_hash: file.parent_hash || "",
+            updated_at: new Date().toISOString(),
+          });
+        }
+        window.dispatchEvent(new Event("offline-action-queued"));
+
+        const deleteIds = new Set(bulkDeleteCandidates.map((c) => c.id));
+        mutateMyFiles((prev = []) => prev.filter((file) => !deleteIds.has(file.id)), { revalidate: false });
+        setSelectedFileIds((prev) => {
+          const next = new Set(prev);
+          deleteIds.forEach((id) => next.delete(id));
+          return next;
+        });
+
+        setSuccessMessage(t("drive:vault.sync.queued"));
+        setTimeout(() => setSuccessMessage(""), 5000);
+        setShowBulkDeleteModal(false);
+      } catch {
+        setError("Failed to queue offline bulk delete");
+      } finally {
+        setBulkDeleting(false);
+      }
+      return;
+    }
 
     const token = localStorage.getItem("token");
     if (!token) {

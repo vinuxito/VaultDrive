@@ -79,7 +79,7 @@ func (q *Queries) DeleteGroup(ctx context.Context, arg DeleteGroupParams) error 
 }
 
 const getFilesSharedViaGroups = `-- name: GetFilesSharedViaGroups :many
-SELECT DISTINCT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id,
+SELECT DISTINCT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash,
        g.name as group_name,
        g.id as group_id,
        gfs.created_at as shared_at,
@@ -112,6 +112,7 @@ type GetFilesSharedViaGroupsRow struct {
 	Starred           bool
 	DropSourceID      uuid.NullUUID
 	FolderID          uuid.NullUUID
+	ParentHash        sql.NullString
 	GroupName         string
 	GroupID           uuid.UUID
 	SharedAt          sql.NullTime
@@ -145,6 +146,7 @@ func (q *Queries) GetFilesSharedViaGroups(ctx context.Context, userID uuid.UUID)
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 			&i.GroupName,
 			&i.GroupID,
 			&i.SharedAt,
@@ -204,7 +206,7 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (GetGroupByIDR
 }
 
 const getGroupFiles = `-- name: GetGroupFiles :many
-SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id,
+SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash,
        gfs.created_at as shared_at,
        u.username as shared_by,
        f.encrypted_metadata
@@ -228,6 +230,7 @@ type GetGroupFilesRow struct {
 	Starred             bool
 	DropSourceID        uuid.NullUUID
 	FolderID            uuid.NullUUID
+	ParentHash          sql.NullString
 	SharedAt            sql.NullTime
 	SharedBy            string
 	EncryptedMetadata_2 sql.NullString
@@ -255,6 +258,7 @@ func (q *Queries) GetGroupFiles(ctx context.Context, groupID uuid.UUID) ([]GetGr
 			&i.Starred,
 			&i.DropSourceID,
 			&i.FolderID,
+			&i.ParentHash,
 			&i.SharedAt,
 			&i.SharedBy,
 			&i.EncryptedMetadata_2,
