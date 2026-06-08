@@ -26,6 +26,7 @@ const Admin = lazy(() => import("./pages/admin"));
 const AdminTests = lazy(() => import("./pages/admin-tests"));
 const AccessCenter = lazy(() => import("./pages/access-center"));
 const HelpCenter = lazy(() => import("./pages/help"));
+const ZKRoom = lazy(() => import("./pages/zk-room"));
 
 function PageLoader() {
   return (
@@ -66,6 +67,7 @@ function App() {
               <Route path="/admin/tests" element={<AdminTests />} />
               <Route path="/access-center" element={<AccessCenter />} />
               <Route path="/help" element={<HelpCenter />} />
+              <Route path="/room/:roomId" element={<ZKRoom />} />
             </Route>
           </Routes>
         </Suspense>

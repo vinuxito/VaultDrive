@@ -466,6 +466,8 @@ func main() {
 
 	mux.HandleFunc("GET /api/events", apiConfig.handlerSSE)
 	mux.HandleFunc("POST /api/events/ticket", apiConfig.handlerSSETicket)
+	mux.HandleFunc("GET /api/v1/rooms/{id}/connect", apiConfig.handlerRoomConnect)
+	mux.HandleFunc("POST /api/v1/rooms/{id}/broadcast", apiConfig.handlerRoomBroadcast)
 
 	fmt.Printf("Starting server on port %s...\n", port)
 

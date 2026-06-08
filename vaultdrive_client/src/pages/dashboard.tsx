@@ -17,6 +17,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
+  Lock,
 } from "lucide-react";
 
 interface StatCard {
@@ -205,6 +206,13 @@ export default function Dashboard() {
       icon: Share2,
       color: "bg-emerald-600 hover:bg-emerald-700 text-white",
       onClick: () => navigate("/files"),
+    },
+    {
+      label: t("drive:dashboard.start.createRoom", "Create ZK Room"),
+      description: t("drive:dashboard.start.createRoomDesc", "Create an ephemeral collaborative encrypted room"),
+      icon: Lock,
+      color: "bg-secondary hover:bg-secondary/90 text-white",
+      onClick: () => navigate(`/room/${crypto.randomUUID()}`),
     },
   ];
 
