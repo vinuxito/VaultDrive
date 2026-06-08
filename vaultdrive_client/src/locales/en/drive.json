@@ -141,7 +141,12 @@
     "expiredDesc": "This share link is no longer valid.",
     "expiredContact": "Contact the file owner to request a new link.",
     "errorTitle": "Something went wrong",
-    "errorDesc": "Make sure you have the complete share link, including the key after #."
+    "errorDesc": "Make sure you have the complete share link, including the key after #.",
+    "lockedTitle": "This link is time-locked",
+    "lockedDesc": "This file is secure and will be available to download once the lock duration expires.",
+    "shreddedTitle": "This link has been shredded",
+    "shreddedDesc": "As a single-use secure link, the decryption key for this file has been permanently deleted from the server after its first download.",
+    "autoShredWarning": "Caution: This file will auto-shred after your download completes."
   },
   "publicFolder": {
     "secureShare": "Secure Folder Share",

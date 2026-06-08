@@ -214,6 +214,8 @@ type PublicShareLink struct {
 	CreatedAt      time.Time
 	AccessCount    int32
 	LastAccessedAt sql.NullTime
+	UnlockAt       sql.NullTime
+	MaxDownloads   int32
 }
 
 type RefreshToken struct {

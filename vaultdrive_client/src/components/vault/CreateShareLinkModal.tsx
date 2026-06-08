@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Link2, Loader2, CheckCircle2, AlertCircle, Copy, Key, Calendar } from "lucide-react";
+import { X, Link2, Loader2, CheckCircle2, AlertCircle, Copy, Key, Calendar, Shield, Lock } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -19,7 +19,6 @@ import {
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
-import { getNormalizedErrorMessage } from "../../utils/browser-storage";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -92,6 +91,9 @@ export function CreateShareLinkModal({
   const [expiryDays, setExpiryDays] = useState<ExpiryOption>(7);
   const [customDate, setCustomDate] = useState<string>("");
   const [expiryDisplay, setExpiryDisplay] = useState<string>("");
+  const [autoShred, setAutoShred] = useState(false);
+  const [enableTimeLock, setEnableTimeLock] = useState(false);
+  const [unlockAtDate, setUnlockAtDate] = useState("");
 
   const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
@@ -136,14 +138,18 @@ export function CreateShareLinkModal({
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ expires_at: expiresAtISO }),
+        body: JSON.stringify({ 
+          expires_at: expiresAtISO,
+          unlock_at: enableTimeLock && unlockAtDate ? new Date(unlockAtDate).toISOString() : undefined,
+          max_downloads: autoShred ? 1 : 0
+        }),
       });
 
       if (!response.ok) {
         const errData = (await response.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(errData.error || "Failed to create share link");
+        throw new Error(errData.error ?? "Failed to create share link");
       }
 
       const data = (await response.json()) as { token: string };
@@ -152,7 +158,7 @@ export function CreateShareLinkModal({
       setExpiryDisplay(displayDate);
       setStep("done");
     } catch (err) {
-      setErrorMsg(getNormalizedErrorMessage(err, "Failed to generate share link"));
+      setErrorMsg(err instanceof Error ? err.message : "Failed to generate share link");
       setStep("error");
     }
   }
@@ -173,6 +179,9 @@ export function CreateShareLinkModal({
     setExpiryDays(7);
     setCustomDate("");
     setExpiryDisplay("");
+    setAutoShred(false);
+    setEnableTimeLock(false);
+    setUnlockAtDate("");
     onClose();
   }
 
@@ -250,6 +259,54 @@ export function CreateShareLinkModal({
                 )}
               </div>
 
+              {/* Auto-shred and Time-lock Options */}
+              <div className="space-y-3 pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <input
+                    id="auto-shred-checkbox"
+                    type="checkbox"
+                    checked={autoShred}
+                    onChange={(e) => setAutoShred(e.target.checked)}
+                    className="rounded border-white/20 bg-white/15 text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 cursor-pointer"
+                  />
+                  <label htmlFor="auto-shred-checkbox" className="text-sm font-medium flex items-center gap-1.5 text-white cursor-pointer select-none">
+                    <Shield className="w-3.5 h-3.5 text-primary-foreground" />
+                    Single-Use Auto-Shredding
+                  </label>
+                </div>
+                <p className="text-xs text-white/75 pl-6">
+                  Destroy the key immediately after the first successful download.
+                </p>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    id="time-lock-checkbox"
+                    type="checkbox"
+                    checked={enableTimeLock}
+                    onChange={(e) => setEnableTimeLock(e.target.checked)}
+                    className="rounded border-white/20 bg-white/15 text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 cursor-pointer"
+                  />
+                  <label htmlFor="time-lock-checkbox" className="text-sm font-medium flex items-center gap-1.5 text-white cursor-pointer select-none">
+                    <Lock className="w-3.5 h-3.5 text-primary-foreground" />
+                    Time-Locked Release
+                  </label>
+                </div>
+                {enableTimeLock && (
+                  <div className="pl-6 space-y-1.5">
+                    <input
+                      type="datetime-local"
+                      value={unlockAtDate}
+                      min={new Date().toISOString().slice(0, 16)}
+                      onChange={(e) => setUnlockAtDate(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white text-sm focus:border-white/40 focus:outline-none"
+                    />
+                    <p className="text-xs text-white/75">
+                      The file cannot be accessed or downloaded before this date.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {!hasCachedCred && (
               <div className="space-y-1.5">
                 <label htmlFor="csl-credential" className="text-sm font-medium flex items-center gap-1.5 text-white">
@@ -296,7 +353,8 @@ export function CreateShareLinkModal({
                   onClick={() => void handleGenerate()}
                     disabled={
                       (!hasCachedCred && (fileCredentialMode === "pin" ? credential.length !== 4 : credential.length === 0)) ||
-                      (expiryDays === "custom" && customDate === "")
+                      (expiryDays === "custom" && customDate === "") ||
+                      (enableTimeLock && unlockAtDate === "")
                     }
                   className="flex-1 bg-white text-primary hover:bg-primary/10 font-semibold"
                 >

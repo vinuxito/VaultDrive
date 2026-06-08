@@ -13,16 +13,18 @@ import (
 )
 
 const createPublicShareLink = `-- name: CreatePublicShareLink :one
-INSERT INTO public_share_links (file_id, owner_id, token, expires_at)
-VALUES ($1, $2, $3, $4)
-RETURNING id, file_id, owner_id, token, expires_at, is_active, created_at, access_count, last_accessed_at
+INSERT INTO public_share_links (file_id, owner_id, token, expires_at, unlock_at, max_downloads)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, file_id, owner_id, token, expires_at, is_active, created_at, access_count, last_accessed_at, unlock_at, max_downloads
 `
 
 type CreatePublicShareLinkParams struct {
-	FileID    uuid.UUID
-	OwnerID   uuid.UUID
-	Token     string
-	ExpiresAt sql.NullTime
+	FileID       uuid.UUID
+	OwnerID      uuid.UUID
+	Token        string
+	ExpiresAt    sql.NullTime
+	UnlockAt     sql.NullTime
+	MaxDownloads int32
 }
 
 func (q *Queries) CreatePublicShareLink(ctx context.Context, arg CreatePublicShareLinkParams) (PublicShareLink, error) {
@@ -31,6 +33,8 @@ func (q *Queries) CreatePublicShareLink(ctx context.Context, arg CreatePublicSha
 		arg.OwnerID,
 		arg.Token,
 		arg.ExpiresAt,
+		arg.UnlockAt,
+		arg.MaxDownloads,
 	)
 	var i PublicShareLink
 	err := row.Scan(
@@ -43,13 +47,15 @@ func (q *Queries) CreatePublicShareLink(ctx context.Context, arg CreatePublicSha
 		&i.CreatedAt,
 		&i.AccessCount,
 		&i.LastAccessedAt,
+		&i.UnlockAt,
+		&i.MaxDownloads,
 	)
 	return i, err
 }
 
 const getPublicShareLinkByToken = `-- name: GetPublicShareLinkByToken :one
-SELECT id, file_id, owner_id, token, expires_at, is_active, created_at, access_count, last_accessed_at FROM public_share_links
-WHERE token = $1 AND is_active = TRUE
+SELECT id, file_id, owner_id, token, expires_at, is_active, created_at, access_count, last_accessed_at, unlock_at, max_downloads FROM public_share_links
+WHERE token = $1
 `
 
 func (q *Queries) GetPublicShareLinkByToken(ctx context.Context, token string) (PublicShareLink, error) {
@@ -65,12 +71,14 @@ func (q *Queries) GetPublicShareLinkByToken(ctx context.Context, token string) (
 		&i.CreatedAt,
 		&i.AccessCount,
 		&i.LastAccessedAt,
+		&i.UnlockAt,
+		&i.MaxDownloads,
 	)
 	return i, err
 }
 
 const listPublicShareLinksByOwner = `-- name: ListPublicShareLinksByOwner :many
-SELECT id, file_id, owner_id, token, expires_at, is_active, created_at, access_count, last_accessed_at FROM public_share_links
+SELECT id, file_id, owner_id, token, expires_at, is_active, created_at, access_count, last_accessed_at, unlock_at, max_downloads FROM public_share_links
 WHERE owner_id = $1
 ORDER BY created_at DESC
 `
@@ -94,6 +102,8 @@ func (q *Queries) ListPublicShareLinksByOwner(ctx context.Context, ownerID uuid.
 			&i.CreatedAt,
 			&i.AccessCount,
 			&i.LastAccessedAt,
+			&i.UnlockAt,
+			&i.MaxDownloads,
 		); err != nil {
 			return nil, err
 		}

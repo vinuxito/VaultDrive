@@ -15,24 +15,30 @@ import (
 )
 
 type publicShareLinkResponse struct {
-	ID        uuid.UUID  `json:"id"`
-	Token     string     `json:"token"`
-	FileID    uuid.UUID  `json:"file_id"`
-	ExpiresAt *time.Time `json:"expires_at"`
-	IsActive  bool       `json:"is_active"`
-	CreatedAt time.Time  `json:"created_at"`
+	ID           uuid.UUID  `json:"id"`
+	Token        string     `json:"token"`
+	FileID       uuid.UUID  `json:"file_id"`
+	ExpiresAt    *time.Time `json:"expires_at"`
+	UnlockAt     *time.Time `json:"unlock_at"`
+	MaxDownloads int32      `json:"max_downloads"`
+	IsActive     bool       `json:"is_active"`
+	CreatedAt    time.Time  `json:"created_at"`
 }
 
 func dbShareLinkToResponse(link database.PublicShareLink) publicShareLinkResponse {
 	resp := publicShareLinkResponse{
-		ID:        link.ID,
-		Token:     link.Token,
-		FileID:    link.FileID,
-		IsActive:  link.IsActive,
-		CreatedAt: link.CreatedAt,
+		ID:           link.ID,
+		Token:        link.Token,
+		FileID:       link.FileID,
+		MaxDownloads: link.MaxDownloads,
+		IsActive:     link.IsActive,
+		CreatedAt:    link.CreatedAt,
 	}
 	if link.ExpiresAt.Valid {
 		resp.ExpiresAt = &link.ExpiresAt.Time
+	}
+	if link.UnlockAt.Valid {
+		resp.UnlockAt = &link.UnlockAt.Time
 	}
 	return resp
 }
@@ -66,7 +72,9 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 	}
 
 	var body struct {
-		ExpiresAt string `json:"expires_at"`
+		ExpiresAt    string `json:"expires_at"`
+		UnlockAt     string `json:"unlock_at"`
+		MaxDownloads int32  `json:"max_downloads"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil && err != io.EOF {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
@@ -85,6 +93,16 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 		expiresAt = sql.NullTime{Time: time.Now().Add(7 * 24 * time.Hour), Valid: true}
 	}
 
+	var unlockAt sql.NullTime
+	if body.UnlockAt != "" {
+		t, err := time.Parse(time.RFC3339, body.UnlockAt)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid unlock_at format, use RFC3339", err)
+			return
+		}
+		unlockAt = sql.NullTime{Time: t, Valid: true}
+	}
+
 	tokenBytes := make([]byte, 32)
 	if _, err := rand.Read(tokenBytes); err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not generate token", err)
@@ -93,17 +111,19 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 	token := hex.EncodeToString(tokenBytes)
 
 	link, err := cfg.dbQueries.CreatePublicShareLink(r.Context(), database.CreatePublicShareLinkParams{
-		FileID:    fileID,
-		OwnerID:   user.ID,
-		Token:     token,
-		ExpiresAt: expiresAt,
+		FileID:       fileID,
+		OwnerID:      user.ID,
+		Token:        token,
+		ExpiresAt:    expiresAt,
+		UnlockAt:     unlockAt,
+		MaxDownloads: body.MaxDownloads,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not create share link", err)
 		return
 	}
 	cfg.insertActivity(r.Context(), user.ID, "public_share_link_created", map[string]interface{}{
-		"file_id":     fileID.String(),
+		"file_id":       fileID.String(),
 		"filename":    dbFile.Filename,
 		"share_link_id": link.ID.String(),
 		"expires_at":  expiresAt,
@@ -125,7 +145,23 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *ht
 
 	link, err := cfg.dbQueries.GetPublicShareLinkByToken(r.Context(), token)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Share link not found or inactive", nil)
+		respondWithError(w, http.StatusNotFound, "Share link not found", nil)
+		return
+	}
+
+	isShredded := !link.IsActive && link.MaxDownloads > 0 && link.AccessCount >= link.MaxDownloads
+	if isShredded {
+		respondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"is_expired":   true,
+			"is_shredded":  true,
+			"is_active":    false,
+			"access_count": link.AccessCount,
+		})
+		return
+	}
+
+	if !link.IsActive {
+		respondWithError(w, http.StatusForbidden, "Share link is inactive", nil)
 		return
 	}
 
@@ -135,6 +171,13 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *ht
 			"expires_at": link.ExpiresAt.Time.UTC().Format(time.RFC3339),
 		})
 		return
+	}
+
+	isLocked := link.UnlockAt.Valid && link.UnlockAt.Time.After(time.Now())
+	var unlockAt *string
+	if link.UnlockAt.Valid {
+		s := link.UnlockAt.Time.UTC().Format(time.RFC3339)
+		unlockAt = &s
 	}
 
 	dbFile, err := cfg.dbQueries.GetFileByID(r.Context(), link.FileID)
@@ -161,6 +204,9 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *ht
 		"file_size":           dbFile.FileSize,
 		"expires_at":          expiresAt,
 		"is_expired":          false,
+		"is_locked":           isLocked,
+		"unlock_at":           unlockAt,
+		"max_downloads":       link.MaxDownloads,
 		"owner_display_name":  ownerDisplayName,
 		"owner_organization":  ownerOrg,
 		"access_count":        link.AccessCount,
@@ -177,15 +223,31 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 	link, err := cfg.dbQueries.GetPublicShareLinkByToken(r.Context(), token)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			respondWithError(w, http.StatusNotFound, "Share link not found or inactive", err)
+			respondWithError(w, http.StatusNotFound, "Share link not found", err)
 			return
 		}
 		respondWithError(w, http.StatusInternalServerError, "Error looking up share link", err)
 		return
 	}
 
+	isShredded := !link.IsActive && link.MaxDownloads > 0 && link.AccessCount >= link.MaxDownloads
+	if isShredded {
+		respondWithError(w, http.StatusGone, "This share link has been permanently shredded", nil)
+		return
+	}
+
+	if !link.IsActive {
+		respondWithError(w, http.StatusForbidden, "Share link is inactive", nil)
+		return
+	}
+
 	if link.ExpiresAt.Valid && link.ExpiresAt.Time.Before(time.Now()) {
 		respondWithError(w, http.StatusForbidden, "Share link has expired", nil)
+		return
+	}
+
+	if link.UnlockAt.Valid && link.UnlockAt.Time.After(time.Now()) {
+		respondWithError(w, http.StatusForbidden, "This share link is time-locked", nil)
 		return
 	}
 
@@ -206,9 +268,18 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 	}
 	defer file.Close()
 
-	cfg.db.ExecContext(r.Context(),
-		"UPDATE public_share_links SET access_count = access_count + 1, last_accessed_at = NOW() WHERE token = $1",
+	// Update access count and optionally deactivate if auto-shredding is triggered
+	_, err = cfg.db.ExecContext(r.Context(),
+		`UPDATE public_share_links 
+		 SET access_count = access_count + 1, 
+		     last_accessed_at = NOW(),
+		     is_active = CASE WHEN max_downloads > 0 AND access_count + 1 >= max_downloads THEN FALSE ELSE is_active END
+		 WHERE token = $1`,
 		token)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error updating access count", err)
+		return
+	}
 
 	w.Header().Set("X-File-Name", dbFile.Filename)
 	w.Header().Set("Content-Type", "application/octet-stream")
@@ -227,6 +298,7 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 	}
 	cfg.insertAudit(r.Context(), link.OwnerID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
 }
+
 
 func (cfg *ApiConfig) handlerListPublicShareLinks(w http.ResponseWriter, r *http.Request, user database.User) {
 	fileIDStr := r.PathValue("fileId")

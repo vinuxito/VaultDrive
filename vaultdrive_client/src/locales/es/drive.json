@@ -142,7 +142,12 @@
     "expiredDesc": "Este enlace de compartir ya no es válido.",
     "expiredContact": "Contacta al propietario del archivo para solicitar un nuevo enlace.",
     "errorTitle": "Algo salió mal",
-    "errorDesc": "Asegúrate de tener el enlace completo, incluyendo la clave después del #."
+    "errorDesc": "Asegúrate de tener el enlace completo, incluyendo la clave después del #.",
+    "lockedTitle": "Este enlace está temporalmente bloqueado",
+    "lockedDesc": "Este archivo es seguro y estará disponible para descargar una vez que expire el tiempo de bloqueo.",
+    "shreddedTitle": "Este enlace ha sido destruido",
+    "shreddedDesc": "Como un enlace seguro de un solo uso, la clave de descifrado para este archivo se eliminó permanentemente del servidor después de su primera descarga.",
+    "autoShredWarning": "Precaución: Este archivo se autodestruirá después de completar la descarga."
   },
   "publicFolder": {
     "secureShare": "Compartir Carpeta Segura",
