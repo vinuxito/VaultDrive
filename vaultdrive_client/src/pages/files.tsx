@@ -245,6 +245,8 @@ export default function Files() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<{ id: string; filename: string; parent_hash?: string | null } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [downloadingFileIds, setDownloadingFileIds] = useState<Set<string>>(new Set());
+  const [deletingFileIds, setDeletingFileIds] = useState<Set<string>>(new Set());
   const [showMoveFileModal, setShowMoveFileModal] = useState(false);
   const [fileToMove, setFileToMove] = useState<FileData | null>(null);
   const [movingFile, setMovingFile] = useState(false);
@@ -960,6 +962,7 @@ export default function Files() {
   ) => {
     const cachedFileKey = sessionVault.getFileKey(fileId);
     if (cachedFileKey) {
+      setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
       setDownloading(true);
       setError("");
       try {
@@ -970,12 +973,14 @@ export default function Files() {
         if (!result.success) setError(result.error ?? "Download failed");
       } finally {
         setDownloading(false);
+        setDownloadingFileIds((prev) => { const n = new Set(prev); n.delete(fileId); return n; });
       }
       return;
     }
     if (is_owner === false && !pin_wrapped_key) {
       const sessionKey = sessionVault.getPrivateKey();
       if (sessionKey) {
+        setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
         setDownloading(true);
         setError("");
         try {
@@ -986,6 +991,7 @@ export default function Files() {
           if (!result.success) setError(result.error ?? "Download failed");
         } finally {
           setDownloading(false);
+          setDownloadingFileIds((prev) => { const n = new Set(prev); n.delete(fileId); return n; });
         }
         return;
       }
@@ -993,6 +999,7 @@ export default function Files() {
     const cached = sessionVault.getCredential();
     const scheme = getFileCredentialScheme({ pin_wrapped_key, metadata, is_owner });
     if (cached && ((scheme !== "password" && cached.type === "pin") || (scheme === "password" && cached.type === "password"))) {
+      setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
       setDownloading(true);
       setError("");
       try {
@@ -1003,6 +1010,7 @@ export default function Files() {
         if (!result.success) setError(result.error ?? "Download failed");
       } finally {
         setDownloading(false);
+        setDownloadingFileIds((prev) => { const n = new Set(prev); n.delete(fileId); return n; });
       }
       return;
     }
@@ -1013,6 +1021,9 @@ export default function Files() {
 
   const performDownload = async (password: string): Promise<boolean> => {
     if (!pendingDownload) return false;
+    const fileId = pendingDownload.fileId;
+    setShowPasswordModal(false);
+    setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
     setDownloading(true);
     setError("");
     try {
@@ -1034,6 +1045,7 @@ export default function Files() {
       return false;
     } finally {
       setDownloading(false);
+      setDownloadingFileIds((prev) => { const n = new Set(prev); n.delete(fileId); return n; });
     }
   };
 
@@ -1092,34 +1104,36 @@ export default function Files() {
 
   const handleDeleteConfirm = async () => {
     if (!fileToDelete) return;
+    const target = fileToDelete;
+    setShowDeleteModal(false);
+    setFileToDelete(null);
+    setDeletingFileIds((prev) => { const n = new Set(prev); n.add(target.id); return n; });
     setDeleting(true);
     setError("");
     try {
       if (!navigator.onLine) {
         await queueOfflineAction({
           type: "delete",
-          file_id: fileToDelete.id,
-          filename: fileToDelete.filename,
-          parent_hash: fileToDelete.parent_hash || "",
+          file_id: target.id,
+          filename: target.filename,
+          parent_hash: target.parent_hash || "",
           updated_at: new Date().toISOString(),
         });
         window.dispatchEvent(new Event("offline-action-queued"));
 
-        mutateMyFiles((prev = []) => prev.filter((f) => f.id !== fileToDelete.id), { revalidate: false });
+        mutateMyFiles((prev = []) => prev.filter((f) => f.id !== target.id), { revalidate: false });
         setSelectedFileIds((prev) => {
           const n = new Set(prev);
-          n.delete(fileToDelete.id);
+          n.delete(target.id);
           return n;
         });
         setSuccessMessage(t("drive:vault.sync.queued"));
         setTimeout(() => setSuccessMessage(""), 5000);
-        setShowDeleteModal(false);
-        setFileToDelete(null);
         return;
       }
 
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/files/${fileToDelete.id}`, {
+      const response = await fetch(`${API_URL}/files/${target.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1127,15 +1141,14 @@ export default function Files() {
         if (response.status === 401) { navigate("/login"); return; }
         throw new Error("Failed to delete file");
       }
-      mutateMyFiles((prev = []) => prev.filter((f) => f.id !== fileToDelete.id), { revalidate: false });
+      mutateMyFiles((prev = []) => prev.filter((f) => f.id !== target.id), { revalidate: false });
       mutateMyFiles();
-      setSelectedFileIds((prev) => { const n = new Set(prev); n.delete(fileToDelete.id); return n; });
-      setShowDeleteModal(false);
-      setFileToDelete(null);
+      setSelectedFileIds((prev) => { const n = new Set(prev); n.delete(target.id); return n; });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete file");
     } finally {
       setDeleting(false);
+      setDeletingFileIds((prev) => { const n = new Set(prev); n.delete(target.id); return n; });
     }
   };
 
@@ -1733,6 +1746,8 @@ export default function Files() {
                   setOpenActionMenu={setOpenActionMenu}
                   openActionMenu={openActionMenu}
                   onOpenReceipt={setReceiptFile}
+                  downloadingFileIds={downloadingFileIds}
+                  deletingFileIds={deletingFileIds}
                 />
               )}
             </div>

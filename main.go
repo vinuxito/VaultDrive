@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -116,6 +117,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /api/healthz", apiConfig.middlewareMetricsInc(http.HandlerFunc(healthCheckHandler)))
+	mux.Handle("GET /health", apiConfig.middlewareMetricsInc(http.HandlerFunc(healthCheckHandler)))
+	mux.Handle("GET /ready", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.readinessCheckHandler)))
 
 	mux.HandleFunc("DELETE /api/upload-links/{id}", apiConfig.handlerDeleteDropToken)
 
@@ -558,6 +561,8 @@ func main() {
 		parentMux.Handle("/drop/", mux)
 		parentMux.Handle("/folder-share/", mux)
 		parentMux.Handle("/request/", mux)
+		parentMux.Handle("/health", mux)
+		parentMux.Handle("/ready", mux)
 		finalHandler = parentMux
 	}
 
@@ -597,4 +602,77 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 		"uptime":  uptime,
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (cfg *ApiConfig) readinessCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	diagnostics := make(map[string]interface{})
+	ready := true
+
+	// 1. DB connection check
+	dbCtx, dbCancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer dbCancel()
+
+	if err := cfg.db.PingContext(dbCtx); err != nil {
+		ready = false
+		diagnostics["database"] = fmt.Sprintf("disconnected: %v", err)
+	} else {
+		diagnostics["database"] = "ok"
+	}
+
+	// 2. Migration check
+	var version int64
+	var isApplied bool
+	err := cfg.db.QueryRowContext(dbCtx, "SELECT version_id, is_applied FROM goose_db_version ORDER BY id DESC LIMIT 1").Scan(&version, &isApplied)
+	if err != nil {
+		ready = false
+		diagnostics["migrations"] = fmt.Sprintf("error: %v", err)
+	} else if !isApplied {
+		ready = false
+		diagnostics["migrations"] = fmt.Sprintf("latest migration version %d is not applied", version)
+	} else {
+		diagnostics["migrations"] = fmt.Sprintf("ok (version: %d)", version)
+	}
+
+	// 3. Uploads directory check
+	uploadDir := uploadStorageDir()
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		ready = false
+		diagnostics["uploads_dir"] = fmt.Sprintf("not writable/creatable: %v", err)
+	} else {
+		testFile := fmt.Sprintf("%s/.ready-check-temp", uploadDir)
+		if err := os.WriteFile(testFile, []byte("ready"), 0644); err != nil {
+			ready = false
+			diagnostics["uploads_dir"] = fmt.Sprintf("not writable: %v", err)
+		} else {
+			os.Remove(testFile)
+			diagnostics["uploads_dir"] = "ok"
+		}
+	}
+
+	// 4. Secrets check
+	jwtSecret := os.Getenv("JWT_SECRET")
+	dbUrl := os.Getenv("DB_URL")
+	if jwtSecret == "" || dbUrl == "" {
+		ready = false
+		diagnostics["secrets"] = "missing JWT_SECRET or DB_URL in environment"
+	} else {
+		diagnostics["secrets"] = "ok"
+	}
+
+	if ready {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":      "ready",
+			"diagnostics": diagnostics,
+		})
+	} else {
+		log.Printf("WARN: Readiness check failed: %v", diagnostics)
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":      "not ready",
+			"diagnostics": diagnostics,
+		})
+	}
 }

@@ -22,6 +22,7 @@ import (
 
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
+	"github.com/google/uuid"
 )
 
 const (
@@ -143,6 +144,30 @@ func (cfg *ApiConfig) registerUserHandler(w http.ResponseWriter, r *http.Request
 		respondWithError(w, http.StatusInternalServerError, "Error creating user", err)
 		return
 	}
+
+	// Seed default folders for new user onboarding ("My Vault", "External Drops")
+	_, err = cfg.dbQueries.CreateFolder(context.Background(), database.CreateFolderParams{
+		OwnerID:   user.ID,
+		Name:      "My Vault",
+		ParentID:  uuid.NullUUID{},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		log.Printf("Error seeding default folder 'My Vault': %v", err)
+	}
+
+	_, err = cfg.dbQueries.CreateFolder(context.Background(), database.CreateFolderParams{
+		OwnerID:   user.ID,
+		Name:      "External Drops",
+		ParentID:  uuid.NullUUID{},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		log.Printf("Error seeding default folder 'External Drops': %v", err)
+	}
+
 
 	respondWithJSON(w, http.StatusCreated, map[string]interface{}{
 		"id":         user.ID,

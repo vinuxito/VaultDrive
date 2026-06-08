@@ -79,17 +79,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/a
 Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/etc/quantix/quantixdrive.env`. Logs: `journalctl -u quantixdrive -f`.
 
 **What's new since the last verification:**
+- **Step 4, 5 & 6: Onboarding, Visual Feedback & Liveness Checklists (2026-06-08):**
+  - **Onboarding Folder Seeding:** Automatically seeds "My Vault" and "External Drops" folders upon user signup to eliminate blank dashboards.
+  - **Session Credential Caching:** Caches private keys and derived credentials in `sessionStorage` (encrypted via an ephemeral page-load AES-GCM key) to prevent repetitive PIN entry prompts.
+  - **Visual Copy confirmation (Arturo Test compliant):** Updates copy fields to highlight borders and overlay badges ("Copied!") using product-specific palettes (neon cyan for QuantiX, burgundy for ABRN).
+  - **Non-blocking Row loaders:** Displays inline `Loader2` spinners inside file lists during downloads and deletions, keeping the interface fluid and responsive.
+  - **Live Countdown labels:** Implements ticking timers directly inside share link lists indicating expiration (e.g. `Expires in 2h 14m`).
+  - **Liveness & Readiness Probes:** Wires `/health` and `/ready` endpoints on the Go backend (monitoring database socket, goose migrations, directory permissions, and secrets with context timeouts).
 - **Step 3: Multi-Custodian Shamir Recovery (2026-06-08):**
-  - Cryptographic key split/reconstruct using SSSS over $GF(256)$.
-  - Decentralized recovery flow with custodian approval mechanism and zero-knowledge database schemas.
-  - Visual theme coherence: hexagonal node network for QuantiX / burgundy progress timeline for ABRN.
-  - Complete downstream alignment on ABRN-Drive with brand-matched E2E test suites.
-- **UI/UX Upgrade Roadmap Step 3 (2026-06-06):**
-  - Mobile bottom sheets: Replaced Radix desktop popover dropdowns with responsive gestural bottom sheet drawers for viewports `< 640px`.
-  - Swipe-to-dismiss: Integrated Framer Motion drag gestures (drag threshold `100px`) for native-feeling mobile interactions.
-  - Notch safe area: Integrated safe-area bottom padding (`env(safe-area-inset-bottom, 0px)`) into bottom sheets and navigation.
-  - WCAG touch targets: Expanded button option clickable surfaces to `48px` height (exceeding WCAG's `44px` requirement).
-  - Downstream merge: Successfully synced and resolved merge issues on ABRN-Drive overlay.
 - Previous: Phase V Steps 1-4 (Theme Coherence, Language Switcher, Toast System, i18n Completion).
 
 **Latest verification (Filemón Coder loop, 2026-06-08):**

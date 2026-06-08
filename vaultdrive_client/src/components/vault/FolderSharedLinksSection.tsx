@@ -30,6 +30,41 @@ interface FolderSharedLinksSectionProps {
   refreshKey?: number;
 }
 
+function CountdownLabel({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculate = () => {
+      const targetTime = new Date(expiresAt).getTime();
+      if (isNaN(targetTime)) {
+        setTimeLeft("");
+        return;
+      }
+      const diff = targetTime - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      const parts = [];
+      if (hrs > 0) parts.push(`${hrs}h`);
+      if (mins > 0 || hrs > 0) parts.push(`${mins}m`);
+      parts.push(`${secs}s`);
+
+      setTimeLeft(`Expires in ${parts.join(" ")}`);
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return <span className="text-amber-600 dark:text-amber-400 font-medium">{timeLeft}</span>;
+}
+
 function formatDate(value?: string | null): string {
   if (!value) return "Never";
   return new Date(value).toLocaleString();
@@ -287,7 +322,13 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                         <CardDescription className="text-sm text-muted-foreground flex flex-wrap items-center gap-3">
                           <span>{needsLegacyUrl ? "Legacy link" : "Owner-recoverable"}</span>
                           <span>Created {formatDate(link.created_at)}</span>
-                          <span>Expires {formatDate(link.expires_at)}</span>
+                          <span>
+                            {link.expires_at && status.active ? (
+                              <CountdownLabel expiresAt={link.expires_at} />
+                            ) : (
+                              `Expires ${formatDate(link.expires_at)}`
+                            )}
+                          </span>
                           <span>Opens {link.access_count ?? 0}</span>
                           <span>Last opened {formatDate(link.last_accessed_at)}</span>
                         </CardDescription>

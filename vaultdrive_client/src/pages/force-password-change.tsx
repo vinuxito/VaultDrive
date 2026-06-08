@@ -120,7 +120,7 @@ export default function ForcePasswordChange() {
         if (keyToDecrypt) {
           const pem = await decryptPrivateKeyWithPassword(newPassword, keyToDecrypt);
           const cryptoKey = await importRSAPrivateKey(pem);
-          setPrivateKey(cryptoKey);
+          setPrivateKey(cryptoKey, pem);
           setCredential(newPassword, "password");
         }
       } catch {

@@ -5,6 +5,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UploadLinkCard } from "./UploadLinkCard";
 import type { UploadTokenWithFiles } from "./types";
 
+vi.mock("../../context/SessionVaultContext", () => ({
+  useSessionVault: () => ({
+    getCredential: () => null,
+    setCredential: () => null,
+  }),
+}));
+
 const clipboardWriteText = vi.fn();
 
 const baseToken: UploadTokenWithFiles = {
@@ -87,7 +94,7 @@ describe("UploadLinkCard", () => {
         "https://quantixdrive.example.com/quantix/drop/drop-token-1#key=secret-key",
       );
     });
-    expect(screen.getByText("Copied!")).toBeInTheDocument();
+    expect(screen.getAllByText("Copied!").length).toBeGreaterThan(0);
   });
 
   it("invokes onDeactivate when Seal route is chosen from the row action menu", async () => {

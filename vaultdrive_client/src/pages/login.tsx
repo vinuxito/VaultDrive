@@ -126,12 +126,12 @@ export default function Login() {
             data.kek_envelope_version,
           );
           const cryptoKey = await importRSAPrivateKey(pem);
-          setPrivateKey(cryptoKey);
+          setPrivateKey(cryptoKey, pem);
           setCredential(passwordOrPin, "password");
         } else if (mode === "pin" && data.private_key_pin_encrypted) {
           const pem = await decryptPrivateKeyWithPIN(passwordOrPin, data.private_key_pin_encrypted, data.kek_envelope_version);
           const cryptoKey = await importRSAPrivateKey(pem);
-          setPrivateKey(cryptoKey);
+          setPrivateKey(cryptoKey, pem);
           setCredential(passwordOrPin, "pin");
           localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
         }

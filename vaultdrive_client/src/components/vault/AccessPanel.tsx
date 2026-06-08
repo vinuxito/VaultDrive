@@ -12,6 +12,68 @@ interface AccessEntry {
   state: string;
   expires_at?: string;
   access_count?: number;
+  max_downloads?: number;
+  unlock_at?: string;
+}
+
+function CountdownLabel({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculate = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      const parts = [];
+      if (hrs > 0) parts.push(`${hrs}h`);
+      if (mins > 0 || hrs > 0) parts.push(`${mins}m`);
+      parts.push(`${secs}s`);
+
+      setTimeLeft(`Expires in ${parts.join(" ")}`);
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return <span className="text-amber-600 dark:text-amber-400 font-medium">{timeLeft}</span>;
+}
+
+function UnlockCountdownLabel({ unlockAt }: { unlockAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculate = () => {
+      const diff = new Date(unlockAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("Unlocked");
+        return;
+      }
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      const parts = [];
+      if (hrs > 0) parts.push(`${hrs}h`);
+      if (mins > 0 || hrs > 0) parts.push(`${mins}m`);
+      parts.push(`${secs}s`);
+
+      setTimeLeft(`Locked (Unlocks in ${parts.join(" ")})`);
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [unlockAt]);
+
+  return <span className="text-blue-600 dark:text-blue-400 font-medium">{timeLeft}</span>;
 }
 
 interface AccessSummary {
@@ -257,7 +319,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                           <span
                             className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${stateClasses(entry.state)}`}
                           >
-                            {entry.state}
+                            {entry.state === "revoked" && entry.max_downloads === 1 ? "Shredded / Inactive" : entry.state}
                           </span>
                         </div>
                         <p className="mt-2 text-sm font-medium text-foreground">{entry.label}</p>
@@ -269,7 +331,25 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     </div>
                     <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground leading-relaxed">
                       <span>{new Date(entry.since).toLocaleString()}</span>
-                      {entry.expires_at && (
+                      {entry.expires_at && entry.state === "active" && (
+                        <>
+                          <span className="text-muted-foreground/60">•</span>
+                          <CountdownLabel expiresAt={entry.expires_at} />
+                        </>
+                      )}
+                      {entry.unlock_at && entry.state === "active" && new Date(entry.unlock_at).getTime() > Date.now() && (
+                        <>
+                          <span className="text-muted-foreground/60">•</span>
+                          <UnlockCountdownLabel unlockAt={entry.unlock_at} />
+                        </>
+                      )}
+                      {entry.max_downloads === 1 && entry.state === "active" && (
+                        <>
+                          <span className="text-muted-foreground/60">•</span>
+                          <span className="text-rose-600 dark:text-rose-400 font-medium">Single-Use (Auto-shreds on download)</span>
+                        </>
+                      )}
+                      {entry.expires_at && entry.state !== "active" && (
                         <>
                           <span className="text-muted-foreground/60">•</span>
                           <span>expires {new Date(entry.expires_at).toLocaleDateString()}</span>

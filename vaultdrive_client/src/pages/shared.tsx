@@ -203,7 +203,7 @@ export default function SharedFiles() {
 
       const privateKeyPem = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted);
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
-      setPrivateKey(rsaPrivateKey);
+      setPrivateKey(rsaPrivateKey, privateKeyPem);
       setCredential(pin, "pin");
 
       const aesKey = await unwrapKeyWithRSA(rsaPrivateKey, wrappedKeyB64);

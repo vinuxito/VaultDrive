@@ -1,8 +1,10 @@
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, useEffect } from "react";
 import { CheckCircle2, Copy, KeyRound, Loader2, X } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { useSessionVault } from "../../context/SessionVaultContext";
+import { branding } from "../../config/branding";
 import {
   buildMaskedProtectedLink,
   validateProtectedLinkForCopy,
@@ -57,6 +59,9 @@ export function ProtectedLinkCopyField({
   unavailableReason,
   variant = "light",
 }: ProtectedLinkCopyFieldProps) {
+  const { getCredential } = useSessionVault();
+  const isABRN = branding.productSlug === "abrn-drive";
+
   const styles = variantStyles[variant];
   const fieldId = useId();
   const pinFieldId = `${fieldId}-pin`;
@@ -72,6 +77,15 @@ export function ProtectedLinkCopyField({
   const [manualCopyUrl, setManualCopyUrl] = useState("");
 
   const displayValue = manualCopyUrl || buildMaskedProtectedLink(rawUrl, kind);
+
+  useEffect(() => {
+    if (statusMessage === "Copied!") {
+      const timer = setTimeout(() => {
+        setStatusMessage("");
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [statusMessage]);
 
   const focusPinInput = () => {
     requestAnimationFrame(() => {
@@ -92,6 +106,40 @@ export function ProtectedLinkCopyField({
       setStatusMessage("");
       setManualCopyUrl("");
       setErrorMessage(unavailableReason);
+      return;
+    }
+
+    const autoCred = getCredential ? getCredential() : null;
+    if (autoCred && autoCred.type === "pin" && /^\d{4}$/.test(autoCred.value)) {
+      setIsResolving(true);
+      resetCopyState();
+      onResolveUrl(autoCred.value)
+        .then(async (resolvedUrl) => {
+          const validation = validateProtectedLinkForCopy(resolvedUrl, { expectedPath, kind });
+
+          if (!validation.ok) {
+            setErrorMessage(validation.error);
+            return;
+          }
+
+          if (!navigator.clipboard?.writeText) {
+            setManualCopyUrl(validation.url);
+            setErrorMessage("Clipboard is unavailable. Select the full URL and copy it manually.");
+            return;
+          }
+
+          await navigator.clipboard.writeText(validation.url);
+          setStatusMessage("Copied!");
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : "Failed to copy link.";
+          setErrorMessage(message);
+          setShowPinPrompt(true);
+          focusPinInput();
+        })
+        .finally(() => {
+          setIsResolving(false);
+        });
       return;
     }
 
@@ -171,22 +219,41 @@ export function ProtectedLinkCopyField({
           {label}
         </label>
         <div className="flex gap-2">
-          <textarea
-            id={fieldId}
-            readOnly
-            rows={manualCopyUrl ? 3 : 2}
-            value={displayValue}
-            className={`w-full rounded-md border px-3 py-2 text-xs resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${styles.field}`}
-            onClick={(event) => (event.target as HTMLTextAreaElement).select()}
-          />
+          <div className="relative flex-1">
+            <textarea
+              id={fieldId}
+              readOnly
+              rows={manualCopyUrl ? 3 : 2}
+              value={displayValue}
+              className={`w-full rounded-md border px-3 py-2 text-xs resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 ${
+                statusMessage === "Copied!"
+                  ? isABRN
+                    ? "border-red-900 bg-red-950/5 text-red-900 dark:text-red-300"
+                    : "border-cyan-500 ring-2 ring-cyan-500/30 bg-cyan-500/5 text-cyan-900 dark:text-cyan-200"
+                  : styles.field
+              }`}
+              onClick={(event) => (event.target as HTMLTextAreaElement).select()}
+            />
+            {statusMessage === "Copied!" && isABRN && (
+              <span className="absolute top-1 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-red-900 text-white border border-red-800 animate-pulse">
+                Copied!
+              </span>
+            )}
+          </div>
           <Button
             type="button"
             onClick={openPinPrompt}
-            className={`h-auto min-h-10 shrink-0 gap-1.5 px-3 py-2 font-semibold ${styles.button}`}
+            className={`h-auto min-h-10 shrink-0 gap-1.5 px-3 py-2 font-semibold transition-all duration-300 ${
+              statusMessage === "Copied!"
+                ? isABRN
+                  ? "bg-red-900 text-white hover:bg-red-950"
+                  : "bg-cyan-600 text-white hover:bg-cyan-700"
+                : styles.button
+            }`}
             aria-describedby={`${guidanceId} ${statusId} ${errorId}`}
           >
             {statusMessage === "Copied!" ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {copyButtonLabel}
+            {statusMessage === "Copied!" ? "Copied!" : copyButtonLabel}
           </Button>
         </div>
       </div>
