@@ -11,15 +11,18 @@
 ### QuantiX-Drive:
 - `vaultdrive_client/src/components/share-modal.tsx` (Refactored user/group share panel)
 - `vaultdrive_client/src/components/ui/dialog.tsx` (Theme-adaptive core Dialog component & descriptions)
+- `vaultdrive_client/src/components/ui/command-palette.tsx` (Theme-adaptive Command Palette dropdown)
 - `vaultdrive_client/src/components/upload/CreateUploadLinkModal.tsx` (Intake folder drop configuration modal)
+- `vaultdrive_client/src/components/upload/UploadLinkCard.tsx` (Dynamic theme variant for copy field)
 - `vaultdrive_client/src/components/vault/BulkDownloadModal.tsx` (Decryption/download progress modal)
 - `vaultdrive_client/src/components/vault/CreateFolderShareLinkModal.tsx` (Folder cryptographic key-wrapping modal)
 - `vaultdrive_client/src/components/vault/UpdateFolderShareLinkModal.tsx` (Folder link sync/upgrade modal)
+- `vaultdrive_client/src/components/vault/FolderSharedLinksSection.tsx` (Dynamic theme variant for copy field)
 - `vaultdrive_client/src/components/layout/dashboard-layout.tsx` (User profile dropdown menu)
 - `vaultdrive_client/src/components/vault/FileRequestsSection.tsx` (Stepped file requests generator modal)
 
 ### ABRN-Drive:
-- Synchronized all 13 modified files, core layout changes, and dialog structures to ABRN-Drive to keep downstream repository parity absolute.
+- Synchronized all 15 modified files, core layout changes, and dialog structures to ABRN-Drive to keep downstream repository parity absolute.
 
 ---
 
