@@ -3,6 +3,8 @@
 ## Executive Summary
 This report summarizes the E2E verification testing performed on the **QuantiX-Drive** and **ABRN-Drive** repositories for the latest Couch Approved release. The checks verify all components under typechecks, builds, unit tests, and playwright E2E integration test runs.
 
+During verification, one failure was detected on the mobile action menu E2E test in `QuantiX-Drive` due to backdrop click interception. A parity alignment fix (borrowed from `ABRN-Drive`) was successfully applied, and a subsequent E2E run confirmed 100% green tests.
+
 ---
 
 ## 1. Environment Details
@@ -20,7 +22,7 @@ This report summarizes the E2E verification testing performed on the **QuantiX-D
 | :--- | :--- | :--- | :--- | :--- |
 | **Go Backend Tests** | Go Server | `go test -count=1 ./...` | **PASS** | Checked all backend handlers, database liveness, and configuration. |
 | **Vitest Unit Tests** | Frontend Math | `npm run test` | **PASS** | 131/131 passed in QuantiX, 133/133 passed in ABRN. GF(256) math, session caches. |
-| **Playwright E2E Suite** | Full User Journey | `npx playwright test` | **PASS** | 48/48 passed in QuantiX, 48/48 passed in ABRN. Mobile viewports, Shamir Recovery, sharing. |
+| **Playwright E2E Suite** | Full User Journey | `npx playwright test --workers=1` | **PASS** | 48/48 passed in QuantiX (after fix), 48/48 passed in ABRN. Mobile viewports, Shamir Recovery, sharing. |
 | **Production build** | SPA Compile | `npm run build` | **PASS** | Verified typechecks (`tsc -b`) and asset minimization build output. |
 
 ---
@@ -29,39 +31,42 @@ This report summarizes the E2E verification testing performed on the **QuantiX-D
 
 ### Frontend Unit Tests (Vitest - QuantiX-Drive)
 ```
-✓ src/utils/shamir.test.ts (4 tests) 19ms
+✓ src/utils/shamir.test.ts (4 tests) 429ms
 Test Files  35 passed | 1 skipped (36)
      Tests  131 passed | 1 skipped (132)
 ```
 
 ### Frontend Unit Tests (Vitest - ABRN-Drive)
 ```
-✓ src/utils/shamir.test.ts (4 tests) 19ms
+✓ src/utils/shamir.test.ts (4 tests) 24ms
 Test Files  36 passed | 1 skipped (37)
      Tests  133 passed | 1 skipped (134)
 ```
 
 ### Playwright E2E Integration (QuantiX-Drive)
 ```
-Running 48 tests using 3 workers
-  ✓  48 passed (4.1m)
+Running 48 tests using 1 worker
+  ✓  48 passed (16.5m)
 ```
 
 ### Playwright E2E Integration (ABRN-Drive)
 ```
-Running 48 tests using 3 workers
-  ✓  48 passed (4.0m)
+Running 48 tests using 1 worker
+  ✓  48 passed (11.5m)
 ```
 
 ---
 
-## 4. Hardening Controls Checked
-1. **Concurrency Controls:** Verified SSSS math handles high load sequentially. No timeouts or leaks.
-2. **Branding Configurations:** Decoupled colors and CSS systems render correct branding. ABRN features burgundy progressive timelines, QuantiX features neon cyan node networks.
-3. **Session caching safety:** Ephemeral sessionStorage encryption does not persist keys across browser tabs or window sessions, retaining perfect zero-knowledge properties.
+## 4. Failures & Hardening Controls
+
+### Mobile Action Menu Backdrop Click Collision (QuantiX-Drive)
+- **Problem:** Test `opens action menu bottom sheet on mobile and respects touch targets & backdrop close` failed.
+- **Cause:** Clicking the center of the backdrop hit the bottom sheet drawer which covers the center of the viewport. The drawer stopped event propagation, preventing dismissal.
+- **Fix:** Update backdrop click to target the uncovered top-left portion of the viewport (`position: { x: 10, y: 10 }`), matching the downstream code in `ABRN-Drive`.
+- **Result:** Rerun E2E, verified 100% green.
 
 ---
 
 ## 5. Conclusion
 **Status:** **YES / SAFE TO CONTINUE**.
-The codebase is clean, well-tested, and ready for further development.
+The codebase is clean, well-tested, and fully synchronized with correct test configurations and parity alignments.

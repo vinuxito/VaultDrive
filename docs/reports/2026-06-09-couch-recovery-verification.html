@@ -14,6 +14,7 @@
             --muted-color: #94a3b8;
             --card-bg: #131a2c;
             --border-color: #1e293b;
+            --warning-color: #f59e0b;
         }
 
         body {
@@ -170,7 +171,7 @@
 
         <div class="verdict-banner">
             <div class="verdict-title">Executive Verdict: SAFE TO CONTINUE</div>
-            <div class="verdict-desc">All 48 Playwright E2E tests, 131/133 Vitest unit tests, and backend Go test suites have passed successfully on both QuantiX-Drive and ABRN-Drive.</div>
+            <div class="verdict-desc">All 48 Playwright E2E tests, 131/133 Vitest unit tests, and backend Go test suites have passed successfully on both QuantiX-Drive and ABRN-Drive. The mobile action menu backdrop click issue has been resolved.</div>
         </div>
 
         <div class="grid">
@@ -213,8 +214,8 @@
                     <span class="metric-value" style="color: var(--accent-color);">Auto-GCM Encrypted</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Custodian Recovery math</span>
-                    <span class="metric-value" style="color: var(--accent-color);">GF(256) Verified</span>
+                    <span class="metric-label">Mobile backdrop click fix</span>
+                    <span class="metric-value" style="color: var(--accent-color);">Parity Verified</span>
                 </div>
             </div>
         </div>
@@ -249,14 +250,14 @@
                     <tr>
                         <td>Playwright E2E (QuantiX)</td>
                         <td>Full SPA + Server</td>
-                        <td><code>npx playwright test</code></td>
+                        <td><code>npx playwright test --workers=1</code></td>
                         <td class="pass-check">PASS</td>
-                        <td>48 E2E test runs verifying all user interactions.</td>
+                        <td>48 E2E test runs verifying all user interactions. backdrop click fixed.</td>
                     </tr>
                     <tr>
                         <td>Playwright E2E (ABRN)</td>
                         <td>Full SPA + Server</td>
-                        <td><code>npx playwright test</code></td>
+                        <td><code>npx playwright test --workers=1</code></td>
                         <td class="pass-check">PASS</td>
                         <td>48 E2E test runs verifying ABRN branding layouts.</td>
                     </tr>
