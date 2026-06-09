@@ -29,10 +29,12 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 - E2E Build Verification (2026-06-09): [docs/memories/session-2026-06-09-couch-recovery.md](docs/memories/session-2026-06-09-couch-recovery.md)
 - Theme Separation (2026-06-08): [docs/memories/session-2026-06-08-theme-separation.md](docs/memories/session-2026-06-08-theme-separation.md)
 - Step 3 Shamir Recovery (2026-06-08): [docs/memories/session-2026-06-08-shamir-recovery.md](docs/memories/session-2026-06-08-shamir-recovery.md)
-- Full QA Session (2026-06-07): [docs/reports/2026-06-07-qa-feature-coverage-report.md](docs/reports/2026-06-07-qa-feature-coverage-report.md)
+- Pinche Viejito Necio QA (2026-06-09): [docs/reports/2026-06-09-qa-feature-coverage-report.md](docs/reports/2026-06-09-qa-feature-coverage-report.md)
 - Mobile Bottom Sheets Closeout (2026-06-06): [docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md](docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md)
 
 **Latest Verification Reports:**
+- HTML QA Report (Necio Certified): [docs/reports/2026-06-09-qa-feature-coverage-report.html](docs/reports/2026-06-09-qa-feature-coverage-report.html)
+- Markdown QA Report (Necio Certified): [docs/reports/2026-06-09-qa-feature-coverage-report.md](docs/reports/2026-06-09-qa-feature-coverage-report.md)
 - HTML Verification Report: [docs/reports/2026-06-09-couch-recovery-verification.html](docs/reports/2026-06-09-couch-recovery-verification.html)
 - Markdown Verification Report: [docs/reports/2026-06-09-couch-recovery-verification.md](docs/reports/2026-06-09-couch-recovery-verification.md)
 - HTML Shamir Recovery Report: [docs/reports/2026-06-08-shamir-recovery-verification.html](docs/reports/2026-06-08-shamir-recovery-verification.html)
