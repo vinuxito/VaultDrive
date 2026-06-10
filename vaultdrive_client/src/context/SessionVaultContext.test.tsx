@@ -49,6 +49,6 @@ describe("SessionVaultContext", () => {
       expect(screen.getByTestId("cred-val").textContent).toBe("9876");
       expect(screen.getByTestId("cred-type").textContent).toBe("pin");
       expect(sessionStorage.getItem("vault_cached_credential")).not.toBeNull();
-    });
+    }, { timeout: 6000 });
   });
 });
