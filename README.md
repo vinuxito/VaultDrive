@@ -497,6 +497,9 @@ Detailed session logs and feature documentation live in `docs/`:
 | `docs/memories/session-2026-05-24-ux-roadmap-steps1-4.md` | Phase V UX Roadmap Steps 1-4: Theme Coherence, Language Switcher, Toast System, i18n Completion |
 | `docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.md` | UX Roadmap Steps 1-4 verification report (Markdown) |
 | `docs/reports/2026-05-24-ux-roadmap-steps1-4-verification.html` | UX Roadmap Steps 1-4 verification report (HTML — browser-readable) |
+| `docs/memories/session-2026-06-09-couch-recovery-closeout.md` | Final Couch Recovery verification session memory (flaky test resolved, E2E green) |
+| `docs/reports/2026-06-09-couch-recovery-closeout-verification.md` | Final closeout verification markdown report |
+| `docs/reports/2026-06-09-couch-recovery-closeout-verification.html` | Final closeout verification HTML report (browser-readable) |
 
 ---
 
