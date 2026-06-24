@@ -27,9 +27,16 @@ db-connect:
 PROD_URL ?= https://abrndrive.filemonprime.net
 SERVICE  ?= abrndrive
 
-# Build the SPA bundle into vaultdrive_client/dist (Apache serves it directly)
+# Build the SPA bundle into vaultdrive_client/dist (the Go backend serves it directly)
 build-frontend:
 	cd vaultdrive_client && npm run build
+	@# Guard: a build that defaults to the /quantix base (VITE_BASE_PATH unset)
+	@# produces an index.html whose assets 404 under /abrn/ -> blank page. Fail loud.
+	@grep -q '/abrn/assets/' vaultdrive_client/dist/index.html \
+		|| { echo "FATAL: dist/index.html base is not /abrn/ — rebuild with VITE_BASE_PATH=/abrn (check vaultdrive_client/.env)"; exit 1; }
+	@! grep -q '/quantix/' vaultdrive_client/dist/index.html \
+		|| { echo "FATAL: dist/index.html still references /quantix/ — wrong base baked in"; exit 1; }
+	@echo "frontend base verified: /abrn/"
 
 # Build the production backend binary at the location systemd starts
 build-backend: build-prod
