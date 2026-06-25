@@ -118,7 +118,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       )}
 
       {showActions && (
-        <div className={`relative flex-shrink-0 transition-opacity ${active ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+        <div className={`relative flex-shrink-0 transition-opacity ${active || showMenu ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
           <Button
             variant="ghost"
             size="sm"

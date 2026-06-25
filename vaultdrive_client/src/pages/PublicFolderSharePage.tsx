@@ -112,48 +112,48 @@ function FolderTreeNode({
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 transition-colors text-left"
+        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left"
       >
         {hasContent ? (
           expanded ? (
-            <ChevronDown className="w-4 h-4 text-white/80 shrink-0" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-white/80 shrink-0" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
           )
         ) : (
           <div className="w-4 h-4" />
         )}
-        <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />
-        <span className="text-sm font-medium text-white truncate">{node.name}</span>
+        <FolderOpen className="w-4 h-4 text-amber-500 shrink-0" />
+        <span className="text-sm font-medium text-foreground truncate">{node.name}</span>
         {node.files.length > 0 && (
-          <span className="text-xs text-white/80 shrink-0">
+          <span className="text-xs text-muted-foreground shrink-0">
             {node.files.length} file{node.files.length !== 1 ? "s" : ""}
           </span>
         )}
       </button>
 
       {expanded && (
-        <div className="ml-6 border-l border-white/20 pl-2">
+        <div className="ml-6 border-l border-border pl-2">
           {node.files.map((file) => {
             const FileIcon = getFileIcon(file.filename);
             const isDownloading = downloadingFileId === file.id;
             return (
               <div
                 key={file.id}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors group"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted transition-colors group"
               >
-                <FileIcon className="w-4 h-4 text-primary-foreground shrink-0" />
-                <span className="flex-1 text-sm text-white/80 truncate" title={file.filename}>
+                <FileIcon className="w-4 h-4 text-primary shrink-0" />
+                <span className="flex-1 text-sm text-muted-foreground truncate" title={file.filename}>
                   {file.filename}
                 </span>
-                <span className="text-xs text-white/80 shrink-0">
+                <span className="text-xs text-muted-foreground shrink-0">
                   {formatFileSize(file.file_size)}
                 </span>
                 <button
                   type="button"
                   onClick={() => onDownloadFile(file.id, file.filename)}
                   disabled={isDownloading}
-                  className="shrink-0 p-1 rounded-md text-white/85 hover:text-white hover:bg-white/25 transition-colors disabled:opacity-50"
+                  className="shrink-0 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
                   title="Download"
                 >
                   {isDownloading ? (
@@ -459,21 +459,21 @@ export default function PublicFolderSharePage() {
   }
 
   return (
-    <div className="min-h-screen bg-card flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/90 flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-4">
         <div className="text-center mb-2">
           <div className="flex justify-center mb-3">
             <BrandLogo className="h-12 object-contain" />
           </div>
-          <h1 className="text-xl font-bold text-white">{branding.productName}</h1>
-          <p className="text-white/80 text-sm">{t("drive:publicFolder.secureShare", "Secure Folder Share")}</p>
+          <h1 className="text-xl font-bold text-foreground">{branding.productName}</h1>
+          <p className="text-muted-foreground text-sm">{t("drive:publicFolder.secureShare", "Secure Folder Share")}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl shadow-2xl border border-white/10 p-6 text-white">
+        <div className="bg-card rounded-2xl shadow-2xl border border-border p-6 text-foreground">
           {state === "loading" && (
             <div className="flex flex-col items-center gap-4 py-4">
-              <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
-              <p className="text-white/90">{t("drive:publicFolder.verifying", "Verifying folder share link…")}</p>
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              <p className="text-muted-foreground">{t("drive:publicFolder.verifying", "Verifying folder share link…")}</p>
             </div>
           )}
 
@@ -481,54 +481,54 @@ export default function PublicFolderSharePage() {
             <div className="space-y-4">
               {/* Folder info */}
               <div className="flex items-start gap-4">
-                <div className="shrink-0 w-14 h-14 rounded-xl bg-white/15 flex items-center justify-center border border-white/15">
-                  <FolderOpen className="w-7 h-7 text-amber-400" />
+                <div className="shrink-0 w-14 h-14 rounded-xl bg-muted flex items-center justify-center border border-border">
+                  <FolderOpen className="w-7 h-7 text-amber-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-white leading-snug truncate" title={shareInfo.folder_name}>
+                  <p className="font-semibold text-foreground leading-snug truncate" title={shareInfo.folder_name}>
                     {shareInfo.folder_name}
                   </p>
-                  <p className="text-sm text-white/80 mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     {shareInfo.total_files !== 1 
                       ? t("drive:publicFolder.fileCount", "{{count}} files", { count: shareInfo.total_files })
                       : t("drive:publicFolder.fileCount_one", "{{count}} file", { count: shareInfo.total_files })
                     } · {formatFileSize(shareInfo.total_size)}
                   </p>
-                  <p className="text-xs text-white/80 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {formatExpiry(shareInfo.expires_at, t)}
                   </p>
                 </div>
               </div>
 
               {shareInfo.owner_display_name && (
-                <div className="flex items-center gap-2.5 text-sm text-white/80">
-                  <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-[11px] font-bold text-white/85 shrink-0">
+                <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[11px] font-bold text-foreground shrink-0 border border-border">
                     {shareInfo.owner_display_name.charAt(0).toUpperCase()}
                   </div>
                   <span>
                     {t("drive:publicShare.sharedBy", "Shared by")}{" "}
-                    <span className="text-white/90 font-medium">{shareInfo.owner_display_name}</span>
+                    <span className="text-foreground font-medium">{shareInfo.owner_display_name}</span>
                     {shareInfo.owner_organization && (
-                      <span className="text-white/80"> · {shareInfo.owner_organization}</span>
+                      <span className="text-muted-foreground"> · {shareInfo.owner_organization}</span>
                     )}
                   </span>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-white/15 rounded-lg border border-white/10">
-                <Shield className="w-4 h-4 text-primary-foreground shrink-0" />
-                <p className="text-xs text-white/85">
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-muted rounded-lg border border-border">
+                <Shield className="w-4 h-4 text-primary shrink-0" />
+                <p className="text-xs text-muted-foreground">
                   {t("drive:publicFolder.e2eInfo", "End-to-end encrypted · Keys never leave your browser")}
                 </p>
               </div>
 
               {ownedLink && (
-                <div className="rounded-xl border border-white/10 bg-white/15 px-4 py-3 space-y-3">
+                <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 space-y-3">
                   <div className="flex items-start gap-3">
-                    <RefreshCw className="w-4 h-4 mt-0.5 text-primary-foreground shrink-0" />
+                    <RefreshCw className="w-4 h-4 mt-0.5 text-primary shrink-0" />
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-white">{t("drive:publicFolder.ownerTools", "Owner tools")}</p>
-                      <p className="text-xs text-white/80">
+                      <p className="text-sm font-medium text-foreground">{t("drive:publicFolder.ownerTools", "Owner tools")}</p>
+                      <p className="text-xs text-muted-foreground">
                         {t("drive:publicFolder.ownerToolsDesc", "You own this link. If new files were added after sharing, you can repair and update this same link here.")}
                       </p>
                     </div>
@@ -537,20 +537,20 @@ export default function PublicFolderSharePage() {
                   <div className="flex flex-col gap-2">
                     {!canRepairFolderShareLink(ownedLink, sessionVault.getCredential()) && (
                       <div className="space-y-2">
-                        <label htmlFor="owner-repair-credential" className="text-xs font-medium text-white/80">
+                        <label htmlFor="owner-repair-credential" className="text-xs font-medium text-muted-foreground">
                           {currentUser?.pin_set ? t("drive:publicFolder.enterPin", "Enter your current PIN") : t("drive:publicFolder.enterPassword", "Enter your current password")}
                         </label>
                         <input
                           id="owner-repair-credential"
-                          type={currentUser?.pin_set ? "password" : "password"}
+                          type="password"
                           inputMode={currentUser?.pin_set ? "numeric" : undefined}
                           maxLength={currentUser?.pin_set ? 4 : undefined}
                           value={ownerCredentialInput}
                           onChange={(event) => setOwnerCredentialInput(event.target.value)}
                           placeholder={currentUser?.pin_set ? t("drive:publicFolder.placeholderPin", "••••") : t("drive:publicFolder.placeholderPassword", "Current password")}
-                          className="w-full rounded-lg border border-white/15 bg-white/20 px-3 py-2 text-sm text-white placeholder:text-white/60 focus:border-white/40 focus:outline-none"
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none"
                         />
-                        <p className="text-xs text-white/80">
+                        <p className="text-xs text-muted-foreground">
                           {t("drive:publicFolder.ownerDesc", "This stays in your browser and is only used to repair this link.")}
                         </p>
                       </div>
@@ -560,20 +560,20 @@ export default function PublicFolderSharePage() {
                         type="button"
                         onClick={() => void handleRepairLink()}
                         disabled={repairing || (!sessionVault.getCredential() && !ownerCredentialInput.trim())}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-white text-primary/90 font-semibold px-4 py-2 hover:bg-primary/10 transition-colors disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground font-semibold px-4 py-2 hover:bg-primary/90 transition-colors disabled:opacity-60"
                       >
                         {repairing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                         {repairing ? t("drive:publicFolder.repairing", "Repairing…") : getFolderShareRepairLabel(ownedLink)}
                       </button>
                       {repairMessage && (
-                        <p className="text-xs text-white/85">{repairMessage}</p>
+                        <p className="text-xs text-muted-foreground">{repairMessage}</p>
                       )}
                     </div>
                 </div>
               )}
 
               {/* File tree */}
-              <div className="bg-white/12 rounded-xl border border-white/10 max-h-80 overflow-y-auto">
+              <div className="bg-muted/30 rounded-xl border border-border max-h-80 overflow-y-auto">
                 <FolderTreeNode
                   node={shareInfo.tree}
                   path=""
@@ -586,7 +586,7 @@ export default function PublicFolderSharePage() {
               <button
                 type="button"
                 onClick={() => void handleDownloadAll()}
-                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-white text-primary/90 font-semibold rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
               >
                 <Package className="w-5 h-5" />
                 {t("drive:publicFolder.downloadAll", "Download All as ZIP")}
@@ -596,21 +596,21 @@ export default function PublicFolderSharePage() {
 
           {state === "downloading" && (
             <div className="flex flex-col items-center gap-4 py-4 text-center">
-              <Loader2 className="w-10 h-10 animate-spin text-primary-foreground" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <div>
-                <p className="text-white/85 font-medium">
+                <p className="text-foreground font-medium">
                   {zipProgress.total > 0
                     ? t("drive:publicFolder.decrypting", "Decrypting files… {{current}}/{{total}}", { current: zipProgress.current, total: zipProgress.total })
                     : t("drive:publicFolder.preparing", "Preparing download…")}
                 </p>
-                <p className="text-xs text-white/75 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {t("drive:publicFolder.decryptingDesc", "Each file is decrypted in your browser before packaging")}
                 </p>
               </div>
               {zipProgress.total > 0 && (
-                <div className="w-full bg-white/15 rounded-full h-1.5">
+                <div className="w-full bg-muted rounded-full h-1.5">
                   <div
-                    className="bg-primary/10 h-1.5 rounded-full transition-all"
+                    className="bg-primary h-1.5 rounded-full transition-all"
                     style={{ width: `${Math.round((zipProgress.current / zipProgress.total) * 100)}%` }}
                   />
                 </div>
@@ -620,17 +620,17 @@ export default function PublicFolderSharePage() {
 
           {state === "done" && (
             <div className="flex flex-col items-center gap-4 py-2 text-center">
-              <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+              <CheckCircle2 className="w-12 h-12 text-emerald-500" />
               <div>
-                <p className="text-lg font-semibold text-white">{t("drive:publicFolder.doneTitle", "ZIP saved!")}</p>
+                <p className="text-lg font-semibold text-foreground">{t("drive:publicFolder.doneTitle", "ZIP saved!")}</p>
                 {shareInfo && (
-                  <p className="text-sm text-white/80 mt-1 break-all">{shareInfo.folder_name}.zip</p>
+                  <p className="text-sm text-muted-foreground mt-1 break-all">{shareInfo.folder_name}.zip</p>
                 )}
               </div>
               <button
                 type="button"
                 onClick={() => setState("ready")}
-                className="text-sm text-white/75 hover:text-white/90 underline underline-offset-2"
+                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
               >
                 {t("drive:publicFolder.backToFolder", "Back to folder")}
               </button>
@@ -639,13 +639,13 @@ export default function PublicFolderSharePage() {
 
           {state === "expired" && (
             <div className="flex flex-col items-center gap-4 py-2 text-center">
-              <Clock className="w-12 h-12 text-amber-400" />
+              <Clock className="w-12 h-12 text-amber-500" />
               <div>
-                <p className="text-lg font-semibold text-white">{t("drive:publicFolder.expiredTitle", "This link has expired")}</p>
-                <p className="text-sm text-white/80 mt-2">
+                <p className="text-lg font-semibold text-foreground">{t("drive:publicFolder.expiredTitle", "This link has expired")}</p>
+                <p className="text-sm text-muted-foreground mt-2">
                   {t("drive:publicFolder.expiredDesc", "This folder share link is no longer valid.")}
                 </p>
-                <p className="text-sm text-white/75 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {t("drive:publicFolder.expiredContact", "Contact the folder owner to request a new link.")}
                 </p>
               </div>
@@ -654,19 +654,19 @@ export default function PublicFolderSharePage() {
 
           {state === "error" && (
             <div className="flex flex-col items-center gap-4 py-2 text-center">
-              <AlertCircle className="w-12 h-12 text-red-400" />
+              <AlertCircle className="w-12 h-12 text-red-500" />
               <div>
-                <p className="text-lg font-semibold text-white">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
-                <p className="text-sm text-red-300 mt-2 break-words">{errorMsg}</p>
+                <p className="text-lg font-semibold text-foreground">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-2 break-words">{errorMsg}</p>
               </div>
-              <p className="text-xs text-white/75">
+              <p className="text-xs text-muted-foreground">
                 {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}
               </p>
               {shareInfo && (
                 <button
                   type="button"
                   onClick={() => { setErrorMsg(""); setState("ready"); }}
-                  className="text-sm text-white/75 hover:text-white/90 underline underline-offset-2"
+                  className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
                 >
                   {t("drive:publicFolder.backToFolder", "Back to folder")}
                 </button>

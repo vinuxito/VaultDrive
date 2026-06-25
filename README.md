@@ -8,37 +8,30 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-06-09 — E2E Build Verification)
+## Current Status (2026-06-24 — Skin Contrast & Legibility Pass)
 
-**Production-ready.** A complete, multi-repository E2E verification pass has been performed. This confirms 100% test pass rates across all Go backend tests, Vitest unit tests, and Playwright integration suites (48/48 tests on both brands, including mobile bottom sheets and Shamir recovery flows).
+**Production-ready.** A complete E2E build and verification pass has been performed. This confirms 100% test pass rates across all Go backend tests, Vitest unit tests, and Playwright integration suites (48/48 tests, including mobile action drawers and Shamir recovery flows). All styling contrast issues under light themes and folders actions context menus are resolved and verified.
 
 | Check | Result |
 |-------|--------|
 | TypeScript typecheck | ✅ 0 errors |
-| Frontend production build | ✅ pass (~15s upstream / ~13s downstream) |
+| Frontend production build | ✅ pass (~11s upstream) |
 | Backend unit tests | ✅ pass |
-| Unit tests (vitest) | ✅ 131 passed upstream / 133 passed downstream |
-| E2E tests (playwright) | ✅ 48 passed (including mobile Chrome viewports) |
-| QuantiX production healthz | ✅ HTTP 200 |
-| Production `/quantix/` | ✅ HTTP 200 |
+| Unit tests (vitest) | ✅ 133 passed |
+| E2E tests (playwright) | ✅ 48 passed (including mobile viewports) |
+| abrndrive production healthz | ✅ HTTP 200 |
+| Production `/abrn/` | ✅ HTTP 200 |
 | Production `POST /api/register {}` | ✅ HTTP 400 (expected validation failure) |
-| EN/ES locale key parity | ✅ 100% parity |
-| Downstream integration | ✅ Cleanly merged and verified |
 
 **Latest Session Memory:**
+- Skin Contrast & Legibility Pass (2026-06-24): [docs/memories/session-2026-06-24-skin-contrast-legibility-verification.md](docs/memories/session-2026-06-24-skin-contrast-legibility-verification.md)
 - E2E Build Verification (2026-06-09): [docs/memories/session-2026-06-09-couch-recovery.md](docs/memories/session-2026-06-09-couch-recovery.md)
-- Theme Separation (2026-06-08): [docs/memories/session-2026-06-08-theme-separation.md](docs/memories/session-2026-06-08-theme-separation.md)
-- Step 3 Shamir Recovery (2026-06-08): [docs/memories/session-2026-06-08-shamir-recovery.md](docs/memories/session-2026-06-08-shamir-recovery.md)
-- Pinche Viejito Necio QA (2026-06-09): [docs/reports/2026-06-09-qa-feature-coverage-report.md](docs/reports/2026-06-09-qa-feature-coverage-report.md)
-- Mobile Bottom Sheets Closeout (2026-06-06): [docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md](docs/memories/session-2026-06-06-mobile-bottom-sheets-closeout.md)
 
 **Latest Verification Reports:**
-- HTML QA Report (Necio Certified): [docs/reports/2026-06-09-qa-feature-coverage-report.html](docs/reports/2026-06-09-qa-feature-coverage-report.html)
-- Markdown QA Report (Necio Certified): [docs/reports/2026-06-09-qa-feature-coverage-report.md](docs/reports/2026-06-09-qa-feature-coverage-report.md)
-- HTML Verification Report: [docs/reports/2026-06-09-couch-recovery-verification.html](docs/reports/2026-06-09-couch-recovery-verification.html)
-- Markdown Verification Report: [docs/reports/2026-06-09-couch-recovery-verification.md](docs/reports/2026-06-09-couch-recovery-verification.md)
+- HTML Verification Report: [docs/reports/2026-06-24-skin-contrast-legibility-verification.html](docs/reports/2026-06-24-skin-contrast-legibility-verification.html)
+- Markdown Verification Report: [docs/reports/2026-06-24-skin-contrast-legibility-verification.md](docs/reports/2026-06-24-skin-contrast-legibility-verification.md)
 - HTML Shamir Recovery Report: [docs/reports/2026-06-08-shamir-recovery-verification.html](docs/reports/2026-06-08-shamir-recovery-verification.html)
-- Markdown Shamir Recovery Report: [docs/reports/2026-06-08-shamir-recovery-verification.md](docs/reports/2026-06-08-shamir-recovery-verification.md)
+
 
 
 ---

@@ -106,11 +106,12 @@ npm run preview
 - If you need to target a different local database or upload directory, override `E2E_DB_NAME`, `E2E_DB_URL`, `E2E_ADMIN_DB_URL`, or `E2E_UPLOAD_DIR`.
 - If you need to target a proxied or remote environment, override `E2E_BASE_URL` explicitly.
 
-As of 2026-04-16, the verified local status is:
+As of 2026-06-24, the verified local status is:
 
 - `npm run build` ✅
-- `npm test` ✅ (72/72)
-- `npm run test:e2e` ✅ (38/38)
+- `npm test` ✅ (133/133)
+- `npm run test:e2e` ✅ (48/48)
+
 
 ## Key Files
 
