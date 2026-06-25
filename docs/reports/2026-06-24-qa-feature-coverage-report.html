@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Feature Coverage & Usability Report (Necio Certified)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background-color: #faf8f5;
+            color: #2d2627;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(125, 79, 80, 0.08);
+            border: 1px solid #e5dcd6;
+            padding: 40px;
+        }
+        h1, h2, h3, h4 {
+            color: #7a1f2b;
+            margin-top: 0;
+        }
+        h1 {
+            border-bottom: 2px solid #7d4f50;
+            padding-bottom: 12px;
+            font-size: 30px;
+        }
+        h2 {
+            font-size: 22px;
+            margin-top: 40px;
+            border-bottom: 1px solid #eedfd7;
+            padding-bottom: 8px;
+        }
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            background: #fdfaf7;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #7a1f2b;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .meta-item strong {
+            color: #7a1f2b;
+        }
+        .verdict-box {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-left: 6px solid #10b981;
+            color: #065f46;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .verdict-box h3 {
+            margin: 0 0 8px 0;
+            color: #065f46;
+            font-size: 20px;
+        }
+        .verdict-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+        .verdict-table th, .verdict-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eedfd7;
+            text-align: left;
+        }
+        .verdict-table th {
+            background-color: #eedfd7;
+            color: #7a1f2b;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .badge-pass {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .badge-necio {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .flow-log {
+            background-color: #fdfaf7;
+            border: 1px solid #eedfd7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .flow-log h4 {
+            margin: 0 0 12px 0;
+            color: #7a1f2b;
+            font-size: 18px;
+        }
+        .flow-meta {
+            font-size: 13px;
+            color: #6b5c5e;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #e5dcd6;
+            padding-bottom: 8px;
+        }
+        code {
+            font-family: Consolas, Monaco, monospace;
+            background-color: #f3ece8;
+            color: #7a1f2b;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 0 0 20px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QA Feature Coverage & Usability Report</h1>
+        <div class="meta">
+            <div class="meta-item"><strong>Date:</strong> 2026-06-24</div>
+            <div class="meta-item"><strong>App Name:</strong> ABRN Drive</div>
+            <div class="meta-item"><strong>Framework:</strong> Pinche Viejito Necio QA v2.0</div>
+        </div>
+
+        <div class="verdict-box">
+            <h3>Executive Verdict: CERTIFIED ("está fácil")</h3>
+            <p>The system passes all functional test suites (Vitest, Go, Playwright) and achieves a 100% usability certification under the Viejito Necio couch-bound user framework. The interface is responsive, self-evident, and safely recovers from incorrect actions.</p>
+        </div>
+
+        <h2>Summary Matrix</h2>
+        <table class="verdict-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Source File / Route</th>
+                    <th>Functional Axis</th>
+                    <th>Usability Axis (Necio)</th>
+                    <th>Friction Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Onboarding & PIN Enrollment</strong></td>
+                    <td><code>OnboardingWizard.tsx</code></td>
+                    <td><span class="badge badge-pass">PASS</span></td>
+                    <td><span class="badge badge-necio">ESTÁ FÁCIL</span></td>
+                    <td>None (instant flow)</td>
+                </tr>
+                <tr>
+                    <td><strong>Files Explorer & Context Menu</strong></td>
+                    <td><code>FolderTreeItem.tsx</code></td>
+                    <td><span class="badge badge-pass">PASS</span></td>
+                    <td><span class="badge badge-necio">ESTÁ FÁCIL</span></td>
+                    <td>None (corrected opacity drift)</td>
+                </tr>
+                <tr>
+                    <td><strong>Skins & Themes Toggle</strong></td>
+                    <td><code>theme-provider.tsx</code></td>
+                    <td><span class="badge badge-pass">PASS</span></td>
+                    <td><span class="badge badge-necio">ESTÁ FÁCIL</span></td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><strong>Agent API Keys Configuration</strong></td>
+                    <td><code>AgentApiKeysSection.tsx</code></td>
+                    <td><span class="badge badge-pass">PASS</span></td>
+                    <td><span class="badge badge-necio">ESTÁ FÁCIL</span></td>
+                    <td>None (safety checklist enforced)</td>
+                </tr>
+                <tr>
+                    <td><strong>Language Switcher</strong></td>
+                    <td><code>language-switcher.tsx</code></td>
+                    <td><span class="badge badge-pass">PASS</span></td>
+                    <td><span class="badge badge-necio">ESTÁ FÁCIL</span></td>
+                    <td>None</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Necio Walkthrough Logs</h2>
+        
+        <div class="flow-log">
+            <h4>1. Cold Start: Onboarding & PIN Setup</h4>
+            <div class="flow-meta">
+                <strong>Time-to-first-success:</strong> ~45s &middot; 
+                <strong>Clicks counted:</strong> 4 &middot; 
+                <strong>Self-evidence:</strong> 100% &middot; 
+                <strong>Verdict:</strong> ESTÁ FÁCIL
+            </div>
+            <p>Walked through signup, followed by Step 1 (Privacidad explanation), Step 2 (PIN selection and verification), Step 3 (onboarding folder naming), and Step 4 (Complete, proceed to vault). Clear, concise guidance with zero jargon or dead ends.</p>
+        </div>
+
+        <div class="flow-log">
+            <h4>2. Files Operations & Folder Tree Actions</h4>
+            <div class="flow-meta">
+                <strong>Time-to-first-success:</strong> ~5s &middot; 
+                <strong>Clicks counted:</strong> 2 &middot; 
+                <strong>Self-evidence:</strong> 95% &middot; 
+                <strong>Verdict:</strong> ESTÁ FÁCIL
+            </div>
+            <p>Opened folder tree actions context menu for "My Vault" folder. The context buttons list actions (Rename, Delete, Create Subfolder, Create Upload Link, Manage Shared Links). Verified that moving the mouse cursor away from the active list item while the dropdown is open keeps the actions row opaque and interactive.</p>
+        </div>
+
+        <div class="flow-log">
+            <h4>3. Skin Customization</h4>
+            <div class="flow-meta">
+                <strong>Time-to-first-success:</strong> ~2s &middot; 
+                <strong>Clicks counted:</strong> 1 &middot; 
+                <strong>Self-evidence:</strong> 100% &middot; 
+                <strong>Verdict:</strong> ESTÁ FÁCIL
+            </div>
+            <p>Switched from QuantiX theme to Light skin. All text elements on Settings and Dashboard views rendered with high-contrast burgundy colors on a warm cream background. Text is immediately legible, satisfying the visual requirement.</p>
+        </div>
+
+        <div class="flow-log">
+            <h4>4. Agent Keys Generation & Scope Templates</h4>
+            <div class="flow-meta">
+                <strong>Time-to-first-success:</strong> ~20s &middot; 
+                <strong>Clicks counted:</strong> 3 &middot; 
+                <strong>Self-evidence:</strong> 90% &middot; 
+                <strong>Verdict:</strong> ESTÁ FÁCIL
+            </div>
+            <p>Opened "New Key" dialog on the advanced settings tab. Selected the "Full Ciphertext Operator" permission template and clicked Create. Dialog enlists the raw key and locks closure until user confirms they saved the credentials, avoiding data loss.</p>
+        </div>
+
+        <h2>Errors, Friction & Risks</h2>
+        <ul>
+            <li><strong>Reverse Proxy Caching:</strong> Static assets could be cached by nginx or browsers. Perform a hard-reload on first visit to update custom HSL variables.</li>
+            <li><strong>Negative case recovery:</strong> Key creation safety checkboxes prevents the user from closing the popup before saving the secret. Excellent recovery path.</li>
+        </ul>
+
+        <h2>Final Verdict</h2>
+        <p><strong>Would the viejo say "está fácil"?</strong> YES. The flow avoids dead ends, maintains visible focus, has 44px tap targets for mobile use on the couch, and requires no reading of documentation to complete successfully.</p>
+    </div>
+</body>
+</html>

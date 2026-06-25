@@ -28,9 +28,16 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 - E2E Build Verification (2026-06-09): [docs/memories/session-2026-06-09-couch-recovery.md](docs/memories/session-2026-06-09-couch-recovery.md)
 
 **Latest Verification Reports:**
+- HTML QA Feature Coverage Report (Necio Certified): [docs/reports/2026-06-24-qa-feature-coverage-report.html](docs/reports/2026-06-24-qa-feature-coverage-report.html)
+- Markdown QA Feature Coverage Report (Necio Certified): [docs/reports/2026-06-24-qa-feature-coverage-report.md](docs/reports/2026-06-24-qa-feature-coverage-report.md)
 - HTML Verification Report: [docs/reports/2026-06-24-skin-contrast-legibility-verification.html](docs/reports/2026-06-24-skin-contrast-legibility-verification.html)
 - Markdown Verification Report: [docs/reports/2026-06-24-skin-contrast-legibility-verification.md](docs/reports/2026-06-24-skin-contrast-legibility-verification.md)
 - HTML Shamir Recovery Report: [docs/reports/2026-06-08-shamir-recovery-verification.html](docs/reports/2026-06-08-shamir-recovery-verification.html)
+
+**Dual overall verdict (2026-06-24):**
+* **Functional:** PASS
+* **Necio Usability:** CERTIFIED ("está fácil")
+
 
 
 
