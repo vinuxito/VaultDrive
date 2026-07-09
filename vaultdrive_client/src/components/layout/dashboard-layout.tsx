@@ -315,7 +315,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 lux-navbar px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5">
+        <header 
+          style={{ viewTransitionName: "main-header" } as React.CSSProperties}
+          className="sticky top-0 z-30 lux-navbar px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5"
+        >
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -489,7 +492,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
         </AnimatePresence>
 
-        <div className="flex-1 overflow-auto p-4 sm:p-6 relative">
+        <div 
+          style={{ viewTransitionName: "main-body" } as React.CSSProperties}
+          className="flex-1 overflow-auto p-4 sm:p-6 relative"
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
