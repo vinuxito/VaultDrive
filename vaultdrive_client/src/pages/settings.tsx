@@ -277,7 +277,7 @@ export default function Settings() {
                 <button
                   type="button"
                   key={s.id}
-                  onClick={() => setSkin(s.id)}
+                  onClick={(e) => setSkin(s.id, e)}
                   aria-pressed={skin === s.id}
                   className={cn(
                     "relative rounded-xl border-2 p-3 text-left transition-all duration-200",

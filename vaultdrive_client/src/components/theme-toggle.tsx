@@ -5,9 +5,9 @@ export function ThemeToggle() {
   const { skin, setSkin } = useTheme();
   const meta = SKINS.find((s) => s.id === skin)!;
 
-  const cycleNext = () => {
+  const cycleNext = (e: React.MouseEvent<HTMLButtonElement>) => {
     const idx = SKINS.findIndex((s) => s.id === skin);
-    setSkin(SKINS[(idx + 1) % SKINS.length].id);
+    setSkin(SKINS[(idx + 1) % SKINS.length].id, e);
   };
 
   return (

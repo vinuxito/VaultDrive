@@ -84,10 +84,38 @@ export function ThemeProvider({
 
   const setSkin = (next: Skin, event?: React.MouseEvent | MouseEvent) => {
     localStorage.setItem(storageKey, next);
-    if (event) {
-      // Scaffolding: will contain view transition logic in Iteration 2
+    
+    const doc = document as any;
+    if (event && doc.startViewTransition) {
+      const x = event.clientX;
+      const y = event.clientY;
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+      
+      const transition = doc.startViewTransition(() => {
+        setSkinState(next);
+      });
+      
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`
+            ]
+          },
+          {
+            duration: 450,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            pseudoElement: "::view-transition-new(root)"
+          }
+        );
+      });
+    } else {
+      setSkinState(next);
     }
-    setSkinState(next);
   };
 
   const meta = SKINS.find((s) => s.id === skin)!;
