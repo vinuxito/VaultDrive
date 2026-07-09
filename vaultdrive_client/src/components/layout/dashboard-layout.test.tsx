@@ -12,6 +12,7 @@ vi.mock("../../context/SessionVaultContext", () => ({
 
 vi.mock("../../hooks", () => ({
   useSSE: () => undefined,
+  useTransitionNavigate: () => vi.fn(),
 }));
 
 vi.mock("./sidebar", () => ({
