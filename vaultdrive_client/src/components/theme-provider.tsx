@@ -108,27 +108,32 @@ export function ThemeProvider({
         Math.max(y, window.innerHeight - y)
       );
       
-      const transition = doc.startViewTransition(() => {
+      try {
+        const transition = doc.startViewTransition(() => {
+          setSkinState(next);
+        });
+        
+        transition.ready.then(() => {
+          document.documentElement.animate(
+            {
+              clipPath: [
+                `circle(0px at ${x}px ${y}px)`,
+                `circle(${endRadius}px at ${x}px ${y}px)`
+              ]
+            },
+            {
+              duration: 450,
+              easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+              pseudoElement: "::view-transition-new(root)"
+            }
+          );
+        }).catch((err: any) => {
+          console.warn("View transition animation failed:", err);
+        });
+      } catch (err) {
+        console.warn("startViewTransition failed, falling back:", err);
         setSkinState(next);
-      });
-      
-      transition.ready.then(() => {
-        document.documentElement.animate(
-          {
-            clipPath: [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`
-            ]
-          },
-          {
-            duration: 450,
-            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-            pseudoElement: "::view-transition-new(root)"
-          }
-        );
-      }).catch((err: any) => {
-        console.warn("View transition animation failed:", err);
-      });
+      }
     } else {
       setSkinState(next);
     }

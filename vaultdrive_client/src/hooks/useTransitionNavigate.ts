@@ -10,9 +10,14 @@ export function useTransitionNavigate() {
   return (to: string, options?: { replace?: boolean; state?: any }) => {
     const doc = document as any;
     if (doc.startViewTransition) {
-      doc.startViewTransition(() => {
+      try {
+        doc.startViewTransition(() => {
+          navigate(to, options);
+        });
+      } catch (err) {
+        console.warn("View transition failed, falling back to standard navigation:", err);
         navigate(to, options);
-      });
+      }
     } else {
       navigate(to, options);
     }
