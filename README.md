@@ -415,8 +415,11 @@ QuantiX Drive ships six built-in interface skins. The default is **QuantiX** —
 - **CSS custom properties** (`[data-theme="X"]` selectors on `<html>`) override all shadcn/ui tokens, so every component rethemes without code changes.
 - **Dark skins** also add the `.dark` class so Tailwind `dark:` utilities work.
 - **Full color consistency** — all 70+ component and page files use semantic Tailwind classes (`bg-primary`, `border-border`, `bg-card`, `bg-muted`, `bg-popover`, `text-muted-foreground`) rather than hardcoded hex values. No `bg-[#hex]` arbitrary values in application code.
+- **Tailwind Build Guardrails** — Enforced in `index.css` by mapping standard palettes (`slate`, `gray`, `zinc`, `neutral`, `stone`) to `initial`. Default Tailwind colors will not compile, preventing hardcoded color drift.
+- **Pre-commit Styling Hooks** — A Git pre-commit hook (`.git/hooks/pre-commit`) automatically scans staged files, scrubs raw slates and hex overrides using cleanup scripts, and stages the sanitized files before commit.
 - **FOUC prevention** — an inline `<script>` in `index.html` sets `data-theme` before React mounts, eliminating the flash of unstyled content.
 - **Preference** is stored in `localStorage` under key `quantixdrive-skin`. Migrates old `vaultdrive-ui-theme` values automatically.
+- **Pixel-Perfect Scrollbar Insets** — Scrollable panels use the `.scrollable-panel` helper to style thumbs dynamically to match skins and keep tracks transparent, avoiding clipped rounded borders.
 
 ### Changing the skin
 
@@ -427,6 +430,7 @@ Users pick a skin from **Settings → Account → Appearance** (6-swatch visual 
 - Ambient background orbs: three overlapping `radial-gradient` ellipses (cyan + magenta) with `background-attachment: fixed`, visible through glassmorphic cards.
 - Gradient scrollbar: cyan → magenta (WebKit) + `scrollbar-color` (Firefox).
 - `--glass-border-strong: 1px solid rgba(1, 255, 247, 0.20)` for cyan-tinted glass borders.
+
 
 ### Adding a new skin
 

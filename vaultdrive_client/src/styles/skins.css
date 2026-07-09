@@ -120,7 +120,27 @@
   --glass-blur-lg:          blur(32px);
   --shadow-glow-primary:    0 4px 20px rgba(125, 79, 80, 0.12);
   --gradient-page:          linear-gradient(180deg, #fdfcfb 0%, #faf8f5 100%);
+
+  scrollbar-color: hsl(358 24% 40% / 0.3) transparent;
 }
+
+[data-theme="light"] body {
+  background-image:
+    radial-gradient(ellipse 70vw 60vh at   5%   5%, rgba(125,  79,  80, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(125,  79,  80, 0.02) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+[data-theme="light"] ::-webkit-scrollbar         { width: 6px; height: 6px; }
+[data-theme="light"] ::-webkit-scrollbar-track   { background: transparent; }
+[data-theme="light"] ::-webkit-scrollbar-thumb   {
+  background: hsl(358 24% 40% / 0.35);
+  border-radius: 9999px;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(358 24% 40% / 0.6);
+}
+
 
 /* ── 3. Dark ──────────────────────────────────────────────────────── */
 [data-theme="dark"] {
@@ -166,7 +186,27 @@
   --glass-blur-lg:          blur(32px);
   --shadow-glow-primary:    0 4px 20px rgba(196, 153, 155, 0.15);
   --gradient-page:          linear-gradient(180deg, #1e2330 0%, #181d2a 100%);
+
+  scrollbar-color: hsl(357 23% 68% / 0.3) transparent;
 }
+
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 70vw 60vh at   5%   5%, rgba(196, 153, 155, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(196, 153, 155, 0.03) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar         { width: 6px; height: 6px; }
+[data-theme="dark"] ::-webkit-scrollbar-track   { background: transparent; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb   {
+  background: hsl(357 23% 68% / 0.35);
+  border-radius: 9999px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(357 23% 68% / 0.6);
+}
+
 
 /* ── 4. Cyberpunk ─────────────────────────────────────────────────── */
 [data-theme="cyberpunk"] {

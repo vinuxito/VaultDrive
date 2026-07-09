@@ -38,6 +38,13 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* Disable standard Tailwind neutral/slate color utility mappings to enforce semantic theme styling */
+  --color-slate-*: initial;
+  --color-gray-*: initial;
+  --color-zinc-*: initial;
+  --color-neutral-*: initial;
+  --color-stone-*: initial;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -271,6 +278,11 @@
   [data-theme="quantix"] .brand-glass-card:hover,
   [data-theme="cyberpunk"] .brand-glass-card:hover {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+
+  .scrollable-panel {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
   }
 
   /* 5.4 Theme Transition Smoothing */

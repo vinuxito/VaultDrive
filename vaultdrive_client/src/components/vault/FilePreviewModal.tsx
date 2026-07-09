@@ -240,7 +240,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-card border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
+      <div className="bg-card border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <h2 className="text-white font-semibold truncate max-w-lg text-sm">{file.filename}</h2>
           <div className="flex items-center gap-2 shrink-0">
@@ -263,7 +263,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto p-5 min-h-0">
+        <div className="flex-1 overflow-y-auto p-5 pr-2 min-h-0 scrollable-panel">
           {file.is_owner !== false && (
             <div className="mb-5">
               <button
