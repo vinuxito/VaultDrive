@@ -57,7 +57,6 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     <aside
       role="navigation"
       aria-label="Main navigation"
-      style={{ viewTransitionName: "main-sidebar" } as React.CSSProperties}
       className={cn(
         "fixed inset-y-0 left-0 z-40 elegant-overlay border-r border-primary/15 flex-col transition-all duration-300 ease-in-out",
         collapsed ? "w-[72px]" : "w-64",

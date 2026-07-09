@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShieldCheck, Lock, Upload, Link2, Key, Users, Eye, RefreshCw, Clock, ChevronDown, ChevronUp } from "lucide-react";
@@ -132,7 +133,7 @@ export function ActivityReceiptDrawer({ isOpen, onClose, fileId, filename }: Act
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -285,7 +286,8 @@ export function ActivityReceiptDrawer({ isOpen, onClose, fileId, filename }: Act
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

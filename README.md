@@ -420,6 +420,7 @@ QuantiX Drive ships six built-in interface skins. The default is **QuantiX** —
 - **FOUC prevention** — an inline `<script>` in `index.html` sets `data-theme` before React mounts, eliminating the flash of unstyled content.
 - **Preference** is stored in `localStorage` under key `quantixdrive-skin`. Migrates old `vaultdrive-ui-theme` values automatically.
 - **Pixel-Perfect Scrollbar Insets** — Scrollable panels use the `.scrollable-panel` helper to style thumbs dynamically to match skins and keep tracks transparent, avoiding clipped rounded borders.
+- **Circular Theme Reveal & SPA Navigation Transitions** — Uses the native View Transitions API (`startViewTransition()`) to animate skin changes with a circular clip-path ripple expanding from the user's cursor, and page changes with a smooth slide-and-fade, keeping the sidebar and header pinned. Safely falls back to instant swaps on unsupported devices and respects system `prefers-reduced-motion` settings.
 
 ### Changing the skin
 
