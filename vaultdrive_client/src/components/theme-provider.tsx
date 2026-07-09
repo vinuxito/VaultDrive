@@ -35,7 +35,7 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   skin: Skin;
-  setSkin: (skin: Skin) => void;
+  setSkin: (skin: Skin, event?: React.MouseEvent | MouseEvent) => void;
   /* legacy shim — use skin/setSkin in new code */
   theme: "light" | "dark";
   /* legacy shim — maps "dark"→dark skin, "light"→light skin */
@@ -82,8 +82,11 @@ export function ThemeProvider({
     if (meta.isDark) root.classList.add("dark");
   }, [skin]);
 
-  const setSkin = (next: Skin) => {
+  const setSkin = (next: Skin, event?: React.MouseEvent | MouseEvent) => {
     localStorage.setItem(storageKey, next);
+    if (event) {
+      // Scaffolding: will contain view transition logic in Iteration 2
+    }
     setSkinState(next);
   };
 
