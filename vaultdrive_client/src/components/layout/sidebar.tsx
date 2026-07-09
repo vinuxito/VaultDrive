@@ -9,7 +9,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useTransitionNavigate } from "../../hooks";
 import { BrandLogo } from "../branding";
 import { useTranslation } from "react-i18next";
 import { preload } from "swr";
@@ -31,7 +32,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
-  const navigate = useNavigate();
+  const navigate = useTransitionNavigate();
   const location = useLocation();
   const { t } = useTranslation(["common"]);
 

@@ -1,5 +1,6 @@
 import { Files, Share2, Settings, User, LogOut, X, Users } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useTransitionNavigate } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
@@ -22,7 +23,7 @@ interface NavLinkProps {
 }
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
-  const navigate = useNavigate();
+  const navigate = useTransitionNavigate();
   const location = useLocation();
   const { t } = useTranslation(["common"]);
   const user = getStoredUserFromLocalStorage() ?? {};
@@ -140,10 +141,13 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 }
 
 function NavLink({ to, icon, label, onClick, isActive, handler }: NavLinkProps) {
+  const navigate = useTransitionNavigate();
   const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (handler) {
-      e.preventDefault();
       handler();
+    } else {
+      navigate(to);
     }
     onClick();
   };

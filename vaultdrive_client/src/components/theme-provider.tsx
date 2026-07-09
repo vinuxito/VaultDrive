@@ -87,8 +87,22 @@ export function ThemeProvider({
     
     const doc = document as any;
     if (event && doc.startViewTransition) {
-      const x = event.clientX;
-      const y = event.clientY;
+      let x = event.clientX;
+      let y = event.clientY;
+      
+      // Harden: fallback to target element center if coordinates are zero or undefined
+      if (x === undefined || y === undefined || (x === 0 && y === 0)) {
+        const target = event.target as HTMLElement;
+        if (target && typeof target.getBoundingClientRect === "function") {
+          const rect = target.getBoundingClientRect();
+          x = rect.left + rect.width / 2;
+          y = rect.top + rect.height / 2;
+        } else {
+          x = window.innerWidth / 2;
+          y = window.innerHeight / 2;
+        }
+      }
+      
       const endRadius = Math.hypot(
         Math.max(x, window.innerWidth - x),
         Math.max(y, window.innerHeight - y)
@@ -112,6 +126,8 @@ export function ThemeProvider({
             pseudoElement: "::view-transition-new(root)"
           }
         );
+      }).catch((err: any) => {
+        console.warn("View transition animation failed:", err);
       });
     } else {
       setSkinState(next);

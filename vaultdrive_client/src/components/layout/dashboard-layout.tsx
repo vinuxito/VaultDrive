@@ -15,7 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useTransitionNavigate } from "../../hooks";
 import { motion, AnimatePresence } from "framer-motion";
 // Local command palette removed to use global one
 import { PoweredByBadge } from "../branding";
@@ -44,7 +45,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const navigate = useNavigate();
+  const navigate = useTransitionNavigate();
   const location = useLocation();
   const { t } = useTranslation(["common", "drive"]);
   const { clearVault } = useSessionVault();

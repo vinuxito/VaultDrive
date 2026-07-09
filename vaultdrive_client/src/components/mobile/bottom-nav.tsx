@@ -2,9 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 import { Files, Share2, User } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useTranslation } from "react-i18next";
+import { useTransitionNavigate } from "../../hooks";
 
 export function BottomNav() {
   const location = useLocation();
+  const navigate = useTransitionNavigate();
   const { t } = useTranslation(["common"]);
   const token = localStorage.getItem("token");
 
@@ -32,6 +34,10 @@ export function BottomNav() {
             <Link
               key={path}
               to={path}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(path);
+              }}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full transition-colors duration-200",
                 isActive
