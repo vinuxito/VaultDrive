@@ -49,11 +49,12 @@ import {
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { mergeUserPinState } from "../utils/pin-trust";
 import { branding } from "../config/branding";
+import { WebAuthnSection } from "../components/settings/WebAuthnSection";
 
 export default function Settings() {
   const navigate = useNavigate();
   const { skin, setSkin } = useTheme();
-  const { setCredential } = useSessionVault();
+  const { setCredential, getCredential } = useSessionVault();
   const [userData] = useState(() => getStoredUserFromLocalStorage());
   const [orgName, setOrgName] = useState<string>("");
   const [orgSaving, setOrgSaving] = useState(false);
@@ -542,6 +543,23 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+
+        {pinSet && (
+          <WebAuthnSection
+            userId={userData.username || ""}
+            onPinRequired={(callback) => {
+              const cached = getCredential();
+              if (cached && cached.type === "pin") {
+                callback(cached.value);
+              } else {
+                const typedPin = prompt("Please enter your 4-digit PIN to authorize biometrics:");
+                if (typedPin && typedPin.length === 4) {
+                  callback(typedPin);
+                }
+              }
+            }}
+          />
+        )}
 
         <CustodianRecoverySection />
 

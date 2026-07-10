@@ -24,7 +24,7 @@ import {
   CheckCircle2,
   FolderOpen,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { API_URL, BASE_PATH } from "../utils/api";
 import {
   generateSalt,
@@ -202,8 +202,11 @@ function hasSomeFilesSelected(files: FileData[], selectedIds: Set<string>): bool
 
 export default function Files() {
   const navigate = useNavigate();
+  const location = useLocation();
   const sessionVault = useSessionVault();
   const { t } = useTranslation(["drive"]);
+
+  const highlightFileId = (location.state as { highlightFileId?: string } | null)?.highlightFileId;
 
   const { data: myFiles = [], mutate: mutateMyFiles, isLoading } = useSWR<FileData[]>(`${API_URL}/files`, {
     onError: (err) => {
@@ -212,6 +215,19 @@ export default function Files() {
       }
     }
   });
+
+  useEffect(() => {
+    if (!highlightFileId || isLoading || myFiles.length === 0) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`file-row-${highlightFileId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("highlight-pulse");
+        setTimeout(() => el.classList.remove("highlight-pulse"), 2000);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [highlightFileId, isLoading, myFiles]);
 
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);

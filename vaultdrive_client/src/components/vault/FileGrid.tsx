@@ -136,6 +136,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
         return (
           <div
             key={file.id}
+            id={`file-row-${file.id}`}
             className={`
               group flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-default
               ${isSelected

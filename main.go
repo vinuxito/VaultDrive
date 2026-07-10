@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -29,7 +30,14 @@ func (cfg *ApiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s - User-Agent: %s", r.Method, r.URL.String(), r.UserAgent())
 		cfg.apiHits.Add(1)
-		next.ServeHTTP(w, r)
+		atomic.AddInt64(&totalRequests, 1)
+
+		sr := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+		next.ServeHTTP(sr, r)
+
+		if sr.statusCode >= 500 {
+			atomic.AddInt64(&totalErrors, 1)
+		}
 	})
 }
 
@@ -114,11 +122,16 @@ func main() {
 	// Run idempotent admin bootstrap if ADMIN_BOOTSTRAP_EMAILS is set.
 	apiConfig.bootstrapAdmins()
 
+	globalApiConfig = &apiConfig
+
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /api/healthz", apiConfig.middlewareMetricsInc(http.HandlerFunc(healthCheckHandler)))
 	mux.Handle("GET /health", apiConfig.middlewareMetricsInc(http.HandlerFunc(healthCheckHandler)))
 	mux.Handle("GET /ready", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.readinessCheckHandler)))
+	mux.HandleFunc("GET /metrics", handleMetrics)
+	mux.HandleFunc("GET /docs/api", handleSwaggerUI)
+	mux.HandleFunc("GET /docs/openapi.json", handleOpenAPISpec)
 
 	mux.HandleFunc("DELETE /api/upload-links/{id}", apiConfig.handlerDeleteDropToken)
 
@@ -590,18 +603,87 @@ var startTime = time.Now()
 // Falls back to "dev" for local development.
 var version = "dev"
 
+var totalRequests int64
+var totalErrors int64
+var globalApiConfig *ApiConfig
+
+type statusRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rec *statusRecorder) WriteHeader(code int) {
+	rec.statusCode = code
+	rec.ResponseWriter.WriteHeader(code)
+}
+
+func (rec *statusRecorder) Flush() {
+	if flusher, ok := rec.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	if globalApiConfig != nil {
+		globalApiConfig.healthCheckHandler(w, r)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	uptime := time.Since(startTime).Truncate(time.Second).String()
-
 	response := map[string]string{
 		"status":  "ok",
 		"version": version,
-		"uptime":  uptime,
+		"uptime":  time.Since(startTime).Truncate(time.Second).String(),
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (cfg *ApiConfig) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	dbStart := time.Now()
+	var dbPingMs int64 = -1
+	dbCtx, dbCancel := context.WithTimeout(r.Context(), 2*time.Second)
+	if err := cfg.db.PingContext(dbCtx); err == nil {
+		dbPingMs = time.Since(dbStart).Milliseconds()
+	}
+	dbCancel()
+
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	memoryMb := float64(mem.HeapAlloc) / 1024.0 / 1024.0
+
+	uptimeSeconds := int64(time.Since(startTime).Seconds())
+	uptime := time.Since(startTime).Truncate(time.Second).String()
+
+	response := map[string]interface{}{
+		"status":         "ok",
+		"version":        version,
+		"uptime":         uptime,
+		"uptime_seconds": uptimeSeconds,
+		"db_ping_ms":     dbPingMs,
+		"goroutines":     runtime.NumGoroutine(),
+		"memory_mb":      memoryMb,
+		"requests_total": atomic.LoadInt64(&totalRequests),
+		"errors_total":   atomic.LoadInt64(&totalErrors),
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func handleMetrics(w http.ResponseWriter, r *http.Request) {
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	fmt.Fprintf(w, "# HELP vaultdrive_requests_total Total HTTP requests\n")
+	fmt.Fprintf(w, "vaultdrive_requests_total %d\n", atomic.LoadInt64(&totalRequests))
+	fmt.Fprintf(w, "# HELP vaultdrive_errors_total Total 5xx errors\n")
+	fmt.Fprintf(w, "vaultdrive_errors_total %d\n", atomic.LoadInt64(&totalErrors))
+	fmt.Fprintf(w, "# HELP vaultdrive_goroutines Current goroutine count\n")
+	fmt.Fprintf(w, "vaultdrive_goroutines %d\n", runtime.NumGoroutine())
+	fmt.Fprintf(w, "# HELP vaultdrive_memory_bytes Heap allocated bytes\n")
+	fmt.Fprintf(w, "vaultdrive_memory_bytes %d\n", mem.HeapAlloc)
 }
 
 func (cfg *ApiConfig) readinessCheckHandler(w http.ResponseWriter, r *http.Request) {

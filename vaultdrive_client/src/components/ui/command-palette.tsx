@@ -8,14 +8,22 @@ import {
   Home, 
   LogOut, 
   Search,
-  FolderOpen
+  FolderOpen,
+  File,
+  FileText,
+  Image as ImageIcon,
+  Film,
+  Archive
 } from "lucide-react";
 import { branding } from "../../config/branding";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFileSearch } from "../../hooks/useFileSearch";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const navigate = useNavigate();
+  const fileResults = useFileSearch(inputValue);
 
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
@@ -31,9 +39,11 @@ export function CommandPalette() {
   }, []);
 
   const runCommand = (command: () => void) => {
+    setInputValue("");
     setOpen(false);
     command();
   };
+
 
   return (
     <AnimatePresence>
@@ -68,6 +78,8 @@ export function CommandPalette() {
                 <Search className="mr-3 h-5 w-5 text-muted-foreground" />
                 <Command.Input
                   autoFocus
+                  value={inputValue}
+                  onValueChange={setInputValue}
                   placeholder={`Search ${branding.productName} or type a command...`}
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground"
                 />
@@ -78,6 +90,29 @@ export function CommandPalette() {
                 <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
                   No results found.
                 </Command.Empty>
+
+                {fileResults.length > 0 && (
+                  <Command.Group heading="Files" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                    {fileResults.map((file) => (
+                      <Command.Item
+                        key={file.id}
+                        value={`file-${file.id}-${file.filename}`}
+                        onSelect={() => runCommand(() => navigate("/files", { state: { highlightFileId: file.id } }))}
+                        className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                      >
+                        <FileTypeIcon filename={file.filename} className="mr-3 h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium truncate">{file.filename}</span>
+                          {file.folder_name && (
+                            <span className="text-[10px] text-muted-foreground">
+                              in {file.folder_name}
+                            </span>
+                          )}
+                        </div>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                )}
 
                 <Command.Group heading="Navigation" className="px-2 text-xs font-medium py-2 text-muted-foreground">
                   <Command.Item
@@ -138,4 +173,17 @@ export function CommandPalette() {
       )}
     </AnimatePresence>
   );
+}
+
+function FileTypeIcon({ filename, className }: { filename: string; className?: string }) {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext))
+    return <ImageIcon className={className} />;
+  if (["mp4", "mov", "avi", "mkv"].includes(ext))
+    return <Film className={className} />;
+  if (["pdf", "doc", "docx", "txt", "md"].includes(ext))
+    return <FileText className={className} />;
+  if (["zip", "tar", "gz", "rar"].includes(ext))
+    return <Archive className={className} />;
+  return <File className={className} />;
 }

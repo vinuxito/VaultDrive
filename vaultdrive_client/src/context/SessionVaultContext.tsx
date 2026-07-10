@@ -9,6 +9,7 @@ export interface CachedCredential {
 interface SessionVaultContextType {
   getPrivateKey: () => CryptoKey | null;
   setPrivateKey: (key: CryptoKey, rawPem?: string) => void;
+  getPrivateKeyPem: () => Promise<string | null>;
   getFileKey: (fileId: string) => CryptoKey | null;
   setFileKey: (fileId: string, key: CryptoKey) => void;
   getCredential: () => CachedCredential | null;
@@ -85,6 +86,16 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const getPrivateKeyPem = useCallback(async () => {
+    const cached = sessionStorage.getItem("vault_cached_private_key");
+    if (!cached) return null;
+    try {
+      return await decryptData(cached, EPHEMERAL_KEY);
+    } catch {
+      return null;
+    }
+  }, []);
+
   const getFileKey = useCallback((fileId: string) => fileKeyMap.current.get(fileId) ?? null, []);
   const setFileKey = useCallback((fileId: string, key: CryptoKey) => {
     fileKeyMap.current.set(fileId, key);
@@ -144,6 +155,7 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
       value={{
         getPrivateKey,
         setPrivateKey,
+        getPrivateKeyPem,
         getFileKey,
         setFileKey,
         getCredential,

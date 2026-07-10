@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import { API_URL } from "../utils/api";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import { StatusPanel } from "../components/dashboard/StatusPanel";
 import {
   FolderOpen,
   Link2,
@@ -300,6 +301,8 @@ export default function Dashboard() {
                 ))}
           </div>
         </section>
+
+        <StatusPanel />
 
         <section>
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">

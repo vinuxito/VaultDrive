@@ -781,3 +781,82 @@ export async function decryptPrivateKeyWithPIN(pin: string, encryptedHex: string
   );
   return new TextDecoder().decode(decrypted);
 }
+
+export async function importRSAPSSPrivateKey(pem: string): Promise<CryptoKey> {
+  const pemHeader = "-----BEGIN PRIVATE KEY-----";
+  const pemFooter = "-----END PRIVATE KEY-----";
+  const pemContents = pem
+    .replace(pemHeader, "")
+    .replace(pemFooter, "")
+    .replace(/\s+/g, "");
+  const binaryDerString = atob(pemContents);
+  const binaryDer = new Uint8Array(binaryDerString.length);
+  for (let i = 0; i < binaryDerString.length; i++) {
+    binaryDer[i] = binaryDerString.charCodeAt(i);
+  }
+  return window.crypto.subtle.importKey(
+    "pkcs8",
+    binaryDer.buffer,
+    { name: "RSA-PSS", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+}
+
+export async function importRSAPSSPublicKey(pem: string): Promise<CryptoKey> {
+  const pemHeader = "-----BEGIN PUBLIC KEY-----";
+  const pemFooter = "-----END PUBLIC KEY-----";
+  const pemContents = pem
+    .replace(pemHeader, "")
+    .replace(pemFooter, "")
+    .replace(/\s+/g, "");
+  const binaryDerString = atob(pemContents);
+  const binaryDer = new Uint8Array(binaryDerString.length);
+  for (let i = 0; i < binaryDerString.length; i++) {
+    binaryDer[i] = binaryDerString.charCodeAt(i);
+  }
+  return window.crypto.subtle.importKey(
+    "spki",
+    binaryDer.buffer,
+    { name: "RSA-PSS", hash: "SHA-256" },
+    false,
+    ["verify"]
+  );
+}
+
+export async function signWithRSAPSS(
+  privateKey: CryptoKey,
+  data: ArrayBuffer
+): Promise<string> {
+  const signature = await window.crypto.subtle.sign(
+    {
+      name: "RSA-PSS",
+      saltLength: 32,
+    },
+    privateKey,
+    data
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+export async function verifyWithRSAPSS(
+  publicKey: CryptoKey,
+  signatureB64: string,
+  data: ArrayBuffer
+): Promise<boolean> {
+  try {
+    const signatureBytes = Uint8Array.from(atob(signatureB64), (c) => c.charCodeAt(0));
+    return await window.crypto.subtle.verify(
+      {
+        name: "RSA-PSS",
+        saltLength: 32,
+      },
+      publicKey,
+      signatureBytes,
+      data
+    );
+  } catch {
+    return false;
+  }
+}
+

@@ -7,14 +7,11 @@ import { TrustRail } from "./TrustRail";
 import { FileSecurityTimeline } from "./FileSecurityTimeline";
 import { branding } from "../../config/branding";
 import {
-  unwrapKey,
-  hexToBytes,
   decryptPrivateKeyWithPIN,
-  importRSAPrivateKey,
-  unwrapKeyWithRSA,
-  decryptFile,
-  base64ToArrayBuffer,
-  deriveKeyFromPassword,
+  importRSAPSSPrivateKey,
+  importRSAPSSPublicKey,
+  signWithRSAPSS,
+  verifyWithRSAPSS,
 } from "../../utils/crypto";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 
@@ -32,59 +29,7 @@ interface FilePreviewModalProps {
   onDownload: () => void;
 }
 
-async function fetchAndDecryptBlob(
-  file: FileEntry,
-  credential: string,
-  vaultKey: CryptoKey | null
-): Promise<Blob> {
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${API_URL}/files/${file.id}/download`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error("Failed to download file");
 
-  const metaStr = response.headers.get("X-File-Metadata") ?? file.metadata;
-  const metaObj: { iv?: string; salt?: string } = JSON.parse(metaStr);
-  if (!metaObj.iv) throw new Error("Missing encryption IV");
-
-  const iv = new Uint8Array(base64ToArrayBuffer(metaObj.iv));
-  const isDropUpload = !metaObj.salt || metaObj.salt === "";
-  const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
-  let encryptionKey: CryptoKey;
-
-  if (isDropUpload && file.pin_wrapped_key) {
-    const rawKey = await unwrapKey(credential, file.pin_wrapped_key);
-    const keyBytes = hexToBytes(rawKey);
-    encryptionKey = await crypto.subtle.importKey(
-      "raw",
-      new Uint8Array(keyBytes),
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"]
-    );
-  } else if (wrappedKeyB64 && file.is_owner === false) {
-    let rsaKey: CryptoKey;
-    if (vaultKey) {
-      rsaKey = vaultKey;
-    } else {
-      const userObj = getStoredUserFromLocalStorage();
-      const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
-      if (!pinEncrypted) throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings.");
-      const pem = await decryptPrivateKeyWithPIN(credential, pinEncrypted);
-      rsaKey = await importRSAPrivateKey(pem);
-    }
-    encryptionKey = await unwrapKeyWithRSA(rsaKey, wrappedKeyB64);
-  } else {
-    if (!metaObj.salt) throw new Error("Missing encryption salt");
-    const salt = new Uint8Array(base64ToArrayBuffer(metaObj.salt));
-    encryptionKey = await deriveKeyFromPassword(credential, salt, 100000);
-  }
-
-  const encryptedBlob = await response.blob();
-  const encryptedData = await encryptedBlob.arrayBuffer();
-  const decryptedData = await decryptFile(encryptedData, encryptionKey, iv);
-  return new Blob([decryptedData]);
-}
 
 function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
   const currentUser = getStoredUserFromLocalStorage() ?? {};
@@ -95,7 +40,7 @@ function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
-  const { getPrivateKey, getCredential, setCredential: cacheCredential } = useSessionVault();
+  const { getPrivateKey, getPrivateKeyPem, getCredential, setCredential: cacheCredential } = useSessionVault();
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -106,13 +51,109 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const [credential, setCredential] = useState("");
   const [showCredentialPrompt, setShowCredentialPrompt] = useState(false);
 
+  const [signatureB64, setSignatureB64] = useState<string | null>(null);
+  const [isSignatureVerified, setIsSignatureVerified] = useState<boolean | null>(null);
+  const [isSigning, setIsSigning] = useState(false);
+
+  const checkSignature = useCallback(async (dataBuffer: ArrayBuffer) => {
+    if (!file) return;
+    const storedSig = localStorage.getItem(`signature_${file.id}`);
+    if (!storedSig) {
+      setSignatureB64(null);
+      setIsSignatureVerified(null);
+      return;
+    }
+    setSignatureB64(storedSig);
+    try {
+      const userObj = getStoredUserFromLocalStorage();
+      if (!userObj?.public_key) {
+        setIsSignatureVerified(false);
+        return;
+      }
+      const pubKey = await importRSAPSSPublicKey(userObj.public_key);
+      const verified = await verifyWithRSAPSS(pubKey, storedSig, dataBuffer);
+      setIsSignatureVerified(verified);
+    } catch {
+      setIsSignatureVerified(false);
+    }
+  }, [file]);
+
+  const handleSignFile = async () => {
+    if (!file || !decryptedBlob) return;
+    setIsSigning(true);
+    try {
+      let pem = await getPrivateKeyPem();
+      if (!pem) {
+        const userObj = getStoredUserFromLocalStorage();
+        const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
+        if (pinEncrypted) {
+          const cred = prompt("Please enter your PIN/Password to authorize digital signing:");
+          if (cred) {
+            pem = await decryptPrivateKeyWithPIN(cred, pinEncrypted);
+          }
+        }
+      }
+      if (!pem) throw new Error("Could not unlock private key for signing");
+      const pssPrivKey = await importRSAPSSPrivateKey(pem);
+      const buffer = await decryptedBlob.arrayBuffer();
+      const sig = await signWithRSAPSS(pssPrivKey, buffer);
+      localStorage.setItem(`signature_${file.id}`, sig);
+      setSignatureB64(sig);
+      setIsSignatureVerified(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Signing failed");
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
   const loadPreview = useCallback(async (cred: string): Promise<boolean> => {
     if (!file) return false;
     setIsLoading(true);
     setLoadError("");
     try {
-      const blob = await fetchAndDecryptBlob(file, cred, getPrivateKey());
+      let rawPrivateKeyPem: string | null = null;
+      if (file.is_owner === false && !file.pin_wrapped_key) {
+        rawPrivateKeyPem = await getPrivateKeyPem();
+        if (!rawPrivateKeyPem) {
+          const userObj = getStoredUserFromLocalStorage();
+          const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
+          if (pinEncrypted && cred) {
+            rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted);
+          }
+        }
+      }
+
+      const authToken = localStorage.getItem("token") ?? "";
+      const decryptedBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const worker = new Worker(
+          new URL("../../workers/preview.worker.ts", import.meta.url),
+          { type: "module" }
+        );
+        worker.onmessage = (e) => {
+          if (e.data.success) {
+            resolve(e.data.decryptedBuffer);
+          } else {
+            reject(new Error(e.data.error || "Decryption failed"));
+          }
+          worker.terminate();
+        };
+        worker.onerror = (err) => {
+          reject(err);
+          worker.terminate();
+        };
+        worker.postMessage({
+          file,
+          credential: cred,
+          rawPrivateKeyPem,
+          authToken,
+          API_URL,
+        });
+      });
+
+      const blob = new Blob([decryptedBuffer]);
       setDecryptedBlob(blob);
+      await checkSignature(decryptedBuffer);
 
       const ext = file.filename.split(".").pop()?.toLowerCase() ?? "";
       const textTypes = ["txt", "md", "json", "csv", "xml", "html", "js", "ts", "py", "go", "sh"];
@@ -131,7 +172,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     } finally {
       setIsLoading(false);
     }
-  }, [file, getPrivateKey]);
+  }, [file, getPrivateKeyPem, checkSignature]);
 
   useEffect(() => {
     if (!file) return;
@@ -375,7 +416,74 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
             </div>
           )}
 
-          {!showCredentialPrompt && !isLoading && !loadError && renderPreview()}
+          {!showCredentialPrompt && !isLoading && !loadError && (
+            <>
+              {decryptedBlob && (
+                <div className="mb-5 rounded-2xl border border-white/10 bg-white/12 px-4 py-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-white">Zero-Knowledge RSA-PSS Signature</span>
+                    </div>
+                    {isSignatureVerified ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                        VERIFIED
+                      </span>
+                    ) : signatureB64 ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400">
+                        INVALID / ALTERED
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/60">
+                        UNSIGNED
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-white/75 space-y-2">
+                    {isSignatureVerified ? (
+                      <p>
+                        This decrypted content has been cryptographically signed locally using your RSA private key. The signature verification matches your public key 100% client-side, guaranteeing absolute document integrity and non-repudiation.
+                      </p>
+                    ) : signatureB64 ? (
+                      <p className="text-red-400">
+                        Warning: A digital signature was found but verification failed! The decrypted file data does not match the signature hash.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                        <p className="max-w-md">
+                          This file does not have a local digital signature. You can sign this file locally with your ZK private key to establish a mathematical proof of authenticity.
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={handleSignFile}
+                          disabled={isSigning}
+                          className="bg-white hover:bg-white/90 text-slate-900 shrink-0 self-start sm:self-center font-semibold"
+                        >
+                          {isSigning ? (
+                            <>
+                              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              Signing...
+                            </>
+                          ) : (
+                            "Sign File"
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {signatureB64 && (
+                    <div className="pt-2 border-t border-white/5">
+                      <p className="text-[10px] text-white/55 font-mono truncate">
+                        Signature: {signatureB64}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {renderPreview()}
+            </>
+          )}
         </div>
       </div>
     </div>

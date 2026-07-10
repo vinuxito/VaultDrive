@@ -21,6 +21,12 @@ import {
 } from "../utils/crypto";
 import { validateRegister } from "../utils/registerValidation";
 import { useTranslation } from "react-i18next";
+import {
+  hasRegisteredPasskey,
+  unlockWithPasskey,
+  getWebAuthnEmail,
+} from "../hooks/useWebAuthn";
+import { useEffect } from "react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -36,8 +42,38 @@ export default function Login() {
   const [error, setError] = useState("");
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginData, setLoginData] = useState({ email: getWebAuthnEmail() || "", password: "" });
   const [pinValue, setPinValue] = useState("");
+  const [biometricError, setBiometricError] = useState<string | null>(null);
+
+  const handleBiometricUnlock = async () => {
+    setBiometricError(null);
+    const email = loginData.email || getWebAuthnEmail();
+    if (!email) {
+      setBiometricError("Please enter your email first to use biometrics.");
+      return;
+    }
+    try {
+      const pin = await unlockWithPasskey(email);
+      setPinValue(pin);
+      await performLogin(email, pin, "pin");
+    } catch (e) {
+      setBiometricError(e instanceof Error ? e.message : "Biometric unlock failed");
+    }
+  };
+
+  useEffect(() => {
+    if (loginMode === "pin" && hasRegisteredPasskey()) {
+      const email = getWebAuthnEmail();
+      if (email) {
+        setLoginData((prev) => ({ ...prev, email }));
+        const timer = setTimeout(() => {
+          handleBiometricUnlock();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loginMode]);
 
   const [registerData, setRegisterData] = useState({
     first_name: "",
@@ -389,6 +425,23 @@ export default function Login() {
                     </button>
                   </p>
 
+                  {hasRegisteredPasskey() && (
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleBiometricUnlock}
+                        disabled={loading || lockoutSeconds > 0}
+                        className="w-full border-primary/40 bg-background text-primary hover:bg-muted flex items-center justify-center gap-2"
+                      >
+                        <Fingerprint className="h-4 w-4" />
+                        Unlock with Biometrics
+                      </Button>
+                      {biometricError && (
+                        <p className="text-xs text-red-400 mt-1 text-center">{biometricError}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
