@@ -24,6 +24,7 @@ interface FolderTreeProps {
   onShareFolder?: (folderId: string, name: string) => void;
   onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
+  onCollaborateFolder?: (folderId: string, name: string) => void;
 }
 
 function getActivePathIds(folders: Folder[], activeFolderId?: string | null): Set<string> {
@@ -61,6 +62,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   onShareFolder,
   onCollectUploadsForFolder,
   onManageShareFolder,
+  onCollaborateFolder,
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string> | null>(null);
 
@@ -146,6 +148,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         onShare={onShareFolder ? () => onShareFolder(node.id, node.name) : undefined}
         onCollectUploads={onCollectUploadsForFolder ? () => onCollectUploadsForFolder(node.id, node.name) : undefined}
         onManageShares={onManageShareFolder ? () => onManageShareFolder(node.id, node.name) : undefined}
+        onCollaborate={onCollaborateFolder ? () => onCollaborateFolder(node.id, node.name) : undefined}
       />
       {node.isExpanded && node.children.map((child) => renderFolderNode(child, level + 1))}
     </div>

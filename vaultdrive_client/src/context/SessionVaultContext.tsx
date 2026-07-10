@@ -12,6 +12,8 @@ interface SessionVaultContextType {
   getPrivateKeyPem: () => Promise<string | null>;
   getFileKey: (fileId: string) => CryptoKey | null;
   setFileKey: (fileId: string, key: CryptoKey) => void;
+  getFolderKey: (folderId: string) => CryptoKey | null;
+  setFolderKey: (folderId: string, key: CryptoKey) => void;
   getCredential: () => CachedCredential | null;
   setCredential: (value: string, type: "pin" | "password") => void;
   getAutoCredential: () => CachedCredential | null;
@@ -71,6 +73,7 @@ async function decryptData(encryptedB64: string, rawKey: string): Promise<string
 export function SessionVaultProvider({ children }: { children: ReactNode }) {
   const privateKeyRef = useRef<CryptoKey | null>(null);
   const fileKeyMap = useRef<Map<string, CryptoKey>>(new Map());
+  const folderKeyMap = useRef<Map<string, CryptoKey>>(new Map());
   const credentialRef = useRef<CachedCredential | null>(null);
 
   const getPrivateKey = useCallback(() => privateKeyRef.current, []);
@@ -101,6 +104,11 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
     fileKeyMap.current.set(fileId, key);
   }, []);
 
+  const getFolderKey = useCallback((folderId: string) => folderKeyMap.current.get(folderId) ?? null, []);
+  const setFolderKey = useCallback((folderId: string, key: CryptoKey) => {
+    folderKeyMap.current.set(folderId, key);
+  }, []);
+
   const getCredential = useCallback(() => credentialRef.current, []);
   
   const setCredential = useCallback((value: string, type: "pin" | "password") => {
@@ -119,6 +127,7 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
   const clearVault = useCallback(() => {
     privateKeyRef.current = null;
     fileKeyMap.current.clear();
+    folderKeyMap.current.clear();
     credentialRef.current = null;
     sessionStorage.removeItem("vault_cached_private_key");
     sessionStorage.removeItem("vault_cached_credential");
@@ -158,6 +167,8 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
         getPrivateKeyPem,
         getFileKey,
         setFileKey,
+        getFolderKey,
+        setFolderKey,
         getCredential,
         setCredential,
         getAutoCredential,

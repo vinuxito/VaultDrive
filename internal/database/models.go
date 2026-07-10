@@ -146,6 +146,15 @@ type Folder struct {
 	UpdatedAt time.Time
 }
 
+type FolderShare struct {
+	ID         uuid.UUID
+	FolderID   uuid.UUID
+	UserID     uuid.UUID
+	WrappedKey string
+	SharedBy   uuid.UUID
+	CreatedAt  time.Time
+}
+
 type FolderShareFileKey struct {
 	ID                uuid.UUID
 	FolderShareLinkID uuid.UUID

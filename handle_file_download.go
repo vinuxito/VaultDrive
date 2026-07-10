@@ -63,16 +63,46 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 		if dbFile.OwnerID.Valid && dbFile.OwnerID.UUID == userID {
 			hasAccess = true
 		} else {
-			groupWrappedKey, groupErr := cfg.dbQueries.GetGroupWrappedKeyForUser(r.Context(), database.GetGroupWrappedKeyForUserParams{
-				FileID: fileID,
-				UserID: userID,
-			})
-			if groupErr == nil {
-				hasAccess = true
-				wrappedKey = groupWrappedKey
-			} else if groupErr != sql.ErrNoRows {
-				respondWithError(w, http.StatusInternalServerError, "Error checking group file access", groupErr)
-				return
+			// Check if file is in a folder shared with the user
+			if dbFile.FolderID.Valid {
+				folder, folderErr := cfg.dbQueries.GetFolderByID(r.Context(), dbFile.FolderID.UUID)
+				if folderErr == nil {
+					hasFolderAccess := folder.OwnerID == userID
+					if !hasFolderAccess {
+						share, shareErr := cfg.dbQueries.GetFolderShare(r.Context(), database.GetFolderShareParams{
+							FolderID: dbFile.FolderID.UUID,
+							UserID:   userID,
+						})
+						if shareErr == nil && share.UserID == userID {
+							hasFolderAccess = true
+						}
+					}
+					if hasFolderAccess {
+						hasAccess = true
+						// Retrieve the folder-wrapped key
+						folderKey, fkErr := cfg.dbQueries.GetFileAccessKey(r.Context(), database.GetFileAccessKeyParams{
+							FileID: uuid.NullUUID{UUID: fileID, Valid: true},
+							UserID: uuid.NullUUID{UUID: dbFile.FolderID.UUID, Valid: true},
+						})
+						if fkErr == nil {
+							wrappedKey = folderKey.WrappedKey
+						}
+					}
+				}
+			}
+
+			if !hasAccess {
+				groupWrappedKey, groupErr := cfg.dbQueries.GetGroupWrappedKeyForUser(r.Context(), database.GetGroupWrappedKeyForUserParams{
+					FileID: fileID,
+					UserID: userID,
+				})
+				if groupErr == nil {
+					hasAccess = true
+					wrappedKey = groupWrappedKey
+				} else if groupErr != sql.ErrNoRows {
+					respondWithError(w, http.StatusInternalServerError, "Error checking group file access", groupErr)
+					return
+				}
 			}
 		}
 	} else {

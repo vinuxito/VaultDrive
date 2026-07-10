@@ -18,6 +18,7 @@ export interface BulkDownloadFile {
   metadata: string;
   pin_wrapped_key?: string | null;
   is_owner?: boolean;
+  folder_id?: string | null;
 }
 
 type FileStatus = "pending" | "downloading" | "done" | "error";

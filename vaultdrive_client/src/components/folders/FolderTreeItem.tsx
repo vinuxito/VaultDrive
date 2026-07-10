@@ -12,6 +12,7 @@ import {
   Share2,
   Link2,
   Upload,
+  Users,
 } from "lucide-react";
 import type { FolderNode } from "./FolderTree";
 
@@ -29,6 +30,7 @@ interface FolderTreeItemProps {
   onShare?: () => void;
   onCollectUploads?: () => void;
   onManageShares?: () => void;
+  onCollaborate?: () => void;
 }
 
 export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
@@ -45,6 +47,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   onShare,
   onCollectUploads,
   onManageShares,
+  onCollaborate,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
 
@@ -187,6 +190,19 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                   >
                     <Link2 className="w-4 h-4" />
                     Manage Shared Links
+                  </button>
+                )}
+                {onCollaborate && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCollaborate();
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                  >
+                    <Users className="w-4 h-4" />
+                    Collaborators
                   </button>
                 )}
                 <button

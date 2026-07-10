@@ -23,6 +23,7 @@ import {
   Menu,
   CheckCircle2,
   FolderOpen,
+  Folder as FolderIcon,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_URL, BASE_PATH } from "../utils/api";
@@ -38,6 +39,9 @@ import {
   decryptPrivateKeyWithPIN,
   importRSAPrivateKey,
   unwrapKeyWithRSA,
+  wrapKeyWithAES,
+  unwrapKeyWithAES,
+  generateFileKey,
   type CryptoEvent,
 } from "../utils/crypto";
 import ShareModal from "../components/share-modal";
@@ -45,6 +49,7 @@ import { CreateShareLinkModal } from "../components/vault/CreateShareLinkModal";
 import { CreateFolderShareLinkModal } from "../components/vault/CreateFolderShareLinkModal";
 import { AccessPanel } from "../components/vault/AccessPanel";
 import FolderModal from "../components/folders/FolderModal";
+import { FolderCollaboratorsModal } from "../components/folders/FolderCollaboratorsModal";
 import DeleteFolderModal from "../components/folders/DeleteFolderModal";
 import { MoveFileModal } from "../components/files/MoveFileModal";
 import {
@@ -136,15 +141,15 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-function getFileCredentialScheme(file: { pin_wrapped_key?: string | null; metadata?: string; is_owner?: boolean }): "drop-pin" | "pin" | "password" {
+function getFileCredentialScheme(file: { pin_wrapped_key?: string | null; metadata?: string; is_owner?: boolean }): "drop-pin" | "pin" | "password" | "folder" {
   if (file.pin_wrapped_key) return "drop-pin";
-  if (!file.is_owner) return "pin";
-  if (!file.metadata) return "password";
+  if (!file.metadata) return !file.is_owner ? "pin" : "password";
   try {
     const meta = JSON.parse(file.metadata) as { credential_scheme?: string };
+    if (meta.credential_scheme === "folder") return "folder";
     return meta.credential_scheme === "pin" ? "pin" : "password";
   } catch {
-    return "password";
+    return !file.is_owner ? "pin" : "password";
   }
 }
 
@@ -249,13 +254,14 @@ export default function Files() {
 
   const [encryptionPassword, setEncryptionPassword] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordAction, setPasswordAction] = useState<"upload" | "download" | "drop-upload" | null>(null);
+  const [passwordAction, setPasswordAction] = useState<"upload" | "download" | "drop-upload" | "decrypt-folder" | null>(null);
   const [pendingDownload, setPendingDownload] = useState<{
     fileId: string;
     filename: string;
     metadata: string;
     pin_wrapped_key?: string;
     is_owner?: boolean;
+    folder_id?: string | null;
   } | null>(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -323,11 +329,27 @@ export default function Files() {
 
   const [showFolderShareModal, setShowFolderShareModal] = useState(false);
   const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
+  const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false);
+  const [folderForCollaborators, setFolderForCollaborators] = useState<{ id: string; name: string } | null>(null);
   const [showCreateUploadLinkModal, setShowCreateUploadLinkModal] = useState(false);
   const [uploadLinkTargetFolder, setUploadLinkTargetFolder] = useState<{ id: string; name: string } | null>(null);
   const [folderSharePanelVersion, setFolderSharePanelVersion] = useState(0);
   const initialFolderShareSyncAttemptedRef = useRef(false);
   const [moveFolders, setMoveFolders] = useState<Folder[]>([]);
+
+  // Shared folders & key exchange state
+  interface SharedFolder {
+    id: string;
+    owner_id: string;
+    name: string;
+    parentId?: string;
+    wrapped_key: string;
+    shared_by: string;
+    shared_at: string;
+  }
+  const [sharedFolders, setSharedFolders] = useState<SharedFolder[]>([]);
+  const [sharedFolderFiles, setSharedFolderFiles] = useState<FileData[]>([]);
+  const [pendingSharedFolder, setPendingSharedFolder] = useState<SharedFolder | null>(null);
 
   const fetchFiles = useCallback(async () => {
     // SWR handles fetching automatically, but this function is kept for backward compatibility
@@ -344,6 +366,21 @@ export default function Files() {
       if (response.ok) {
         const data = await response.json();
         setSharedFiles(data || []);
+      }
+    } catch {
+      return;
+    }
+  }, []);
+
+  const fetchSharedFolders = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/folders/shared`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSharedFolders(data || []);
       }
     } catch {
       return;
@@ -449,9 +486,10 @@ export default function Files() {
     if (!token) { navigate("/login"); return; }
     fetchFiles();
     fetchSharedFiles();
+    fetchSharedFolders();
     fetchFolders();
     fetchDropTokens();
-  }, [navigate, fetchFiles, fetchSharedFiles, fetchFolders, fetchDropTokens]);
+  }, [navigate, fetchFiles, fetchSharedFiles, fetchSharedFolders, fetchFolders, fetchDropTokens]);
 
   useEffect(() => {
     if (initialFolderShareSyncAttemptedRef.current) {
@@ -473,6 +511,51 @@ export default function Files() {
       fetchDropLinkFiles(selectedNode.token);
     }
   }, [selectedNode, fetchDropLinkFiles]);
+
+  useEffect(() => {
+    if (selectedNode.type !== "folder") return;
+    const sharedFolder = sharedFolders.find(f => f.id === selectedNode.folderId);
+    if (!sharedFolder) return;
+
+    let active = true;
+
+    const initFolder = async () => {
+      const cachedKey = sessionVault.getFolderKey(sharedFolder.id);
+      if (!cachedKey) {
+        const privateKey = sessionVault.getPrivateKey();
+        if (privateKey) {
+          try {
+            const folderKey = await unwrapKeyWithRSA(privateKey, sharedFolder.wrapped_key);
+            sessionVault.setFolderKey(sharedFolder.id, folderKey);
+          } catch (err) {
+            console.error("Failed to decrypt folder key with private key:", err);
+          }
+        } else {
+          setPendingSharedFolder(sharedFolder);
+          setPasswordAction("decrypt-folder");
+          setShowPasswordModal(true);
+        }
+      }
+
+      // Fetch files
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_URL}/folders/${selectedNode.folderId}/files`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok && active) {
+          const data = await res.json();
+          setSharedFolderFiles(data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load shared folder files:", err);
+      }
+    };
+
+    void initFolder();
+
+    return () => { active = false; };
+  }, [selectedNode, sharedFolders, sessionVault]);
 
   useEffect(() => {
     const onDragEnter = (e: DragEvent) => {
@@ -577,11 +660,16 @@ export default function Files() {
         list = myFiles.filter((file) => file.starred);
         break;
       case "folder": {
-        const descendantIds = collectFolderDescendantIds(folders, selectedNode.folderId);
-        list = myFiles.filter((file) =>
-          (file.drop_folder_id && descendantIds.has(file.drop_folder_id)) ||
-          (file.folder_id && descendantIds.has(file.folder_id))
-        );
+        const isShared = sharedFolders.some((f) => f.id === selectedNode.folderId);
+        if (isShared) {
+          list = sharedFolderFiles;
+        } else {
+          const descendantIds = collectFolderDescendantIds(folders, selectedNode.folderId);
+          list = myFiles.filter((file) =>
+            (file.drop_folder_id && descendantIds.has(file.drop_folder_id)) ||
+            (file.folder_id && descendantIds.has(file.folder_id))
+          );
+        }
         break;
       }
       case "shared":
@@ -593,7 +681,7 @@ export default function Files() {
     }
 
     return applySort(applyTypeFilter(list));
-  }, [applySort, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles]);
+  }, [applySort, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles, sharedFolders, sharedFolderFiles]);
 
   const folderFileCounts = useMemo(() => getFolderFileCounts(myFiles), [myFiles]);
   const visibleFileIds = useMemo(() => getSelectableFileIds(visibleFiles), [visibleFiles]);
@@ -740,17 +828,47 @@ export default function Files() {
     setUploading(true);
     setError("");
     try {
-      const salt = generateSalt();
-      const encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
-      setCryptoEvent(null);
-      const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey, setCryptoEvent);
+      const isSharedFolder = selectedNode.type === "folder" && sharedFolders.some((f) => f.id === selectedNode.folderId);
+      let encryptedBlob: Blob;
+      let encryptionKey: CryptoKey;
+      let wrappedKeyStr = "";
+      let saltStr = "";
+      let ivStr = "";
+      let credentialSchemeStr = "";
+
+      if (isSharedFolder) {
+        const folderKey = sessionVault.getFolderKey(selectedNode.folderId);
+        if (!folderKey) {
+          throw new Error("Folder key not found. Please re-open the folder to unlock it.");
+        }
+        encryptionKey = await generateFileKey();
+        setCryptoEvent(null);
+        const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey, setCryptoEvent);
+        encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
+        wrappedKeyStr = await wrapKeyWithAES(folderKey, encryptionKey);
+        ivStr = arrayBufferToBase64(iv);
+        const salt = generateSalt();
+        saltStr = arrayBufferToBase64(salt);
+        credentialSchemeStr = "folder";
+      } else {
+        const salt = generateSalt();
+        encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
+        setCryptoEvent(null);
+        const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey, setCryptoEvent);
+        encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
+        wrappedKeyStr = arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv);
+        ivStr = arrayBufferToBase64(iv);
+        saltStr = arrayBufferToBase64(salt);
+        credentialSchemeStr = ownerUsesPin ? "pin" : "password";
+      }
+
       const formData = new FormData();
-      formData.append("file", new Blob([encryptedData], { type: "application/octet-stream" }), selectedFile.name);
-      formData.append("iv", arrayBufferToBase64(iv));
-      formData.append("salt", arrayBufferToBase64(salt));
+      formData.append("file", encryptedBlob, selectedFile.name);
+      formData.append("iv", ivStr);
+      formData.append("salt", saltStr);
       formData.append("algorithm", "AES-256-GCM");
-      formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
-      formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
+      formData.append("wrapped_key", wrappedKeyStr);
+      formData.append("credential_scheme", credentialSchemeStr);
       if (selectedNode.type === "folder") {
         formData.append("folder_id", selectedNode.folderId);
       }
@@ -793,23 +911,54 @@ export default function Files() {
     };
     try {
       updateTray(10, "uploading");
-      const salt = generateSalt();
-      const encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
-      updateTray(30, "uploading");
-      setCryptoEvent(null);
-      const { encryptedData, iv } = await encryptFile(file, encryptionKey, setCryptoEvent);
+      const targetFolderId = folderId || (selectedNode.type === "folder" ? selectedNode.folderId : null);
+      const isSharedFolder = targetFolderId ? sharedFolders.some((f) => f.id === targetFolderId) : false;
+
+      let encryptedBlob: Blob;
+      let encryptionKey: CryptoKey;
+      let wrappedKeyStr = "";
+      let saltStr = "";
+      let ivStr = "";
+      let credentialSchemeStr = "";
+
+      if (isSharedFolder && targetFolderId) {
+        const folderKey = sessionVault.getFolderKey(targetFolderId);
+        if (!folderKey) {
+          throw new Error("Folder key not found. Please re-open the folder to unlock it.");
+        }
+        encryptionKey = await generateFileKey();
+        updateTray(30, "uploading");
+        setCryptoEvent(null);
+        const { encryptedData, iv } = await encryptFile(file, encryptionKey, setCryptoEvent);
+        encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
+        wrappedKeyStr = await wrapKeyWithAES(folderKey, encryptionKey);
+        ivStr = arrayBufferToBase64(iv);
+        const salt = generateSalt();
+        saltStr = arrayBufferToBase64(salt);
+        credentialSchemeStr = "folder";
+      } else {
+        const salt = generateSalt();
+        encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
+        updateTray(30, "uploading");
+        setCryptoEvent(null);
+        const { encryptedData, iv } = await encryptFile(file, encryptionKey, setCryptoEvent);
+        encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
+        wrappedKeyStr = arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv);
+        ivStr = arrayBufferToBase64(iv);
+        saltStr = arrayBufferToBase64(salt);
+        credentialSchemeStr = ownerUsesPin ? "pin" : "password";
+      }
+
       updateTray(60, "uploading");
       const formData = new FormData();
-      formData.append("file", new Blob([encryptedData], { type: "application/octet-stream" }), file.name);
-      formData.append("iv", arrayBufferToBase64(iv));
-      formData.append("salt", arrayBufferToBase64(salt));
+      formData.append("file", encryptedBlob, file.name);
+      formData.append("iv", ivStr);
+      formData.append("salt", saltStr);
       formData.append("algorithm", "AES-256-GCM");
-      formData.append("wrapped_key", arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv));
-      formData.append("credential_scheme", ownerUsesPin ? "pin" : "password");
-      if (folderId) {
-        formData.append("folder_id", folderId);
-      } else if (selectedNode.type === "folder") {
-        formData.append("folder_id", selectedNode.folderId);
+      formData.append("wrapped_key", wrappedKeyStr);
+      formData.append("credential_scheme", credentialSchemeStr);
+      if (targetFolderId) {
+        formData.append("folder_id", targetFolderId);
       }
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/upload`, {
@@ -824,7 +973,8 @@ export default function Files() {
       }
       updateTray(100, "done");
       return true;
-    } catch {
+    } catch (err) {
+      console.error(err);
       updateTray(0, "error");
       return false;
     }
@@ -908,9 +1058,21 @@ export default function Files() {
       const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
       let encryptionKey: CryptoKey;
 
+      const credentialScheme = (metadataObj as any).credential_scheme;
       const cachedFileKey = sessionVault.getFileKey(file.id);
       if (cachedFileKey) {
         encryptionKey = cachedFileKey;
+      } else if (credentialScheme === "folder" && wrappedKeyB64) {
+        const folderId = file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null);
+        if (!folderId) {
+          throw new Error("Folder ID not specified for folder-wrapped file.");
+        }
+        const folderKey = sessionVault.getFolderKey(folderId);
+        if (!folderKey) {
+          throw new Error("Folder key not found. Please re-open the folder to unlock it.");
+        }
+        encryptionKey = await unwrapKeyWithAES(folderKey, wrappedKeyB64);
+        sessionVault.setFileKey(file.id, encryptionKey);
       } else if (isDropUpload && (file.pin_wrapped_key || wrappedKeyB64)) {
         const pinWrapped = file.pin_wrapped_key || wrappedKeyB64 || "";
         const rawKey = await unwrapKey(credential, pinWrapped);
@@ -974,16 +1136,20 @@ export default function Files() {
     filename: string,
     metadata: string,
     pin_wrapped_key?: string,
-    is_owner?: boolean
+    is_owner?: boolean,
+    folder_id?: string | null
   ) => {
     const cachedFileKey = sessionVault.getFileKey(fileId);
+    const scheme = getFileCredentialScheme({ pin_wrapped_key, metadata, is_owner });
+    const targetFolderId = folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null);
+
     if (cachedFileKey) {
       setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
       setDownloading(true);
       setError("");
       try {
         const result = await downloadFileWithCredential(
-          { id: fileId, filename, metadata, pin_wrapped_key, is_owner },
+          { id: fileId, filename, metadata, pin_wrapped_key, is_owner, folder_id: targetFolderId },
           ""
         );
         if (!result.success) setError(result.error ?? "Download failed");
@@ -993,15 +1159,16 @@ export default function Files() {
       }
       return;
     }
-    if (is_owner === false && !pin_wrapped_key) {
-      const sessionKey = sessionVault.getPrivateKey();
-      if (sessionKey) {
+
+    if (scheme === "folder" && targetFolderId) {
+      const folderKey = sessionVault.getFolderKey(targetFolderId);
+      if (folderKey) {
         setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
         setDownloading(true);
         setError("");
         try {
           const result = await downloadFileWithCredential(
-            { id: fileId, filename, metadata, pin_wrapped_key, is_owner },
+            { id: fileId, filename, metadata, pin_wrapped_key, is_owner, folder_id: targetFolderId },
             ""
           );
           if (!result.success) setError(result.error ?? "Download failed");
@@ -1012,15 +1179,35 @@ export default function Files() {
         return;
       }
     }
+
+    if (is_owner === false && !pin_wrapped_key && scheme !== "folder") {
+      const sessionKey = sessionVault.getPrivateKey();
+      if (sessionKey) {
+        setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
+        setDownloading(true);
+        setError("");
+        try {
+          const result = await downloadFileWithCredential(
+            { id: fileId, filename, metadata, pin_wrapped_key, is_owner, folder_id: targetFolderId },
+            ""
+          );
+          if (!result.success) setError(result.error ?? "Download failed");
+        } finally {
+          setDownloading(false);
+          setDownloadingFileIds((prev) => { const n = new Set(prev); n.delete(fileId); return n; });
+        }
+        return;
+      }
+    }
+
     const cached = sessionVault.getCredential();
-    const scheme = getFileCredentialScheme({ pin_wrapped_key, metadata, is_owner });
     if (cached && ((scheme !== "password" && cached.type === "pin") || (scheme === "password" && cached.type === "password"))) {
       setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
       setDownloading(true);
       setError("");
       try {
         const result = await downloadFileWithCredential(
-          { id: fileId, filename, metadata, pin_wrapped_key, is_owner },
+          { id: fileId, filename, metadata, pin_wrapped_key, is_owner, folder_id: targetFolderId },
           cached.value,
         );
         if (!result.success) setError(result.error ?? "Download failed");
@@ -1030,7 +1217,19 @@ export default function Files() {
       }
       return;
     }
-    setPendingDownload({ fileId, filename, metadata, pin_wrapped_key, is_owner });
+
+    // If folder key needs decryption, we will prompt using standard password modal
+    if (scheme === "folder" && targetFolderId) {
+      const sharedFolder = sharedFolders.find((f) => f.id === targetFolderId);
+      if (sharedFolder) {
+        setPendingSharedFolder(sharedFolder);
+        setPasswordAction("decrypt-folder");
+        setShowPasswordModal(true);
+        return;
+      }
+    }
+
+    setPendingDownload({ fileId, filename, metadata, pin_wrapped_key, is_owner, folder_id: targetFolderId });
     setPasswordAction("download");
     setShowPasswordModal(true);
   };
@@ -1050,6 +1249,7 @@ export default function Files() {
           metadata: pendingDownload.metadata,
           pin_wrapped_key: pendingDownload.pin_wrapped_key,
           is_owner: pendingDownload.is_owner,
+          folder_id: pendingDownload.folder_id,
         },
         password
       );
@@ -1337,6 +1537,11 @@ export default function Files() {
     setShowFolderShareModal(true);
   };
 
+  const handleManageCollaborators = (folderId: string, folderName: string) => {
+    setFolderForCollaborators({ id: folderId, name: folderName });
+    setShowCollaboratorsModal(true);
+  };
+
   const handleCreateUploadLinkForFolder = (folderId: string, folderName: string) => {
     setUploadLinkTargetFolder({ id: folderId, name: folderName });
     setShowCreateUploadLinkModal(true);
@@ -1474,6 +1679,30 @@ export default function Files() {
       setPasswordAction(null);
       await performDropUploads(password);
       return;
+    } else if (passwordAction === "decrypt-folder") {
+      if (currentUser?.private_key_pin_encrypted && pendingSharedFolder) {
+        try {
+          const privateKeyPem = await decryptPrivateKeyWithPIN(
+            password,
+            currentUser.private_key_pin_encrypted
+          );
+          const privateKey = await importRSAPrivateKey(privateKeyPem);
+          sessionVault.setPrivateKey(privateKey);
+          sessionVault.setCredential(password, ownerUsesPin ? "pin" : "password");
+
+          const folderKey = await unwrapKeyWithRSA(privateKey, pendingSharedFolder.wrapped_key);
+          sessionVault.setFolderKey(pendingSharedFolder.id, folderKey);
+
+          setShowPasswordModal(false);
+          setEncryptionPassword("");
+          setPasswordAction(null);
+          setPendingSharedFolder(null);
+          return;
+        } catch (err) {
+          setError("Failed to decrypt your private key. Please check your PIN/password.");
+          return;
+        }
+      }
     }
     if (success) {
       if (passwordAction === "upload") {
@@ -1557,6 +1786,7 @@ export default function Files() {
               onShareFolder={handleShareFolder}
               onCollectUploadsForFolder={handleCreateUploadLinkForFolder}
               onManageShareFolder={handleManageFolderShares}
+              onCollaborateFolder={handleManageCollaborators}
             />
           </aside>
 
@@ -1711,6 +1941,35 @@ export default function Files() {
               )}
 
 
+              {!isLoading && selectedNode.type === "shared" && sharedFolders.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+                    Shared Folders
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {sharedFolders.map((folder) => (
+                      <button
+                        key={folder.id}
+                        onClick={() => setSelectedNode({ type: "folder", folderId: folder.id, folderName: folder.name })}
+                        className="flex items-center gap-3 p-4 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40 hover:shadow-md transition-all text-left group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                          <FolderIcon className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-foreground truncate text-sm">
+                            {folder.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate mt-0.5">
+                            Shared by {folder.shared_by}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {!isLoading && visibleFiles.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
@@ -1718,7 +1977,7 @@ export default function Files() {
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">
                     {selectedNode.type === "starred" ? t("drive:vault.noStarred") :
-                     selectedNode.type === "shared" ? t("drive:vault.noShared") :
+                     selectedNode.type === "shared" ? (sharedFolders.length > 0 ? "No shared files in this view" : t("drive:vault.noShared")) :
                      t("drive:vault.noFiles")}
                   </p>
 
@@ -1739,7 +1998,7 @@ export default function Files() {
                   toggleSelectAllVisible={toggleSelectAllVisible}
                   allVisibleSelected={allVisibleSelected}
                   headerCheckboxRef={headerCheckboxRef}
-                  onDownload={(file) => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner)}
+                  onDownload={(file) => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id)}
                   onCreateShareLink={handleCreateShareLink}
                   onToggleStar={toggleStar}
                   onAccessPanel={setAccessPanelFile}
@@ -1843,7 +2102,7 @@ export default function Files() {
           file={previewFile}
           onClose={() => setPreviewFile(null)}
           onDownload={() => {
-            handleDownload(previewFile.id, previewFile.filename, previewFile.metadata, previewFile.pin_wrapped_key || undefined, previewFile.is_owner);
+            handleDownload(previewFile.id, previewFile.filename, previewFile.metadata, previewFile.pin_wrapped_key || undefined, previewFile.is_owner, previewFile.folder_id);
             setPreviewFile(null);
           }}
         />
@@ -2177,6 +2436,14 @@ export default function Files() {
           onCreated={() => setFolderSharePanelVersion((value) => value + 1)}
           onUseUploadLink={() => handleCreateUploadLinkForFolder(folderForShare.id, folderForShare.name)}
           folder={folderForShare}
+        />
+      )}
+      {showCollaboratorsModal && folderForCollaborators && (
+        <FolderCollaboratorsModal
+          isOpen={showCollaboratorsModal}
+          onClose={() => { setShowCollaboratorsModal(false); setFolderForCollaborators(null); }}
+          folderId={folderForCollaborators.id}
+          folderName={folderForCollaborators.name}
         />
       )}
       <CreateUploadLinkModal

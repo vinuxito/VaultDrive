@@ -104,6 +104,28 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		fid, parseErr := uuid.Parse(folderIDStr)
 		if parseErr == nil {
 			folderUUID = uuid.NullUUID{UUID: fid, Valid: true}
+			// Verify write permission to the folder
+			folder, err := cfg.dbQueries.GetFolderByID(r.Context(), fid)
+			if err != nil {
+				os.Remove(filePath)
+				respondWithError(w, http.StatusNotFound, "Folder not found", err)
+				return
+			}
+			hasFolderAccess := folder.OwnerID == ownerID
+			if !hasFolderAccess {
+				share, err := cfg.dbQueries.GetFolderShare(r.Context(), database.GetFolderShareParams{
+					FolderID: fid,
+					UserID:   ownerID,
+				})
+				if err == nil && share.UserID == ownerID {
+					hasFolderAccess = true
+				}
+			}
+			if !hasFolderAccess {
+				os.Remove(filePath)
+				respondWithError(w, http.StatusForbidden, "You do not have access to this folder", nil)
+				return
+			}
 		}
 	}
 
@@ -128,10 +150,15 @@ func (cfg *ApiConfig) handlerCreateFiles(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Save the wrapped key for the owner
+	// Save the wrapped key. If folder-wrapped, use folder ID as the UserID.
+	targetUserID := ownerID
+	if folderUUID.Valid && credentialScheme == "folder" {
+		targetUserID = folderUUID.UUID
+	}
+
 	_, err = cfg.dbQueries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
 		FileID:     uuid.NullUUID{UUID: dbfile.ID, Valid: true},
-		UserID:     uuid.NullUUID{UUID: ownerID, Valid: true},
+		UserID:     uuid.NullUUID{UUID: targetUserID, Valid: true},
 		WrappedKey: wrappedKey,
 	})
 

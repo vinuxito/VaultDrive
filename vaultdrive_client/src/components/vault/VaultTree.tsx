@@ -47,6 +47,7 @@ interface VaultTreeProps {
   onShareFolder?: (folderId: string, name: string) => void;
   onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
+  onCollaborateFolder?: (folderId: string, name: string) => void;
 }
 
 function isDropExpired(token: DropTokenInfo): boolean {
@@ -159,6 +160,7 @@ export function VaultTree({
   onShareFolder,
   onCollectUploadsForFolder,
   onManageShareFolder,
+  onCollaborateFolder,
 }: VaultTreeProps) {
   const [foldersOpen, setFoldersOpen] = useState(true);
   const [linksOpen, setLinksOpen] = useState(true);
@@ -243,6 +245,7 @@ export function VaultTree({
             onShareFolder={onShareFolder}
             onCollectUploadsForFolder={onCollectUploadsForFolder}
             onManageShareFolder={onManageShareFolder}
+            onCollaborateFolder={onCollaborateFolder}
           />
         </div>
       )}

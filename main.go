@@ -176,6 +176,13 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1DeleteFolder)))
 
+	// Folder sharing endpoints
+	mux.Handle("POST /api/folders/{id}/shares", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleCreateFolderShare)))
+	mux.Handle("GET /api/folders/{id}/shares", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleListFolderShares)))
+	mux.Handle("DELETE /api/folders/{id}/shares/{userId}", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleDeleteFolderShare)))
+	mux.Handle("GET /api/folders/shared", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleListSharedFolders)))
+	mux.Handle("GET /api/folders/{id}/files", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleListFolderFiles)))
+
 	mux.Handle("POST /api/drop/create", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateDropToken)))
 
 	mux.Handle("GET /api/drop/tokens", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListDropTokens)))

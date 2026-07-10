@@ -8,24 +8,24 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
-## Current Status (2026-07-10 — v9 Go Live in 24 Hours)
+## Current Status (2026-07-10 — v10 ZK Shared Folders & Key Exchange)
 
-**Production-ready.** All 7 steps of the "Go Live in 24 Hours" production readiness plan have been successfully implemented and verified. Both Go backend tests and Vite production client builds compile with zero warnings or errors.
+**Production-ready.** Zero-Knowledge Multi-User Shared Folders & Client-Side Key Exchange has been fully implemented, type-checked, and compiled with zero errors.
 
 | Check | Result |
 |-------|--------|
 | TypeScript typecheck | ✅ 0 errors |
-| Frontend production build | ✅ pass (built in 42s) |
+| Frontend production build | ✅ pass (built in 36s) |
 | Backend unit tests | ✅ pass |
 | Go metrics `/metrics` route | ✅ HTTP 200 |
 | Go health `/healthz` route | ✅ HTTP 200 |
 
 **Latest Session Memory:**
+- v10 ZK Shared Folders & Key Exchange (2026-07-10): [docs/memories/SESSION_MEMORY_2026-07-10-zk-shared-folders.md](docs/memories/SESSION_MEMORY_2026-07-10-zk-shared-folders.md)
 - v9 Go Live in 24 Hours (2026-07-10): [docs/memories/v9_go_live.md](docs/memories/v9_go_live.md)
-- Skin Contrast & Legibility Pass (2026-06-24): [docs/memories/session-2026-06-24-skin-contrast-legibility-verification.md](docs/memories/session-2026-06-24-skin-contrast-legibility-verification.md)
 
 **Latest Verification Reports:**
-- Production Verification Report: [verification_report.html](verification_report.html)
+- Production Verification Report: [docs/verification_report.html](docs/verification_report.html)
 - HTML QA Feature Coverage Report (Necio Certified): [docs/reports/2026-06-24-qa-feature-coverage-report.html](docs/reports/2026-06-24-qa-feature-coverage-report.html)
 
 **Dual overall verdict (2026-07-10):**
