@@ -1,4 +1,5 @@
 // preview.worker.ts — off-thread decryption for previewing files
+import { mapDownloadHttpError } from "../utils/download-error";
 
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binaryString = atob(base64);
@@ -110,13 +111,22 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array, iterati
 
 self.onmessage = async (e: MessageEvent) => {
   const { file, credential, rawPrivateKeyPem, authToken, API_URL } = e.data;
+  let failureKind: "credential" | "auth" | "storage" | "metadata" | "unknown" = "storage";
   try {
     // 1. Fetch encrypted file
     const response = await fetch(`${API_URL}/files/${file.id}/download`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-    if (!response.ok) throw new Error("Failed to download file from controller");
+    if (!response.ok) {
+      failureKind = response.status === 401
+        ? "auth"
+        : response.status >= 500
+          ? "storage"
+          : "unknown";
+      throw new Error(mapDownloadHttpError(response.status));
+    }
 
+    failureKind = "metadata";
     const metaStr = response.headers.get("X-File-Metadata") ?? file.metadata;
     const metaObj = JSON.parse(metaStr);
     if (!metaObj.iv) throw new Error("Missing encryption IV");
@@ -125,8 +135,11 @@ self.onmessage = async (e: MessageEvent) => {
     const isDropUpload = !metaObj.salt || metaObj.salt === "";
     const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
     let encryptionKey: CryptoKey;
+    let finalDecryptVerifiesCredential = false;
 
+    failureKind = "unknown";
     if (isDropUpload && file.pin_wrapped_key) {
+      failureKind = "credential";
       const rawKey = await unwrapKey(credential, file.pin_wrapped_key);
       const keyBytes = hexToBytes(rawKey);
       encryptionKey = await crypto.subtle.importKey(
@@ -136,16 +149,20 @@ self.onmessage = async (e: MessageEvent) => {
         false,
         ["decrypt"]
       );
+      failureKind = "unknown";
     } else if (wrappedKeyB64 && file.is_owner === false) {
       if (!rawPrivateKeyPem) throw new Error("Private key PEM required for decryption");
       const rsaKey = await importRSAPrivateKey(rawPrivateKeyPem);
       encryptionKey = await unwrapKeyWithRSA(rsaKey, wrappedKeyB64);
     } else {
       if (!metaObj.salt) throw new Error("Missing encryption salt");
+      finalDecryptVerifiesCredential = true;
+      failureKind = "credential";
       const salt = new Uint8Array(base64ToArrayBuffer(metaObj.salt));
       encryptionKey = await deriveKeyFromPassword(credential, salt, 100000);
     }
 
+    failureKind = finalDecryptVerifiesCredential ? "credential" : "unknown";
     const encryptedBlob = await response.blob();
     const encryptedData = await encryptedBlob.arrayBuffer();
     const decryptedData = await decryptFile(encryptedData, encryptionKey, iv);
@@ -159,6 +176,7 @@ self.onmessage = async (e: MessageEvent) => {
     self.postMessage({
       success: false,
       error: err instanceof Error ? err.message : "Decryption failed",
+      failureKind,
     });
   }
 };

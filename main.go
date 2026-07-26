@@ -8,14 +8,14 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"runtime"
+	"strings"
 	"sync/atomic"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 type ApiConfig struct {
@@ -142,7 +142,6 @@ func main() {
 	// Auth token lifecycle
 	mux.HandleFunc("POST /api/auth/refresh", apiConfig.handlerRefreshToken)
 	mux.HandleFunc("POST /api/auth/revoke", apiConfig.handlerRevokeRefreshToken)
-
 
 	mux.Handle("GET /api/user-by-username",
 		apiConfig.middlewareMetricsInc(
@@ -356,7 +355,6 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			http.HandlerFunc(apiConfig.handlerResetRecoveryPassword)))
 
-
 	// Folder share (public, no auth)
 	mux.HandleFunc("GET /api/folder-share/{token}/info", apiConfig.handlerGetFolderShareInfo)
 	mux.HandleFunc("GET /api/folder-share/{token}/keys", apiConfig.handlerGetFolderShareKeys)
@@ -522,7 +520,7 @@ func main() {
 	// Handles any non-API route that doesn't match a file. The base path
 	// comes from ProductConfig so deployments can serve under any prefix
 	// (e.g. "/quantix/") via PRODUCT_BASE_PATH.
-	basePath := productCfg.BasePath                // e.g. "/quantix/"
+	basePath := productCfg.BasePath                 // e.g. "/quantix/"
 	basePathNoSlash := productCfg.BasePathTrimmed() // e.g. "/quantix"
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
@@ -698,6 +696,7 @@ func (cfg *ApiConfig) readinessCheckHandler(w http.ResponseWriter, r *http.Reque
 
 	diagnostics := make(map[string]interface{})
 	ready := true
+	databaseReady := true
 
 	// 1. DB connection check
 	dbCtx, dbCancel := context.WithTimeout(r.Context(), 3*time.Second)
@@ -705,6 +704,7 @@ func (cfg *ApiConfig) readinessCheckHandler(w http.ResponseWriter, r *http.Reque
 
 	if err := cfg.db.PingContext(dbCtx); err != nil {
 		ready = false
+		databaseReady = false
 		diagnostics["database"] = fmt.Sprintf("disconnected: %v", err)
 	} else {
 		diagnostics["database"] = "ok"
@@ -740,7 +740,49 @@ func (cfg *ApiConfig) readinessCheckHandler(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	// 4. Secrets check
+	// 4. Stored corpus check. A writable empty directory is not sufficient:
+	// every database-referenced ciphertext must be visible and non-empty.
+	if databaseReady {
+		rows, queryErr := cfg.db.QueryContext(dbCtx, "SELECT file_path FROM files")
+		if queryErr != nil {
+			ready = false
+			diagnostics["stored_files"] = fmt.Sprintf("query failed: %v", queryErr)
+		} else {
+			var paths []string
+			for rows.Next() {
+				var path string
+				if scanErr := rows.Scan(&path); scanErr != nil {
+					queryErr = scanErr
+					break
+				}
+				paths = append(paths, path)
+			}
+			if rowsErr := rows.Err(); rowsErr != nil {
+				queryErr = rowsErr
+			}
+			rows.Close()
+
+			if queryErr != nil {
+				ready = false
+				diagnostics["stored_files"] = fmt.Sprintf("scan failed: %v", queryErr)
+			} else {
+				check := checkStoredFilePaths(paths)
+				if check.Missing > 0 || check.Empty > 0 || check.Invalid > 0 {
+					ready = false
+					diagnostics["stored_files"] = fmt.Sprintf(
+						"unavailable (total=%d available=%d missing=%d empty=%d invalid=%d)",
+						check.Total, check.Available, check.Missing, check.Empty, check.Invalid,
+					)
+				} else {
+					diagnostics["stored_files"] = fmt.Sprintf("ok (files: %d)", check.Available)
+				}
+			}
+		}
+	} else {
+		diagnostics["stored_files"] = "not checked: database disconnected"
+	}
+
+	// 5. Secrets check
 	jwtSecret := os.Getenv("JWT_SECRET")
 	dbUrl := os.Getenv("DB_URL")
 	if jwtSecret == "" || dbUrl == "" {

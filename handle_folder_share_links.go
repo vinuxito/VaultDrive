@@ -11,8 +11,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 // --- Response types ---
@@ -787,7 +787,12 @@ func (cfg *ApiConfig) handlerGetFolderShareFile(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	file, err := os.Open(dbFile.FilePath)
+	storagePath, err := resolveStoredFilePath(dbFile.FilePath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Stored file path is invalid", err)
+		return
+	}
+	file, err := os.Open(storagePath)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not read file from disk", err)
 		return

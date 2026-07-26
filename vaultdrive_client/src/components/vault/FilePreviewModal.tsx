@@ -40,7 +40,13 @@ function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
-  const { getPrivateKey, getPrivateKeyPem, getCredential, setCredential: cacheCredential } = useSessionVault();
+  const {
+    getPrivateKey,
+    getPrivateKeyPem,
+    getCredential,
+    setCredential: cacheCredential,
+    clearCredential,
+  } = useSessionVault();
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -107,8 +113,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     }
   };
 
-  const loadPreview = useCallback(async (cred: string): Promise<boolean> => {
-    if (!file) return false;
+  const loadPreview = useCallback(async (
+    cred: string,
+  ): Promise<{ success: boolean; failureKind?: string }> => {
+    if (!file) return { success: false, failureKind: "unknown" };
+    let localFailureKind = "unknown";
     setIsLoading(true);
     setLoadError("");
     try {
@@ -119,6 +128,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           const userObj = getStoredUserFromLocalStorage();
           const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
           if (pinEncrypted && cred) {
+            localFailureKind = "credential";
             rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted);
           }
         }
@@ -134,7 +144,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           if (e.data.success) {
             resolve(e.data.decryptedBuffer);
           } else {
-            reject(new Error(e.data.error || "Decryption failed"));
+            const failure = new Error(e.data.error || "Decryption failed") as Error & {
+              failureKind?: string;
+            };
+            failure.failureKind = e.data.failureKind;
+            reject(failure);
           }
           worker.terminate();
         };
@@ -165,10 +179,15 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         const url = URL.createObjectURL(blob);
         setBlobUrl(url);
       }
-      return true;
+      return { success: true };
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to decrypt file");
-      return false;
+      return {
+        success: false,
+        failureKind: err instanceof Error && "failureKind" in err
+          ? String((err as Error & { failureKind?: string }).failureKind)
+          : localFailureKind,
+      };
     } finally {
       setIsLoading(false);
     }
@@ -192,12 +211,18 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       const credType = getCredentialType(file);
       if (cached && ((credType !== "password" && cached.type === "pin") || (credType === "password" && cached.type === "password"))) {
         setShowCredentialPrompt(false);
-        loadPreview(cached.value);
+        void loadPreview(cached.value).then((result) => {
+          if (!result.success && result.failureKind === "credential") {
+            clearCredential();
+            setCredential("");
+            setShowCredentialPrompt(true);
+          }
+        });
       } else {
         setShowCredentialPrompt(true);
       }
     }
-  }, [file, getPrivateKey, getCredential, loadPreview]);
+  }, [file, getPrivateKey, getCredential, loadPreview, clearCredential]);
 
   useEffect(() => {
     return () => {
@@ -209,9 +234,12 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     if (!credential) return;
     setShowCredentialPrompt(false);
     const ct = getCredentialType(file!);
-    const success = await loadPreview(credential);
-    if (success) {
+    const result = await loadPreview(credential);
+    if (result.success) {
       cacheCredential(credential, ct === "password" ? "password" : "pin");
+    } else if (result.failureKind === "credential") {
+      clearCredential();
+      setShowCredentialPrompt(true);
     }
   };
 

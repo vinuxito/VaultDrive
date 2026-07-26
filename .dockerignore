@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+.agents
+.codegraph
+.omx
+uploads
+abrndrive
+vaultdrive_client/node_modules
+vaultdrive_client/dist.bak.*
+vaultdrive_client/.omc
+docs
+**/*.log
+**/.DS_Store

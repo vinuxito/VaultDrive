@@ -7,9 +7,9 @@ import (
 
 	"io"
 
+	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request) {
@@ -122,8 +122,13 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 		println("No metadata found for file:", dbFile.ID.String())
 	}
 
-	// Open the file from disk
-	file, err := os.Open(dbFile.FilePath)
+	// Open the file from the configured storage root.
+	storagePath, err := resolveStoredFilePath(dbFile.FilePath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Stored file path is invalid", err)
+		return
+	}
+	file, err := os.Open(storagePath)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not read file from disk", err)
 		return

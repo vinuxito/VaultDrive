@@ -124,13 +124,7 @@ export default function Login() {
         throw new Error(data.error || "Login failed");
       }
 
-      clearVault();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
+      const storedUser = {
           id: data.id,
           username: data.username,
           email: data.email,
@@ -143,13 +137,22 @@ export default function Login() {
           private_key_pin_encrypted: data.private_key_pin_encrypted || null,
           public_key: data.public_key,
           kek_envelope_version: data.kekEnvelopeVersion || data.kek_envelope_version,
-        })
-      );
+      };
+      const persistAuthenticatedSession = () => {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("refresh_token", data.refresh_token);
+        localStorage.setItem("user", JSON.stringify(storedUser));
+        window.dispatchEvent(new Event("auth-change"));
+      };
 
-      window.dispatchEvent(new Event("auth-change"));
+      clearVault();
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
 
       // Force password change gate — no vault access until password is changed
       if (data.force_password_change) {
+        persistAuthenticatedSession();
         navigate("/force-password-change", { replace: true });
         return;
       }
@@ -170,11 +173,20 @@ export default function Login() {
           setPrivateKey(cryptoKey, pem);
           setCredential(passwordOrPin, "pin");
           localStorage.setItem(`${branding.productSlug}_pin_hint`, "1");
+        } else {
+          throw new Error("No encrypted private key is available for this login method.");
         }
-      } catch (_pinError) {
-        void _pinError;
+      } catch {
+        clearVault();
+        localStorage.removeItem("token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        throw new Error(
+          "Unable to unlock your encrypted vault. Check your credential and sign in again.",
+        );
       }
 
+      persistAuthenticatedSession();
       navigate(data.pin_set ? "/" : "/files");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

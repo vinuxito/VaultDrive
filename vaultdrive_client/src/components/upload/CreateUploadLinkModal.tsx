@@ -37,7 +37,7 @@ export function CreateUploadLinkModal({
 }: CreateUploadLinkModalProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const { getCredential, setCredential } = useSessionVault();
+  const { getCredential } = useSessionVault();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState("");
   const [expiresIn, setExpiresIn] = useState("7");
@@ -199,7 +199,6 @@ export function CreateUploadLinkModal({
       }
 
       const data = await response.json();
-      setCredential(activePin, "pin");
       setCreatedLink({ url: data.upload_url, pin: activePin });
       await onSuccess?.();
     } catch (err) {

@@ -6,6 +6,8 @@ import { ThemeProvider } from "./components/theme-provider";
 import { SWRConfig } from "swr";
 import { ToastProvider } from "./context/ToastContext";
 import "./i18n";
+import { branding } from "./config/branding";
+import { getDefaultSkinForProduct, getSkinStorageKey } from "./config/brand-theme";
 
 const fetcher = (url: string) => {
   const token = localStorage.getItem("token");
@@ -28,7 +30,10 @@ if ("serviceWorker" in navigator) {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultSkin="quantix" storageKey="quantixdrive-skin">
+    <ThemeProvider
+      defaultSkin={getDefaultSkinForProduct(branding.productSlug)}
+      storageKey={getSkinStorageKey(branding.productSlug)}
+    >
       <SWRConfig value={{ fetcher, keepPreviousData: true, errorRetryCount: 1 }}>
         <ToastProvider>
           <App />

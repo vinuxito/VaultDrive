@@ -10,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 type publicShareLinkResponse struct {
@@ -124,9 +124,9 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 	}
 	cfg.insertActivity(r.Context(), user.ID, "public_share_link_created", map[string]interface{}{
 		"file_id":       fileID.String(),
-		"filename":    dbFile.Filename,
+		"filename":      dbFile.Filename,
 		"share_link_id": link.ID.String(),
-		"expires_at":  expiresAt,
+		"expires_at":    expiresAt,
 	})
 	cfg.insertAudit(r.Context(), user.ID, "public_share_link.created", "public_share_link", &link.ID, map[string]interface{}{
 		"file_id":  fileID.String(),
@@ -200,16 +200,16 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *ht
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"filename":            dbFile.Filename,
-		"file_size":           dbFile.FileSize,
-		"expires_at":          expiresAt,
-		"is_expired":          false,
-		"is_locked":           isLocked,
-		"unlock_at":           unlockAt,
-		"max_downloads":       link.MaxDownloads,
-		"owner_display_name":  ownerDisplayName,
-		"owner_organization":  ownerOrg,
-		"access_count":        link.AccessCount,
+		"filename":           dbFile.Filename,
+		"file_size":          dbFile.FileSize,
+		"expires_at":         expiresAt,
+		"is_expired":         false,
+		"is_locked":          isLocked,
+		"unlock_at":          unlockAt,
+		"max_downloads":      link.MaxDownloads,
+		"owner_display_name": ownerDisplayName,
+		"owner_organization": ownerOrg,
+		"access_count":       link.AccessCount,
 	})
 }
 
@@ -261,7 +261,12 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 		return
 	}
 
-	file, err := os.Open(dbFile.FilePath)
+	storagePath, err := resolveStoredFilePath(dbFile.FilePath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Stored file path is invalid", err)
+		return
+	}
+	file, err := os.Open(storagePath)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not read file from disk", err)
 		return
@@ -298,7 +303,6 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 	}
 	cfg.insertAudit(r.Context(), link.OwnerID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
 }
-
 
 func (cfg *ApiConfig) handlerListPublicShareLinks(w http.ResponseWriter, r *http.Request, user database.User) {
 	fileIDStr := r.PathValue("fileId")

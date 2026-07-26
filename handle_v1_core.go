@@ -206,7 +206,12 @@ func (cfg *ApiConfig) handlerV1DownloadFile(w http.ResponseWriter, r *http.Reque
 		respondWithV1Error(w, r, http.StatusForbidden, "You do not have access to this file")
 		return
 	}
-	file, err := os.Open(dbFile.FilePath)
+	storagePath, err := resolveStoredFilePath(dbFile.FilePath)
+	if err != nil {
+		respondWithV1Error(w, r, http.StatusInternalServerError, "Stored file path is invalid")
+		return
+	}
+	file, err := os.Open(storagePath)
 	if err != nil {
 		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not read file from disk")
 		return

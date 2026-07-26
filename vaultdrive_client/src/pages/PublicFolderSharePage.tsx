@@ -38,6 +38,7 @@ import {
   findOwnedFolderShareLink,
   getFolderShareRepairLabel,
 } from "../utils/folder-share-repair";
+import { mapDownloadHttpError } from "../utils/download-error";
 
 type PageState = "loading" | "ready" | "downloading" | "done" | "expired" | "error";
 
@@ -415,21 +416,31 @@ export default function PublicFolderSharePage() {
         }
       }
       collectFiles(shareInfo.tree, "");
+      if (allFiles.length === 0) {
+        throw new Error("This shared folder does not contain any downloadable files.");
+      }
 
       setZipProgress({ current: 0, total: allFiles.length });
+      let addedFiles = 0;
 
       for (let i = 0; i < allFiles.length; i++) {
         const { file, path } = allFiles[i];
         const wrappedKey = wrappedKeys[file.id];
-        if (!wrappedKey) continue;
+        if (!wrappedKey) {
+          throw new Error(`Missing decryption key for ${file.filename}.`);
+        }
 
         const fileKey = await unwrapKeyWithAES(folderShareKey, wrappedKey);
 
         const response = await fetch(`${API_URL}/folder-share/${token}/file/${file.id}`);
-        if (!response.ok) continue;
+        if (!response.ok) {
+          throw new Error(`${file.filename}: ${mapDownloadHttpError(response.status)}`);
+        }
 
         const metadataHeader = response.headers.get("X-File-Metadata");
-        if (!metadataHeader) continue;
+        if (!metadataHeader) {
+          throw new Error(`Missing encryption metadata for ${file.filename}.`);
+        }
 
         const metadata = JSON.parse(metadataHeader) as { iv: string };
         const iv = new Uint8Array(base64ToArrayBuffer(metadata.iv));
@@ -438,7 +449,12 @@ export default function PublicFolderSharePage() {
         const decryptedData = await decryptFile(encryptedData, fileKey, iv);
 
         zip.file(path, decryptedData);
+        addedFiles++;
         setZipProgress({ current: i + 1, total: allFiles.length });
+      }
+
+      if (addedFiles !== allFiles.length) {
+        throw new Error(`ZIP creation stopped: added ${addedFiles} of ${allFiles.length} files.`);
       }
 
       const zipBlob = await zip.generateAsync({ type: "blob" });

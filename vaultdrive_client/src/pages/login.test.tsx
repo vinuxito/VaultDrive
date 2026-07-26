@@ -10,6 +10,11 @@ const sessionVaultMocks = vi.hoisted(() => ({
   setCredential: vi.fn(),
   clearVault: vi.fn(),
 }));
+const cryptoMocks = vi.hoisted(() => ({
+  decryptPrivateKeyWithPassword: vi.fn().mockResolvedValue("pem"),
+  decryptPrivateKeyWithPIN: vi.fn().mockResolvedValue("pem"),
+  importRSAPrivateKey: vi.fn().mockResolvedValue({ id: "rsa-key" }),
+}));
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => navigateMock,
@@ -25,14 +30,17 @@ vi.mock("../context/SessionVaultContext", () => ({
 }));
 
 vi.mock("../utils/crypto", () => ({
-  decryptPrivateKeyWithPassword: vi.fn().mockResolvedValue("pem"),
-  decryptPrivateKeyWithPIN: vi.fn().mockResolvedValue("pem"),
-  importRSAPrivateKey: vi.fn().mockResolvedValue({ id: "rsa-key" }),
+  decryptPrivateKeyWithPassword: cryptoMocks.decryptPrivateKeyWithPassword,
+  decryptPrivateKeyWithPIN: cryptoMocks.decryptPrivateKeyWithPIN,
+  importRSAPrivateKey: cryptoMocks.importRSAPrivateKey,
 }));
 
 describe("Login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    cryptoMocks.decryptPrivateKeyWithPassword.mockResolvedValue("pem");
+    cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("pem");
+    cryptoMocks.importRSAPrivateKey.mockResolvedValue({ id: "rsa-key" });
     localStorage.clear();
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(
@@ -74,5 +82,22 @@ describe("Login", () => {
 
     expect(localStorage.getItem("token")).toBe("token-1");
     expect(sessionVaultMocks.setCredential).toHaveBeenCalledWith("password123", "password");
+  });
+
+  it("does not create an authenticated session when vault unlock fails", async () => {
+    cryptoMocks.decryptPrivateKeyWithPassword.mockRejectedValueOnce(new Error("bad credential"));
+
+    render(<Login />);
+
+    await userEvent.type(screen.getByLabelText(/email/i), "owner@example.com");
+    await userEvent.type(screen.getByLabelText(/^password$/i), "wrong-password");
+    await userEvent.click(screen.getByRole("button", { name: /open/i }));
+
+    await screen.findByText(/unable to unlock your encrypted vault/i);
+    expect(navigateMock).not.toHaveBeenCalled();
+    expect(sessionVaultMocks.setCredential).not.toHaveBeenCalled();
+    expect(localStorage.getItem("token")).toBeNull();
+    expect(localStorage.getItem("refresh_token")).toBeNull();
+    expect(localStorage.getItem("user")).toBeNull();
   });
 });

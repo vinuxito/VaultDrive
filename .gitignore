@@ -1,6 +1,7 @@
 # Root-only env file (Go backend secrets). The vaultdrive_client/.env*
 # files are frontend branding config, not secrets, and are committed.
 /.env
+/.env.runtime
 
 # Go build output
 quantix-drive

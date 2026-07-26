@@ -16,11 +16,22 @@ interface SessionVaultContextType {
   setFolderKey: (folderId: string, key: CryptoKey) => void;
   getCredential: () => CachedCredential | null;
   setCredential: (value: string, type: "pin" | "password") => void;
+  clearCredential: () => void;
   getAutoCredential: () => CachedCredential | null;
   clearVault: () => void;
 }
 
 const SessionVaultContext = createContext<SessionVaultContextType | null>(null);
+
+export function parseCachedCredential(value: unknown): CachedCredential | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Partial<CachedCredential>;
+  if (candidate.type !== "pin" && candidate.type !== "password") return null;
+  if (typeof candidate.value !== "string") return null;
+  if (candidate.type === "pin" && !/^\d{4}$/.test(candidate.value)) return null;
+  if (candidate.type === "password" && candidate.value.trim().length === 0) return null;
+  return { value: candidate.value, type: candidate.type };
+}
 
 // Ephemeral page-load key generated synchronously once when JS module loads
 const EPHEMERAL_KEY = Array.from(
@@ -75,6 +86,7 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
   const fileKeyMap = useRef<Map<string, CryptoKey>>(new Map());
   const folderKeyMap = useRef<Map<string, CryptoKey>>(new Map());
   const credentialRef = useRef<CachedCredential | null>(null);
+  const credentialVersionRef = useRef(0);
 
   const getPrivateKey = useCallback(() => privateKeyRef.current, []);
   
@@ -110,15 +122,33 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const getCredential = useCallback(() => credentialRef.current, []);
-  
+
+  const clearCredential = useCallback(() => {
+    credentialVersionRef.current++;
+    credentialRef.current = null;
+    sessionStorage.removeItem("vault_cached_credential");
+  }, []);
+
   const setCredential = useCallback((value: string, type: "pin" | "password") => {
-    credentialRef.current = { value, type };
-    encryptData(JSON.stringify({ value, type }), EPHEMERAL_KEY)
+    const credential = parseCachedCredential({ value, type });
+    if (!credential) {
+      clearCredential();
+      return;
+    }
+    const credentialVersion = ++credentialVersionRef.current;
+    credentialRef.current = credential;
+    encryptData(JSON.stringify(credential), EPHEMERAL_KEY)
       .then((ciphertext) => {
-        sessionStorage.setItem("vault_cached_credential", ciphertext);
+        if (
+          credentialVersionRef.current === credentialVersion
+          && credentialRef.current?.value === credential.value
+          && credentialRef.current?.type === credential.type
+        ) {
+          sessionStorage.setItem("vault_cached_credential", ciphertext);
+        }
       })
       .catch((err) => console.error("Failed to cache credential in sessionStorage:", err));
-  }, []);
+  }, [clearCredential]);
 
   const getAutoCredential = useCallback(() => {
     return credentialRef.current;
@@ -128,6 +158,7 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
     privateKeyRef.current = null;
     fileKeyMap.current.clear();
     folderKeyMap.current.clear();
+    credentialVersionRef.current++;
     credentialRef.current = null;
     sessionStorage.removeItem("vault_cached_private_key");
     sessionStorage.removeItem("vault_cached_credential");
@@ -143,21 +174,37 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
           const cryptoKey = await importRSAPrivateKey(rawPem);
           privateKeyRef.current = cryptoKey;
         }
-      } catch (e) {
+      } catch {
         // Ephemeral key mismatch or empty storage, expected on reload/expired session
+        sessionStorage.removeItem("vault_cached_private_key");
       }
+      const storedCred = sessionStorage.getItem("vault_cached_credential");
+      const restoreVersion = credentialVersionRef.current;
       try {
-        const storedCred = sessionStorage.getItem("vault_cached_credential");
         if (storedCred) {
           const decryptedJson = await decryptData(storedCred, EPHEMERAL_KEY);
-          credentialRef.current = JSON.parse(decryptedJson);
+          const credential = parseCachedCredential(JSON.parse(decryptedJson));
+          if (!credential) throw new Error("Invalid cached credential");
+          if (
+            credentialVersionRef.current === restoreVersion
+            && credentialRef.current === null
+            && sessionStorage.getItem("vault_cached_credential") === storedCred
+          ) {
+            credentialRef.current = credential;
+          }
         }
-      } catch (e) {
+      } catch {
         // Ephemeral key mismatch or empty storage, expected on reload/expired session
+        if (
+          credentialVersionRef.current === restoreVersion
+          && sessionStorage.getItem("vault_cached_credential") === storedCred
+        ) {
+          clearCredential();
+        }
       }
     }
     void restoreSession();
-  }, []);
+  }, [clearCredential]);
 
   return (
     <SessionVaultContext.Provider
@@ -171,6 +218,7 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
         setFolderKey,
         getCredential,
         setCredential,
+        clearCredential,
         getAutoCredential,
         clearVault,
       }}

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/auth"
 )
 
 func (cfg *ApiConfig) handlerDeleteFile(w http.ResponseWriter, r *http.Request) {
@@ -46,12 +46,16 @@ func (cfg *ApiConfig) handlerDeleteFile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Delete file from disk
-	err = os.Remove(dbFile.FilePath)
-	if err != nil {
-		// Log the error but continue to delete from database
-		// The file might already be deleted from disk
-		println("Warning: Could not delete file from disk:", err.Error())
+	// Delete only from the configured storage root.
+	storagePath, pathErr := resolveStoredFilePath(dbFile.FilePath)
+	if pathErr != nil {
+		respondWithError(w, http.StatusInternalServerError, "Stored file path is invalid", pathErr)
+		return
+	}
+	err = os.Remove(storagePath)
+	if err != nil && !os.IsNotExist(err) {
+		respondWithError(w, http.StatusInternalServerError, "Could not delete file from disk", err)
+		return
 	}
 
 	// Delete from database

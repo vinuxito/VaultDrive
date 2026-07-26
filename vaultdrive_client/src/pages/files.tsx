@@ -63,7 +63,13 @@ import {
   type FileTypeFilter,
   ActivityReceiptDrawer,
 } from "../components/vault";
-import type { TreeNode, DropTokenInfo, BulkDownloadFile } from "../components/vault";
+import type {
+  TreeNode,
+  DropTokenInfo,
+  BulkDownloadFile,
+  DownloadAttemptResult,
+  DownloadFailureKind,
+} from "../components/vault";
 import type { Folder } from "../components/files/FolderBreadcrumb";
 import { useSessionVault } from "../context/SessionVaultContext";
 import {
@@ -78,6 +84,7 @@ import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksS
 import { buildMoveTargetOptions } from "../utils/file-move";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import type { DragDataTransferItem } from "../utils/drop-drag";
+import { mapDownloadHttpError } from "../utils/download-error";
 import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
@@ -1032,19 +1039,32 @@ export default function Files() {
   const downloadFileWithCredential = async (
     file: BulkDownloadFile,
     credential: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<DownloadAttemptResult> => {
+    let failureKind: DownloadFailureKind = "storage";
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/${file.id}/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
-        if (response.status === 401) { navigate("/login"); return { success: false, error: "Unauthorized" }; }
-        throw new Error("Failed to download file");
+        if (response.status === 401) {
+          navigate("/login");
+          return {
+            success: false,
+            error: mapDownloadHttpError(response.status),
+            failureKind: "auth",
+          };
+        }
+        return {
+          success: false,
+          error: mapDownloadHttpError(response.status),
+          failureKind: response.status >= 500 ? "storage" : "unknown",
+        };
       }
 
+      failureKind = "metadata";
       const metadataStr = response.headers.get("X-File-Metadata") ?? file.metadata;
-      let metadataObj: { iv?: string; salt?: string };
+      let metadataObj: { iv?: string; salt?: string; credential_scheme?: string };
       try {
         metadataObj = JSON.parse(metadataStr);
       } catch {
@@ -1057,8 +1077,10 @@ export default function Files() {
       const isDropUpload = !metadataObj.salt || metadataObj.salt === "";
       const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
       let encryptionKey: CryptoKey;
+      let finalDecryptVerifiesCredential = false;
 
-      const credentialScheme = (metadataObj as any).credential_scheme;
+      failureKind = "unknown";
+      const credentialScheme = metadataObj.credential_scheme;
       const cachedFileKey = sessionVault.getFileKey(file.id);
       if (cachedFileKey) {
         encryptionKey = cachedFileKey;
@@ -1074,6 +1096,7 @@ export default function Files() {
         encryptionKey = await unwrapKeyWithAES(folderKey, wrappedKeyB64);
         sessionVault.setFileKey(file.id, encryptionKey);
       } else if (isDropUpload && (file.pin_wrapped_key || wrappedKeyB64)) {
+        failureKind = "credential";
         const pinWrapped = file.pin_wrapped_key || wrappedKeyB64 || "";
         const rawKey = await unwrapKey(credential, pinWrapped);
         const keyBytes = hexToBytes(rawKey);
@@ -1084,6 +1107,7 @@ export default function Files() {
           false,
           ["decrypt"]
         );
+        failureKind = "unknown";
         sessionVault.setFileKey(file.id, encryptionKey);
       } else if (wrappedKeyB64 && file.is_owner === false) {
         const sessionKey = sessionVault.getPrivateKey();
@@ -1096,18 +1120,23 @@ export default function Files() {
           if (!privateKeyPinEncrypted) {
             throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings.");
           }
+          failureKind = "credential";
           const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted);
           rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
           sessionVault.setPrivateKey(rsaPrivateKey);
         }
+        failureKind = "unknown";
         encryptionKey = await unwrapKeyWithRSA(rsaPrivateKey, wrappedKeyB64);
         sessionVault.setFileKey(file.id, encryptionKey);
       } else {
+        finalDecryptVerifiesCredential = true;
+        failureKind = "credential";
         const salt = new Uint8Array(base64ToArrayBuffer(metadataObj.salt!));
         encryptionKey = await deriveKeyFromPassword(credential, salt, 100000);
         sessionVault.setFileKey(file.id, encryptionKey);
       }
 
+      failureKind = finalDecryptVerifiesCredential ? "credential" : "unknown";
       const encryptedBlob = await response.blob();
       const encryptedData = await encryptedBlob.arrayBuffer();
       const decryptedData = await decryptFile(encryptedData, encryptionKey, iv);
@@ -1127,6 +1156,7 @@ export default function Files() {
       return {
         success: false,
         error: err instanceof Error ? err.message : "Decryption failed",
+        failureKind,
       };
     }
   };
@@ -1210,7 +1240,23 @@ export default function Files() {
           { id: fileId, filename, metadata, pin_wrapped_key, is_owner, folder_id: targetFolderId },
           cached.value,
         );
-        if (!result.success) setError(result.error ?? "Download failed");
+        if (!result.success) {
+          if (result.failureKind === "credential") {
+            sessionVault.clearCredential();
+            setPendingDownload({
+              fileId,
+              filename,
+              metadata,
+              pin_wrapped_key,
+              is_owner,
+              folder_id: targetFolderId,
+            });
+            setPasswordAction("download");
+            setShowPasswordModal(true);
+          } else {
+            setError(result.error ?? "Download failed");
+          }
+        }
       } finally {
         setDownloading(false);
         setDownloadingFileIds((prev) => { const n = new Set(prev); n.delete(fileId); return n; });
@@ -1673,7 +1719,6 @@ export default function Files() {
     } else if (passwordAction === "download") {
       success = await performDownload(password);
     } else if (passwordAction === "drop-upload") {
-      sessionVault.setCredential(password, ownerUsesPin ? "pin" : "password");
       setShowPasswordModal(false);
       setEncryptionPassword("");
       setPasswordAction(null);
@@ -1698,7 +1743,7 @@ export default function Files() {
           setPasswordAction(null);
           setPendingSharedFolder(null);
           return;
-        } catch (err) {
+        } catch {
           setError("Failed to decrypt your private key. Please check your PIN/password.");
           return;
         }
