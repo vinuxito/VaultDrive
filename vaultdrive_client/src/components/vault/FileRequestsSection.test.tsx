@@ -116,4 +116,47 @@ describe("FileRequestsSection", () => {
     });
     expect(screen.getByTestId("data-state-empty-action")).toHaveTextContent(/Create first request/i);
   });
+
+  it("shows an unavailable state instead of a false empty list on first-load failure", async () => {
+    globalThis.fetch = vi.fn(async () => new Response(null, { status: 503 })) as typeof fetch;
+
+    render(<FileRequestsSection />);
+
+    expect(await screen.findByTestId("data-state-error")).toBeInTheDocument();
+    expect(screen.queryByTestId("data-state-empty")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /File Requests \(—\)/i })).toBeInTheDocument();
+  });
+
+  it("rejects a malformed successful response instead of treating it as empty", async () => {
+    globalThis.fetch = vi.fn(async () =>
+      new Response(JSON.stringify({ requests: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ) as typeof fetch;
+
+    render(<FileRequestsSection />);
+
+    expect(await screen.findByTestId("data-state-error")).toHaveTextContent(/unexpected response/i);
+    expect(screen.queryByTestId("data-state-empty")).not.toBeInTheDocument();
+  });
+
+  it("preserves confirmed requests with a stale warning when refresh fails", async () => {
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([sampleRequest]), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }))
+      .mockResolvedValueOnce(new Response(null, { status: 503 })) as typeof fetch;
+
+    render(<FileRequestsSection />);
+    await screen.findByText("Q1 statements please");
+    await userEvent.click(screen.getByRole("button", { name: "Refresh" }));
+
+    expect(await screen.findByText(/showing the last confirmed requests/i)).toBeInTheDocument();
+    expect(screen.getByText("Q1 statements please")).toBeInTheDocument();
+    expect(screen.queryByTestId("data-state-error")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByTestId("file-request-actions-req-1"));
+    expect(await screen.findByTestId("row-action-copy-url")).toHaveAttribute("data-disabled");
+  });
 });

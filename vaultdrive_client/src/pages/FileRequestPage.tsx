@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Upload,
@@ -38,6 +38,12 @@ import BrandLogo from "../components/branding/brand-logo";
 import { API_URL } from "../utils/api";
 import { buildFileRequestUploadFormData } from "../utils/file-request-upload";
 import { branding } from "../config/branding";
+import {
+  classifyPublicUploadOutcome,
+  getRetryableUploadIds,
+  type PublicUploadOutcome,
+  type PublicUploadProgress,
+} from "../utils/public-upload-outcome";
 
 interface RequestInfo {
   description: string;
@@ -49,14 +55,9 @@ interface RequestInfo {
   max_file_size: number;
 }
 
-interface UploadProgress {
+interface UploadQueueItem {
   id: string;
-  fileName: string;
-  status: "pending" | "uploading" | "success" | "error";
-  progress: number;
-  bytesUploaded: number;
-  bytesTotal: number;
-  error?: string;
+  file: File;
 }
 
 export default function FileRequestPage() {
@@ -69,11 +70,21 @@ export default function FileRequestPage() {
   const [showPassphrase, setShowPassphrase] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<PublicUploadProgress[]>([]);
   const [delivered, setDelivered] = useState(false);
   const [deliveryRef, setDeliveryRef] = useState("");
   const [receiptCopied, setReceiptCopied] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const uploadQueueRef = useRef(new Map<string, UploadQueueItem>());
+  const uploadOutcomesRef = useRef(new Map<string, PublicUploadOutcome>());
+  const activeRequestsRef = useRef(new Set<XMLHttpRequest>());
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    for (const request of activeRequestsRef.current) request.abort();
+    activeRequestsRef.current.clear();
+  }, []);
 
   const fetchInfo = useCallback(async () => {
     try {
@@ -161,41 +172,56 @@ export default function FileRequestPage() {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (retryIds?: string[]) => {
     if (!passphrase.trim()) {
       setError("Please set a download password before uploading.");
       return;
     }
-    if (selectedFiles.length === 0) {
+    if (selectedFiles.length === 0 && !retryIds?.length) {
       setError("Please select at least one file.");
       return;
     }
 
     setUploading(true);
+    setDelivered(false);
     setError("");
-    const uploadQueue = selectedFiles.map((file) => ({
-      id: Math.random().toString(36).slice(2),
-      file,
-      fileName: (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name,
-    }));
-    setUploadProgress(
-      uploadQueue.map(({ id, file, fileName }) => ({
+    let uploadQueue: UploadQueueItem[];
+    if (retryIds?.length) {
+      uploadQueue = retryIds
+        .map((id) => uploadQueueRef.current.get(id))
+        .filter((item): item is UploadQueueItem => Boolean(item));
+      setUploadProgress((prev) => prev.map((row) => retryIds.includes(row.id)
+        ? { ...row, status: "pending", progress: 0, bytesUploaded: 0, error: undefined, retryable: false }
+        : row));
+    } else {
+      uploadQueue = selectedFiles.map((file) => ({ id: crypto.randomUUID(), file }));
+      uploadQueueRef.current = new Map(uploadQueue.map((item) => [item.id, item]));
+      uploadOutcomesRef.current.clear();
+      setUploadProgress(uploadQueue.map(({ id, file }) => ({
         id,
-        fileName,
+        fileName: (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name,
         status: "pending",
         progress: 0,
         bytesUploaded: 0,
         bytesTotal: file.size,
-      }))
-    );
-
-    for (const { id, file } of uploadQueue) {
-      await uploadFile(id, file);
+      })));
     }
 
+    const outcomes: PublicUploadOutcome[] = [];
+    for (const { id, file } of uploadQueue) {
+      outcomes.push(await uploadFile(id, file));
+    }
+
+    if (!mountedRef.current) return;
     setUploading(false);
-    setDelivered(true);
-    setDeliveryRef(token?.slice(0, 8) ?? "");
+    if (
+      outcomes.length > 0 &&
+      uploadOutcomesRef.current.size === uploadQueueRef.current.size &&
+      Array.from(uploadOutcomesRef.current.values()).every((outcome) => outcome.status === "success")
+    ) {
+      setDelivered(true);
+      setDeliveryRef(token?.slice(0, 8) ?? "");
+    }
   };
 
   const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,11 +232,31 @@ export default function FileRequestPage() {
     e.target.value = "";
   };
 
-  const uploadFile = (progressId: string, file: File): Promise<void> => {
+  const uploadFile = (progressId: string, file: File): Promise<PublicUploadOutcome> => {
     const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || "";
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
+      let requestSent = false;
+      let settled = false;
+
+      const finish = (outcome: PublicUploadOutcome) => {
+        if (settled) return;
+        settled = true;
+        activeRequestsRef.current.delete(xhr);
+        uploadOutcomesRef.current.set(progressId, outcome);
+        if (mountedRef.current) {
+          setUploadProgress((prev) => prev.map((row) => row.id === progressId ? {
+            ...row,
+            status: outcome.status,
+            progress: outcome.status === "success" ? 100 : row.progress,
+            bytesUploaded: outcome.status === "success" ? file.size : row.bytesUploaded,
+            error: outcome.message,
+            retryable: outcome.retryable,
+          } : row));
+        }
+        resolve(outcome);
+      };
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -232,53 +278,23 @@ export default function FileRequestPage() {
       };
 
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setUploadProgress((prev) =>
-            prev.map((p) =>
-              p.id === progressId
-                ? { ...p, status: "success", progress: 100, bytesUploaded: file.size }
-                : p
-            )
-          );
-          resolve();
-        } else {
-          let errMsg = `Upload failed (${xhr.status})`;
-          try {
-            const body = JSON.parse(xhr.responseText) as { error?: string };
-            if (body.error) errMsg = body.error;
-          } catch {
-            // ignore json parse error
-          }
-          setUploadProgress((prev) =>
-            prev.map((p) =>
-              p.id === progressId ? { ...p, status: "error", error: errMsg } : p
-            )
-          );
-          reject(new Error(errMsg));
-        }
+        finish(classifyPublicUploadOutcome({
+          endpoint: "file-request",
+          event: "load",
+          status: xhr.status,
+          responseText: xhr.responseText,
+          requestSent,
+        }));
       };
 
       xhr.onerror = () => {
-        setUploadProgress((prev) =>
-          prev.map((p) =>
-            p.id === progressId
-              ? { ...p, status: "error", error: "Network error" }
-              : p
-          )
-        );
-        reject(new Error("Network error"));
+        finish(classifyPublicUploadOutcome({ endpoint: "file-request", event: "network", status: 0, responseText: "", requestSent }));
       };
 
       xhr.ontimeout = () => {
-        setUploadProgress((prev) =>
-          prev.map((p) =>
-            p.id === progressId
-              ? { ...p, status: "error", error: "Upload timed out" }
-              : p
-          )
-        );
-        reject(new Error("Upload timeout"));
+        finish(classifyPublicUploadOutcome({ endpoint: "file-request", event: "timeout", status: 0, responseText: "", requestSent }));
       };
+      xhr.onabort = () => finish(classifyPublicUploadOutcome({ endpoint: "file-request", event: "abort", status: 0, responseText: "", requestSent }));
 
       xhr.timeout = 30 * 60 * 1000;
 
@@ -314,22 +330,24 @@ export default function FileRequestPage() {
               fallbackName: file.name,
             });
 
+            if (!mountedRef.current) {
+              finish(classifyPublicUploadOutcome({ endpoint: "file-request", event: "abort", status: 0, responseText: "", requestSent: false }));
+              return;
+            }
+
             xhr.open("POST", `${API_URL}/file-requests/${token}/upload`);
+            requestSent = true;
+            activeRequestsRef.current.add(xhr);
             xhr.send(formData);
           } catch (err) {
-            setUploadProgress((prev) =>
-              prev.map((p) =>
-                p.id === progressId
-                  ? {
-                      ...p,
-                      status: "error",
-                      error:
-                        err instanceof Error ? err.message : "Encryption failed",
-                    }
-                  : p
-              )
-            );
-            reject(err);
+            finish(classifyPublicUploadOutcome({
+              endpoint: "file-request",
+              event: "prepare-error",
+              status: 0,
+              responseText: "",
+              requestSent,
+              errorMessage: err instanceof Error ? err.message : "Encryption failed",
+            }));
           }
         })();
       }, 0);
@@ -382,6 +400,8 @@ export default function FileRequestPage() {
   if (!info) return null;
 
   const completedCount = uploadProgress.filter((p) => p.status === "success").length;
+  const unknownCount = uploadProgress.filter((p) => p.status === "unknown").length;
+  const retryableIds = getRetryableUploadIds(uploadProgress);
   const totalCount = uploadProgress.length;
 
   // ── Success / receipt ────────────────────────────────────────────────────
@@ -743,6 +763,9 @@ export default function FileRequestPage() {
                       {progress.status === "error" && (
                         <XCircle className="w-4 h-4 text-red-500 ml-2 shrink-0" />
                       )}
+                      {progress.status === "unknown" && (
+                        <AlertCircle className="w-4 h-4 text-amber-500 ml-2 shrink-0" />
+                      )}
                       {progress.status === "uploading" && (
                         <Loader2 className="w-4 h-4 text-primary animate-spin ml-2 shrink-0" />
                       )}
@@ -753,11 +776,29 @@ export default function FileRequestPage() {
                         style={{ width: `${progress.progress}%` }}
                       />
                     </div>
-                    {progress.status === "error" && (
-                      <p className="text-xs text-red-600 dark:text-red-400">{progress.error}</p>
+                    {(progress.status === "error" || progress.status === "unknown") && (
+                      <p className={progress.status === "unknown" ? "text-xs text-amber-700 dark:text-amber-300" : "text-xs text-red-600 dark:text-red-400"}>{progress.error}</p>
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {!uploading && uploadProgress.length > 0 && !delivered && (
+              <div className="space-y-2" role="status">
+                <p className="text-sm text-muted-foreground">
+                  {completedCount} accepted · {uploadProgress.length - completedCount - unknownCount} failed · {unknownCount} need confirmation
+                </p>
+                {unknownCount > 0 && (
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Do not resend files marked “needs confirmation.” Ask the recipient to check their vault first.
+                  </p>
+                )}
+                {retryableIds.length > 0 && (
+                  <Button type="button" variant="outline" onClick={() => void handleUpload(retryableIds)}>
+                    Retry confirmed failures ({retryableIds.length})
+                  </Button>
+                )}
               </div>
             )}
 

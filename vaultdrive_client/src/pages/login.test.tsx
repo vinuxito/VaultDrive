@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Login from "./login";
 
 const navigateMock = vi.fn();
+const locationMock = vi.hoisted(() => ({ state: null as unknown }));
 const sessionVaultMocks = vi.hoisted(() => ({
   setPrivateKey: vi.fn(),
   setCredential: vi.fn(),
@@ -17,12 +18,14 @@ const cryptoMocks = vi.hoisted(() => ({
 }));
 const webAuthnMocks = vi.hoisted(() => ({
   hasRegisteredPasskey: vi.fn(() => false),
+  isWebAuthnAvailable: vi.fn(() => true),
   unlockWithPasskey: vi.fn(),
   getWebAuthnEmail: vi.fn(() => ""),
 }));
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => navigateMock,
+  useLocation: () => locationMock,
 }));
 
 vi.mock("../components/branding", () => ({
@@ -49,8 +52,10 @@ describe("Login", () => {
     cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("pem");
     cryptoMocks.importRSAPrivateKey.mockResolvedValue({ id: "rsa-key" });
     webAuthnMocks.hasRegisteredPasskey.mockReturnValue(false);
+    webAuthnMocks.isWebAuthnAvailable.mockReturnValue(true);
     webAuthnMocks.getWebAuthnEmail.mockReturnValue("");
     webAuthnMocks.unlockWithPasskey.mockReset();
+    locationMock.state = null;
     localStorage.clear();
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(
@@ -135,6 +140,54 @@ describe("Login", () => {
       });
 
       expect(webAuthnMocks.unlockWithPasskey).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("returns to a safe intended route after login without carrying a URL fragment", async () => {
+    locationMock.state = { from: { pathname: "/files", search: "?folder=mine", hash: "#secret" } };
+    render(<Login />);
+    await userEvent.type(screen.getByLabelText(/email/i), "owner@example.com");
+    await userEvent.type(screen.getByLabelText(/^password$/i), "password123");
+    await userEvent.click(screen.getByRole("button", { name: /open/i }));
+
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith(
+      { pathname: "/files" },
+      { replace: true },
+    ));
+  });
+
+  it("turns passkey cancellation into a PIN fallback instead of a terminal error", async () => {
+    webAuthnMocks.hasRegisteredPasskey.mockReturnValue(true);
+    webAuthnMocks.getWebAuthnEmail.mockReturnValue("owner@example.com");
+    const cancelled = new DOMException("The operation was aborted", "NotAllowedError");
+    webAuthnMocks.unlockWithPasskey.mockRejectedValue(cancelled);
+
+    render(<Login />);
+    await userEvent.click(screen.getByRole("button", { name: /pin/i }));
+    await userEvent.click(screen.getByRole("button", { name: /unlock with biometrics/i }));
+
+    expect(await screen.findByText(/passkey prompt was canceled.*enter your pin/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/pin/i)).toBeEnabled();
+  });
+
+  it("cleans the rate-limit countdown timer when the screen unmounts", async () => {
+    vi.useFakeTimers();
+    globalThis.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "slow down" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json", "Retry-After": "2" },
+    })) as typeof fetch;
+
+    try {
+      const view = render(<Login />);
+      fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "owner@example.com" } });
+      fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "password123" } });
+      fireEvent.submit(screen.getByRole("button", { name: /open/i }).closest("form")!);
+      await act(async () => { await Promise.resolve(); });
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+      view.unmount();
+      expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
     }

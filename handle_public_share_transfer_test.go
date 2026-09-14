@@ -180,11 +180,11 @@ func TestPublicTransferConcurrentFetchesRespectOneUse(t *testing.T) {
 		}()
 	}
 	// Hold the row until every contender has read the active link and reached
-	// its consumption UPDATE. This proves the race, without a timing-only sleep.
+	// its consumption lock. This proves the race, without a timing-only sleep.
 	deadline := time.Now().Add(5 * time.Second)
 	blocked := 0
 	for time.Now().Before(deadline) {
-		if err := cfg.db.QueryRow(`SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%UPDATE public_share_links%'`).Scan(&blocked); err != nil {
+		if err := cfg.db.QueryRow(`SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%public_share_links%'`).Scan(&blocked); err != nil {
 			t.Fatal(err)
 		}
 		if blocked >= requests {
@@ -198,7 +198,7 @@ func TestPublicTransferConcurrentFetchesRespectOneUse(t *testing.T) {
 	wg.Wait()
 	close(statuses)
 	if blocked < requests {
-		t.Fatalf("could not establish concurrent update barrier: %d", blocked)
+		t.Fatalf("could not establish concurrent claim barrier: %d", blocked)
 	}
 	successes := 0
 	for status := range statuses {

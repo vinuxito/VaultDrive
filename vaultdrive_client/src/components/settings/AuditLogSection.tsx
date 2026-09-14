@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Activity, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { Button } from "../ui/button";
 import { API_URL } from "../../utils/api";
@@ -88,38 +88,53 @@ export function AuditLogSection() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [offset, setOffset] = useState(0);
   const limit = 20;
+  const [error, setError] = useState("");
+  const [lastConfirmed, setLastConfirmed] = useState<string | null>(null);
+  const [requestedOffset, setRequestedOffset] = useState(0);
+  const generation = useRef(0);
 
   const fetchAudit = useCallback(async (nextOffset: number) => {
+    const request = ++generation.current;
     setLoading(true);
+    setError("");
+    setRequestedOffset(nextOffset);
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API_URL}/v1/audit?limit=${limit}&offset=${nextOffset}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const payload = (await res.json().catch(() => null)) as Envelope | null;
-      if (payload?.data) {
-        setEntries(nextOffset === 0 ? payload.data : (prev) => [...prev, ...payload.data]);
-        setPagination(payload.meta?.pagination ?? null);
+      if (request !== generation.current) return;
+      if (res.status === 401 || res.status === 403) {
+        setEntries([]);
+        setPagination(null);
+        setLastConfirmed(null);
+        throw new Error("You do not have permission to view this audit history.");
       }
+      if (!res.ok) throw new Error("Audit history could not be loaded. Please retry.");
+      const payload = await res.json() as Envelope;
+      if (!payload || payload.success === false || !Array.isArray(payload.data) || !payload.data.every((entry) => entry && typeof entry.id === "string" && typeof entry.action === "string" && typeof entry.created_at === "string")) {
+        throw new Error("Audit history could not be read. Please retry.");
+      }
+      if (request !== generation.current) return;
+      setEntries((previous) => nextOffset === 0 ? payload.data : [...previous, ...payload.data.filter((entry) => !previous.some((old) => old.id === entry.id))]);
+      const pagination = payload.meta?.pagination;
+      setPagination(pagination && Number.isFinite(pagination.count) && pagination.count >= 0 ? pagination : null);
+      setOffset(nextOffset);
+      setLastConfirmed(new Date().toLocaleString());
+    } catch (cause) {
+      if (request === generation.current) setError(cause instanceof Error && !(cause instanceof TypeError) && !(cause instanceof SyntaxError) ? cause.message : "Audit history could not be loaded. Please retry.");
     } finally {
-      setLoading(false);
+      if (request === generation.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void fetchAudit(0);
+    return () => { generation.current += 1; };
   }, [fetchAudit]);
 
-  const loadMore = () => {
-    const next = offset + limit;
-    setOffset(next);
-    void fetchAudit(next);
-  };
-
-  const refresh = () => {
-    setOffset(0);
-    void fetchAudit(0);
-  };
+  const loadMore = () => { void fetchAudit(offset + limit); };
+  const refresh = () => { void fetchAudit(0); };
 
   const hasMore = pagination ? (offset + limit) < pagination.count : false;
 
@@ -135,17 +150,22 @@ export function AuditLogSection() {
             Key lifecycle, access changes, and agent actions. Visible only to you.
           </p>
         </div>
-        <Button type="button" variant="outline" onClick={refresh} className="shrink-0">
+        <Button type="button" variant="outline" onClick={refresh} disabled={loading} className="shrink-0">
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>
 
+      {error && <div role="alert" className="rounded-lg border border-destructive bg-card p-4 text-foreground">
+        <p>{error}</p>
+        {lastConfirmed && <p className="mt-1 text-sm">Showing the last confirmed history from {lastConfirmed}; newer events are unknown.</p>}
+        <Button type="button" variant="outline" onClick={() => void fetchAudit(requestedOffset)} disabled={loading} className="mt-3">Retry audit history</Button>
+      </div>}
       {loading && entries.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card px-4 py-6 text-sm text-muted-foreground">
           Loading audit events...
         </div>
-      ) : entries.length === 0 ? (
+      ) : entries.length === 0 && error ? null : entries.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
           {`No audit events recorded yet. Actions appear here as you use ${branding.productName}.`}
         </div>
@@ -174,7 +194,7 @@ export function AuditLogSection() {
             </div>
           ))}
 
-          {hasMore && (
+          {hasMore && !error && (
             <Button
               type="button"
               variant="outline"

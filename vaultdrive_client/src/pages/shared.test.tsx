@@ -153,4 +153,21 @@ describe("SharedFiles", () => {
     expect(screen.queryByText("Decrypt Shared File")).not.toBeInTheDocument();
     expect(sessionVaultMocks.setCredential).not.toHaveBeenCalled();
   });
+
+  it("shows a retryable forbidden source state instead of a false empty list", async () => {
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({ error: "forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    })) as typeof fetch;
+
+    render(
+      <MemoryRouter>
+        <SharedFiles />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("You do not have access to shared files for this account.")).toBeInTheDocument();
+    expect(screen.queryByText("No shared files yet")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
 });

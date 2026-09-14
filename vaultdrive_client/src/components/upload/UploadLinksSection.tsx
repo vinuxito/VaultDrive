@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "../ui/button";
 import { DataState } from "../ui/data-state";
 import { UploadCloud, RefreshCw, Plus } from "lucide-react";
@@ -9,7 +9,7 @@ import type { UploadTokenWithFiles, UploadToken } from "./types";
 import { normalizeUploadToken } from "./types";
 import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
 
-export function UploadLinksSection() {
+export function UploadLinksSection({ initialToken = null }: { initialToken?: string | null }) {
   const [tokens, setTokens] = useState<UploadTokenWithFiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -19,6 +19,7 @@ export function UploadLinksSection() {
   const [confirmDeactivateId, setConfirmDeactivateId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<string>("");
+  const initialTokenOpenedRef = useRef(false);
 
   const fetchTokens = useCallback(async () => {
     try {
@@ -55,7 +56,7 @@ export function UploadLinksSection() {
     void fetchTokens();
   };
 
-  const handleExpand = async (tokenId: string) => {
+  const handleExpand = useCallback(async (tokenId: string) => {
     if (expandedToken === tokenId) {
       setExpandedToken(null);
       return;
@@ -85,7 +86,14 @@ export function UploadLinksSection() {
         console.error("Error fetching files:", err);
       }
     }
-  };
+  }, [expandedToken, tokens]);
+
+  useEffect(() => {
+    if (!initialToken || initialTokenOpenedRef.current || tokens.length === 0) return;
+    if (!tokens.some((token) => token.token === initialToken)) return;
+    initialTokenOpenedRef.current = true;
+    void handleExpand(initialToken);
+  }, [handleExpand, initialToken, tokens]);
 
   const handleDeactivate = async (token: string) => {
     try {

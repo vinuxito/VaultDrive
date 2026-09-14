@@ -49,6 +49,31 @@ interface SourceState<T> {
   loading: boolean;
   error: boolean;
   stale: boolean;
+  lastSuccessfulAt: number | null;
+}
+
+const SHARE_STATUSES = new Set<ShareItem["status"]>(["active", "expired", "revoked", "stale", "never_used", "closed", "unknown"]);
+
+function parseShareItem(value: unknown): ShareItem | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  const valid = typeof item.id === "string" && (item.type === "file" || item.type === "folder")
+    && typeof item.token === "string" && typeof item.resource_name === "string"
+    && typeof item.resource_id === "string" && typeof item.is_active === "boolean"
+    && typeof item.created_at === "string" && typeof item.access_count === "number"
+    && typeof item.status === "string";
+  if (!valid) return null;
+  const share = item as unknown as ShareItem;
+  return { ...share, status: SHARE_STATUSES.has(share.status) ? share.status : "unknown" };
+}
+
+function parseDropToken(value: unknown): DropToken | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  const valid = typeof item.id === "string" && typeof item.token === "string"
+    && typeof item.files_uploaded === "number" && typeof item.used === "boolean"
+    && typeof item.created_at === "string" && typeof item.has_password === "boolean";
+  return valid ? item as unknown as DropToken : null;
 }
 
 const STATUS_BADGE: Record<string, { label: string; icon: React.ReactNode; cls: string }> = {
@@ -96,8 +121,8 @@ export default function AccessCenter() {
   const sessionVault = useSessionVault();
   const [tab, setTab] = useState<Tab>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [shareSource, setShareSource] = useState<SourceState<ShareItem>>({ data: [], loading: true, error: false, stale: false });
-  const [dropSource, setDropSource] = useState<SourceState<DropToken>>({ data: [], loading: true, error: false, stale: false });
+  const [shareSource, setShareSource] = useState<SourceState<ShareItem>>({ data: [], loading: true, error: false, stale: false, lastSuccessfulAt: null });
+  const [dropSource, setDropSource] = useState<SourceState<DropToken>>({ data: [], loading: true, error: false, stale: false, lastSuccessfulAt: null });
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [recoveryDialog, setRecoveryDialog] = useState<RecoveryDialogState | null>(null);
   const [credential, setCredential] = useState("");
@@ -115,6 +140,7 @@ export default function AccessCenter() {
   const loadSource = useCallback(async <T,>(
     endpoint: string,
     setSource: React.Dispatch<React.SetStateAction<SourceState<T>>>,
+    parse: (value: unknown) => T | null,
     signal?: AbortSignal,
   ) => {
     setSource((current) => ({ ...current, loading: true, error: false }));
@@ -127,7 +153,9 @@ export default function AccessCenter() {
       if (!response.ok) throw new Error(`Request failed (${response.status})`);
       const data: unknown = await response.json();
       if (!Array.isArray(data)) throw new Error("Unexpected response");
-      setSource({ data: data as T[], loading: false, error: false, stale: false });
+      const parsed = data.map(parse);
+      if (parsed.some((item) => item === null)) throw new Error("Unexpected response");
+      setSource({ data: parsed as T[], loading: false, error: false, stale: false, lastSuccessfulAt: Date.now() });
       return true;
     } catch (error) {
       if (signal?.aborted) return;
@@ -136,18 +164,18 @@ export default function AccessCenter() {
         ...current,
         loading: false,
         error: true,
-        stale: current.data.length > 0,
+        stale: current.lastSuccessfulAt !== null,
       }));
       return false;
     }
   }, []);
 
   const loadShares = useCallback((signal?: AbortSignal) => (
-    loadSource<ShareItem>("/v1/shares", setShareSource, signal)
+    loadSource<ShareItem>("/v1/shares", setShareSource, parseShareItem, signal)
   ), [loadSource]);
 
   const loadDrops = useCallback((signal?: AbortSignal) => (
-    loadSource<DropToken>("/drop/tokens", setDropSource, signal)
+    loadSource<DropToken>("/drop/tokens", setDropSource, parseDropToken, signal)
   ), [loadSource]);
 
   useEffect(() => {
@@ -592,6 +620,7 @@ function SourceStatus<T>({
         <span className="font-medium text-foreground">{label}</span>
         {state.loading && state.data.length === 0 && <span className="ml-2 text-muted-foreground">Loading…</span>}
         {message && <p className="mt-0.5 text-amber-700 dark:text-amber-300" role="status">{message}</p>}
+        {state.lastSuccessfulAt !== null && <p className="mt-0.5 text-muted-foreground">Last updated: {new Date(state.lastSuccessfulAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>}
       </div>
       <Button type="button" variant="ghost" size="sm" aria-label={retryLabel} onClick={onRetry} disabled={state.loading}>
         {actionLabel}
@@ -670,7 +699,7 @@ function DropCard({ item, status }: DropCardProps) {
       </div>
       <StatusBadge status={status} />
       <div className="flex items-center gap-1 shrink-0">
-        <Link to="/files" className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">Manage</Link>
+        <Link to="/files" state={{ manageDropToken: item.token }} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">Manage</Link>
       </div>
     </div>
   );

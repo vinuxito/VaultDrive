@@ -148,7 +148,11 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *ht
 
 	link, err := cfg.dbQueries.GetPublicShareLinkByToken(r.Context(), token)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Share link not found", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "Share link not found or inactive", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "Share information is temporarily unavailable", err)
+		}
 		return
 	}
 
@@ -185,7 +189,11 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkInfo(w http.ResponseWriter, r *ht
 
 	dbFile, err := cfg.dbQueries.GetFileByID(r.Context(), link.FileID)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "File not found", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "File not found", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "File information is temporarily unavailable", err)
+		}
 		return
 	}
 
@@ -284,23 +292,9 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 
 	// A use authorizes a fetch, not a completed browser save. Claim it atomically
 	// so concurrent requests cannot exceed the limit or bypass a recent revoke.
-	result, err := cfg.db.ExecContext(r.Context(),
-		`UPDATE public_share_links 
-		 SET access_count = access_count + 1, 
-		     last_accessed_at = NOW(),
-		     is_active = CASE WHEN max_downloads > 0 AND access_count + 1 >= max_downloads THEN FALSE ELSE is_active END
-		 WHERE token = $1 AND is_active = TRUE
-		   AND (max_downloads <= 0 OR access_count < max_downloads)
-		   AND (expires_at IS NULL OR expires_at > NOW())
-		   AND (unlock_at IS NULL OR unlock_at <= NOW())`,
-		token)
+	claimed, err := cfg.claimPublicShareUse(r, token)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error updating access count", err)
-		return
-	}
-	claimed, err := result.RowsAffected()
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not confirm link access", err)
 		return
 	}
 	if claimed != 1 {
@@ -381,14 +375,7 @@ func (cfg *ApiConfig) handlerRevokePublicShareLink(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var owned, changed bool
-	err = cfg.db.QueryRowContext(r.Context(), `
-		WITH closed AS (
-			UPDATE public_share_links SET is_active=FALSE
-			WHERE id=$1 AND owner_id=$2 AND is_active=TRUE RETURNING id
-		)
-		SELECT EXISTS(SELECT 1 FROM public_share_links WHERE id=$1 AND owner_id=$2),
-		       EXISTS(SELECT 1 FROM closed)`, linkID, user.ID).Scan(&owned, &changed)
+	owned, changed, err := cfg.closeOwnedShareLink(r, user.ID, linkID, "public_share_link")
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error revoking share link", err)
 		return
@@ -402,13 +389,43 @@ func (cfg *ApiConfig) handlerRevokePublicShareLink(w http.ResponseWriter, r *htt
 		return
 	}
 
-	cfg.insertActivity(r.Context(), user.ID, "public_share_link_revoked", map[string]interface{}{
-		"share_link_id": linkID.String(),
-	})
-	cfg.insertAudit(r.Context(), user.ID, "public_share_link.revoked", "public_share_link", &linkID, nil, r)
-
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"status":  "success",
 		"message": "Share link revoked",
 	})
+}
+
+// Claim under a row lock, then re-check wall-clock bounds. PostgreSQL NOW()
+// reflects transaction start and can authorize a link that expired while waiting.
+func (cfg *ApiConfig) claimPublicShareUse(r *http.Request, token string) (int64, error) {
+	tx, err := cfg.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	var id uuid.UUID
+	err = tx.QueryRowContext(r.Context(), `SELECT id FROM public_share_links WHERE token=$1 FOR UPDATE`, token).Scan(&id)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	result, err := tx.ExecContext(r.Context(), `UPDATE public_share_links
+        SET access_count=access_count+1,last_accessed_at=clock_timestamp(),
+            is_active=CASE WHEN max_downloads>0 AND access_count+1>=max_downloads THEN FALSE ELSE is_active END
+        WHERE id=$1 AND is_active=TRUE AND (max_downloads<=0 OR access_count<max_downloads)
+            AND (expires_at IS NULL OR expires_at>clock_timestamp())
+            AND (unlock_at IS NULL OR unlock_at<=clock_timestamp())`, id)
+	if err != nil {
+		return 0, err
+	}
+	claimed, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return claimed, nil
 }

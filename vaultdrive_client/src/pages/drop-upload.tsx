@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon, Lock, ShieldCheck, Building2, Copy } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -9,6 +9,12 @@ import { buildDropUploadFormData } from "../utils/drop-upload";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import BrandLogo from "../components/branding/brand-logo";
 import { branding } from "../config/branding";
+import {
+  classifyPublicUploadOutcome,
+  getRetryableUploadIds,
+  type PublicUploadOutcome,
+  type PublicUploadProgress,
+} from "../utils/public-upload-outcome";
 
 interface TokenInfo {
   valid: boolean;
@@ -25,13 +31,10 @@ interface TokenInfo {
   error?: string;
 }
 
-interface UploadProgress {
-  fileName: string;
-  status: "pending" | "uploading" | "success" | "error";
-  progress: number;
-  bytesUploaded: number;
-  bytesTotal: number;
-  error?: string;
+interface UploadQueueItem {
+  id: string;
+  file: File;
+  isFolder: boolean;
 }
 
 function readKeyFromUrl(): string {
@@ -51,13 +54,23 @@ export default function DropUpload() {
   const [error, setError] = useState<string>("");
   const [missingKey, setMissingKey] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<PublicUploadProgress[]>([]);
   const [encryptionKey, setEncryptionKey] = useState("");
   const [clientMessage, setClientMessage] = useState("");
   const [delivered, setDelivered] = useState(false);
   const [deliveryRef, setDeliveryRef] = useState("");
   const [receiptCopied, setReceiptCopied] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
+  const uploadQueueRef = useRef(new Map<string, UploadQueueItem>());
+  const uploadOutcomesRef = useRef(new Map<string, PublicUploadOutcome>());
+  const activeRequestsRef = useRef(new Set<XMLHttpRequest>());
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    for (const request of activeRequestsRef.current) request.abort();
+    activeRequestsRef.current.clear();
+  }, []);
 
   const initializeDropLink = useCallback(async () => {
     try {
@@ -132,46 +145,98 @@ export default function DropUpload() {
     }
   };
 
-  const handleUpload = async (files: File[], isFolder: boolean = false) => {
+  const handleUpload = async (
+    files: File[],
+    isFolder: boolean = false,
+    retryIds?: string[],
+  ) => {
     if (!encryptionKey) {
       setError("Encryption key not found in URL. Please use the full link provided to you.");
       return;
     }
 
-    if (files.length === 0) return;
+    if (files.length === 0 && !retryIds?.length) return;
 
     setUploading(true);
-    setUploadProgress(files.map(f => ({
-      fileName: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
-      status: "pending",
-      progress: 0,
-      bytesUploaded: 0,
-      bytesTotal: f.size,
-    })));
+    setDelivered(false);
 
-    for (const file of files) {
-      await uploadFile(file, isFolder);
+    let queue: UploadQueueItem[];
+    if (retryIds?.length) {
+      queue = retryIds
+        .map((id) => uploadQueueRef.current.get(id))
+        .filter((item): item is UploadQueueItem => Boolean(item));
+      setUploadProgress((prev) => prev.map((row) =>
+        retryIds.includes(row.id)
+          ? { ...row, status: "pending", progress: 0, bytesUploaded: 0, error: undefined, retryable: false }
+          : row
+      ));
+    } else {
+      queue = files.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        isFolder,
+      }));
+      uploadQueueRef.current = new Map(queue.map((item) => [item.id, item]));
+      uploadOutcomesRef.current.clear();
+      setUploadProgress(queue.map(({ id, file }) => ({
+        id,
+        fileName: (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name,
+        status: "pending",
+        progress: 0,
+        bytesUploaded: 0,
+        bytesTotal: file.size,
+      })));
     }
 
+    const outcomes: PublicUploadOutcome[] = [];
+    for (const item of queue) {
+      outcomes.push(await uploadFile(item));
+    }
+
+    if (!mountedRef.current) return;
     setUploading(false);
-    setDelivered(true);
-    setDeliveryRef(token?.slice(0, 8) ?? "");
-    void initializeDropLink();
+    if (
+      outcomes.length > 0 &&
+      uploadOutcomesRef.current.size === uploadQueueRef.current.size &&
+      Array.from(uploadOutcomesRef.current.values()).every((outcome) => outcome.status === "success")
+    ) {
+      setDelivered(true);
+      setDeliveryRef(token?.slice(0, 8) ?? "");
+    }
+    if (outcomes.some((outcome) => outcome.status === "success")) void initializeDropLink();
   };
 
-  const uploadFile = async (file: File, isFolder: boolean): Promise<void> => {
+  const uploadFile = async ({ id, file, isFolder }: UploadQueueItem): Promise<PublicUploadOutcome> => {
     const relativePath = (isFolder && (file as File & { webkitRelativePath?: string }).webkitRelativePath) || "";
-    const fileName = relativePath || file.name;
-    
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
+      let requestSent = false;
+      let settled = false;
+
+      const finish = (outcome: PublicUploadOutcome) => {
+        if (settled) return;
+        settled = true;
+        activeRequestsRef.current.delete(xhr);
+        uploadOutcomesRef.current.set(id, outcome);
+        if (mountedRef.current) {
+          setUploadProgress((prev) => prev.map((row) => row.id === id ? {
+            ...row,
+            status: outcome.status,
+            progress: outcome.status === "success" ? 100 : row.progress,
+            bytesUploaded: outcome.status === "success" ? file.size : row.bytesUploaded,
+            error: outcome.message,
+            retryable: outcome.retryable,
+          } : row));
+        }
+        resolve(outcome);
+      };
       
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const percent = Math.round((event.loaded / event.total) * 100);
           setUploadProgress(prev => {
             const updated = [...prev];
-            const idx = updated.findIndex(p => p.fileName === fileName);
+            const idx = updated.findIndex(p => p.id === id);
             if (idx !== -1) {
               updated[idx] = { 
                 ...updated[idx], 
@@ -187,57 +252,23 @@ export default function DropUpload() {
       };
       
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setUploadProgress(prev => {
-            const updated = [...prev];
-            const idx = updated.findIndex(p => p.fileName === fileName);
-            if (idx !== -1) {
-              updated[idx] = { 
-                ...updated[idx], 
-                status: "success", 
-                progress: 100,
-                bytesUploaded: file.size
-              };
-            }
-            return updated;
-          });
-          resolve();
-        } else {
-          setUploadProgress(prev => {
-            const updated = [...prev];
-            const idx = updated.findIndex(p => p.fileName === fileName);
-            if (idx !== -1) {
-              updated[idx] = { ...updated[idx], status: "error", error: `Upload failed (${xhr.status})` };
-            }
-            return updated;
-          });
-          reject(new Error(`Upload failed: ${xhr.statusText}`));
-        }
+        finish(classifyPublicUploadOutcome({
+          endpoint: "drop",
+          event: "load",
+          status: xhr.status,
+          responseText: xhr.responseText,
+          requestSent,
+        }));
       };
       
       xhr.onerror = () => {
-        setUploadProgress(prev => {
-          const updated = [...prev];
-          const idx = updated.findIndex(p => p.fileName === fileName);
-          if (idx !== -1) {
-            updated[idx] = { ...updated[idx], status: "error", error: "Network error" };
-          }
-          return updated;
-        });
-        reject(new Error("Network error"));
+        finish(classifyPublicUploadOutcome({ endpoint: "drop", event: "network", status: 0, responseText: "", requestSent }));
       };
       
       xhr.ontimeout = () => {
-        setUploadProgress(prev => {
-          const updated = [...prev];
-          const idx = updated.findIndex(p => p.fileName === fileName);
-          if (idx !== -1) {
-            updated[idx] = { ...updated[idx], status: "error", error: "Upload timeout (30 minutes)" };
-          }
-          return updated;
-        });
-        reject(new Error("Upload timeout"));
+        finish(classifyPublicUploadOutcome({ endpoint: "drop", event: "timeout", status: 0, responseText: "", requestSent }));
       };
+      xhr.onabort = () => finish(classifyPublicUploadOutcome({ endpoint: "drop", event: "abort", status: 0, responseText: "", requestSent }));
       
       xhr.timeout = 30 * 60 * 1000;
       
@@ -270,18 +301,24 @@ export default function DropUpload() {
               clientMessage: clientMessage || undefined,
             });
 
+            if (!mountedRef.current) {
+              finish(classifyPublicUploadOutcome({ endpoint: "drop", event: "abort", status: 0, responseText: "", requestSent: false }));
+              return;
+            }
+
             xhr.open("POST", `${API_URL}/drop/${token}/upload`);
+            requestSent = true;
+            activeRequestsRef.current.add(xhr);
             xhr.send(formData);
           } catch (err) {
-            setUploadProgress(prev => {
-              const updated = [...prev];
-              const idx = updated.findIndex(p => p.fileName === fileName);
-              if (idx !== -1) {
-                updated[idx] = { ...updated[idx], status: "error", error: err instanceof Error ? err.message : "Upload failed" };
-              }
-              return updated;
-            });
-            reject(err);
+            finish(classifyPublicUploadOutcome({
+              endpoint: "drop",
+              event: "prepare-error",
+              status: 0,
+              responseText: "",
+              requestSent,
+              errorMessage: err instanceof Error ? err.message : "Encryption failed",
+            }));
           }
         })();
       }, 0);
@@ -355,6 +392,8 @@ export default function DropUpload() {
   }
 
   const completedCount = uploadProgress.filter(p => p.status === "success").length;
+  const unknownCount = uploadProgress.filter(p => p.status === "unknown").length;
+  const retryableIds = getRetryableUploadIds(uploadProgress);
   const totalCount = uploadProgress.length;
 
   if (delivered && completedCount > 0) {
@@ -635,9 +674,12 @@ export default function DropUpload() {
                       {progress.status === "success" && (
                         <CheckCircle className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
                       )}
-                      {progress.status === "error" && (
-                        <XCircle className="w-4 h-4 text-red-500 ml-2 flex-shrink-0" />
-                      )}
+                    {progress.status === "error" && (
+                      <XCircle className="w-4 h-4 text-red-500 ml-2 flex-shrink-0" />
+                    )}
+                    {progress.status === "unknown" && (
+                      <AlertCircle className="w-4 h-4 text-amber-500 ml-2 flex-shrink-0" />
+                    )}
                       {progress.status === "uploading" && (
                         <Loader2 className="w-4 h-4 text-primary animate-spin ml-2 flex-shrink-0" />
                       )}
@@ -650,11 +692,28 @@ export default function DropUpload() {
                       />
                     </div>
 
-                    {progress.status === "error" && (
-                      <p className="text-xs text-red-600 dark:text-red-400">{progress.error}</p>
+                    {(progress.status === "error" || progress.status === "unknown") && (
+                      <p className={progress.status === "unknown" ? "text-xs text-amber-700 dark:text-amber-300" : "text-xs text-red-600 dark:text-red-400"}>{progress.error}</p>
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+            {!uploading && uploadProgress.length > 0 && !delivered && (
+              <div className="space-y-2" role="status">
+                <p className="text-sm text-muted-foreground">
+                  {completedCount} accepted · {uploadProgress.length - completedCount - unknownCount} failed · {unknownCount} need confirmation
+                </p>
+                {unknownCount > 0 && (
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Do not resend files marked “needs confirmation.” Ask the recipient to check their vault first.
+                  </p>
+                )}
+                {retryableIds.length > 0 && (
+                  <Button type="button" variant="outline" onClick={() => void handleUpload([], false, retryableIds)}>
+                    Retry confirmed failures ({retryableIds.length})
+                  </Button>
+                )}
               </div>
             )}
             {!uploading && (

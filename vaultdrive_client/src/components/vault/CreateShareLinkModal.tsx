@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   X,
   Link2,
@@ -35,6 +35,7 @@ export interface CreateShareLinkModalProps {
     metadata: string;
     pin_wrapped_key?: string | null;
     is_owner?: boolean;
+    folder_id?: string | null;
   };
 }
 
@@ -81,17 +82,21 @@ export function CreateShareLinkModal({
   const sessionVault = useSessionVault();
   const { getCredential } = sessionVault;
   const cached = getCredential();
-  const fileCredentialMode = (() => {
+  const fileCredentialMode: "pin" | "password" | "folder" = (() => {
     if (isDropFile) return "pin";
     try {
       const meta = JSON.parse(file.metadata) as { credential_scheme?: string };
+      if (meta.credential_scheme === "folder") return "folder";
       if (meta.credential_scheme === "pin") return "pin";
     } catch {
       /* ignore */
     }
     return "password";
   })();
-  const hasCachedCred = cached && cached.type === fileCredentialMode;
+  const folderKey = file.folder_id ? sessionVault.getFolderKey(file.folder_id) : null;
+  const hasCachedCred = fileCredentialMode !== "folder" && cached && cached.type === fileCredentialMode;
+  const hasRecoveryMaterial = fileCredentialMode === "folder" ? Boolean(folderKey) : Boolean(hasCachedCred);
+  const operationGenerationRef = useRef(0);
   const [credential, setCredential] = useState("");
   const [step, setStep] = useState<Step>("credential");
   const [shareUrl, setShareUrl] = useState("");
@@ -106,9 +111,17 @@ export function CreateShareLinkModal({
 
   const todayISO = new Date().toISOString().split("T")[0] ?? "";
 
+  useEffect(() => () => { operationGenerationRef.current += 1; }, []);
+
   async function handleGenerate() {
-    const cred = hasCachedCred ? cached!.value : credential;
-    if (!cred) return;
+    const cred = fileCredentialMode === "folder" ? "" : hasCachedCred ? cached!.value : credential;
+    if (fileCredentialMode === "folder" && !folderKey) {
+      setErrorMsg("Open this folder in Files first so its encryption key can be unlocked.");
+      setStep("error");
+      return;
+    }
+    if (fileCredentialMode !== "folder" && !cred) return;
+    const generation = ++operationGenerationRef.current;
     setStep("generating");
     setErrorMsg("");
 
@@ -121,13 +134,17 @@ export function CreateShareLinkModal({
       if (!downloadResponse.ok) {
         throw new Error("Could not verify this file's encryption key. Try again.");
       }
+      const encryptedData = await downloadResponse.arrayBuffer();
+      if (operationGenerationRef.current !== generation) return;
       const recovered = await recoverVerifiedOwnerFileKey({
         file,
         credential: cred,
-        encryptedData: await downloadResponse.arrayBuffer(),
+        encryptedData,
         wrappedKey: downloadResponse.headers.get("X-Wrapped-Key"),
         cachedFileKey: sessionVault.getFileKey(file.id),
+        folderKey,
       });
+      if (operationGenerationRef.current !== generation) return;
       sessionVault.setFileKey(file.id, recovered.key);
       const b64Key = recovered.fragment;
 
@@ -158,11 +175,13 @@ export function CreateShareLinkModal({
       }
 
       const data = (await response.json()) as { token: string };
+      if (operationGenerationRef.current !== generation) return;
       const url = `${window.location.origin}${BASE_PATH}/share/${data.token}#${b64Key}`;
       setShareUrl(url);
       setExpiryDisplay(displayDate);
       setStep("done");
     } catch (err) {
+      if (operationGenerationRef.current !== generation) return;
       setErrorMsg(
         err instanceof Error ? err.message : "Failed to generate share link",
       );
@@ -181,6 +200,7 @@ export function CreateShareLinkModal({
   }
 
   function handleClose() {
+    operationGenerationRef.current += 1;
     setCredential("");
     setStep("credential");
     setShareUrl("");
@@ -367,7 +387,7 @@ export function CreateShareLinkModal({
                 )}
               </div>
 
-              {!hasCachedCred && (
+              {!hasRecoveryMaterial && fileCredentialMode !== "folder" && (
                 <div className="space-y-1.5">
                   <label
                     htmlFor="csl-credential"
@@ -418,6 +438,13 @@ export function CreateShareLinkModal({
                   />
                 </div>
               )}
+              {fileCredentialMode === "folder" && (
+                <p className="rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  {folderKey
+                    ? "This file will use the folder key already unlocked in this browser."
+                    : "Open this folder in Files first so its encryption key can be unlocked."}
+                </p>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="modal-cancel"
@@ -429,10 +456,10 @@ export function CreateShareLinkModal({
                 <Button
                   onClick={() => void handleGenerate()}
                   disabled={
-                    (!hasCachedCred &&
+                    (!hasRecoveryMaterial &&
                       (fileCredentialMode === "pin"
                         ? credential.length !== 4
-                        : credential.length === 0)) ||
+                        : fileCredentialMode === "password" ? credential.length === 0 : true)) ||
                     (expiryDays === "custom" && customDate === "") ||
                     (enableTimeLock && unlockAtDate === "")
                   }

@@ -1,11 +1,13 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { X, Share2, Upload } from "lucide-react";
 import type { ActivityEvent } from "../../hooks";
+import type { ActivityConnectionStatus } from "../../hooks/useSSE";
 
 interface ActivityFeedPanelProps {
   isOpen: boolean;
   onClose: () => void;
   events: ActivityEvent[];
+  connectionStatus?: ActivityConnectionStatus;
 }
 
 function EventIcon({ eventType }: { eventType: string }) {
@@ -24,7 +26,7 @@ function eventLabel(eventType: string): string {
   return eventType;
 }
 
-export function ActivityFeedPanel({ isOpen, onClose, events }: ActivityFeedPanelProps) {
+export function ActivityFeedPanel({ isOpen, onClose, events, connectionStatus = "connecting" }: ActivityFeedPanelProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -97,10 +99,13 @@ export function ActivityFeedPanel({ isOpen, onClose, events }: ActivityFeedPanel
           </button>
         </div>
 
+        <p role="status" className="border-b border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          {{ live: "Live connection active. Events received in this session appear below.", connecting: "Connecting to live updates. Activity may be incomplete.", reconnecting: "Reconnecting to live updates. New activity is not confirmed yet.", offline: "You are offline. Live activity is unavailable.", paused: "Live updates are paused while this tab is hidden.", "signed-out": "Sign in to receive live updates.", forbidden: "Live updates are not permitted for this session." }[connectionStatus]}
+        </p>
         <div className="flex-1 overflow-y-auto">
           {events.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              No activity yet
+              No activity received in this session
             </div>
           ) : (
             <ul className="divide-y divide-border">

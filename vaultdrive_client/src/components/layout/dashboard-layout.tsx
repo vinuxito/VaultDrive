@@ -31,7 +31,9 @@ import { requiresPinSetup } from "../../utils/pin-trust";
 import { API_URL } from "../../utils/api";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 import { useTranslation } from "react-i18next";
-import { getOfflineQueue, removeQueueItem } from "../../utils/offline-db";
+import { getOfflineQueue, removeQueueItem, updateQueueItem, type OfflineAction } from "../../utils/offline-db";
+import { chunkOfflineActions, classifyOfflineActions, matchOfflineSyncResults } from "../../utils/offline-sync";
+import { OfflineQueueReview } from "../offline/OfflineQueueReview";
 import { branding } from "../../config/branding";
 import { mutate } from "swr";
 import { WifiOff, RefreshCw } from "lucide-react";
@@ -49,6 +51,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { t } = useTranslation(["common", "drive"]);
   const logout = useLogout();
   const { toasts, addToast, dismissToast } = useToast();
+  const user = getStoredUserFromLocalStorage() ?? {};
+  const currentOwnerId = typeof user.id === "string" ? user.id : null;
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -59,13 +63,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [queueLength, setQueueLength] = useState(0);
+  const [queueItems, setQueueItems] = useState<OfflineAction[]>([]);
+  const [showOfflineReview, setShowOfflineReview] = useState(false);
+  const syncInFlightRef = useRef(false);
+  const queueLength = queueItems.length;
 
   // Function to refresh queue length
-  const updateQueueLength = useCallback(async () => {
+  const refreshQueue = useCallback(async () => {
     try {
       const q = await getOfflineQueue();
-      setQueueLength(q.length);
+      setQueueItems(q);
     } catch {
       // ignore
     }
@@ -73,53 +80,50 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const triggerSync = useCallback(async () => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token || !currentOwnerId || syncInFlightRef.current) return;
 
     const performSync = async () => {
+      syncInFlightRef.current = true;
       try {
         const queue = await getOfflineQueue();
-        if (queue.length === 0) return;
+        const { ready } = classifyOfflineActions(queue, currentOwnerId);
+        if (ready.length === 0) return;
 
         setIsSyncing(true);
-        
-        const response = await fetch(`${API_URL}/v1/files/sync`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ actions: queue }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Sync API failed");
-        }
-
-        const data = await response.json();
-        const results = data.results || [];
-        
         let successCount = 0;
-        
-        for (const res of results) {
-          const item = queue.find(q => q.file_id === res.file_id);
-          if (!item) continue;
-          
-          if (res.success) {
-            successCount++;
-            if (item.id !== undefined) {
-              await removeQueueItem(item.id);
-            }
-          } else if (res.conflict) {
-            if (item.id !== undefined) {
-              await removeQueueItem(item.id);
-            }
-            addToast(
-              t("drive:vault.sync.conflict", { filename: res.filename || item.filename || "file" }),
-              "info"
-            );
-          } else {
-            if (item.id !== undefined) {
-              await removeQueueItem(item.id);
+
+        for (const chunk of chunkOfflineActions(ready)) {
+          const attemptedAt = new Date().toISOString();
+          await Promise.all(chunk.map((item) => updateQueueItem(item.id, {
+            status: "unknown",
+            last_error: "Waiting for server confirmation.",
+            last_attempt_at: attemptedAt,
+          })));
+          await refreshQueue();
+
+          const response = await fetch(`${API_URL}/v1/files/sync`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ actions: chunk }),
+          });
+          if (!response.ok) throw new Error(`Sync API failed (${response.status})`);
+
+          const data = await response.json() as { results?: unknown };
+          if (!Array.isArray(data.results)) throw new Error("Sync response did not include confirmed results");
+          const outcomes = matchOfflineSyncResults(chunk, data.results);
+          for (const outcome of outcomes) {
+            if (outcome.kind === "remove") {
+              successCount++;
+              await removeQueueItem(outcome.id);
+            } else {
+              await updateQueueItem(outcome.id, {
+                status: outcome.kind,
+                last_error: outcome.error,
+                last_attempt_at: attemptedAt,
+              });
             }
           }
         }
@@ -133,9 +137,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         
       } catch (err) {
         console.error("Failed to sync offline actions:", err);
+        addToast("Some offline changes need review because the server did not confirm them.", "info");
       } finally {
         setIsSyncing(false);
-        updateQueueLength();
+        syncInFlightRef.current = false;
+        refreshQueue();
       }
     };
 
@@ -145,16 +151,62 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           if (!lock) return; // Already running in another tab
           await performSync();
         });
-      } catch {
-        await performSync();
+      } catch (error) {
+        console.error("Could not acquire the offline sync lock:", error);
+        addToast("Offline changes were held because a safe sync lock was unavailable.", "info");
       }
     } else {
       await performSync();
     }
-  }, [addToast, t, updateQueueLength]);
+  }, [addToast, currentOwnerId, refreshQueue, t]);
+
+  const retryOfflineAction = useCallback(async (item: OfflineAction) => {
+    if (!item.id || item.owner_id !== currentOwnerId || !item.action_id) return;
+    await updateQueueItem(item.id, { status: "pending", last_error: undefined, last_attempt_at: item.last_attempt_at });
+    await refreshQueue();
+    await triggerSync();
+  }, [currentOwnerId, refreshQueue, triggerSync]);
+
+  const discardOfflineAction = useCallback(async (item: OfflineAction) => {
+    if (!item.id) return;
+    await removeQueueItem(item.id);
+    await refreshQueue();
+  }, [refreshQueue]);
+
+  const reconcileOfflineRename = useCallback(async (item: OfflineAction) => {
+    if (!item.id || item.type !== "rename" || item.owner_id !== currentOwnerId) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/files`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error("Could not inspect the current file list");
+      const files = await response.json() as Array<{ id?: string; filename?: string; parent_hash?: string }>;
+      const serverFile = files.find((file) => file.id === item.file_id);
+      const matches = Boolean(serverFile
+        && serverFile.filename === item.new_filename
+        && (!item.new_hash || serverFile.parent_hash === item.new_hash));
+      if (matches) {
+        await removeQueueItem(item.id);
+        addToast(`Confirmed rename to ${item.new_filename}.`, "success");
+      } else {
+        await updateQueueItem(item.id, {
+          status: "failed",
+          last_error: "The server file does not match the queued rename. Review it before retrying.",
+          last_attempt_at: item.last_attempt_at,
+        });
+      }
+    } catch (error) {
+      await updateQueueItem(item.id, {
+        status: "unknown",
+        last_error: error instanceof Error ? error.message : "Could not inspect the server file.",
+        last_attempt_at: item.last_attempt_at,
+      });
+    } finally {
+      await refreshQueue();
+    }
+  }, [addToast, currentOwnerId, refreshQueue]);
 
   useEffect(() => {
-    updateQueueLength();
+    refreshQueue();
     
     const handleOnline = () => {
       setIsOnline(true);
@@ -168,7 +220,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     window.addEventListener("offline", handleOffline);
     
     const handleActionQueued = () => {
-      updateQueueLength();
+      refreshQueue();
     };
     window.addEventListener("offline-action-queued", handleActionQueued);
 
@@ -181,9 +233,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("offline-action-queued", handleActionQueued);
     };
-  }, [updateQueueLength, triggerSync]);
+  }, [refreshQueue, triggerSync]);
 
-  const user = getStoredUserFromLocalStorage() ?? {};
   const [showOnboarding, setShowOnboarding] = useState(() => requiresPinSetup(user));
 
   // Verify PIN status from server to handle stale localStorage
@@ -241,7 +292,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const firstBurstEvent = useRef<typeof events[number] | null>(null);
 
-  useSSE((event) => {
+  const activityConnection = useSSE((event) => {
     setEvents((prev) => [event, ...prev].slice(0, 50));
     setUnreadCount((prev) => prev + 1);
 
@@ -428,6 +479,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
+        {queueLength > 0 && (
+          <div className="border-b border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-foreground">
+            <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+              <span>{queueLength} offline change{queueLength === 1 ? "" : "s"} waiting for confirmation</span>
+              <button type="button" className="font-semibold text-primary hover:underline" onClick={() => setShowOfflineReview((open) => !open)}>
+                {showOfflineReview ? "Hide details" : "Review changes"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showOfflineReview && queueLength > 0 && (
+          <OfflineQueueReview
+            items={queueItems}
+            currentOwnerId={currentOwnerId}
+            onRetry={(item) => { void retryOfflineAction(item); }}
+            onDiscard={(item) => { void discardOfflineAction(item); }}
+            onReconcileRename={(item) => { void reconcileOfflineRename(item); }}
+          />
+        )}
+
         <AnimatePresence>
           {branding.logoVariant !== "abrn" && (!isOnline || isSyncing) && (
             <motion.div
@@ -501,6 +573,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         isOpen={activityFeedOpen}
         onClose={() => setActivityFeedOpen(false)}
         events={events}
+        connectionStatus={activityConnection}
       />
       <Toast
         toasts={toasts}

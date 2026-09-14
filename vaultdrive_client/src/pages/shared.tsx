@@ -29,6 +29,7 @@ import { FileWidget } from "../components/files";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { restorePrivateKeyFromSessionPin } from "../utils/shared-session";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import { DataState } from "../components/ui/data-state";
 
 interface SharedFile {
   id: string;
@@ -56,7 +57,9 @@ export default function SharedFiles() {
   const { t } = useTranslation(["drive", "common"]);
   const { getPrivateKey, getCredential, setCredential, setPrivateKey } = useSessionVault();
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [sourceError, setSourceError] = useState("");
   const [error, setError] = useState("");
 
   const [showPinModal, setShowPinModal] = useState(false);
@@ -68,8 +71,8 @@ export default function SharedFiles() {
   } | null>(null);
 
   const fetchSharedFiles = useCallback(async () => {
-    setLoading(true);
-    setError("");
+    setRefreshing(true);
+    setSourceError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/shared`, {
@@ -77,14 +80,17 @@ export default function SharedFiles() {
       });
       if (!response.ok) {
         if (response.status === 401) { navigate("/login"); return; }
-        throw new Error("Failed to fetch shared files");
+        if (response.status === 403) throw new Error("You do not have access to shared files for this account.");
+        throw new Error("Shared files are unavailable. Your existing vault data is unchanged.");
       }
       const data = await response.json();
-      setSharedFiles(data || []);
+      if (!Array.isArray(data)) throw new Error("Shared files returned an unexpected response. Try again.");
+      setSharedFiles(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load shared files");
+      setSourceError(err instanceof Error ? err.message : "Shared files are unavailable. Try again.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [navigate]);
 
@@ -258,7 +264,8 @@ export default function SharedFiles() {
         )}
 
         <div className="brand-glass-card p-6">
-          <div className="mb-4">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
               {t("drive:shared.listTitle", "Shared Files")}
@@ -268,21 +275,24 @@ export default function SharedFiles() {
                 ? t("drive:shared.loading", "Loading shared files...")
                 : t("drive:shared.count", "{{count}} files shared with you", { count: sharedFiles.length })}
             </p>
+            </div>
+            <Button type="button" variant="outline" size="sm" disabled={refreshing} onClick={() => void fetchSharedFiles()}>
+              {refreshing ? "Refreshing…" : "Refresh"}
+            </Button>
           </div>
-          <div>
-            {loading ? (
-              <div className="space-y-2">
-                {["s1","s2","s3"].map((k) => (
-                  <div key={k} className="flex items-center gap-3 p-4 animate-pulse">
-                    <div className="w-10 h-10 rounded-lg bg-muted shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-muted rounded w-3/4" />
-                      <div className="h-2.5 bg-muted rounded w-1/3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : sharedFiles.length === 0 ? (
+          {sourceError && sharedFiles.length > 0 && (
+            <p role="status" className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+              Showing the last loaded shared files. {sourceError}
+            </p>
+          )}
+          <DataState
+            loading={loading}
+            loadingLabel={t("drive:shared.loading", "Loading shared files...")}
+            error={sourceError && sharedFiles.length === 0 ? sourceError : undefined}
+            onRetry={() => void fetchSharedFiles()}
+            skeletonRows={3}
+          >
+            {sharedFiles.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
                   <Share2 className="w-8 h-8 text-primary" />
@@ -314,7 +324,7 @@ export default function SharedFiles() {
                 ))}
               </div>
             )}
-          </div>
+          </DataState>
         </div>
 
         <div className="brand-glass-card mt-6 p-6">

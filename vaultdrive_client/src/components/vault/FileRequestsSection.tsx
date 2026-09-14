@@ -31,6 +31,18 @@ interface FileRequest {
   created_at: string;
 }
 
+function isFileRequestList(value: unknown): value is FileRequest[] {
+  return Array.isArray(value) && value.every((request) => {
+    if (!request || typeof request !== "object") return false;
+    const row = request as Record<string, unknown>;
+    return typeof row.id === "string" &&
+      typeof row.token === "string" &&
+      typeof row.is_active === "boolean" &&
+      typeof row.uploaded_count === "number" &&
+      typeof row.created_at === "string";
+  });
+}
+
 type ExpiryOption = "never" | "1" | "7" | "30";
 
 interface CreateRequestModalProps {
@@ -347,6 +359,7 @@ export function FileRequestsSection() {
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<string>("");
+  const [lastSuccessfulAt, setLastSuccessfulAt] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!copiedId) return;
@@ -361,8 +374,13 @@ export function FileRequestsSection() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error("Failed to fetch file requests");
-      const data = (await response.json()) as FileRequest[];
-      setRequests(data ?? []);
+      const data = await response.json() as unknown;
+      if (!isFileRequestList(data)) {
+        throw new Error("The server returned an unexpected response for file requests.");
+      }
+      setRequests(data);
+      setLastSuccessfulAt(new Date());
+      setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load requests");
     } finally {
@@ -376,6 +394,7 @@ export function FileRequestsSection() {
   }, [fetchRequests]);
 
   const handleRefresh = () => {
+    if (!lastSuccessfulAt) setLoading(true);
     setRefreshing(true);
     setError("");
     void fetchRequests();
@@ -432,7 +451,7 @@ export function FileRequestsSection() {
         <div>
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Inbox className="w-5 h-5 text-primary" />
-            File Requests ({requests.length})
+            File Requests ({lastSuccessfulAt ? requests.length : "—"})
           </h2>
           <p className="text-sm text-muted-foreground">
             Ask clients for files through a clear, revocable request route
@@ -473,9 +492,12 @@ export function FileRequestsSection() {
         </p>
       </div>
 
-      {error && (
-        <div className="p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
+      {error && lastSuccessfulAt && (
+        <div className="p-4 rounded-lg border border-amber-300/60 bg-amber-100/50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100 text-sm" role="status">
+          <p className="font-medium">Showing the last confirmed requests.</p>
+          <p className="mt-1">
+            Refresh failed after {lastSuccessfulAt.toLocaleTimeString()}. {error}
+          </p>
         </div>
       )}
 
@@ -489,10 +511,12 @@ export function FileRequestsSection() {
       )}
 
       <DataState
-        loading={loading}
-        empty={requests.length === 0}
+        loading={loading && !lastSuccessfulAt}
+        error={!lastSuccessfulAt ? error : undefined}
+        empty={Boolean(lastSuccessfulAt) && requests.length === 0}
         emptyConfig={EMPTY.fileRequestsEmpty}
         loadingLabel={LOADING.workingDefault}
+        onRetry={handleRefresh}
         onEmptyAction={() => setShowCreateModal(true)}
         skeletonRows={3}
       >
@@ -508,6 +532,7 @@ export function FileRequestsSection() {
                 id: "copy-url",
                 label: copiedId === req.id ? "Copied!" : "Copy request URL",
                 icon: copiedId === req.id ? Check : Copy,
+                disabled: Boolean(error),
                 onSelect: () => {
                   void handleCopyUrl(req);
                 },
@@ -519,6 +544,7 @@ export function FileRequestsSection() {
                 label: CONFIRM_DESTRUCTIVE.deleteFileRequest.confirmLabel,
                 icon: Trash2,
                 kind: "destructive",
+                disabled: Boolean(error),
                 onSelect: () => setConfirmRevokeId(req.id),
               });
             }
@@ -638,6 +664,7 @@ export function FileRequestsSection() {
         onClose={() => setShowCreateModal(false)}
         onSuccess={(request) => {
           setError("");
+          setLastSuccessfulAt(new Date());
           setReceipt(
             `Request created. Share it when ready; you can track uploads or revoke it at any time.`,
           );

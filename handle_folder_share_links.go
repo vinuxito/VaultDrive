@@ -334,14 +334,7 @@ func (cfg *ApiConfig) handlerRevokeFolderShareLink(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var owned, changed bool
-	err = cfg.db.QueryRowContext(r.Context(), `
-		WITH closed AS (
-			UPDATE folder_share_links SET is_active=FALSE
-			WHERE id=$1 AND owner_id=$2 AND is_active=TRUE RETURNING id
-		)
-		SELECT EXISTS(SELECT 1 FROM folder_share_links WHERE id=$1 AND owner_id=$2),
-		       EXISTS(SELECT 1 FROM closed)`, linkID, user.ID).Scan(&owned, &changed)
+	owned, changed, err := cfg.closeOwnedShareLink(r, user.ID, linkID, "folder_share_link")
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error revoking folder share link", err)
 		return
@@ -355,11 +348,6 @@ func (cfg *ApiConfig) handlerRevokeFolderShareLink(w http.ResponseWriter, r *htt
 		respondWithJSON(w, http.StatusOK, map[string]string{"status": "already_closed", "message": "Folder share link is already closed"})
 		return
 	}
-
-	cfg.insertActivity(r.Context(), user.ID, "folder_share_link_revoked", map[string]interface{}{
-		"share_link_id": linkID.String(),
-	})
-	cfg.insertAudit(r.Context(), user.ID, "folder_share_link.revoked", "folder_share_link", &linkID, nil, r)
 
 	respondWithJSON(w, http.StatusOK, map[string]string{
 		"status":  "success",
@@ -596,7 +584,11 @@ func (cfg *ApiConfig) handlerGetFolderShareInfo(w http.ResponseWriter, r *http.R
 
 	link, err := cfg.dbQueries.GetFolderShareLinkByToken(r.Context(), token)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Folder share link not found or inactive", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "Folder share link not found or inactive", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "Share information is temporarily unavailable", err)
+		}
 		return
 	}
 
@@ -610,7 +602,11 @@ func (cfg *ApiConfig) handlerGetFolderShareInfo(w http.ResponseWriter, r *http.R
 
 	folder, err := cfg.dbQueries.GetFolderByID(r.Context(), link.FolderID)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Folder not found", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "Folder not found", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "Folder information is temporarily unavailable", err)
+		}
 		return
 	}
 
@@ -624,9 +620,11 @@ func (cfg *ApiConfig) handlerGetFolderShareInfo(w http.ResponseWriter, r *http.R
 	allFolders := make(map[string]database.Folder)
 	for _, fid := range subtreeIDs {
 		f, ferr := cfg.dbQueries.GetFolderByID(r.Context(), fid)
-		if ferr == nil {
-			allFolders[fid.String()] = f
+		if ferr != nil {
+			respondWithError(w, http.StatusServiceUnavailable, "The folder tree changed or could not be loaded. Try again.", ferr)
+			return
 		}
+		allFolders[fid.String()] = f
 	}
 
 	// Get all files with wrapped keys for this share
@@ -647,7 +645,11 @@ func (cfg *ApiConfig) handlerGetFolderShareInfo(w http.ResponseWriter, r *http.R
 	var totalSize int64
 
 	files, ferr := cfg.dbQueries.GetFilesByFolderIDs(r.Context(), subtreeIDs)
-	if ferr == nil {
+	if ferr != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Folder files are temporarily unavailable", ferr)
+		return
+	}
+	{
 		for _, f := range files {
 			if !fileIDSet[f.ID] {
 				continue
@@ -736,7 +738,11 @@ func (cfg *ApiConfig) handlerGetFolderShareKeys(w http.ResponseWriter, r *http.R
 
 	link, err := cfg.dbQueries.GetFolderShareLinkByToken(r.Context(), token)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Folder share link not found or inactive", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "Folder share link not found or inactive", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "Folder share is temporarily unavailable", err)
+		}
 		return
 	}
 
@@ -769,7 +775,11 @@ func (cfg *ApiConfig) handlerGetFolderShareFile(w http.ResponseWriter, r *http.R
 
 	link, err := cfg.dbQueries.GetFolderShareLinkByToken(r.Context(), token)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Folder share link not found or inactive", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "Folder share link not found or inactive", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "Folder share is temporarily unavailable", err)
+		}
 		return
 	}
 
@@ -790,13 +800,21 @@ func (cfg *ApiConfig) handlerGetFolderShareFile(w http.ResponseWriter, r *http.R
 		FileID:            fileID,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "File not found in this shared folder", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "File not found in this shared folder", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "Folder access could not be checked. Try again.", err)
+		}
 		return
 	}
 
 	dbFile, err := cfg.dbQueries.GetFileByID(r.Context(), fileID)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "File not found", nil)
+		if err == sql.ErrNoRows {
+			respondWithError(w, http.StatusNotFound, "File not found", nil)
+		} else {
+			respondWithError(w, http.StatusServiceUnavailable, "File information is temporarily unavailable", err)
+		}
 		return
 	}
 

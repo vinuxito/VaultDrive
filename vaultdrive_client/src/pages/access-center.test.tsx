@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AccessCenter from "./access-center";
@@ -421,5 +421,61 @@ describe("AccessCenter truthful source states", () => {
     expect(card).not.toBeNull();
     expect(within(card as HTMLElement).queryByRole("button", { name: /copy/i })).not.toBeInTheDocument();
     expect(within(card as HTMLElement).getByRole("link", { name: "Manage Drop route" })).toHaveAttribute("href", "/files");
+  });
+
+  it("marks a previously successful empty source stale with its last update time when refresh fails", async () => {
+    let shareRequests = 0;
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/v1/shares")) {
+        shareRequests += 1;
+        return shareRequests === 1 ? jsonResponse([]) : jsonResponse({ error: "down" }, 503);
+      }
+      if (url.endsWith("/drop/tokens")) return jsonResponse([]);
+      throw new Error(`Unhandled fetch: ${url}`);
+    }) as typeof fetch;
+
+    render(<MemoryRouter><AccessCenter /></MemoryRouter>);
+    await screen.findByText("No access grants match this filter.");
+    expect(screen.getAllByText(/Last updated:/i)).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: "Refresh share links" }));
+
+    expect(await screen.findByText("Share links may be out of date.")).toBeInTheDocument();
+    expect(screen.getAllByText(/Last updated:/i).length).toBeGreaterThan(0);
+  });
+
+  it("rejects malformed source rows instead of rendering invented grants", async () => {
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/v1/shares")) return jsonResponse([null, { id: "partial" }]);
+      if (url.endsWith("/drop/tokens")) return jsonResponse([]);
+      throw new Error(`Unhandled fetch: ${url}`);
+    }) as typeof fetch;
+
+    render(<MemoryRouter><AccessCenter /></MemoryRouter>);
+    expect(await screen.findByText("Share links are unavailable.")).toBeInTheDocument();
+    expect(screen.queryByText("partial")).not.toBeInTheDocument();
+  });
+
+  it("passes the selected Drop token to the existing Files manager", async () => {
+    function FilesProbe() {
+      const location = useLocation();
+      return <div>manager:{JSON.stringify(location.state)}</div>;
+    }
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/v1/shares")) return jsonResponse([]);
+      if (url.endsWith("/drop/tokens")) return jsonResponse([drop]);
+      throw new Error(`Unhandled fetch: ${url}`);
+    }) as typeof fetch;
+
+    render(<MemoryRouter initialEntries={["/access-center"]}><Routes>
+      <Route path="/access-center" element={<AccessCenter />} />
+      <Route path="/files" element={<FilesProbe />} />
+    </Routes></MemoryRouter>);
+    const card = (await screen.findByText("Client intake")).closest("div.rounded-xl") as HTMLElement;
+    await userEvent.click(within(card).getByRole("link", { name: "Manage Drop route" }));
+
+    expect(await screen.findByText(/manager:/)).toHaveTextContent('"manageDropToken":"drop-token"');
   });
 });

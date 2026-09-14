@@ -1,4 +1,4 @@
-import { useCallback, useEffectEvent, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { Button } from "../components/ui/button";
 import { LanguageToggle } from "../components/ui/language-toggle";
 import {
@@ -11,7 +11,7 @@ import { Lock, Mail, User, Eye, EyeOff, Fingerprint } from "lucide-react";
 // Globe icon used via LanguageToggle component
 import { BrandLogo, PoweredByBadge } from "../components/branding";
 import { API_URL } from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { branding } from "../config/branding";
 import {
@@ -23,13 +23,24 @@ import { validateRegister } from "../utils/registerValidation";
 import { useTranslation } from "react-i18next";
 import {
   hasRegisteredPasskey,
+  isWebAuthnAvailable,
   unlockWithPasskey,
   getWebAuthnEmail,
 } from "../hooks/useWebAuthn";
-import { useEffect } from "react";
+import { getSafeLoginIntent } from "../utils/auth-session";
+
+function passkeyFallbackMessage(error: unknown): string {
+  if (error instanceof DOMException && ["NotAllowedError", "AbortError"].includes(error.name)) {
+    return "The passkey prompt was canceled. Enter your PIN to continue.";
+  }
+  return error instanceof Error
+    ? `${error.message}. Enter your PIN to continue.`
+    : "Passkey unlock failed. Enter your PIN to continue.";
+}
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation(["auth"]);
 
   const { setPrivateKey, setCredential, clearVault } = useSessionVault();
@@ -41,10 +52,33 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  const lockoutIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [loginData, setLoginData] = useState({ email: getWebAuthnEmail() || "", password: "" });
   const [pinValue, setPinValue] = useState("");
   const [biometricError, setBiometricError] = useState<string | null>(null);
+  const passkeyAvailable = isWebAuthnAvailable();
+  const loginIntent = getSafeLoginIntent((location.state as { from?: unknown } | null)?.from);
+
+  const startLockout = useCallback((rawSeconds: number) => {
+    const seconds = Number.isFinite(rawSeconds) && rawSeconds > 0 ? Math.min(Math.floor(rawSeconds), 3600) : 60;
+    if (lockoutIntervalRef.current) clearInterval(lockoutIntervalRef.current);
+    setLockoutSeconds(seconds);
+    lockoutIntervalRef.current = setInterval(() => {
+      setLockoutSeconds((previous) => {
+        if (previous <= 1) {
+          if (lockoutIntervalRef.current) clearInterval(lockoutIntervalRef.current);
+          lockoutIntervalRef.current = null;
+          return 0;
+        }
+        return previous - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => () => {
+    if (lockoutIntervalRef.current) clearInterval(lockoutIntervalRef.current);
+  }, []);
 
   const [registerData, setRegisterData] = useState({
     first_name: "",
@@ -73,17 +107,7 @@ export default function Login() {
       if (response.status === 429) {
         const retryAfter = response.headers.get("Retry-After");
         const seconds = retryAfter ? parseInt(retryAfter, 10) : 60;
-        setLockoutSeconds(seconds);
-        
-        const interval = setInterval(() => {
-          setLockoutSeconds((prev) => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
+        startLockout(seconds);
 
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || t("auth:login.errorRateLimit"));
@@ -158,13 +182,13 @@ export default function Login() {
       }
 
       persistAuthenticatedSession();
-      navigate(data.pin_set ? "/" : "/files");
+      navigate(loginIntent ?? (data.pin_set ? "/" : "/files"), { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
-  }, [clearVault, navigate, setCredential, setPrivateKey, t]);
+  }, [clearVault, loginIntent, navigate, setCredential, setPrivateKey, startLockout, t]);
 
   const handleBiometricUnlock = useCallback(async () => {
     setBiometricError(null);
@@ -178,7 +202,7 @@ export default function Login() {
       setPinValue(pin);
       await performLogin(email, pin, "pin");
     } catch (e) {
-      setBiometricError(e instanceof Error ? e.message : "Biometric unlock failed");
+      setBiometricError(passkeyFallbackMessage(e));
     }
   }, [loginData.email, performLogin]);
 
@@ -189,12 +213,12 @@ export default function Login() {
       setPinValue(pin);
       await performLogin(email, pin, "pin");
     } catch (e) {
-      setBiometricError(e instanceof Error ? e.message : "Biometric unlock failed");
+      setBiometricError(passkeyFallbackMessage(e));
     }
   });
 
   useEffect(() => {
-    if (loginMode === "pin" && hasRegisteredPasskey()) {
+    if (loginMode === "pin" && passkeyAvailable && hasRegisteredPasskey()) {
       const email = getWebAuthnEmail();
       if (email) {
         const timer = setTimeout(() => {
@@ -203,7 +227,7 @@ export default function Login() {
         return () => clearTimeout(timer);
       }
     }
-  }, [loginMode]);
+  }, [loginMode, passkeyAvailable]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,17 +256,7 @@ export default function Login() {
       if (response.status === 429) {
         const retryAfter = response.headers.get("Retry-After");
         const seconds = retryAfter ? parseInt(retryAfter, 10) : 60;
-        setLockoutSeconds(seconds);
-        
-        const interval = setInterval(() => {
-          setLockoutSeconds((prev) => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
+        startLockout(seconds);
 
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || t("auth:login.errorRateLimit"));
@@ -453,7 +467,7 @@ export default function Login() {
                     </button>
                   </p>
 
-                  {hasRegisteredPasskey() && (
+                  {hasRegisteredPasskey() && passkeyAvailable && (
                     <div className="pt-2">
                       <Button
                         type="button"
@@ -469,6 +483,11 @@ export default function Login() {
                         <p className="text-xs text-red-600 dark:text-red-400 mt-1 text-center">{biometricError}</p>
                       )}
                     </div>
+                  )}
+                  {hasRegisteredPasskey() && !passkeyAvailable && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Passkeys are unavailable in this browser. Enter your PIN to continue.
+                    </p>
                   )}
                 </div>
               )}

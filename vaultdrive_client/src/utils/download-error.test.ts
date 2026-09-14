@@ -46,4 +46,12 @@ describe("mapDownloadHttpError", () => {
       retryable: true,
     });
   });
+
+  it("does not mislabel an unrelated TypeError as a network failure", () => {
+    expect(classifyTransferError(new TypeError("Invalid response metadata"))).toEqual({
+      kind: "unknown",
+      message: "Invalid response metadata",
+      retryable: false,
+    });
+  });
 });

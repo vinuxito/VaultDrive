@@ -91,6 +91,8 @@ import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-uploa
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
 import { queueOfflineAction } from "../utils/offline-db";
+import { DataState } from "../components/ui/data-state";
+import { readOwnerUploadOutcome } from "../utils/owner-upload-outcome";
 
 
 interface FileData {
@@ -131,7 +133,8 @@ interface UploadTrayItem {
   id: string;
   name: string;
   progress: number;
-  status: "uploading" | "done" | "error";
+  status: "uploading" | "done" | "error" | "unknown";
+  message?: string;
 }
 
 const FILE_TYPE_EXTENSIONS: Record<string, string[]> = {
@@ -208,11 +211,12 @@ export default function Files() {
   const sessionVault = useSessionVault();
   const { t } = useTranslation(["drive"]);
 
-  const routeState = location.state as { highlightFileId?: string; onboardingTask?: FirstTask } | null;
+  const routeState = location.state as { highlightFileId?: string; onboardingTask?: FirstTask; manageDropToken?: string } | null;
   const onboardingTask = routeState?.onboardingTask;
   const firstTask = onboardingTask && ["upload", "share", "receive"].includes(onboardingTask) ? onboardingTask : null;
 
   const highlightFileId = (location.state as { highlightFileId?: string } | null)?.highlightFileId;
+  const manageDropToken = typeof routeState?.manageDropToken === "string" ? routeState.manageDropToken : null;
 
   const { data: myFiles = [], mutate: mutateMyFiles, isLoading, error: myFilesError } = useSWR<FileData[]>(`${API_URL}/files`, {
     onError: (err) => {
@@ -236,9 +240,15 @@ export default function Files() {
   }, [highlightFileId, isLoading, myFiles]);
 
   const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
+  const [sharedFilesLoading, setSharedFilesLoading] = useState(true);
+  const [sharedFilesError, setSharedFilesError] = useState("");
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [foldersError, setFoldersError] = useState("");
   const [dropTokens, setDropTokens] = useState<DropTokenInfo[]>([]);
+  const [dropTokensError, setDropTokensError] = useState("");
   const [dropLinkFiles, setDropLinkFiles] = useState<Record<string, FileData[]>>({});
+  const [dropLinkLoading, setDropLinkLoading] = useState<Record<string, boolean>>({});
+  const [dropLinkErrors, setDropLinkErrors] = useState<Record<string, string>>({});
 
   // loading state removed
   const [uploading, setUploading] = useState(false);
@@ -326,6 +336,7 @@ export default function Files() {
     filename: string;
     metadata: string;
     pin_wrapped_key?: string | null;
+    folder_id?: string | null;
   } | null>(null);
 
   const [showFolderShareModal, setShowFolderShareModal] = useState(false);
@@ -350,6 +361,9 @@ export default function Files() {
   }
   const [sharedFolders, setSharedFolders] = useState<SharedFolder[]>([]);
   const [sharedFolderFiles, setSharedFolderFiles] = useState<FileData[]>([]);
+  const [sharedFolderFilesLoading, setSharedFolderFilesLoading] = useState(false);
+  const [sharedFolderFilesError, setSharedFolderFilesError] = useState("");
+  const [sharedFolderReload, setSharedFolderReload] = useState(0);
   const [pendingSharedFolder, setPendingSharedFolder] = useState<SharedFolder | null>(null);
 
   const fetchFiles = useCallback(async () => {
@@ -359,17 +373,21 @@ export default function Files() {
   }, [mutateMyFiles]);
 
   const fetchSharedFiles = useCallback(async () => {
+    setSharedFilesLoading(true);
+    setSharedFilesError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/shared`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setSharedFiles(data || []);
-      }
-    } catch {
-      return;
+      if (!response.ok) throw new Error(response.status === 403 ? "You do not have access to shared files." : "Shared files are unavailable.");
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("Shared files returned an unexpected response.");
+      setSharedFiles(data);
+    } catch (sourceError) {
+      setSharedFilesError(sourceError instanceof Error ? sourceError.message : "Shared files are unavailable.");
+    } finally {
+      setSharedFilesLoading(false);
     }
   }, []);
 
@@ -389,50 +407,57 @@ export default function Files() {
   }, []);
 
   const fetchFolders = useCallback(async () => {
+    setFoldersError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/folders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setFolders(data || []);
-        return data || [];
-      }
-    } catch {
+      if (!response.ok) throw new Error(response.status === 403 ? "You do not have access to folders." : "Folders are unavailable.");
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("Folders returned an unexpected response.");
+      setFolders(data);
+      return data;
+    } catch (sourceError) {
+      setFoldersError(sourceError instanceof Error ? sourceError.message : "Folders are unavailable.");
       return [];
     }
     return [];
   }, []);
 
   const fetchDropTokens = useCallback(async () => {
+    setDropTokensError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/drop/tokens`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setDropTokens(data || []);
-      }
-    } catch {
-      return;
+      if (!response.ok) throw new Error(response.status === 403 ? "You do not have access to upload links." : "Upload links are unavailable.");
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("Upload links returned an unexpected response.");
+      setDropTokens(data);
+    } catch (sourceError) {
+      setDropTokensError(sourceError instanceof Error ? sourceError.message : "Upload links are unavailable.");
     }
   }, []);
 
-  const fetchDropLinkFiles = useCallback(async (dropToken: string) => {
-    if (dropLinkFiles[dropToken]) return;
+  const fetchDropLinkFiles = useCallback(async (dropToken: string, force = false) => {
+    if (dropLinkFiles[dropToken] && !force) return;
+    setDropLinkLoading((current) => ({ ...current, [dropToken]: true }));
+    setDropLinkErrors((current) => ({ ...current, [dropToken]: "" }));
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/drop/${dropToken}/files`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setDropLinkFiles((prev) => ({ ...prev, [dropToken]: data || [] }));
-      }
-    } catch {
-      return;
+      if (!response.ok) throw new Error(response.status === 403 ? "You do not have access to this upload link." : "Uploaded files are unavailable.");
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("Uploaded files returned an unexpected response.");
+      setDropLinkFiles((prev) => ({ ...prev, [dropToken]: data }));
+    } catch (sourceError) {
+      setDropLinkErrors((current) => ({ ...current, [dropToken]: sourceError instanceof Error ? sourceError.message : "Uploaded files are unavailable." }));
+    } finally {
+      setDropLinkLoading((current) => ({ ...current, [dropToken]: false }));
     }
   }, [dropLinkFiles]);
 
@@ -493,6 +518,10 @@ export default function Files() {
   }, [navigate, fetchFiles, fetchSharedFiles, fetchSharedFolders, fetchFolders, fetchDropTokens]);
 
   useEffect(() => {
+    if (manageDropToken) setSelectedNode({ type: "manage-drops" });
+  }, [manageDropToken]);
+
+  useEffect(() => {
     if (initialFolderShareSyncAttemptedRef.current) {
       return;
     }
@@ -521,6 +550,8 @@ export default function Files() {
     let active = true;
 
     const initFolder = async () => {
+      setSharedFolderFilesLoading(true);
+      setSharedFolderFilesError("");
       const cachedKey = sessionVault.getFolderKey(sharedFolder.id);
       if (!cachedKey) {
         const privateKey = sessionVault.getPrivateKey();
@@ -544,19 +575,22 @@ export default function Files() {
         const res = await fetch(`${API_URL}/folders/${selectedNode.folderId}/files`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (res.ok && active) {
-          const data = await res.json();
-          setSharedFolderFiles(data || []);
-        }
+        if (!res.ok) throw new Error(res.status === 403 ? "You do not have access to this shared folder." : "Shared-folder files are unavailable.");
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("Shared-folder files returned an unexpected response.");
+        if (active) setSharedFolderFiles(data);
       } catch (err) {
         console.error("Failed to load shared folder files:", err);
+        if (active) setSharedFolderFilesError(err instanceof Error ? err.message : "Shared-folder files are unavailable.");
+      } finally {
+        if (active) setSharedFolderFilesLoading(false);
       }
     };
 
     void initFolder();
 
     return () => { active = false; };
-  }, [selectedNode, sharedFolders, sessionVault]);
+  }, [selectedNode, sharedFolders, sessionVault, sharedFolderReload]);
 
   useEffect(() => {
     const onDragEnter = (e: DragEvent) => {
@@ -684,6 +718,42 @@ export default function Files() {
     return applySort(applyTypeFilter(list));
   }, [applySort, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles, sharedFolders, sharedFolderFiles]);
 
+  const selectedSharedFolder = selectedNode.type === "folder"
+    && sharedFolders.some((folder) => folder.id === selectedNode.folderId);
+  const activeViewLoading = searchQuery
+    ? isLoading || sharedFilesLoading
+    : selectedNode.type === "shared"
+      ? sharedFilesLoading
+      : selectedNode.type === "drop-link"
+        ? Boolean(dropLinkLoading[selectedNode.token])
+        : selectedSharedFolder
+          ? sharedFolderFilesLoading
+          : isLoading;
+  const ownedFilesError = myFilesError instanceof Error ? myFilesError.message : myFilesError ? "Your files are unavailable." : "";
+  const activeViewError = searchQuery
+    ? [ownedFilesError, sharedFilesError].filter(Boolean).join(" ")
+    : selectedNode.type === "shared"
+      ? sharedFilesError
+      : selectedNode.type === "drop-link"
+        ? dropLinkErrors[selectedNode.token] || ""
+        : selectedSharedFolder
+          ? sharedFolderFilesError
+          : ownedFilesError;
+  const retryActiveView = () => {
+    if (searchQuery) {
+      void fetchFiles();
+      void fetchSharedFiles();
+    } else if (selectedNode.type === "shared") {
+      void fetchSharedFiles();
+    } else if (selectedNode.type === "drop-link") {
+      void fetchDropLinkFiles(selectedNode.token, true);
+    } else if (selectedSharedFolder) {
+      setSharedFolderReload((value) => value + 1);
+    } else {
+      void fetchFiles();
+    }
+  };
+
   const folderFileCounts = useMemo(() => getFolderFileCounts(myFiles), [myFiles]);
   const visibleFileIds = useMemo(() => getSelectableFileIds(visibleFiles), [visibleFiles]);
   const selectedVisibleFiles = useMemo(
@@ -751,23 +821,30 @@ export default function Files() {
 
   const toggleStar = async (fileId: string) => {
     const token = localStorage.getItem("token");
+    const file = myFiles.find((candidate) => candidate.id === fileId);
+    if (!file) return;
+    const nextStarred = !file.starred;
     
     // Optimistic UI update
     mutateMyFiles(
-      (prev = []) => prev.map((f) => (f.id === fileId ? { ...f, starred: !f.starred } : f)),
+      (prev = []) => prev.map((f) => (f.id === fileId ? { ...f, starred: nextStarred } : f)),
       { revalidate: false }
     );
 
     try {
-      await fetch(`${API_URL}/files/${fileId}/star`, {
+      const response = await fetch(`${API_URL}/files/${fileId}/star`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) throw new Error(`Could not ${nextStarred ? "star" : "unstar"} ${file.filename}. Try again.`);
       // Revalidate to ensure server state matches
-      mutateMyFiles();
-    } catch {
-      // Revert on failure
-      mutateMyFiles();
+      await mutateMyFiles();
+    } catch (starError) {
+      mutateMyFiles(
+        (prev = []) => prev.map((candidate) => candidate.id === fileId ? { ...candidate, starred: file.starred } : candidate),
+        { revalidate: false },
+      );
+      setError(starError instanceof Error ? starError.message : "Could not update the starred state. Try again.");
     }
   };
 
@@ -806,6 +883,9 @@ export default function Files() {
 
   const performUpload = async (password: string): Promise<boolean> => {
     if (!selectedFile) return false;
+    const uploadFile = selectedFile;
+    let requestStarted = false;
+    let responseReceived = false;
     setUploading(true);
     setError("");
     try {
@@ -854,14 +934,33 @@ export default function Files() {
         formData.append("folder_id", selectedNode.folderId);
       }
       const token = localStorage.getItem("token");
+      requestStarted = true;
       const response = await fetch(`${API_URL}/files/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      if (!response.ok) {
-        if (response.status === 401) { navigate("/login"); return false; }
-        throw new Error("Failed to upload file");
+      responseReceived = true;
+      const outcome = await readOwnerUploadOutcome(response);
+      if (outcome.kind === "failed") {
+        if (response.status === 401) navigate("/login");
+        setError(outcome.message);
+        return false;
+      }
+      if (outcome.kind === "unknown") {
+        setUploadTray((current) => [...current, {
+          id: crypto.randomUUID(),
+          name: uploadFile.name,
+          progress: 100,
+          status: "unknown",
+          message: outcome.message,
+        }]);
+        setSelectedFile(null);
+        const fileInput = document.getElementById("file-input") as HTMLInputElement;
+        if (fileInput) fileInput.value = "";
+        await fetchFiles();
+        setError(outcome.message);
+        return true;
       }
       setSelectedFile(null);
       const fileInput = document.getElementById("file-input") as HTMLInputElement;
@@ -872,7 +971,15 @@ export default function Files() {
       }
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload file");
+      if (requestStarted && !responseReceived) {
+        const message = "The connection ended after the upload started. The server may have stored it; do not resend it yet.";
+        setUploadTray((current) => [...current, { id: crypto.randomUUID(), name: uploadFile.name, progress: 100, status: "unknown", message }]);
+        setSelectedFile(null);
+        await fetchFiles();
+        setError(message);
+        return true;
+      }
+      setError(err instanceof Error ? err.message : "Failed to prepare the upload");
       return false;
     } finally {
       setUploading(false);
@@ -885,9 +992,11 @@ export default function Files() {
     trayId: string,
     folderId: string | null
   ): Promise<boolean> => {
-    const updateTray = (progress: number, status: UploadTrayItem["status"]) => {
+    let requestStarted = false;
+    let responseReceived = false;
+    const updateTray = (progress: number, status: UploadTrayItem["status"], message?: string) => {
       setUploadTray((prev) =>
-        prev.map((item) => item.id === trayId ? { ...item, progress, status } : item)
+        prev.map((item) => item.id === trayId ? { ...item, progress, status, message } : item)
       );
     };
     try {
@@ -942,21 +1051,32 @@ export default function Files() {
         formData.append("folder_id", targetFolderId);
       }
       const token = localStorage.getItem("token");
+      requestStarted = true;
       const response = await fetch(`${API_URL}/files/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      responseReceived = true;
       updateTray(90, "uploading");
-      if (!response.ok) {
-        updateTray(0, "error");
+      const outcome = await readOwnerUploadOutcome(response);
+      if (outcome.kind === "failed") {
+        updateTray(0, "error", outcome.message);
+        return false;
+      }
+      if (outcome.kind === "unknown") {
+        updateTray(100, "unknown", outcome.message);
         return false;
       }
       updateTray(100, "done");
       return true;
     } catch (err) {
       console.error(err);
-      updateTray(0, "error");
+      if (requestStarted && !responseReceived) {
+        updateTray(100, "unknown", "The connection ended after upload started. Do not resend this file until its server outcome is confirmed.");
+      } else {
+        updateTray(0, "error", err instanceof Error ? err.message : "Failed to prepare upload");
+      }
       return false;
     }
   };
@@ -1354,8 +1474,11 @@ export default function Files() {
     setError("");
     try {
       if (!navigator.onLine) {
+        const ownerId = getStoredUserFromLocalStorage()?.id;
+        if (!ownerId) throw new Error("Cannot queue this delete because the signed-in owner could not be verified.");
         await queueOfflineAction({
           type: "delete",
+          owner_id: ownerId,
           file_id: target.id,
           filename: target.filename,
           parent_hash: target.parent_hash || "",
@@ -1363,13 +1486,7 @@ export default function Files() {
         });
         window.dispatchEvent(new Event("offline-action-queued"));
 
-        mutateMyFiles((prev = []) => prev.filter((f) => f.id !== target.id), { revalidate: false });
-        setSelectedFileIds((prev) => {
-          const n = new Set(prev);
-          n.delete(target.id);
-          return n;
-        });
-        setSuccessMessage(t("drive:vault.sync.queued"));
+        setSuccessMessage(`Queued delete for ${target.filename}. The file stays visible until the server confirms it.`);
         setTimeout(() => setSuccessMessage(""), 5000);
         return;
       }
@@ -1407,9 +1524,12 @@ export default function Files() {
 
     if (!navigator.onLine) {
       try {
+        const ownerId = getStoredUserFromLocalStorage()?.id;
+        if (!ownerId) throw new Error("Cannot queue deletes because the signed-in owner could not be verified.");
         for (const file of bulkDeleteCandidates) {
           await queueOfflineAction({
             type: "delete",
+            owner_id: ownerId,
             file_id: file.id,
             filename: file.filename,
             parent_hash: file.parent_hash || "",
@@ -1418,15 +1538,7 @@ export default function Files() {
         }
         window.dispatchEvent(new Event("offline-action-queued"));
 
-        const deleteIds = new Set(bulkDeleteCandidates.map((c) => c.id));
-        mutateMyFiles((prev = []) => prev.filter((file) => !deleteIds.has(file.id)), { revalidate: false });
-        setSelectedFileIds((prev) => {
-          const next = new Set(prev);
-          deleteIds.forEach((id) => next.delete(id));
-          return next;
-        });
-
-        setSuccessMessage(t("drive:vault.sync.queued"));
+        setSuccessMessage(`Queued ${bulkDeleteCandidates.length} deletes. Files stay visible until the server confirms them.`);
         setTimeout(() => setSuccessMessage(""), 5000);
         setShowBulkDeleteModal(false);
       } catch {
@@ -1509,6 +1621,7 @@ export default function Files() {
       filename: file.filename,
       metadata: file.metadata,
       pin_wrapped_key: file.pin_wrapped_key,
+      folder_id: file.folder_id,
     });
     setShowShareLinkModal(true);
   };
@@ -1831,7 +1944,7 @@ export default function Files() {
           <main className="flex-1 flex flex-col overflow-hidden bg-muted">
             {selectedNode.type === "manage-drops" ? (
               <div className="flex-1 overflow-auto p-6">
-                <UploadLinksSection />
+                <UploadLinksSection initialToken={manageDropToken} />
               </div>
             ) : selectedNode.type === "manage-requests" ? (
               <div className="flex-1 overflow-auto p-6">
@@ -1970,8 +2083,35 @@ export default function Files() {
               </div>
             )}
 
+            {(foldersError || dropTokensError) && (
+              <div className="mx-6 mt-4 space-y-2" role="status">
+                {foldersError && (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+                    <span>Folder navigation may be out of date. {foldersError}</span>
+                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => void fetchFolders()}>Retry folders</button>
+                  </div>
+                )}
+                {dropTokensError && (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+                    <span>Upload-link navigation may be out of date. {dropTokensError}</span>
+                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => void fetchDropTokens()}>Retry upload links</button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              {isLoading && (
+              {activeViewError && visibleFiles.length > 0 && (
+                <p role="status" className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+                  Showing the last loaded files. {activeViewError}
+                </p>
+              )}
+
+              {activeViewError && visibleFiles.length === 0 && (
+                <DataState error={activeViewError} onRetry={retryActiveView}>{null}</DataState>
+              )}
+
+              {!activeViewError && activeViewLoading && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <Loader2 className="w-6 h-6 animate-spin mb-3" />
                   <p className="text-sm">{t("drive:vault.loading")}</p>
@@ -1979,7 +2119,7 @@ export default function Files() {
               )}
 
 
-              {!isLoading && selectedNode.type === "shared" && sharedFolders.length > 0 && (
+              {!activeViewLoading && selectedNode.type === "shared" && sharedFolders.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
                     Shared Folders
@@ -2008,13 +2148,14 @@ export default function Files() {
                 </div>
               )}
 
-              {!isLoading && visibleFiles.length === 0 && (
+              {!activeViewLoading && !activeViewError && visibleFiles.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                   <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
                     <Lock className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    {selectedNode.type === "starred" ? t("drive:vault.noStarred") :
+                    {searchQuery ? `No files match “${searchQuery}”` :
+                     selectedNode.type === "starred" ? t("drive:vault.noStarred") :
                      selectedNode.type === "shared" ? (sharedFolders.length > 0 ? "No shared files in this view" : t("drive:vault.noShared")) :
                      t("drive:vault.noFiles")}
                   </p>
@@ -2028,7 +2169,7 @@ export default function Files() {
                 </div>
               )}
 
-              {!isLoading && visibleFiles.length > 0 && (
+              {!activeViewLoading && visibleFiles.length > 0 && (
                 <FileGrid
                   files={visibleFiles}
                   selectedFileIds={selectedFileIds}
@@ -2103,6 +2244,7 @@ export default function Files() {
             <div key={item.id} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-foreground text-xs truncate">{item.name}</p>
+                {item.message && <p className="mt-1 text-[10px] leading-snug text-muted-foreground">{item.message}</p>}
                 <div className="h-1 bg-muted rounded mt-1">
                   <div
                     className="h-1 bg-emerald-500 rounded transition-all"
@@ -2111,7 +2253,7 @@ export default function Files() {
                 </div>
               </div>
               <span className="text-xs shrink-0">
-                {item.status === "done" ? "✓" : item.status === "error" ? "✗" : "…"}
+                {item.status === "done" ? "✓" : item.status === "error" ? "✗" : item.status === "unknown" ? "?" : "…"}
               </span>
             </div>
           ))}

@@ -34,6 +34,29 @@ interface RecoveryStatus {
   shares?: RecoveryShare[];
 }
 
+function parseRecoveryStatus(value: unknown): Required<RecoveryStatus> {
+  if (!value || typeof value !== "object") throw new Error("Invalid approval status received. Try again.");
+  const candidate = value as { threshold?: unknown; shares?: unknown };
+  if (!Number.isInteger(candidate.threshold) || (candidate.threshold as number) <= 0 || !Array.isArray(candidate.shares)) {
+    throw new Error("Invalid approval status received. Try again.");
+  }
+  const shares = candidate.shares as unknown[];
+  const valid = shares.every((share) => {
+    if (!share || typeof share !== "object") return false;
+    const item = share as Record<string, unknown>;
+    const basicFieldsValid = ["custodian_id", "custodian_username", "custodian_first_name", "custodian_last_name", "status"]
+      .every((key) => typeof item[key] === "string")
+      && (item.decrypted_share_part === undefined || item.decrypted_share_part === null || typeof item.decrypted_share_part === "string");
+    const part = item.decrypted_share_part;
+    return basicFieldsValid && (typeof part !== "string" || part.length === 0 || (part.length % 2 === 0 && /^[0-9a-f]+$/i.test(part)));
+  });
+  const ids = shares.map((share) => (share as RecoveryShare).custodian_id);
+  if (!valid || new Set(ids).size !== ids.length || (candidate.threshold as number) > shares.length) {
+    throw new Error("Invalid approval status received. Try again.");
+  }
+  return { threshold: candidate.threshold as number, shares: shares as RecoveryShare[] };
+}
+
 export default function Recover() {
   const { t } = useTranslation(["auth", "drive"]);
   const navigate = useNavigate();
@@ -58,15 +81,20 @@ export default function Recover() {
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statusRequestPendingRef = useRef(false);
+  const lifecycleGenerationRef = useRef(0);
+  const resetAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     return () => {
+      lifecycleGenerationRef.current += 1;
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      resetAbortRef.current?.abort();
     };
   }, []);
 
   const startRecovery = async () => {
     if (!username.trim()) return;
+    const generation = ++lifecycleGenerationRef.current;
     setLoading(true);
     setError("");
     try {
@@ -81,18 +109,20 @@ export default function Recover() {
         throw new Error(data.error || "Failed to start recovery request.");
       }
 
+      if (lifecycleGenerationRef.current !== generation) return;
       setPhase("wait");
       // Start polling status immediately
-      fetchStatus();
-      pollIntervalRef.current = setInterval(fetchStatus, 5000);
+      void fetchStatus(generation);
+      pollIntervalRef.current = setInterval(() => { void fetchStatus(generation); }, 5000);
     } catch (err: unknown) {
+      if (lifecycleGenerationRef.current !== generation) return;
       setError(getNormalizedErrorMessage(err, "Request failed."));
     } finally {
-      setLoading(false);
+      if (lifecycleGenerationRef.current === generation) setLoading(false);
     }
   };
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (generation = lifecycleGenerationRef.current) => {
     if (!username.trim() || statusRequestPendingRef.current) return;
     statusRequestPendingRef.current = true;
     setCheckingStatus(true);
@@ -105,14 +135,16 @@ export default function Recover() {
         throw new Error("Approval status is temporarily unavailable.");
       }
 
-      const data = (await response.json()) as RecoveryStatus;
+      const data = parseRecoveryStatus(await response.json());
+      if (lifecycleGenerationRef.current !== generation) return;
       setThreshold(data.threshold);
-      setShares(data.shares || []);
+      setShares(data.shares);
 
       const approved = (data.shares || []).filter(
         (share) => share.status === "approved" && share.decrypted_share_part
       ).length;
       setApprovedCount(approved);
+      setLastCheckedAt(Date.now());
 
       if (data.threshold > 0 && approved >= data.threshold) {
         setPhase("ready");
@@ -122,12 +154,11 @@ export default function Recover() {
         }
       }
     } catch (err) {
-      console.error("Error polling recovery status:", err);
+      if (lifecycleGenerationRef.current !== generation) return;
       setStatusError(getNormalizedErrorMessage(err, "Approval status is temporarily unavailable."));
     } finally {
-      setLastCheckedAt(Date.now());
-      setCheckingStatus(false);
       statusRequestPendingRef.current = false;
+      if (lifecycleGenerationRef.current === generation) setCheckingStatus(false);
     }
   };
 
@@ -144,6 +175,9 @@ export default function Recover() {
 
     setLoading(true);
     setPhase("reconstructing");
+    const generation = lifecycleGenerationRef.current;
+    const controller = new AbortController();
+    resetAbortRef.current = controller;
     try {
       // 1. Gather all approved shares
       const approvedShares = shares.filter(
@@ -186,6 +220,7 @@ export default function Recover() {
 
       // 4. Encrypt the private key PEM with the new password
       const newPrivateKeyEncrypted = await encryptPrivateKeyWithPassword(newPassword, privateKeyPem);
+      if (lifecycleGenerationRef.current !== generation) return;
 
       // 5. Submit to backend
       const response = await fetch(`${branding.apiBasePath}/v1/recovery/reset`, {
@@ -196,6 +231,7 @@ export default function Recover() {
           new_password_hash: newPassword,
           new_private_key_encrypted: newPrivateKeyEncrypted,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -203,16 +239,40 @@ export default function Recover() {
         throw new Error(data.error || "Reset password failed.");
       }
 
+      if (lifecycleGenerationRef.current !== generation) return;
       setShares([]);
       setNewPassword("");
       setConfirmPassword("");
       setPhase("success");
     } catch (err: unknown) {
+      if (lifecycleGenerationRef.current !== generation) return;
       setError(getNormalizedErrorMessage(err, "Failed to reset password."));
       setPhase("ready");
     } finally {
-      setLoading(false);
+      if (resetAbortRef.current === controller) resetAbortRef.current = null;
+      if (lifecycleGenerationRef.current === generation) setLoading(false);
     }
+  };
+
+  const cancelRecovery = () => {
+    lifecycleGenerationRef.current += 1;
+    resetAbortRef.current?.abort();
+    resetAbortRef.current = null;
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    pollIntervalRef.current = null;
+    statusRequestPendingRef.current = false;
+    setPhase("request");
+    setUsername("");
+    setLoading(false);
+    setError("");
+    setThreshold(null);
+    setShares([]);
+    setApprovedCount(0);
+    setLastCheckedAt(null);
+    setCheckingStatus(false);
+    setStatusError("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   return (
@@ -416,6 +476,7 @@ export default function Recover() {
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Waiting for custodians to decrypt and approve shares...</span>
                 </div>
+                <Button type="button" variant="outline" onClick={cancelRecovery} className="w-full">Cancel recovery</Button>
               </div>
             )}
 
@@ -484,6 +545,7 @@ export default function Recover() {
                     </>
                   )}
                 </Button>
+                <Button type="button" variant="outline" onClick={cancelRecovery} className="w-full">Cancel recovery</Button>
               </div>
             )}
 

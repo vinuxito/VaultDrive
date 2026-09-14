@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Search, Plus, Settings, Trash2, X, UserPlus, Users } from "lucide-react";
 import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
+import { DataState } from "../components/ui/data-state";
 
 interface Group {
   id: string;
@@ -66,6 +67,8 @@ export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(id || null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sourceError, setSourceError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -78,6 +81,7 @@ export default function Groups() {
   }, [id]);
 
   async function fetchGroups() {
+    setSourceError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/groups`, {
@@ -85,10 +89,14 @@ export default function Groups() {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (response.status === 403) throw new Error("You do not have access to groups for this account.");
+      if (!response.ok) throw new Error("Groups are unavailable. Your existing vault data is unchanged.");
       const data = await response.json();
-      setGroups(data || []);
+      if (!Array.isArray(data)) throw new Error("Groups returned an unexpected response. Try again.");
+      setGroups(data);
     } catch (error) {
       console.error("Error fetching groups:", error);
+      setSourceError(error instanceof Error ? error.message : "Groups are unavailable. Try again.");
     } finally {
       setLoading(false);
     }
@@ -96,6 +104,7 @@ export default function Groups() {
 
   async function handleCreateGroup(e: React.FormEvent) {
     e.preventDefault();
+    setActionError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/groups`, {
@@ -111,9 +120,12 @@ export default function Groups() {
         setDescription("");
         setShowCreateModal(false);
         fetchGroups();
+      } else {
+        throw new Error("Could not create the group. Check the details and try again.");
       }
     } catch (error) {
       console.error("Error creating group:", error);
+      setActionError(error instanceof Error ? error.message : "Could not create the group.");
     }
   }
 
@@ -121,15 +133,17 @@ export default function Groups() {
     if (!confirm("Are you sure you want to delete this group?")) return;
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/groups/${groupId}`, {
+      const response = await fetch(`${API_URL}/groups/${groupId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (!response.ok) throw new Error("Could not delete the group. It remains available.");
       setGroups(groups.filter(g => g.id !== groupId));
     } catch (error) {
       console.error("Error deleting group:", error);
+      setActionError(error instanceof Error ? error.message : "Could not delete the group.");
     }
   }
 
@@ -214,7 +228,19 @@ export default function Groups() {
           </div>
         </div>
 
-        {!selectedGroup ? (
+        {actionError && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{actionError}</p>}
+
+        {sourceError && groups.length > 0 && (
+          <p role="status" className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+            Showing the last loaded groups. {sourceError}
+          </p>
+        )}
+
+        {sourceError && groups.length === 0 ? (
+          <DataState error={sourceError} onRetry={() => void fetchGroups()}>
+            {null}
+          </DataState>
+        ) : !selectedGroup ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence mode="wait">
               {filteredGroups.length === 0 ? (
@@ -386,6 +412,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   const [members, setMembers] = useState<Member[]>([]);
   const [files, setFiles] = useState<FileShare[]>([]);
   const [loading, setLoading] = useState(true);
+  const [detailErrors, setDetailErrors] = useState<{ group?: string; members?: string; files?: string }>({});
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState("");
   const [availableUsers, setAvailableUsers] = useState<UserForSelection[]>([]);
@@ -418,31 +445,52 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
     }
   }, [members]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const token = localStorage.getItem("token");
-        const [groupRes, membersRes, filesRes] = await Promise.all([
-          fetch(`${API_URL}/groups/${groupId}`, { headers: { Authorization: `Bearer ${token}` }}),
-          fetch(`${API_URL}/groups/${groupId}/members`, { headers: { Authorization: `Bearer ${token}` }}),
-          fetch(`${API_URL}/groups/${groupId}/files`, { headers: { Authorization: `Bearer ${token}` }}),
-        ]);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setDetailErrors({});
+    const token = localStorage.getItem("token");
+    const sources = await Promise.allSettled([
+      fetch(`${API_URL}/groups/${groupId}`, { headers: { Authorization: `Bearer ${token}` }}),
+      fetch(`${API_URL}/groups/${groupId}/members`, { headers: { Authorization: `Bearer ${token}` }}),
+      fetch(`${API_URL}/groups/${groupId}/files`, { headers: { Authorization: `Bearer ${token}` }}),
+    ]);
+    const keys = ["group", "members", "files"] as const;
+    const nextErrors: { group?: string; members?: string; files?: string } = {};
 
-        const groupData = await groupRes.json();
-        const membersData = await membersRes.json();
-        const filesData = await filesRes.json();
-
-        setGroup(groupData);
-        setMembers(membersData || []);
-        setFiles(filesData || []);
-      } catch (error) {
-        console.error("Error fetching group details:", error);
-      } finally {
-        setLoading(false);
+    await Promise.all(sources.map(async (result, index) => {
+      const key = keys[index];
+      if (result.status === "rejected") {
+        nextErrors[key] = `${key === "group" ? "Group details" : key === "members" ? "Members" : "Group files"} are unavailable.`;
+        return;
       }
-    }
-    fetchData();
+      const response = result.value;
+      if (!response.ok) {
+        nextErrors[key] = response.status === 403
+          ? `You do not have access to this group's ${key === "group" ? "details" : key}.`
+          : `${key === "group" ? "Group details" : key === "members" ? "Members" : "Group files"} are unavailable.`;
+        return;
+      }
+      try {
+        const data = await response.json();
+        if (key === "group") setGroup(data as Group);
+        else if (key === "members") {
+          if (!Array.isArray(data)) throw new Error("Unexpected members response");
+          setMembers(data);
+        } else {
+          if (!Array.isArray(data)) throw new Error("Unexpected files response");
+          setFiles(data);
+        }
+      } catch {
+        nextErrors[key] = `${key === "group" ? "Group details" : key === "members" ? "Members" : "Group files"} returned an unexpected response.`;
+      }
+    }));
+    setDetailErrors(nextErrors);
+    setLoading(false);
   }, [groupId]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
   // Load all users when modal opens
   useEffect(() => {
@@ -587,9 +635,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
   if (!group) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Group not found</div>
-      </div>
+      <DataState error={detailErrors.group || "Group details are unavailable."} onRetry={() => void fetchData()}>
+        {null}
+      </DataState>
     );
   }
 
@@ -635,7 +683,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
             Add Member
           </Button>
         </div>
-        {members.length === 0 ? (
+        {detailErrors.members ? (
+          <DataState error={detailErrors.members} onRetry={() => void fetchData()} density="compact">{null}</DataState>
+        ) : members.length === 0 ? (
           <p className="text-muted-foreground text-sm">No members yet. Add users to this group.</p>
         ) : (
           <div className="grid gap-3">
@@ -670,7 +720,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
       <div>
         <h3 className="text-lg font-semibold mb-4">Files Shared to Group</h3>
-        {files.length === 0 ? (
+        {detailErrors.files ? (
+          <DataState error={detailErrors.files} onRetry={() => void fetchData()} density="compact">{null}</DataState>
+        ) : files.length === 0 ? (
           <p className="text-muted-foreground text-sm">No files shared to this group yet.</p>
         ) : (
           <div className="space-y-2">

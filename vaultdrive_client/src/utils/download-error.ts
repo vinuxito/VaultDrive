@@ -50,7 +50,10 @@ export function classifyTransferError(error: unknown): TransferFailure {
   if (error instanceof Error && (error as TransferError).transferFailure) {
     return (error as TransferError).transferFailure!;
   }
-  if (error instanceof TypeError) {
+  if (
+    error instanceof TypeError &&
+    /failed to fetch|network(?:error| request failed)|load failed/i.test(error.message)
+  ) {
     return {
       kind: "network",
       message: "The service could not be reached. Check your connection and try again.",

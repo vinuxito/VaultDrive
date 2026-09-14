@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -97,5 +97,46 @@ describe("account recovery guidance", () => {
     encryptDeferred.resolve?.("encrypted-key");
 
     await waitFor(() => expect(screen.getByText(/set a new vault PIN/i)).toBeInTheDocument());
+  });
+
+  it("rejects malformed approval status without inventing progress or a successful check time", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(response({ message: "started" }))
+      .mockResolvedValueOnce(response({ threshold: "2", shares: {} })));
+
+    render(<MemoryRouter><Recover /></MemoryRouter>);
+    await user.type(screen.getByLabelText("Username"), "ada");
+    await user.click(screen.getByRole("button", { name: /Request Account Recovery/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid approval status/i);
+    expect(screen.queryByText(/Last checked:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Approvals complete/i)).not.toBeInTheDocument();
+  });
+
+  it("cancels reconstruction before reset submission and clears sensitive inputs", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response({ message: "started" }))
+      .mockResolvedValueOnce(response(readyStatus));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<MemoryRouter><Recover /></MemoryRouter>);
+    await user.type(screen.getByLabelText("Username"), "ada");
+    await user.click(screen.getByRole("button", { name: /Request Account Recovery/i }));
+    await screen.findByText(/Approvals complete/i);
+    await user.type(screen.getByLabelText("New Password"), "new-password");
+    await user.type(screen.getByLabelText("Confirm Password"), "new-password");
+    await user.click(screen.getByRole("button", { name: /Recover & Reset Account/i }));
+    await user.click(screen.getByRole("button", { name: /Cancel recovery/i }));
+
+    await act(async () => {
+      encryptDeferred.resolve?.("must-not-submit");
+      await Promise.resolve();
+    });
+
+    expect(screen.getByLabelText("Username")).toHaveValue("");
+    expect(screen.queryByLabelText("New Password")).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

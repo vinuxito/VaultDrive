@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Shield,
@@ -57,6 +57,9 @@ export default function Admin() {
   const { t } = useTranslation(["drive"]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [lastConfirmed, setLastConfirmed] = useState<string | null>(null);
+  const loadGeneration = useRef(0);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -95,7 +98,8 @@ export default function Admin() {
     selectableUsers.every((u) => selected.has(u.id));
 
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
+    return () => { loadGeneration.current += 1; };
   }, []);
 
   const authHeaders = () => {
@@ -107,20 +111,36 @@ export default function Admin() {
   };
 
   const fetchUsers = async () => {
+    const generation = ++loadGeneration.current;
+    setLoading(true);
+    setLoadError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
+      if (generation !== loadGeneration.current) return;
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          setUsers([]);
+          setLastConfirmed(null);
+        }
+        throw new Error(response.status === 403 || response.status === 401
+          ? "You no longer have permission to view or change this user list."
+          : "The user list could not be loaded. Retry when the service is available.");
       }
+      const data: unknown = await response.json();
+      if (!Array.isArray(data) || !data.every((row) => row && typeof row.id === "string" && typeof row.email === "string")) {
+        throw new Error("The user list response could not be read. Please retry.");
+      }
+      if (generation !== loadGeneration.current) return;
+      setUsers(data);
+      setLastConfirmed(new Date().toLocaleString());
     } catch (err) {
-      console.error("Error fetching users:", err);
+      if (generation !== loadGeneration.current) return;
+      setLoadError(err instanceof Error && !(err instanceof TypeError) && !(err instanceof SyntaxError) ? err.message : "The user list could not be loaded. Please retry.");
     } finally {
-      setLoading(false);
+      if (generation === loadGeneration.current) setLoading(false);
     }
   };
 
@@ -403,10 +423,24 @@ export default function Admin() {
     });
   };
 
+  if (loadError) {
+    return <div className="container mx-auto px-4 py-8 space-y-3">
+      <h1 className="text-2xl font-bold">{t("drive:admin.dashboardTitle")}</h1>
+      <div role="alert" className="rounded-lg border border-destructive bg-card p-4 text-foreground">
+        <p>{loadError}</p>
+        {lastConfirmed && <p className="mt-2 text-sm">Last confirmed list: {lastConfirmed}. Changes are paused until it can be checked again.</p>}
+        <button type="button" onClick={() => void fetchUsers()} className="mt-3 rounded-md border border-border px-3 py-2">Retry user list</button>
+      </div>
+      {lastConfirmed && users.length > 0 && <ul aria-label="Last confirmed user list" className="divide-y divide-border rounded-lg border border-border bg-card px-4">
+        {users.map((user) => <li key={user.id} className="py-3 text-sm text-muted-foreground">{user.username} · {user.email}</li>)}
+      </ul>}
+    </div>;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">{t("drive:admin.loading")}</div>
+        <div role="status" aria-busy="true" className="text-xl">{t("drive:admin.loading")}</div>
       </div>
     );
   }
