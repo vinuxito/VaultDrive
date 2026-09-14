@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocation } from "react-router-dom";
-import { useTransitionNavigate } from "../../hooks";
+import { useLogout, useTransitionNavigate } from "../../hooks";
 import { BrandLogo } from "../branding";
 import { useTranslation } from "react-i18next";
 import { preload } from "swr";
@@ -33,6 +33,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   const navigate = useTransitionNavigate();
+  const logout = useLogout();
   const location = useLocation();
   const { t } = useTranslation(["common"]);
 
@@ -43,15 +44,6 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { icon: Link2, label: t("common:nav.shared"), path: "/shared" },
     { icon: ShieldCheck, label: t("common:nav.accessCenter"), path: "/access-center" },
   ];
-
-  const handleLogout = () => {
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("auth-change"));
-    navigate("/login");
-  };
 
   return (
     <aside
@@ -151,7 +143,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
 
         <button
             type="button"
-            onClick={handleLogout}
+            onClick={logout}
             className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                 "text-red-700 dark:text-red-300 hover:bg-destructive/10",

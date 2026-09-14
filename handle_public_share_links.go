@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -273,35 +276,67 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 	}
 	defer file.Close()
 
-	// Update access count and optionally deactivate if auto-shredding is triggered
-	_, err = cfg.db.ExecContext(r.Context(),
+	info, err := file.Stat()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not inspect stored file", err)
+		return
+	}
+
+	// A use authorizes a fetch, not a completed browser save. Claim it atomically
+	// so concurrent requests cannot exceed the limit or bypass a recent revoke.
+	result, err := cfg.db.ExecContext(r.Context(),
 		`UPDATE public_share_links 
 		 SET access_count = access_count + 1, 
 		     last_accessed_at = NOW(),
 		     is_active = CASE WHEN max_downloads > 0 AND access_count + 1 >= max_downloads THEN FALSE ELSE is_active END
-		 WHERE token = $1`,
+		 WHERE token = $1 AND is_active = TRUE
+		   AND (max_downloads <= 0 OR access_count < max_downloads)
+		   AND (expires_at IS NULL OR expires_at > NOW())
+		   AND (unlock_at IS NULL OR unlock_at <= NOW())`,
 		token)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error updating access count", err)
 		return
 	}
+	claimed, err := result.RowsAffected()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not confirm link access", err)
+		return
+	}
+	if claimed != 1 {
+		respondWithError(w, http.StatusGone, "This link is no longer available. Ask the owner for a new link.", nil)
+		return
+	}
 
 	w.Header().Set("X-File-Name", dbFile.Filename)
 	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
 	if dbFile.EncryptedMetadata.Valid {
 		w.Header().Set("X-File-Metadata", dbFile.EncryptedMetadata.String)
 	}
 
-	_, _ = io.Copy(w, file)
-
-	// Log download audit event
-	actorDetails := map[string]interface{}{
-		"actor_type": "anonymous_link",
-		"link_id":    link.ID.String(),
-		"filename":   dbFile.Filename,
-		"file_size":  dbFile.FileSize,
+	written, streamErr := io.Copy(w, file)
+	action := "file.downloaded"
+	if streamErr != nil || written != info.Size() {
+		action = "file.download_interrupted"
+		// Do not append a JSON error after ciphertext has started streaming.
+		log.Printf("event=public_transfer_interrupted resource_id=%s bytes=%d expected=%d", dbFile.ID, written, info.Size())
 	}
-	cfg.insertAudit(r.Context(), link.OwnerID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
+
+	// Server streaming is observable; saving or reading on the recipient's
+	// device is not. Keep the audit even when a client cancels its request.
+	actorDetails := map[string]interface{}{
+		"actor_type":     "anonymous_link",
+		"link_id":        link.ID.String(),
+		"filename":       dbFile.Filename,
+		"file_size":      dbFile.FileSize,
+		"bytes_streamed": written,
+		"expected_bytes": info.Size(),
+		"delivery_scope": "server_stream",
+	}
+	auditCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 2*time.Second)
+	defer cancel()
+	cfg.insertAudit(auditCtx, link.OwnerID, action, "file", &dbFile.ID, actorDetails, r)
 }
 
 func (cfg *ApiConfig) handlerListPublicShareLinks(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -346,14 +381,27 @@ func (cfg *ApiConfig) handlerRevokePublicShareLink(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = cfg.dbQueries.RevokePublicShareLink(r.Context(), database.RevokePublicShareLinkParams{
-		ID:      linkID,
-		OwnerID: user.ID,
-	})
+	var owned, changed bool
+	err = cfg.db.QueryRowContext(r.Context(), `
+		WITH closed AS (
+			UPDATE public_share_links SET is_active=FALSE
+			WHERE id=$1 AND owner_id=$2 AND is_active=TRUE RETURNING id
+		)
+		SELECT EXISTS(SELECT 1 FROM public_share_links WHERE id=$1 AND owner_id=$2),
+		       EXISTS(SELECT 1 FROM closed)`, linkID, user.ID).Scan(&owned, &changed)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error revoking share link", err)
 		return
 	}
+	if !owned {
+		respondWithError(w, http.StatusNotFound, "Share link not found", nil)
+		return
+	}
+	if !changed {
+		respondWithJSON(w, http.StatusOK, map[string]string{"status": "already_closed", "message": "Share link is already closed"})
+		return
+	}
+
 	cfg.insertActivity(r.Context(), user.ID, "public_share_link_revoked", map[string]interface{}{
 		"share_link_id": linkID.String(),
 	})

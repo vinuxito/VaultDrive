@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardLayout } from "./dashboard-layout";
 import { ToastProvider } from "../../context/ToastContext";
 
+const { logout } = vi.hoisted(() => ({ logout: vi.fn() }));
+
 vi.mock("../../context/SessionVaultContext", () => ({
   useSessionVault: () => ({ clearVault: vi.fn() }),
 }));
@@ -13,6 +15,7 @@ vi.mock("../../context/SessionVaultContext", () => ({
 vi.mock("../../hooks", () => ({
   useSSE: () => undefined,
   useTransitionNavigate: () => vi.fn(),
+  useLogout: () => logout,
 }));
 
 vi.mock("./sidebar", () => ({
@@ -63,6 +66,7 @@ vi.mock("../onboarding/OnboardingWizard", () => ({
 
 describe("DashboardLayout", () => {
   beforeEach(() => {
+    logout.mockClear();
     localStorage.clear();
     sessionStorage.clear();
 
@@ -107,5 +111,26 @@ describe("DashboardLayout", () => {
     await userEvent.click(finishButtons[0]);
 
     expect(screen.queryByText("PIN setup wizard")).not.toBeInTheDocument();
+  });
+
+  it("uses the shared logout operation from the account menu", async () => {
+    localStorage.setItem(
+      "user",
+      JSON.stringify({ pin_set: true, first_name: "Ada", last_name: "Lovelace", email: "ada@example.com" }),
+    );
+    render(
+      <MemoryRouter>
+        <ToastProvider>
+          <DashboardLayout>
+            <div>Vault content</div>
+          </DashboardLayout>
+        </ToastProvider>
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Logout" }));
+
+    expect(logout).toHaveBeenCalledOnce();
   });
 });

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { branding } from "../../../config/branding";
 import type { HelpSection } from "../index";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { HelpTaskAnswers } from "./HelpTaskAnswers";
 
 interface HelpContentProps {
   activeSection: HelpSection;
@@ -72,6 +73,8 @@ export function HelpContent({ activeSection }: HelpContentProps) {
           </div>
         </div>
       )}
+
+      <HelpTaskAnswers activeSection={activeSection} />
     </div>
   );
 }

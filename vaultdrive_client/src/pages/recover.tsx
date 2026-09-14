@@ -40,7 +40,7 @@ export default function Recover() {
   const { skin } = useTheme();
   const isQuantiX = skin === "quantix";
 
-  const [phase, setPhase] = useState<"request" | "wait" | "reset" | "success">("request");
+  const [phase, setPhase] = useState<"request" | "wait" | "ready" | "reconstructing" | "success">("request");
   const [username, setUsername] = useState("");
   
   const [loading, setLoading] = useState(false);
@@ -49,11 +49,15 @@ export default function Recover() {
   const [threshold, setThreshold] = useState<number | null>(null);
   const [shares, setShares] = useState<RecoveryShare[]>([]);
   const [approvedCount, setApprovedCount] = useState(0);
+  const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [statusError, setStatusError] = useState("");
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const statusRequestPendingRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -89,31 +93,41 @@ export default function Recover() {
   };
 
   const fetchStatus = async () => {
-    if (!username.trim()) return;
+    if (!username.trim() || statusRequestPendingRef.current) return;
+    statusRequestPendingRef.current = true;
+    setCheckingStatus(true);
+    setStatusError("");
     try {
       const response = await fetch(
         `${branding.apiBasePath}/v1/recovery/status?username=${encodeURIComponent(username.trim())}`
       );
-      if (response.ok) {
-        const data = (await response.json()) as RecoveryStatus;
-        setThreshold(data.threshold);
-        setShares(data.shares || []);
+      if (!response.ok) {
+        throw new Error("Approval status is temporarily unavailable.");
+      }
 
-        const approved = (data.shares || []).filter(
-          (share) => share.status === "approved" && share.decrypted_share_part
-        ).length;
-        setApprovedCount(approved);
+      const data = (await response.json()) as RecoveryStatus;
+      setThreshold(data.threshold);
+      setShares(data.shares || []);
 
-        if (data.threshold > 0 && approved >= data.threshold) {
-          setPhase("reset");
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
+      const approved = (data.shares || []).filter(
+        (share) => share.status === "approved" && share.decrypted_share_part
+      ).length;
+      setApprovedCount(approved);
+
+      if (data.threshold > 0 && approved >= data.threshold) {
+        setPhase("ready");
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
         }
       }
     } catch (err) {
       console.error("Error polling recovery status:", err);
+      setStatusError(getNormalizedErrorMessage(err, "Approval status is temporarily unavailable."));
+    } finally {
+      setLastCheckedAt(Date.now());
+      setCheckingStatus(false);
+      statusRequestPendingRef.current = false;
     }
   };
 
@@ -129,6 +143,7 @@ export default function Recover() {
     }
 
     setLoading(true);
+    setPhase("reconstructing");
     try {
       // 1. Gather all approved shares
       const approvedShares = shares.filter(
@@ -188,9 +203,13 @@ export default function Recover() {
         throw new Error(data.error || "Reset password failed.");
       }
 
+      setShares([]);
+      setNewPassword("");
+      setConfirmPassword("");
       setPhase("success");
     } catch (err: unknown) {
       setError(getNormalizedErrorMessage(err, "Failed to reset password."));
+      setPhase("ready");
     } finally {
       setLoading(false);
     }
@@ -274,11 +293,12 @@ export default function Recover() {
                     </span>
                     <button
                       type="button"
-                      onClick={fetchStatus}
+                      onClick={() => { void fetchStatus(); }}
+                      disabled={checkingStatus}
                       className="text-primary hover:bg-primary/10 p-1.5 rounded-md transition-colors flex items-center gap-1 text-[10px]"
                     >
-                      <RefreshCw className="w-3 h-3" />
-                      Refresh
+                      <RefreshCw className={`w-3 h-3 ${checkingStatus ? "animate-spin" : ""}`} />
+                      {t("drive:recovery.checkAgain", { defaultValue: "Check again" })}
                     </button>
                   </div>
                   
@@ -295,6 +315,17 @@ export default function Recover() {
                       />
                     </div>
                   </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {lastCheckedAt
+                      ? t("drive:recovery.lastChecked", {
+                          defaultValue: "Last checked: {{time}}",
+                          time: new Date(lastCheckedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                        })
+                      : t("drive:recovery.notCheckedYet", { defaultValue: "Status has not been checked yet." })}
+                  </p>
+                  {statusError && (
+                    <p className="text-xs text-destructive" role="alert">{statusError}</p>
+                  )}
                 </div>
 
                 {/* Node visualization (QuantiX vs ABRN) */}
@@ -388,12 +419,20 @@ export default function Recover() {
               </div>
             )}
 
-            {/* Phase 3: Reconstruction & Reset */}
-            {phase === "reset" && (
+            {/* Phase 3: Ready to reset, then actual reconstruction */}
+            {(phase === "ready" || phase === "reconstructing") && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/10 px-3 py-2.5 flex items-center gap-2 text-xs text-emerald-800 dark:text-emerald-300 font-semibold shadow-sm">
-                  <Key className="w-4 h-4 text-emerald-500 shrink-0 animate-bounce" />
-                  <span>Consensus reached! Reconstructing private key...</span>
+                  {phase === "reconstructing" ? (
+                    <Loader2 className="w-4 h-4 text-emerald-500 shrink-0 animate-spin" />
+                  ) : (
+                    <Key className="w-4 h-4 text-emerald-500 shrink-0" />
+                  )}
+                  <span>
+                    {phase === "reconstructing"
+                      ? t("drive:recovery.reconstructingNow", { defaultValue: "Reconstructing your key and applying the reset..." })
+                      : t("drive:recovery.approvalsComplete", { defaultValue: "Approvals complete. Choose a new account password to continue." })}
+                  </span>
                 </div>
 
                 <div className="space-y-3">
@@ -405,6 +444,7 @@ export default function Recover() {
                       placeholder="Minimum 8 characters"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={phase === "reconstructing"}
                       className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
@@ -416,6 +456,7 @@ export default function Recover() {
                       placeholder="Re-enter password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={phase === "reconstructing"}
                       className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       onKeyDown={(e) => { if (e.key === "Enter") handleResetPassword(); }}
                     />
@@ -431,7 +472,7 @@ export default function Recover() {
 
                 <Button
                   onClick={handleResetPassword}
-                  disabled={loading || !newPassword || !confirmPassword}
+                  disabled={phase === "reconstructing" || loading || !newPassword || !confirmPassword}
                   className="w-full flex items-center justify-center gap-1.5 cursor-pointer text-sm"
                 >
                   {loading ? (
@@ -457,6 +498,11 @@ export default function Recover() {
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Your private encryption key has been reconstructed browser-side and re-secured with your new password. The consensus shares have been cleaned.
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {t("drive:recovery.pinAfterReset", {
+                    defaultValue: "After you log in, set a new vault PIN. Then verify that an existing file opens before relying on this device for future work.",
+                  })}
                 </p>
                 
                 <Button

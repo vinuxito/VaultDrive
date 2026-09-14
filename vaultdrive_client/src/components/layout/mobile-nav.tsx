@@ -1,6 +1,6 @@
 import { CircleHelp, Files, LayoutDashboard, LogOut, Settings, Share2, ShieldCheck, User, Users, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useTransitionNavigate } from "../../hooks";
+import { useLogout, useTransitionNavigate } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
@@ -23,19 +23,10 @@ interface NavLinkProps {
 }
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
-  const navigate = useTransitionNavigate();
+  const logout = useLogout();
   const location = useLocation();
   const { t } = useTranslation(["common"]);
   const user = getStoredUserFromLocalStorage() ?? {};
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("auth-change"));
-    navigate("/login");
-    onClose();
-  };
 
   const [, setRefresh] = useState(0);
 
@@ -125,7 +116,10 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         {user.username && (
           <div className="p-3 border-t border-primary/15">
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                logout();
+                onClose();
+              }}
               className="w-full flex items-center gap-3 p-3 rounded-lg text-red-700 dark:text-red-300 hover:bg-red-500/10 hover:text-red-800 dark:hover:text-red-200 transition-colors"
               aria-label="Logout"
             >

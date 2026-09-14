@@ -38,9 +38,13 @@ vi.mock("../components/branding/brand-logo", () => ({
 }));
 
 describe("PublicFolderSharePage ZIP download", () => {
+  let fileAttempts: number;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    fileAttempts = 0;
     window.location.hash = "#folder-key";
+    cryptoMocks.decryptFile.mockResolvedValue(new ArrayBuffer(8));
 
     globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
@@ -82,24 +86,48 @@ describe("PublicFolderSharePage ZIP download", () => {
         );
       }
       if (url.includes("/file/file-1")) {
-        return Promise.resolve(new Response('{"error":"storage unavailable"}', { status: 500 }));
+        fileAttempts += 1;
+        if (fileAttempts === 1) {
+          return Promise.resolve(new Response('{"error":"storage unavailable"}', { status: 500 }));
+        }
+        return Promise.resolve(new Response(new Uint8Array([1, 2, 3]), {
+          status: 200,
+          headers: { "X-File-Metadata": JSON.stringify({ iv: "AA==" }) },
+        }));
       }
       throw new Error(`Unexpected fetch: ${url}`);
     }) as typeof fetch;
   });
 
   it("does not create or report a ZIP when any file fetch fails", async () => {
-    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, "click");
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     const createObjectURL = vi.spyOn(URL, "createObjectURL");
 
     render(<PublicFolderSharePage />);
 
     await userEvent.click(await screen.findByRole("button", { name: /download all as zip/i }));
 
-    expect(await screen.findByText(/contract.pdf: file is temporarily unavailable from storage/i))
+    expect(await screen.findByText(/contract.pdf: the service is temporarily unavailable/i))
       .toBeInTheDocument();
     expect(screen.queryByText(/zip saved/i)).not.toBeInTheDocument();
     expect(anchorClick).not.toHaveBeenCalled();
     expect(createObjectURL).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /retry zip/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /back to folder/i })).toBeInTheDocument();
+    expect(screen.queryByText(/complete share link/i)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /retry zip/i }));
+    expect(await screen.findByText("Browser save started")).toBeInTheDocument();
+    expect(anchorClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("identifies an invalid folder key without blaming the service", async () => {
+    cryptoMocks.importKey.mockRejectedValueOnce(new Error("DataError"));
+
+    render(<PublicFolderSharePage />);
+
+    expect(await screen.findByText(/link has an invalid decryption key/i)).toBeInTheDocument();
+    expect(screen.getByText(/complete share link/i)).toBeInTheDocument();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });

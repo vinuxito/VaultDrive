@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { API_URL } from "../utils/api";
-import { ShieldCheck, Link2, Upload, FileQuestion, ExternalLink, Copy, AlertTriangle, Clock, CheckCircle, XCircle, Ban } from "lucide-react";
+import { ShieldCheck, Link2, Upload, FileQuestion, ExternalLink, Copy, AlertTriangle, Clock, CheckCircle, XCircle, Ban, Loader2, Trash2, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { relativeTime } from "../utils/format";
 import { branding } from "../config/branding";
+import { useSessionVault } from "../context/SessionVaultContext";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import { getFileCredentialScheme } from "../utils/file-credential";
+import { recoverVerifiedOwnerFileKey, type RecoverableOwnerFile } from "../utils/access-link-recovery";
+import { arrayBufferToBase64, unwrapKeyWithRSA } from "../utils/crypto";
+import { resolveOwnerPrivateKeyFromSession } from "../utils/owner-private-key";
 
 interface ShareItem {
   id: string;
@@ -17,7 +24,7 @@ interface ShareItem {
   created_at: string;
   access_count: number;
   last_accessed_at?: string;
-  status: "active" | "expired" | "revoked" | "stale" | "never_used";
+  status: "active" | "expired" | "revoked" | "stale" | "never_used" | "closed" | "unknown";
 }
 
 interface DropToken {
@@ -67,17 +74,38 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function copyToClipboard(text: string) {
-  void navigator.clipboard.writeText(text);
+interface RecoverableFolderLink {
+  id: string;
+  token: string;
+  owner_wrapped_folder_key?: string | null;
+}
+
+interface RecoveryDialogState {
+  item: ShareItem;
+  mode: "copy" | "open";
+  credentialType: "pin" | "password";
+  loadingMaterial: boolean;
+  file?: RecoverableOwnerFile;
+  folderLink?: RecoverableFolderLink;
+  error: string;
+  resolvedUrl: string;
 }
 
 export default function AccessCenter() {
   const { t } = useTranslation(["drive", "common"]);
+  const sessionVault = useSessionVault();
   const [tab, setTab] = useState<Tab>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [shareSource, setShareSource] = useState<SourceState<ShareItem>>({ data: [], loading: true, error: false, stale: false });
   const [dropSource, setDropSource] = useState<SourceState<DropToken>>({ data: [], loading: true, error: false, stale: false });
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [recoveryDialog, setRecoveryDialog] = useState<RecoveryDialogState | null>(null);
+  const [credential, setCredential] = useState("");
+  const [resolving, setResolving] = useState(false);
+  const [confirmRevoke, setConfirmRevoke] = useState<ShareItem | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState("");
+  const recoveryGeneration = useRef(0);
 
   const copy = useCallback((key: string, fallback: string) => {
     const translated = t(key, { defaultValue: fallback });
@@ -100,6 +128,7 @@ export default function AccessCenter() {
       const data: unknown = await response.json();
       if (!Array.isArray(data)) throw new Error("Unexpected response");
       setSource({ data: data as T[], loading: false, error: false, stale: false });
+      return true;
     } catch (error) {
       if (signal?.aborted) return;
       console.error(error);
@@ -109,6 +138,7 @@ export default function AccessCenter() {
         error: true,
         stale: current.data.length > 0,
       }));
+      return false;
     }
   }, []);
 
@@ -127,13 +157,194 @@ export default function AccessCenter() {
     return () => controller.abort();
   }, [loadDrops, loadShares]);
 
+  useEffect(() => () => {
+    recoveryGeneration.current += 1;
+  }, []);
+
   const shares = shareSource.data;
   const dropTokens = dropSource.data;
 
-  function handleCopy(id: string, text: string) {
-    copyToClipboard(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
+  async function beginRecovery(item: ShareItem, mode: "copy" | "open") {
+    const generation = ++recoveryGeneration.current;
+    const currentUser = getStoredUserFromLocalStorage();
+    const initialCredentialType = currentUser?.pin_set ? "pin" : "password";
+    setCredential("");
+    setActionMessage("");
+    setRecoveryDialog({
+      item,
+      mode,
+      credentialType: initialCredentialType,
+      loadingMaterial: true,
+      error: "",
+      resolvedUrl: "",
+    });
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Sign in again to recover this link.");
+
+      if (item.type === "file") {
+        const response = await fetch(`${API_URL}/files`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error("Could not load this file's encryption details.");
+        const files = (await response.json()) as RecoverableOwnerFile[];
+        const file = files.find((entry) => entry.id === item.resource_id);
+        if (!file) throw new Error("This file is no longer available. Manage or recreate the link from Files.");
+        const scheme = getFileCredentialScheme({ ...file, is_owner: true });
+        if (scheme === "folder" && !sessionVault.getFolderKey(file.folder_id ?? "")) {
+          throw new Error("Open this folder in Files first, then recover the link from Access Center.");
+        }
+        if (recoveryGeneration.current !== generation) return;
+        setRecoveryDialog((current) => current?.item.id === item.id ? {
+          ...current,
+          file,
+          credentialType: scheme === "password" ? "password" : "pin",
+          loadingMaterial: false,
+        } : current);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/folders/${item.resource_id}/share-links`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Could not load this folder link's recovery material.");
+      const links = (await response.json()) as RecoverableFolderLink[];
+      const folderLink = links.find((entry) => entry.id === item.id || entry.token === item.token);
+      if (!folderLink?.owner_wrapped_folder_key) {
+        throw new Error("This older folder link cannot be recovered here. Repair or recreate it from Files.");
+      }
+      if (recoveryGeneration.current !== generation) return;
+      setRecoveryDialog((current) => current?.item.id === item.id ? {
+        ...current,
+        folderLink,
+        loadingMaterial: false,
+      } : current);
+    } catch (error) {
+      if (recoveryGeneration.current !== generation) return;
+      setRecoveryDialog((current) => current?.item.id === item.id ? {
+        ...current,
+        loadingMaterial: false,
+        error: error instanceof Error ? error.message : "Could not prepare this link.",
+      } : current);
+    }
+  }
+
+  function closeRecoveryDialog() {
+    recoveryGeneration.current += 1;
+    setRecoveryDialog(null);
+    setCredential("");
+    setResolving(false);
+  }
+
+  async function resolveRecovery() {
+    if (!recoveryDialog || recoveryDialog.loadingMaterial || recoveryDialog.resolvedUrl) return;
+    if (!credential) {
+      setRecoveryDialog({ ...recoveryDialog, error: `Enter your current ${recoveryDialog.credentialType === "pin" ? "PIN" : "password"}.` });
+      return;
+    }
+
+    const generation = ++recoveryGeneration.current;
+    setResolving(true);
+    setRecoveryDialog({ ...recoveryDialog, error: "" });
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Sign in again to recover this link.");
+
+      let fragment: string;
+      if (recoveryDialog.item.type === "file") {
+        if (!recoveryDialog.file) throw new Error("File recovery material is unavailable.");
+        const response = await fetch(`${API_URL}/files/${recoveryDialog.file.id}/download`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error("Could not verify this file key. Try again.");
+        const recovered = await recoverVerifiedOwnerFileKey({
+          file: recoveryDialog.file,
+          credential,
+          encryptedData: await response.arrayBuffer(),
+          wrappedKey: response.headers.get("X-Wrapped-Key"),
+          cachedFileKey: sessionVault.getFileKey(recoveryDialog.file.id),
+          folderKey: recoveryDialog.file.folder_id
+            ? sessionVault.getFolderKey(recoveryDialog.file.folder_id)
+            : null,
+        });
+        if (recoveryGeneration.current !== generation) return;
+        sessionVault.setFileKey(recoveryDialog.file.id, recovered.key);
+        fragment = recovered.fragment;
+      } else {
+        const currentUser = getStoredUserFromLocalStorage();
+        const wrappedKey = recoveryDialog.folderLink?.owner_wrapped_folder_key;
+        if (!wrappedKey) throw new Error("This folder link's recovery material is unavailable.");
+        const privateKey = await resolveOwnerPrivateKeyFromSession(
+          sessionVault.getPrivateKey(),
+          { value: credential, type: recoveryDialog.credentialType },
+          currentUser,
+        );
+        if (!privateKey) throw new Error("Your current credential could not unlock the folder key.");
+        const folderKey = await unwrapKeyWithRSA(privateKey, wrappedKey);
+        if (recoveryGeneration.current !== generation) return;
+        fragment = arrayBufferToBase64(await crypto.subtle.exportKey("raw", folderKey));
+      }
+
+      if (recoveryGeneration.current !== generation) return;
+      const route = recoveryDialog.item.type === "folder" ? "folder-share" : "share";
+      const fullUrl = `${baseURL}/${route}/${recoveryDialog.item.token}#${fragment}`;
+      if (recoveryDialog.mode === "copy") {
+        try {
+          if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+          await navigator.clipboard.writeText(fullUrl);
+          if (recoveryGeneration.current !== generation) return;
+          setCopiedId(recoveryDialog.item.id);
+          setActionMessage("Full link copied.");
+          setTimeout(() => setCopiedId(null), 1500);
+          closeRecoveryDialog();
+          return;
+        } catch {
+          if (recoveryGeneration.current !== generation) return;
+          setRecoveryDialog({ ...recoveryDialog, resolvedUrl: fullUrl, error: "Clipboard access was denied. Select the full URL and copy it manually." });
+          return;
+        }
+      }
+
+      setRecoveryDialog({ ...recoveryDialog, resolvedUrl: fullUrl, error: "" });
+    } catch (error) {
+      if (recoveryGeneration.current !== generation) return;
+      setRecoveryDialog({
+        ...recoveryDialog,
+        error: error instanceof Error ? error.message : "Could not recover this full link.",
+      });
+    } finally {
+      if (recoveryGeneration.current === generation) setResolving(false);
+    }
+  }
+
+  async function revokeShare(item: ShareItem) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setActionMessage("Sign in again to revoke this link.");
+      return;
+    }
+    setRevokingId(item.id);
+    setActionMessage("");
+    try {
+      const endpoint = item.type === "folder"
+        ? `/folder-share-links/${item.id}`
+        : `/share-links/${item.id}`;
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Could not revoke this link. Try again.");
+      const refreshed = await loadShares();
+      setConfirmRevoke(null);
+      setActionMessage(refreshed
+        ? `${item.resource_name} link revoked.`
+        : `${item.resource_name} link revoked, but the list could not refresh. Refresh before taking another action.`);
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "Could not revoke this link. Try again.");
+    } finally {
+      setRevokingId(null);
+    }
   }
 
   // Derive drop token status.
@@ -274,9 +485,9 @@ export default function AccessCenter() {
                 <div className="space-y-2">
                   {filteredAllItems.map((item, idx) =>
                     item.kind === "share" ? (
-                      <ShareCard key={idx} item={item.data} baseURL={baseURL} copiedId={copiedId} onCopy={handleCopy} />
+                      <ShareCard key={idx} item={item.data} copiedId={copiedId} actionsDisabled={shareSource.stale} onRecover={beginRecovery} onRevoke={setConfirmRevoke} />
                     ) : (
-                      <DropCard key={idx} item={item.data} status={item.status} baseURL={baseURL} copiedId={copiedId} onCopy={handleCopy} />
+                      <DropCard key={idx} item={item.data} status={item.status} />
                     )
                   )}
                 </div>
@@ -288,7 +499,7 @@ export default function AccessCenter() {
               filteredShares.length === 0 && !relevantLoading && !relevantError ? <EmptyState /> : (
                 <div className="space-y-2">
                   {filteredShares.map((s) => (
-                    <ShareCard key={s.id} item={s} baseURL={baseURL} copiedId={copiedId} onCopy={handleCopy} />
+                    <ShareCard key={s.id} item={s} copiedId={copiedId} actionsDisabled={shareSource.stale} onRecover={beginRecovery} onRevoke={setConfirmRevoke} />
                   ))}
                 </div>
               )
@@ -299,12 +510,60 @@ export default function AccessCenter() {
               filteredDrops.length === 0 && !relevantLoading && !relevantError ? <EmptyState /> : (
                 <div className="space-y-2">
                   {filteredDrops.map((d) => (
-                    <DropCard key={d.id} item={d} status={dropStatus(d)} baseURL={baseURL} copiedId={copiedId} onCopy={handleCopy} />
+                    <DropCard key={d.id} item={d} status={dropStatus(d)} />
                   ))}
                 </div>
               )
             )}
           </>
+
+        {actionMessage && <p role="status" className="text-sm text-foreground">{actionMessage}</p>}
+
+        {recoveryDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
+            <div className="w-full max-w-lg space-y-4 rounded-xl border border-border bg-card p-5 text-card-foreground shadow-xl" role="dialog" aria-modal="true" aria-label={`Recover ${recoveryDialog.item.type} share link`}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-semibold">Recover full {recoveryDialog.item.type} share link</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">The decryption key stays in this browser and is added after #.</p>
+                </div>
+                <Button type="button" variant="ghost" size="icon" aria-label="Cancel link recovery" onClick={closeRecoveryDialog}><X className="h-4 w-4" /></Button>
+              </div>
+
+              {recoveryDialog.loadingMaterial ? (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading recovery material…</p>
+              ) : recoveryDialog.resolvedUrl ? (
+                <div className="space-y-3">
+                  <label htmlFor="recovered-share-url" className="text-sm font-medium">Full share URL</label>
+                  <textarea id="recovered-share-url" readOnly rows={4} value={recoveryDialog.resolvedUrl} onClick={(event) => event.currentTarget.select()} className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground" />
+                  {recoveryDialog.mode === "open" && <a href={recoveryDialog.resolvedUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"><ExternalLink className="h-4 w-4" /> Open recovered link</a>}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <label htmlFor="access-link-credential" className="text-sm font-medium">Current {recoveryDialog.credentialType === "pin" ? "PIN" : "password"}</label>
+                  <input id="access-link-credential" type="password" autoComplete="new-password" inputMode={recoveryDialog.credentialType === "pin" ? "numeric" : undefined} maxLength={recoveryDialog.credentialType === "pin" ? 4 : undefined} value={credential} onChange={(event) => setCredential(recoveryDialog.credentialType === "pin" ? event.target.value.replace(/\D/g, "").slice(0, 4) : event.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground" />
+                  <Button type="button" onClick={() => void resolveRecovery()} disabled={resolving || (recoveryDialog.credentialType === "pin" && credential.length !== 4)}>{resolving && <Loader2 className="h-4 w-4 animate-spin" />}{recoveryDialog.mode === "copy" ? "Verify and copy" : "Verify link"}</Button>
+                </div>
+              )}
+              {recoveryDialog.error && <p className="text-sm text-destructive">{recoveryDialog.error}</p>}
+            </div>
+          </div>
+        )}
+
+        {confirmRevoke && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
+            <div className="w-full max-w-md space-y-4 rounded-xl border border-border bg-card p-5 text-card-foreground shadow-xl" role="alertdialog" aria-modal="true" aria-labelledby="revoke-link-title">
+              <div>
+                <h2 id="revoke-link-title" className="font-semibold">Revoke this {confirmRevoke.type} share link?</h2>
+                <p className="mt-1 text-sm text-muted-foreground">The stored {confirmRevoke.type} stays in your vault. This only closes this recipient route.</p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setConfirmRevoke(null)} disabled={revokingId === confirmRevoke.id}>Cancel</Button>
+                <Button type="button" variant="destructive" onClick={() => void revokeShare(confirmRevoke)} disabled={revokingId === confirmRevoke.id}>{revokingId === confirmRevoke.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}Confirm revoke</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
   );
 }
@@ -352,13 +611,15 @@ function EmptyState() {
 
 interface ShareCardProps {
   item: ShareItem;
-  baseURL: string;
   copiedId: string | null;
-  onCopy: (id: string, text: string) => void;
+  actionsDisabled: boolean;
+  onRecover: (item: ShareItem, mode: "copy" | "open") => void;
+  onRevoke: (item: ShareItem) => void;
 }
 
-function ShareCard({ item, baseURL, copiedId, onCopy }: ShareCardProps) {
-  const shareURL = `${baseURL}/${item.type === "folder" ? "folder-share" : "share"}/${item.token}`;
+function ShareCard({ item, copiedId, actionsDisabled, onRecover, onRevoke }: ShareCardProps) {
+  const linkAvailable = item.is_active && item.status !== "expired" && item.status !== "closed" && item.status !== "revoked" && item.status !== "unknown";
+  const disabled = actionsDisabled || !linkAvailable;
   return (
     <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
       <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
@@ -373,11 +634,14 @@ function ShareCard({ item, baseURL, copiedId, onCopy }: ShareCardProps) {
       </div>
       <StatusBadge status={item.status} />
       <div className="flex items-center gap-1 shrink-0">
-        <Button variant="ghost" size="icon" title="Copy link" onClick={() => onCopy(item.id, shareURL)}>
+        <Button variant="ghost" size="icon" title="Copy full link" aria-label="Copy full link" disabled={disabled} onClick={() => onRecover(item, "copy")}>
           {copiedId === item.id ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
         </Button>
-        <Button variant="ghost" size="icon" title="Open link" onClick={() => window.open(shareURL, "_blank")}>
+        <Button variant="ghost" size="icon" title="Open full link" aria-label="Open full link" disabled={disabled} onClick={() => onRecover(item, "open")}>
           <ExternalLink className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="icon" title={`Revoke ${item.resource_name} link`} aria-label={`Revoke ${item.resource_name} link`} disabled={disabled} onClick={() => onRevoke(item)}>
+          <Ban className="w-4 h-4 text-destructive" />
         </Button>
       </div>
     </div>
@@ -387,13 +651,9 @@ function ShareCard({ item, baseURL, copiedId, onCopy }: ShareCardProps) {
 interface DropCardProps {
   item: DropToken;
   status: string;
-  baseURL: string;
-  copiedId: string | null;
-  onCopy: (id: string, text: string) => void;
 }
 
-function DropCard({ item, status, baseURL, copiedId, onCopy }: DropCardProps) {
-  const dropURL = `${baseURL}/drop/${item.token}`;
+function DropCard({ item, status }: DropCardProps) {
   return (
     <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -410,12 +670,7 @@ function DropCard({ item, status, baseURL, copiedId, onCopy }: DropCardProps) {
       </div>
       <StatusBadge status={status} />
       <div className="flex items-center gap-1 shrink-0">
-        <Button variant="ghost" size="icon" title="Copy link" onClick={() => onCopy(item.id, dropURL)}>
-          {copiedId === item.id ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-        </Button>
-        <Button variant="ghost" size="icon" title="Open link" onClick={() => window.open(dropURL, "_blank")}>
-          <ExternalLink className="w-4 h-4" />
-        </Button>
+        <Link to="/files" className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">Manage</Link>
       </div>
     </div>
   );

@@ -5,8 +5,14 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { CommandPalette } from "./command-palette";
 
+const { logout } = vi.hoisted(() => ({ logout: vi.fn() }));
+
 vi.mock("../../hooks/useFileSearch", () => ({
   useFileSearch: () => [],
+}));
+
+vi.mock("../../hooks/useLogout", () => ({
+  useLogout: () => logout,
 }));
 
 beforeAll(() => {
@@ -62,5 +68,21 @@ describe("CommandPalette", () => {
     await user.tab();
 
     expect(search).toHaveFocus();
+  });
+
+  it("uses the shared logout operation", async () => {
+    logout.mockClear();
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <button type="button">Open search</button>
+        <CommandPalette />
+      </MemoryRouter>,
+    );
+
+    await user.keyboard("{Control>}k{/Control}");
+    await user.click(screen.getByText("Sign Out"));
+
+    expect(logout).toHaveBeenCalledOnce();
   });
 });

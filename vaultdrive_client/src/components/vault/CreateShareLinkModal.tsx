@@ -21,16 +21,10 @@ import {
   CardDescription,
 } from "../ui/card";
 import { API_URL, BASE_PATH } from "../../utils/api";
-import {
-  deriveKeyFromPassword,
-  unwrapKey,
-  hexToBytes,
-  base64ToArrayBuffer,
-  arrayBufferToBase64,
-} from "../../utils/crypto";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
+import { recoverVerifiedOwnerFileKey } from "../../utils/access-link-recovery";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -84,7 +78,8 @@ export function CreateShareLinkModal({
   file,
 }: CreateShareLinkModalProps) {
   const isDropFile = !!file.pin_wrapped_key;
-  const { getCredential } = useSessionVault();
+  const sessionVault = useSessionVault();
+  const { getCredential } = sessionVault;
   const cached = getCredential();
   const fileCredentialMode = (() => {
     if (isDropFile) return "pin";
@@ -118,36 +113,27 @@ export function CreateShareLinkModal({
     setErrorMsg("");
 
     try {
-      let aesKey: CryptoKey;
-
-      if (isDropFile && file.pin_wrapped_key) {
-        const rawHex = await unwrapKey(cred, file.pin_wrapped_key);
-        const keyBytes = hexToBytes(rawHex);
-        aesKey = await crypto.subtle.importKey(
-          "raw",
-          new Uint8Array(keyBytes),
-          { name: "AES-GCM", length: 256 },
-          true,
-          ["decrypt"],
-        );
-      } else {
-        const meta = JSON.parse(file.metadata) as { iv: string; salt?: string };
-        if (!meta.salt) {
-          throw new Error(
-            "File has no salt — cannot derive key. This may be a drop file.",
-          );
-        }
-        const salt = new Uint8Array(base64ToArrayBuffer(meta.salt));
-        aesKey = await deriveKeyFromPassword(cred, salt, 100000);
+      const authToken = localStorage.getItem("token");
+      if (!authToken) throw new Error("Sign in again before creating a share link.");
+      const downloadResponse = await fetch(`${API_URL}/files/${file.id}/download`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (!downloadResponse.ok) {
+        throw new Error("Could not verify this file's encryption key. Try again.");
       }
-
-      const rawKey = await crypto.subtle.exportKey("raw", aesKey);
-      const b64Key = arrayBufferToBase64(rawKey);
+      const recovered = await recoverVerifiedOwnerFileKey({
+        file,
+        credential: cred,
+        encryptedData: await downloadResponse.arrayBuffer(),
+        wrappedKey: downloadResponse.headers.get("X-Wrapped-Key"),
+        cachedFileKey: sessionVault.getFileKey(file.id),
+      });
+      sessionVault.setFileKey(file.id, recovered.key);
+      const b64Key = recovered.fragment;
 
       const expiresAtISO = computeExpiresAt(expiryDays, customDate);
       const displayDate = formatExpiryDisplay(expiresAtISO);
 
-      const authToken = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/files/${file.id}/share-link`, {
         method: "POST",
         headers: {

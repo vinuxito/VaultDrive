@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/protected-route";
 import { SessionVaultProvider } from "./context/SessionVaultContext";
 import { BASE_PATH } from "./utils/base-path";
 import { CommandPalette } from "./components/ui/command-palette";
+import { RouteLoading } from "./components/navigation/RouteLoading";
 
 // Lazy-loaded routes for both public and private views to shrink initial bundle
 const Home = lazy(() => import("./pages/home"));
@@ -28,14 +29,7 @@ const AdminTests = lazy(() => import("./pages/admin-tests"));
 const AccessCenter = lazy(() => import("./pages/access-center"));
 const HelpCenter = lazy(() => import("./pages/help"));
 const ZKRoom = lazy(() => import("./pages/zk-room"));
-
-function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
+const NotFound = lazy(() => import("./pages/not-found"));
 
 const basename = BASE_PATH;
 
@@ -44,7 +38,7 @@ function App() {
     <SessionVaultProvider>
       <Router basename={basename}>
         <CommandPalette />
-        <Suspense fallback={<PageLoader />}>
+        <Suspense fallback={<RouteLoading />}>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/force-password-change" element={<ForcePasswordChange />} />
@@ -71,6 +65,7 @@ function App() {
               <Route path="/help" element={<HelpCenter />} />
               <Route path="/room/:roomId" element={<ZKRoom />} />
             </Route>
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </Router>

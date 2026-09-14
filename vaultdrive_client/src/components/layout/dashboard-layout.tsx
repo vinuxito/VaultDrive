@@ -16,12 +16,11 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useLocation } from "react-router-dom";
-import { useTransitionNavigate } from "../../hooks";
+import { useLogout, useTransitionNavigate } from "../../hooks";
 import { motion, AnimatePresence } from "framer-motion";
 // Local command palette removed to use global one
 import { PoweredByBadge } from "../branding";
 import { cn } from "../../lib/utils";
-import { useSessionVault } from "../../context/SessionVaultContext";
 import { useSSE } from "../../hooks";
 import type { ActivityEvent } from "../../hooks";
 import { ActivityFeedPanel } from "./ActivityFeedPanel";
@@ -48,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useTransitionNavigate();
   const location = useLocation();
   const { t } = useTranslation(["common", "drive"]);
-  const { clearVault } = useSessionVault();
+  const logout = useLogout();
   const { toasts, addToast, dismissToast } = useToast();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -276,15 +275,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   });
 
-  const handleLogout = () => {
-    clearVault();
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("auth-change"));
-    navigate("/login");
-  };
-  
   const getInitials = (name?: string) => {
     if (!name) return "?";
     return name
@@ -399,7 +389,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button type="button" className="flex items-center gap-2">
+                <button type="button" className="flex items-center gap-2" aria-label="Account menu">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
                   <AvatarFallback className="bg-primary/20 text-foreground font-semibold">
@@ -425,7 +415,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuItem onClick={() => navigate('/profile')}>{t("common:userMenu.profile")}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/settings')}>{t("common:userMenu.settings")}</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-700 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300">
+                <DropdownMenuItem onClick={logout} className="text-red-700 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300">
                   {t("common:userMenu.logout")}
                 </DropdownMenuItem>
 

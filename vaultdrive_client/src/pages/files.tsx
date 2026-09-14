@@ -25,8 +25,9 @@ import {
   FolderOpen,
   Folder as FolderIcon,
 } from "lucide-react";
+import { FirstTaskGuide, type FirstTask } from "../components/onboarding/FirstTaskGuide";
 import { useNavigate, useLocation } from "react-router-dom";
-import { API_URL, BASE_PATH } from "../utils/api";
+import { API_URL } from "../utils/api";
 import {
   generateSalt,
   deriveKeyFromPassword,
@@ -207,9 +208,13 @@ export default function Files() {
   const sessionVault = useSessionVault();
   const { t } = useTranslation(["drive"]);
 
+  const routeState = location.state as { highlightFileId?: string; onboardingTask?: FirstTask } | null;
+  const onboardingTask = routeState?.onboardingTask;
+  const firstTask = onboardingTask && ["upload", "share", "receive"].includes(onboardingTask) ? onboardingTask : null;
+
   const highlightFileId = (location.state as { highlightFileId?: string } | null)?.highlightFileId;
 
-  const { data: myFiles = [], mutate: mutateMyFiles, isLoading } = useSWR<FileData[]>(`${API_URL}/files`, {
+  const { data: myFiles = [], mutate: mutateMyFiles, isLoading, error: myFilesError } = useSWR<FileData[]>(`${API_URL}/files`, {
     onError: (err) => {
       if (err.message?.includes("401") || err.status === 401) {
         navigate("/login");
@@ -766,30 +771,9 @@ export default function Files() {
     }
   };
 
-  const handleQuickShare = async (fileId: string) => {
-    const authToken = localStorage.getItem("token");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    try {
-      const res = await fetch(`${API_URL}/files/${fileId}/share-link`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ expires_at: expiresAt }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to create share link");
-      }
-      const data = await res.json();
-      const shareUrl = `${window.location.origin}${BASE_PATH}/share/${data.token}`;
-      await navigator.clipboard.writeText(shareUrl);
-      setSuccessMessage("Share link copied to clipboard! (expires in 7 days)");
-      setTimeout(() => setSuccessMessage(""), 5000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create share link");
-    }
+  const handleQuickShare = (fileId: string) => {
+    const file = visibleFiles.find((candidate) => candidate.id === fileId);
+    if (file) handleCreateShareLink(file);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1781,6 +1765,18 @@ export default function Files() {
           </p>
         </div>
 
+
+        {firstTask && <FirstTaskGuide
+          task={firstTask}
+          fileCount={isLoading || myFilesError ? null : myFiles.length}
+          onUpload={() => document.getElementById("file-input")?.click()}
+          onReceive={() => setShowCreateUploadLinkModal(true)}
+          onShare={() => {
+            setSelectedNode({ type: "all" });
+            requestAnimationFrame(() => document.querySelector<HTMLElement>('[id^="file-row-"] button')?.focus());
+          }}
+          onDismiss={() => navigate(location.pathname, { replace: true, state: { ...routeState, onboardingTask: undefined } })}
+        />}
 
         <FileSearch
           searchQuery={searchQuery}

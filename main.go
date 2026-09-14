@@ -663,8 +663,12 @@ func (cfg *ApiConfig) healthCheckHandler(w http.ResponseWriter, r *http.Request)
 	uptimeSeconds := int64(time.Since(startTime).Seconds())
 	uptime := time.Since(startTime).Truncate(time.Second).String()
 
+	status := "ok"
+	if dbPingMs < 0 {
+		status = "degraded"
+	}
 	response := map[string]interface{}{
-		"status":         "ok",
+		"status":         status,
 		"version":        version,
 		"uptime":         uptime,
 		"uptime_seconds": uptimeSeconds,

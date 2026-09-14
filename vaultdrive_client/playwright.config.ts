@@ -72,6 +72,9 @@ export function createPlaywrightConfig(env: NodeJS.ProcessEnv = process.env) {
     ],
     use: {
       baseURL,
+      launchOptions: env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+        ? { executablePath: env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+        : undefined,
       trace: "on-first-retry",
       screenshot: "only-on-failure",
       video: "retain-on-failure",

@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { branding } from "../../config/branding";
 import { HelpSidebar } from "./components/HelpSidebar";
 import { HelpContent } from "./components/HelpContent";
@@ -15,9 +15,38 @@ export type HelpSection =
   | "audit_logs"
   | "system_settings";
 
+const USER_HELP_SECTIONS: readonly HelpSection[] = [
+  "getting_started",
+  "vault_pin",
+  "uploads_shares",
+  "drop_portals",
+  "workspaces",
+];
+
+const ADMIN_HELP_SECTIONS: readonly HelpSection[] = [
+  "user_management",
+  "agent_keys",
+  "audit_logs",
+  "system_settings",
+];
+
 export default function HelpCenter() {
   const { t } = useTranslation(["help"]);
-  const [activeSection, setActiveSection] = useState<HelpSection>("getting_started");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const allowedSections = storedUser.is_admin === true
+    ? [...USER_HELP_SECTIONS, ...ADMIN_HELP_SECTIONS]
+    : USER_HELP_SECTIONS;
+  const requestedSection = searchParams.get("section") as HelpSection | null;
+  const activeSection = requestedSection && allowedSections.includes(requestedSection)
+    ? requestedSection
+    : "getting_started";
+
+  const selectSection = (section: HelpSection) => {
+    if (allowedSections.includes(section)) {
+      setSearchParams({ section });
+    }
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -39,7 +68,7 @@ export default function HelpCenter() {
             
             {/* Sidebar Navigation */}
             <div className="w-full md:w-64 shrink-0 border-r border-primary/10 bg-background/30 overflow-y-auto">
-              <HelpSidebar activeSection={activeSection} onSelect={setActiveSection} />
+              <HelpSidebar activeSection={activeSection} onSelect={selectSection} />
             </div>
 
             {/* Content Area */}

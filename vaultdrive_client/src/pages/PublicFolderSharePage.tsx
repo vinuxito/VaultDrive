@@ -39,7 +39,12 @@ import {
   findOwnedFolderShareLink,
   getFolderShareRepairLabel,
 } from "../utils/folder-share-repair";
-import { mapDownloadHttpError } from "../utils/download-error";
+import {
+  classifyTransferError,
+  classifyTransferHttpError,
+  createTransferError,
+  type TransferFailureKind,
+} from "../utils/download-error";
 
 type PageState = "loading" | "ready" | "downloading" | "done" | "expired" | "error";
 
@@ -186,10 +191,17 @@ function FolderTreeNode({
 export default function PublicFolderSharePage() {
   const { token } = useParams<{ token: string }>();
   const { t } = useTranslation(["drive", "common"]);
+  const copy = (key: string, fallback: string) => {
+    const translated = t(key, { defaultValue: fallback });
+    return translated === key ? fallback : translated;
+  };
   const sessionVault = useSessionVault();
   const [state, setState] = useState<PageState>("loading");
   const [shareInfo, setShareInfo] = useState<FolderShareInfo | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [errorKind, setErrorKind] = useState<TransferFailureKind | null>(null);
+  const [errorRetryable, setErrorRetryable] = useState(false);
+  const [errorPhase, setErrorPhase] = useState<"info" | "zip" | null>(null);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
   const [wrappedKeys, setWrappedKeys] = useState<Record<string, string>>({});
   const [folderShareKey, setFolderShareKey] = useState<CryptoKey | null>(null);
@@ -210,63 +222,84 @@ export default function PublicFolderSharePage() {
     } : null;
   }, []);
 
-  const refreshShareData = useCallback(async () => {
+  const refreshShareData = useCallback(async (): Promise<boolean> => {
     if (!token) {
-      return;
+      return false;
     }
 
     const response = await fetch(`${API_URL}/folder-share/${token}/info`);
     if (!response.ok) {
-      throw new Error(`Failed to fetch folder info (${response.status})`);
+      throw createTransferError(classifyTransferHttpError(response.status));
     }
 
     const info = (await response.json()) as FolderShareInfo;
     if (info.is_expired) {
       setState("expired");
-      return;
+      return false;
     }
 
     setShareInfo(info);
     const keysRes = await fetch(`${API_URL}/folder-share/${token}/keys`);
-    if (keysRes.ok) {
-      const keys = (await keysRes.json()) as Record<string, string>;
-      setWrappedKeys(keys);
+    if (!keysRes.ok) {
+      throw createTransferError(classifyTransferHttpError(keysRes.status));
     }
+    const keys = (await keysRes.json()) as Record<string, string>;
+    setWrappedKeys(keys);
+    return true;
   }, [token]);
 
-  useEffect(() => {
-    async function fetchInfo() {
+  const loadShareData = useCallback(async () => {
+    setState("loading");
+    setErrorMsg("");
+    try {
+      if (!token) {
+        setErrorMsg("Invalid folder share link — missing token");
+        setErrorKind("unavailable");
+        setErrorRetryable(false);
+        setErrorPhase(null);
+        setState("error");
+        return;
+      }
+
+      const hashRaw = window.location.hash;
+      const hashKey = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
+
+      if (!hashKey) {
+        setErrorMsg("This share link is incomplete. Ask the sender to re-send the full link.");
+        setErrorKind("missing-key");
+        setErrorRetryable(false);
+        setErrorPhase(null);
+        setState("error");
+        return;
+      }
+
       try {
-        if (!token) {
-          setErrorMsg("Invalid folder share link — missing token");
-          setState("error");
-          return;
-        }
-
-        const hashRaw = window.location.hash;
-        const hashKey = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
-
-        if (!hashKey) {
-          setErrorMsg("This share link is incomplete. Ask the sender to re-send the full link.");
-          setState("error");
-          return;
-        }
-
-        // Import the folder share key from URL fragment
         const key = await importKey(hashKey);
         setFolderShareKey(key);
-
-        await refreshShareData();
-
-        setState("ready");
-      } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : "Failed to load folder info");
+      } catch {
+        setErrorMsg("This share link has an invalid decryption key. Ask the sender for the complete link.");
+        setErrorKind("missing-key");
+        setErrorRetryable(false);
+        setErrorPhase(null);
         setState("error");
+        return;
       }
-    }
 
-    void fetchInfo();
+      const ready = await refreshShareData();
+      if (ready) setState("ready");
+    } catch (err) {
+      const failure = classifyTransferError(err);
+      setErrorMsg(failure.message);
+      setErrorKind(failure.kind);
+      setErrorRetryable(failure.retryable);
+      setErrorPhase("info");
+      setState("error");
+    }
   }, [refreshShareData, token]);
+
+  useEffect(() => {
+    void loadShareData();
+  }, [loadShareData]);
 
   useEffect(() => {
     async function detectOwnedLink() {
@@ -362,7 +395,7 @@ export default function PublicFolderSharePage() {
         // Fetch encrypted file
         const response = await fetch(`${API_URL}/folder-share/${token}/file/${fileId}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch file (${response.status})`);
+          throw createTransferError(classifyTransferHttpError(response.status));
         }
 
         const metadataHeader = response.headers.get("X-File-Metadata");
@@ -435,7 +468,8 @@ export default function PublicFolderSharePage() {
 
         const response = await fetch(`${API_URL}/folder-share/${token}/file/${file.id}`);
         if (!response.ok) {
-          throw new Error(`${file.filename}: ${mapDownloadHttpError(response.status)}`);
+          const failure = classifyTransferHttpError(response.status);
+          throw createTransferError(failure, `${file.filename}: ${failure.message}`);
         }
 
         const metadataHeader = response.headers.get("X-File-Metadata");
@@ -470,7 +504,11 @@ export default function PublicFolderSharePage() {
 
       setState("done");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Failed to create ZIP");
+      const failure = classifyTransferError(err);
+      setErrorMsg(failure.message);
+      setErrorKind(failure.kind);
+      setErrorRetryable(failure.retryable);
+      setErrorPhase("zip");
       setState("error");
     }
   }
@@ -639,10 +677,13 @@ export default function PublicFolderSharePage() {
             <div className="flex flex-col items-center gap-4 py-2 text-center">
               <CheckCircle2 className="w-12 h-12 text-emerald-500" />
               <div>
-                <p className="text-lg font-semibold text-foreground">{t("drive:publicFolder.doneTitle", "ZIP saved!")}</p>
+                <p className="text-lg font-semibold text-foreground">{copy("drive:publicFolder.saveStartedTitle", "Browser save started")}</p>
                 {shareInfo && (
                   <p className="text-sm text-muted-foreground mt-1 break-all">{shareInfo.folder_name}.zip</p>
                 )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  {copy("drive:publicFolder.saveStartedDesc", "Your browser was asked to save the ZIP. Check its downloads to confirm the result.")}
+                </p>
               </div>
               <button
                 type="button"
@@ -676,9 +717,29 @@ export default function PublicFolderSharePage() {
                 <p className="text-lg font-semibold text-foreground">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-2 break-words">{errorMsg}</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}
-              </p>
+              {errorKind === "missing-key" && (
+                <p className="text-xs text-muted-foreground">
+                  {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}
+                </p>
+              )}
+              {errorRetryable && errorPhase === "info" && (
+                <button
+                  type="button"
+                  onClick={() => void loadShareData()}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  {copy("drive:publicFolder.tryAgain", "Try again")}
+                </button>
+              )}
+              {errorRetryable && errorPhase === "zip" && (
+                <button
+                  type="button"
+                  onClick={() => void handleDownloadAll()}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  {copy("drive:publicFolder.retryZip", "Retry ZIP")}
+                </button>
+              )}
               {shareInfo && (
                 <button
                   type="button"

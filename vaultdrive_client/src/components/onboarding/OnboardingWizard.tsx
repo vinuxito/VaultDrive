@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -13,6 +14,9 @@ import {
   EyeOff,
   Lock,
   Bot,
+  Upload,
+  Share2,
+  Inbox,
 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { useSessionVault } from "../../context/SessionVaultContext";
@@ -33,6 +37,7 @@ type Step = 1 | 2 | 3 | 4;
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const { setCredential } = useSessionVault();
   const { t } = useTranslation(['drive']);
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
 
   const [pin, setPin] = useState("");
@@ -47,6 +52,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [folderName, setFolderName] = useState("");
   const [folderError, setFolderError] = useState("");
   const [creatingFolder, setCreatingFolder] = useState(false);
+  const [folderCreated, setFolderCreated] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -132,6 +138,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to create folder");
       }
+      setFolderCreated(true);
       setStep(4);
     } catch (err) {
       setFolderError(err instanceof Error ? err.message : "Failed to create folder");
@@ -144,8 +151,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     setStep(4);
   };
 
-  const handleComplete = () => {
+  const handleFirstTask = (task: "upload" | "share" | "receive") => {
     onComplete();
+    navigate("/files", { state: { onboardingTask: task } });
   };
 
   const steps = [
@@ -470,37 +478,40 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </p>
               </div>
 
-              <div className="rounded-[1.6rem] border border-border bg-muted px-4 py-4 text-left">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground">{t("drive:onboarding.readyChecklist")}</p>
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
-                    <p className="text-sm text-foreground">{t("drive:onboarding.readyCheck1")}</p>
-                  </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
-                    <p className="text-sm text-foreground">{t("drive:onboarding.readyCheck2")}</p>
-                  </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
-                    <p className="text-sm text-foreground">{t("drive:onboarding.readyCheck3")}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-left space-y-2">
+              <div className="rounded-[1.6rem] border border-border bg-muted px-4 py-4 text-left space-y-2">
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted border border-border">
                   <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
-                  <p className="text-sm text-foreground">{t("drive:onboarding.readyCheck4", { productName: branding.productName })}</p>
+                  <p className="text-sm text-foreground">
+                    {t("drive:onboarding.pinSetupConfirmed", { defaultValue: "Vault PIN saved" })}
+                  </p>
                 </div>
+                {folderCreated && (
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted border border-border">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
+                    <p className="text-sm text-foreground">
+                      {t("drive:onboarding.folderSetupConfirmed", { defaultValue: "First folder created" })}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              <Button
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-200 gap-2"
-                onClick={handleComplete}
-              >
-                {t("drive:onboarding.enterVault")} <ArrowRight className="w-4 h-4" />
-              </Button>
+              <div className="space-y-3 text-left">
+                <h3 className="font-semibold text-foreground">
+                  {t("drive:onboarding.chooseFirstTask", { defaultValue: "What do you want to do first?" })}
+                </h3>
+                <Button className="w-full justify-start gap-3" onClick={() => handleFirstTask("upload")}>
+                  <Upload className="w-4 h-4" />
+                  {t("drive:onboarding.firstTaskUpload", { defaultValue: "Upload a file" })}
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-3" onClick={() => handleFirstTask("share")}>
+                  <Share2 className="w-4 h-4" />
+                  {t("drive:onboarding.firstTaskShare", { defaultValue: "Share access to a file" })}
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-3" onClick={() => handleFirstTask("receive")}>
+                  <Inbox className="w-4 h-4" />
+                  {t("drive:onboarding.firstTaskReceive", { defaultValue: "Receive files from someone" })}
+                </Button>
+              </div>
             </div>
           )}
         </div>

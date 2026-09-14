@@ -280,7 +280,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                         type="button"
                         onClick={() => onQuickShare(file.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
-                        title="Quick Share (7-day link, copied to clipboard)"
+                        title="Quick Share (choose settings and unlock)"
                       >
                         <Zap className="w-3.5 h-3.5" />
                       </button>

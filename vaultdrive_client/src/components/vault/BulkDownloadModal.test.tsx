@@ -167,7 +167,7 @@ describe("BulkDownloadModal", () => {
     );
 
     await userEvent.click(screen.getByRole("button", { name: /start download/i }));
-    await screen.findByText("All downloads processed.");
+    await screen.findByText("Browser save requests started for all selected files.");
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -216,7 +216,7 @@ describe("BulkDownloadModal", () => {
 
     await screen.findByText("File is temporarily unavailable from storage.");
     expect(onDownloadFile).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText("All downloads processed.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Browser save requests started for all selected files.")).not.toBeInTheDocument();
     expect(vaultMocks.clearCredential).not.toHaveBeenCalled();
   });
 
@@ -247,5 +247,30 @@ describe("BulkDownloadModal", () => {
     await userEvent.type(input, "4321");
     await userEvent.click(screen.getByRole("button", { name: /retry downloads/i }));
     await waitFor(() => expect(onDownloadFile).toHaveBeenLastCalledWith(files[0], "4321"));
+  });
+
+  it("retries only failed and pending files while preserving completed items", async () => {
+    const onDownloadFile = vi
+      .fn()
+      .mockResolvedValue({ success: true })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({
+        success: false,
+        error: "File is temporarily unavailable from storage.",
+        failureKind: "storage",
+      })
+      .mockResolvedValueOnce({ success: true });
+
+    render(
+      <BulkDownloadModal files={files} onDownloadFile={onDownloadFile} onClose={() => undefined} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /start download/i }));
+    await screen.findByText("File is temporarily unavailable from storage.");
+    await userEvent.click(screen.getByRole("button", { name: /retry downloads/i }));
+    await screen.findByText("Browser save requests started for all selected files.");
+
+    expect(onDownloadFile).toHaveBeenCalledTimes(3);
+    expect(onDownloadFile.mock.calls.map(([file]) => file.id)).toEqual(["one", "two", "two"]);
   });
 });

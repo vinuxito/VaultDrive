@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FilePreviewModal } from "./FilePreviewModal";
@@ -80,5 +81,46 @@ describe("FilePreviewModal cached credential recovery", () => {
     expect(screen.getByRole("button", { name: "Close preview" })).toBeInTheDocument();
     expect(screen.getByText("This file was shared with you.")).toHaveClass("text-foreground");
     expect(screen.getByLabelText(/^pin$/i)).toHaveClass("bg-background", "text-foreground");
+  });
+
+  it("offers a retry for a transport failure without clearing the cached PIN", async () => {
+    cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("private-key");
+
+    class FailingWorker {
+      onmessage: ((event: MessageEvent) => void) | null = null;
+      onerror: ((event: ErrorEvent) => void) | null = null;
+      postMessage() {
+        queueMicrotask(() => this.onmessage?.({
+          data: {
+            success: false,
+            error: "The service is temporarily unavailable.",
+            failureKind: "storage",
+          },
+        } as MessageEvent));
+      }
+      terminate() {}
+    }
+    vi.stubGlobal("Worker", FailingWorker);
+
+    render(
+      <FilePreviewModal
+        file={{
+          id: "shared-file",
+          filename: "contract.pdf",
+          metadata: "{}",
+          is_owner: false,
+        }}
+        onClose={() => undefined}
+        onDownload={() => undefined}
+      />,
+    );
+
+    expect(await screen.findByText("The service is temporarily unavailable."))
+      .toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /retry preview/i })).toBeInTheDocument();
+    expect(vaultMocks.clearCredential).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: /edit credential/i }));
+    expect(screen.getByLabelText(/^pin$/i)).toHaveValue("1234");
   });
 });

@@ -105,7 +105,7 @@ describe("FolderSharedLinksSection", () => {
 
   });
 
-  it.skip("uses the masked PIN-gated copy flow for existing folder-share links and removes direct open", async () => {
+  it("uses the masked PIN-gated copy flow for existing folder-share links and removes direct open", async () => {
     render(
       <FolderSharedLinksSection
         folder={{ id: "folder-1", name: "Quantix Docs" }}
@@ -121,7 +121,7 @@ describe("FolderSharedLinksSection", () => {
     fireEvent.click(screen.getByRole("button", { name: /copy full folder share link/i }));
     
     // Wait for PIN input to appear and enter PIN
-    const pinInput = await screen.findByPlaceholderText("••••");
+    const pinInput = await screen.findByLabelText("4-digit PIN");
     fireEvent.change(pinInput, { target: { value: "1111" } });
     
     // Click verify

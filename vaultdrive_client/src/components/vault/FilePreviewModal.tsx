@@ -50,6 +50,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [loadFailureKind, setLoadFailureKind] = useState("unknown");
   const [trustExpanded, setTrustExpanded] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
@@ -120,6 +121,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     let localFailureKind = "unknown";
     setIsLoading(true);
     setLoadError("");
+    setLoadFailureKind("unknown");
     try {
       let rawPrivateKeyPem: string | null = null;
       if (file.is_owner === false && !file.pin_wrapped_key) {
@@ -181,12 +183,14 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       }
       return { success: true };
     } catch (err) {
+      const failureKind = err instanceof Error && "failureKind" in err
+        ? String((err as Error & { failureKind?: string }).failureKind)
+        : localFailureKind;
       setLoadError(err instanceof Error ? err.message : "Failed to decrypt file");
+      setLoadFailureKind(failureKind);
       return {
         success: false,
-        failureKind: err instanceof Error && "failureKind" in err
-          ? String((err as Error & { failureKind?: string }).failureKind)
-          : localFailureKind,
+        failureKind,
       };
     } finally {
       setIsLoading(false);
@@ -210,6 +214,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       const cached = getCredential();
       const credType = getCredentialType(file);
       if (cached && ((credType !== "password" && cached.type === "pin") || (credType === "password" && cached.type === "password"))) {
+        setCredential(cached.value);
         setShowCredentialPrompt(false);
         void loadPreview(cached.value).then((result) => {
           if (!result.success && result.failureKind === "credential") {
@@ -438,9 +443,33 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
           {loadError && !isLoading && (
             <div className="flex items-center justify-center min-h-[200px]">
-              <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm max-w-md">
-                <AlertCircle className="w-5 h-5 shrink-0" />
-                {loadError}
+              <div className="flex flex-col items-center gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm max-w-md text-center">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  {loadError}
+                </div>
+                {loadFailureKind !== "credential" && (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void loadPreview(credential)}
+                    >
+                      Retry preview
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setLoadError("");
+                        setShowCredentialPrompt(true);
+                      }}
+                    >
+                      Edit credential
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}

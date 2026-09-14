@@ -78,10 +78,10 @@ export async function completeOnboarding(page: Page, account: OwnerAccount, fold
   await page.waitForTimeout(500);
   await createFolderBtn.click();
   
-  const enterVaultBtn = page.getByRole("button", { name: /Enter Protected Vault/i });
-  await enterVaultBtn.waitFor({ state: 'visible', timeout: 10000 });
-  await page.waitForTimeout(500);
-  await enterVaultBtn.click();
+  const firstTaskButton = page.getByRole("button", { name: "Upload a file", exact: true });
+  await expect(firstTaskButton).toBeVisible();
+  await firstTaskButton.click();
+  await expect(page.getByRole("region", { name: "Your next step" })).toBeVisible();
   
   await expect(page.getByText("No files here yet")).toBeVisible({ timeout: 15000 });
 }

@@ -86,13 +86,18 @@ export function BulkDownloadModal({
 
     setRunning(true);
     setDone(false);
+    if (!stopped) {
+      setFileStatuses({});
+      setFileErrors({});
+    }
     setStopped(false);
-    setFileStatuses({});
-    setFileErrors({});
 
     try {
       for (const file of files) {
+        if (fileStatuses[file.id] === "done") continue;
+
         setStatus(file.id, "downloading");
+        setError(file.id, "");
 
         const scheme = getFileCredentialScheme(file);
         const credential =
@@ -172,7 +177,7 @@ export function BulkDownloadModal({
             {files.length === 0
               ? "No files selected."
               : done
-              ? "All downloads processed."
+              ? "Browser save requests started for all selected files."
               : stopped
               ? "Download stopped at the first failure. Correct the issue, then retry."
               : credentialsReady && !needsPin && !needsPassword

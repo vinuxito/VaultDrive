@@ -7,7 +7,7 @@ import (
 	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
-// handlerListShares returns all outbound access grants for the authenticated user:
+// handlerListShares returns outbound public links for the authenticated user:
 // file share links and folder share links, unified with status metadata.
 func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, user database.User) {
 	type ShareItem struct {
@@ -21,7 +21,7 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 		CreatedAt      time.Time  `json:"created_at"`
 		AccessCount    int        `json:"access_count"`
 		LastAccessedAt *time.Time `json:"last_accessed_at,omitempty"`
-		Status         string     `json:"status"` // active | expired | revoked | stale | never_used
+		Status         string     `json:"status"` // active | expired | closed | stale | never_used
 	}
 
 	items := []ShareItem{}
@@ -35,7 +35,11 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 		 INNER JOIN files f ON f.id = psl.file_id
 		 WHERE psl.owner_id = $1
 		 ORDER BY psl.created_at DESC`, user.ID)
-	if err == nil {
+	if err != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Share links are temporarily unavailable", err)
+		return
+	}
+	{
 		defer fileRows.Close()
 		for fileRows.Next() {
 			var item ShareItem
@@ -45,7 +49,8 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 				&item.IsActive, &expiresAt, &item.CreatedAt,
 				&item.AccessCount, &lastAccessed,
 			); err != nil {
-				continue
+				respondWithError(w, http.StatusServiceUnavailable, "Share links could not be read", err)
+				return
 			}
 			item.Type = "file"
 			item.ExpiresAt = expiresAt
@@ -53,6 +58,11 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 			item.Status = shareStatus(item.IsActive, expiresAt, lastAccessed, item.AccessCount)
 			items = append(items, item)
 		}
+	}
+
+	if err := fileRows.Err(); err != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Share links could not be read", err)
+		return
 	}
 
 	// --- Folder share links ---
@@ -64,7 +74,11 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 		 INNER JOIN folders fol ON fol.id = fsl.folder_id
 		 WHERE fsl.owner_id = $1
 		 ORDER BY fsl.created_at DESC`, user.ID)
-	if err == nil {
+	if err != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Share links are temporarily unavailable", err)
+		return
+	}
+	{
 		defer folderRows.Close()
 		for folderRows.Next() {
 			var item ShareItem
@@ -74,7 +88,8 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 				&item.IsActive, &expiresAt, &item.CreatedAt,
 				&item.AccessCount, &lastAccessed,
 			); err != nil {
-				continue
+				respondWithError(w, http.StatusServiceUnavailable, "Share links could not be read", err)
+				return
 			}
 			item.Type = "folder"
 			item.ExpiresAt = expiresAt
@@ -84,13 +99,20 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 		}
 	}
 
+	if err := folderRows.Err(); err != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Share links could not be read", err)
+		return
+	}
+
 	respondWithJSON(w, http.StatusOK, items)
 }
 
 // shareStatus derives a human-readable status from share link state.
 func shareStatus(isActive bool, expiresAt, lastAccessedAt *time.Time, accessCount int) string {
 	if !isActive {
-		return "revoked"
+		// Inactive can mean manual revocation or a consumed limit. The schema
+		// does not preserve an authoritative historical closure reason.
+		return "closed"
 	}
 	if expiresAt != nil && expiresAt.Before(time.Now()) {
 		return "expired"

@@ -38,6 +38,26 @@ func TestHealthCheckHandler(t *testing.T) {
 	}
 }
 
+func TestHealthReportsUnavailableDatabaseWithoutClaimingHealthy(t *testing.T) {
+	db, err := sql.Open("postgres", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = db.Close()
+	out := httptest.NewRecorder()
+	(&ApiConfig{db: db}).healthCheckHandler(out, httptest.NewRequest(http.MethodGet, "/api/healthz", nil))
+	var result struct {
+		Status string `json:"status"`
+		DBPing int64  `json:"db_ping_ms"`
+	}
+	if err := json.Unmarshal(out.Body.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+	if out.Code != http.StatusOK || result.Status != "degraded" || result.DBPing != -1 {
+		t.Fatalf("reachability must not imply healthy dependencies: %d %s", out.Code, out.Body.String())
+	}
+}
+
 func TestReadinessCheckHandler_OfflineDB(t *testing.T) {
 	// Setup config with closed DB to test not-ready path
 	db, err := sql.Open("postgres", "postgres://nonexistent:5432/db?sslmode=disable")

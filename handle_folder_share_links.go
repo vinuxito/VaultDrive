@@ -334,12 +334,25 @@ func (cfg *ApiConfig) handlerRevokeFolderShareLink(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = cfg.dbQueries.RevokeFolderShareLink(r.Context(), database.RevokeFolderShareLinkParams{
-		ID:      linkID,
-		OwnerID: user.ID,
-	})
+	var owned, changed bool
+	err = cfg.db.QueryRowContext(r.Context(), `
+		WITH closed AS (
+			UPDATE folder_share_links SET is_active=FALSE
+			WHERE id=$1 AND owner_id=$2 AND is_active=TRUE RETURNING id
+		)
+		SELECT EXISTS(SELECT 1 FROM folder_share_links WHERE id=$1 AND owner_id=$2),
+		       EXISTS(SELECT 1 FROM closed)`, linkID, user.ID).Scan(&owned, &changed)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error revoking folder share link", err)
+		return
+	}
+
+	if !owned {
+		respondWithError(w, http.StatusNotFound, "Folder share link not found", nil)
+		return
+	}
+	if !changed {
+		respondWithJSON(w, http.StatusOK, map[string]string{"status": "already_closed", "message": "Folder share link is already closed"})
 		return
 	}
 

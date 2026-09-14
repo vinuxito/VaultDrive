@@ -18,6 +18,7 @@ import {
 import { branding } from "../../config/branding";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileSearch } from "../../hooks/useFileSearch";
+import { useLogout } from "../../hooks/useLogout";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -25,6 +26,7 @@ export function CommandPalette() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
+  const logout = useLogout();
   const fileResults = useFileSearch(inputValue);
 
   const closePalette = useCallback(() => {
@@ -213,10 +215,7 @@ export function CommandPalette() {
                   </Command.Item>
                   <Command.Item
                     onSelect={() => {
-                      runCommand(() => {
-                        localStorage.removeItem("token");
-                        window.location.href = "/login";
-                      });
+                      runCommand(logout);
                     }}
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-red-500 hover:bg-red-500/10 aria-selected:bg-red-500/10"
                   >

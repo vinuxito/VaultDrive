@@ -4,6 +4,11 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { API_URL } from "../utils/api";
 import { decryptFile, base64ToArrayBuffer } from "../utils/crypto";
+import {
+  classifyTransferError,
+  classifyTransferHttpError,
+  type TransferFailureKind,
+} from "../utils/download-error";
 import BrandLogo from "../components/branding/brand-logo";
 import { branding } from "../config/branding";
 import {
@@ -68,18 +73,30 @@ function getFileIcon(filename: string) {
 export default function PublicSharePage() {
   const { token } = useParams<{ token: string }>();
   const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const translated = t(key, { defaultValue: fallback });
+    return translated === key ? fallback : translated;
+  };
   const [state, setState] = useState<PageState>("loading");
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
   const [savedFilename, setSavedFilename] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [errorKind, setErrorKind] = useState<TransferFailureKind | null>(null);
+  const [errorRetryable, setErrorRetryable] = useState(false);
+  const [errorPhase, setErrorPhase] = useState<"info" | "download" | null>(null);
 
   const [decryptDuration, setDecryptDuration] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   const fetchInfo = useCallback(async () => {
+    setState("loading");
+    setErrorMsg("");
     try {
       if (!token) {
         setErrorMsg("Invalid share link — missing token");
+        setErrorKind("unavailable");
+        setErrorRetryable(false);
+        setErrorPhase(null);
         setState("error");
         return;
       }
@@ -89,16 +106,35 @@ export default function PublicSharePage() {
 
       if (!hashKey) {
         setErrorMsg("This share link is incomplete. Ask the sender to re-send the full link.");
+        setErrorKind("missing-key");
+        setErrorRetryable(false);
+        setErrorPhase(null);
+        setState("error");
+        return;
+      }
+
+      try {
+        if (base64ToArrayBuffer(hashKey).byteLength !== 32) {
+          throw new Error("invalid key length");
+        }
+      } catch {
+        setErrorMsg("This share link has an invalid decryption key. Ask the sender for the complete link.");
+        setErrorKind("missing-key");
+        setErrorRetryable(false);
+        setErrorPhase(null);
         setState("error");
         return;
       }
 
       const response = await fetch(`${API_URL}/share/${token}/info`);
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Share link not found or has been revoked");
-        }
-        throw new Error(`Failed to fetch file info (${response.status})`);
+        const failure = classifyTransferHttpError(response.status);
+        setErrorMsg(failure.message);
+        setErrorKind(failure.kind);
+        setErrorRetryable(failure.retryable);
+        setErrorPhase("info");
+        setState("error");
+        return;
       }
 
       const info = (await response.json()) as ShareInfo;
@@ -122,7 +158,11 @@ export default function PublicSharePage() {
       setShareInfo(info);
       setState("ready");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Failed to load file info");
+      const failure = classifyTransferError(err);
+      setErrorMsg(failure.message);
+      setErrorKind(failure.kind);
+      setErrorRetryable(failure.retryable);
+      setErrorPhase("info");
       setState("error");
     }
   }, [token]);
@@ -164,6 +204,7 @@ export default function PublicSharePage() {
   async function handleDownload() {
     if (!token || !shareInfo) return;
     setState("downloading");
+    setErrorMsg("");
 
     try {
       const hashRaw = window.location.hash;
@@ -171,10 +212,13 @@ export default function PublicSharePage() {
 
       const response = await fetch(`${API_URL}/share/${token}`);
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Share link not found or has been revoked");
-        }
-        throw new Error(`Failed to fetch file (${response.status})`);
+        const failure = classifyTransferHttpError(response.status);
+        setErrorMsg(failure.message);
+        setErrorKind(failure.kind);
+        setErrorRetryable(failure.retryable);
+        setErrorPhase("download");
+        setState("error");
+        return;
       }
 
       const fileNameHeader = response.headers.get("X-File-Name") ?? shareInfo.filename;
@@ -222,7 +266,11 @@ export default function PublicSharePage() {
       setSavedFilename(fileNameHeader);
       setState("done");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Failed to decrypt file");
+      const failure = classifyTransferError(err);
+      setErrorMsg(failure.message);
+      setErrorKind(failure.kind);
+      setErrorRetryable(failure.retryable);
+      setErrorPhase("download");
       setState("error");
     }
   }
@@ -301,12 +349,12 @@ export default function PublicSharePage() {
                 branding.productSlug.includes("quantix") ? (
                   <div className="flex items-center gap-2 px-3 py-2.5 bg-orange-950/40 border border-orange-500/30 rounded-lg text-orange-400 animate-pulse font-mono text-xs">
                     <AlertCircle className="w-4 h-4 shrink-0 text-orange-400" />
-                    <span>{t("drive:publicShare.autoShredWarning", "Caution: This file will auto-shred after your download completes.")}</span>
+                    <span>{copy("drive:publicShare.oneTimeFetchWarning", "This one-time link is consumed when the authorized file fetch starts.")}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 px-3 py-2.5 bg-rose-950/20 border border-rose-800/30 rounded-lg text-rose-300 text-xs">
                     <Shield className="w-4 h-4 shrink-0 text-rose-400 animate-pulse" />
-                    <span>{t("drive:publicShare.autoShredWarning", "Caution: This file will auto-shred after your download completes.")}</span>
+                    <span>{copy("drive:publicShare.oneTimeFetchWarning", "This one-time link is consumed when the authorized file fetch starts.")}</span>
                   </div>
                 )
               )}
@@ -465,10 +513,13 @@ export default function PublicSharePage() {
             <div className="flex flex-col items-center gap-4 py-2 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
               <CheckCircle2 className="w-12 h-12 text-emerald-500" />
               <div>
-                <p className="text-lg font-semibold text-foreground">{t("drive:publicShare.doneTitle", "File Decrypted & Saved!")}</p>
+                <p className="text-lg font-semibold text-foreground">{copy("drive:publicShare.saveStartedTitle", "Browser save started")}</p>
                 {savedFilename && (
                   <p className="text-sm text-muted-foreground mt-1 break-all">{savedFilename}</p>
                 )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  {copy("drive:publicShare.saveStartedDesc", "Your browser was asked to save the decrypted file. Check its downloads to confirm the result.")}
+                </p>
               </div>
               
               <div className="w-full text-left bg-muted border border-border rounded-lg p-4 font-mono text-xs space-y-2 mt-2">
@@ -521,9 +572,25 @@ export default function PublicSharePage() {
                 <p className="text-lg font-semibold text-foreground">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
                 <p className="text-sm text-red-600 dark:text-red-400 mt-2 break-words">{errorMsg}</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}
-              </p>
+              {errorKind === "missing-key" && (
+                <p className="text-xs text-muted-foreground">
+                  {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}
+                </p>
+              )}
+              {errorPhase === "download" && shareInfo?.max_downloads === 1 && (
+                <p className="text-xs text-muted-foreground">
+                  {copy("drive:publicShare.singleUseRetry", "This authorized fetch may have consumed the one-time link. If retry is unavailable, ask the owner for a new link.")}
+                </p>
+              )}
+              {errorRetryable && errorPhase && (
+                <button
+                  type="button"
+                  onClick={() => void (errorPhase === "info" ? fetchInfo() : handleDownload())}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  {copy("drive:publicShare.tryAgain", "Try again")}
+                </button>
+              )}
             </div>
           )}
         </div>

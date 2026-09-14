@@ -26,9 +26,29 @@ Existing reusable foundations: DataState, session vault, full-link creation/reco
 - Review caught a newly declared modal feed without complete focus handling; added initial focus, Tab/Shift+Tab containment, Escape and opener focus restoration. Regression went red then green. Final integrated rerun: 282 frontend tests passed/1 existing skip; lint, TypeScript/private frontend build, backend unit/vet/build and diff check all exit 0. The external-runner target guard remains a recorded iteration-6 hardening item; current browser target is verified private loopback.
 - Next lens: implement usable credential-gated outbound links, recoverable transfers, first-use/recovery handoffs and truthful server-stream outcomes. Keep existing crypto formats and production data untouched.
 
-## Iteration 2 — core implementation (pending)
+## Iteration 2 — core implementation (complete)
+Read iteration 1 findings before changing lens. Its green foundation leaves actual access/transfer completion, first-task guidance and recovery semantics weak. Reuse credential helpers, existing share endpoints, onboarding and Help; keep key formats, production service and customer data unchanged.
 
-## Iteration 3 — hardening and edge cases (pending)
+Backend test-first evidence: prior code produced 8 successes/access_count=8 for an eight-request one-use race; failed/short streams logged completed downloads; cancelled streams left no outcome; unavailable share inventory returned 200/[]; inactive links invented Revoked. Added deterministic row-lock race and interrupted-writer fixtures. Atomic conditional consumption now enforces active/expiry/unlock/limit at the write, with use consumed on authorized fetch. Byte-count/error-aware auditing labels interrupted streams and survives request cancellation with a bounded context; no JSON is appended to ciphertext. Inventory failures return 503; unknown inactive reason is Closed. Full private-DB suite now 46 passed, 0 skips, exit 0.
+
+Health regression proved DB ping -1 still claimed status ok. It now reports degraded while HTTP200 still establishes API reachability; readiness remains separate. StatusPanel distinguishes responding/degraded/unknown/unreachable, handles malformed data and offers retry, with operator metrics behind admin details and no readiness scans from ordinary pages.
+
+
+Further iteration-2 evidence: both file/folder revoke endpoints returned 200 for unowned IDs because UPDATE affected-row results were ignored. Red tests reproduced this; atomic owner-scoped closure now returns404, treats repeated owner revocation as already_closed and records one transition. Full private-DB suite: 48 passed/0 skipped, exit0. Stored owner files survive revocation.
+
+Root found an additional live-code seam beyond the initial roadmap recon: Files Quick Share created and copied a bare token URL without a credential gate. It now opens the existing CreateShareLinkModal. A real browser regression failed on the old staged build because no credential field appeared; it will be rerun on iteration2. The first draft selector matched two titles and was corrected before the behavioral red run. Root wired onboarding task state into FirstTaskGuide and existing upload/receive/share actions; guidance distinguishes unknown inventory and actual stored files from button clicks. Focused FirstTaskGuide2 and StatusPanel3 tests pass. Test mock for translation defaultValue was corrected to match i18next behavior; no runtime workaround was added.
+
+### Integrated result and next lens
+- Core changes: verified full file/folder link recovery with clipboard fallback; existing Drop-manager handoff; PIN verification before link creation; recoverable public/preview/bulk/ZIP transfers; first-task onboarding and recovery states; shared logout; contextual Help and named route loading/fallback; server one-use enforcement and truthful stream audit.
+- `verify-iteration.sh 2`: lint, unit, TypeScript/private frontend build, backend unit/vet/build and whitespace all exit 0. Frontend **324 passed, 0 skipped**; backend explicit-empty-DB **30 passed, 15 intentional DB skips**. Separate private PostgreSQL suite **49 passed, 0 skipped**, exit 0. See `iteration-2/checks.tsv` and command/log files.
+- Private runtime switched to iteration-2 artifacts. Playwright Quick Share 1, public-transfer 3 and autofill/PIN 4 regressions: **8 passed**. Owner signup/onboarding/PIN-login initially could not launch the unavailable cached Chromium executable; config now honors an explicit installed-browser path globally (asserted by config verification). Rerun: **1 passed**, exit 0. No production/customer mutation.
+- Browser proof exposed existing account/encrypted-key debug output; remove and guard in iteration 6. Iteration-2 code review found no high/critical blocker; revoke audit can be lost on cancellation after mutation, carried explicitly into iteration 3. Failed/short stream classification carried into 6.
+- Remaining hardening seams: malformed/session-expiry boundaries; folder-context sharing; independent stale/error data and offline queue retention/reconciliation; ambiguous public uploads; revoke audit atomicity. Preserve crypto formats, server Drop-recovery exception and production configuration. Lane details: `.omx/.../iter2-links.md`, `iter2-transfer.md`, `iter2-guidance.md`.
+
+Additional cold E2E TypeScript check initially exited 2: its old config omitted DOM libraries, and the visual fixture passed reducedMotion outside contextOptions. Corrected both; E2E TypeScript check and scoped ESLint exit 0. App build had already passed because it does not include this separate config. The iteration-2 commit was amended before subsequent work to include the verified correction.
+
+## Iteration 3 — hardening and edge cases (in progress)
+Read the completed iteration-2 findings. Lens: partial failures, malformed/session state and races. Safest next changes: atomic revoke audit and offline mutations; retained, owner-bound pending work; independent source failures; credential/session guards; ambiguous upload recovery. Preserve existing crypto formats and production/customer state.
 
 ## Iteration 4 — test depth (pending)
 

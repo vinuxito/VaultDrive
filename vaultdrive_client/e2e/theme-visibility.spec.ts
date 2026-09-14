@@ -3,7 +3,7 @@ import { createCipheriv, createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 
 // Visual fixtures never access customer files or mutate the live API.
-test.use({ actionTimeout: 15000, serviceWorkers: "block", reducedMotion: "reduce", launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } });
+test.use({ actionTimeout: 15000, serviceWorkers: "block", contextOptions: { reducedMotion: "reduce" }, launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } });
 test.describe.configure({ mode: "parallel" });
 test.setTimeout(180_000);
 const user = { id: "visual-user", username: "Visual Fixture", first_name: "Visual", last_name: "Fixture", email: "visual@example.test", pin_set: true, is_admin: true, created_at: "2026-09-14T00:00:00Z" };
