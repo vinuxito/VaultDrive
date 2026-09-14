@@ -60,4 +60,25 @@ describe("FilePreviewModal cached credential recovery", () => {
     await waitFor(() => expect(vaultMocks.clearCredential).toHaveBeenCalledTimes(1));
     expect(screen.getByLabelText(/^pin$/i)).toBeInTheDocument();
   });
+
+  it("uses the active skin's semantic colors for the preview shell", async () => {
+    render(
+      <FilePreviewModal
+        file={{
+          id: "shared-file",
+          filename: "contract.pdf",
+          metadata: "{}",
+          is_owner: false,
+        }}
+        onClose={() => undefined}
+        onDownload={() => undefined}
+      />,
+    );
+
+    await screen.findByLabelText(/^pin$/i);
+    expect(screen.getByRole("heading", { name: "contract.pdf" })).toHaveClass("text-foreground");
+    expect(screen.getByRole("button", { name: "Close preview" })).toBeInTheDocument();
+    expect(screen.getByText("This file was shared with you.")).toHaveClass("text-foreground");
+    expect(screen.getByLabelText(/^pin$/i)).toHaveClass("bg-background", "text-foreground");
+  });
 });

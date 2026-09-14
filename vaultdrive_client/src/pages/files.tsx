@@ -1896,7 +1896,7 @@ export default function Files() {
                   <>
                     <label
                       htmlFor="file-input"
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       {t("drive:vault.upload")}
@@ -1931,17 +1931,17 @@ export default function Files() {
             {selectedFile && !isSharedView && (
               <div className="mx-6 mt-4 flex items-center gap-3 p-3 bg-primary/10 border border-primary/40 rounded-xl shrink-0">
                 <File className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-sm text-primary/90 font-medium flex-1 truncate">
+                <span className="text-sm text-foreground font-medium flex-1 truncate">
                   {selectedFile.name}
                 </span>
-                <span className="text-xs text-primary/70">
+                <span className="text-xs text-foreground">
                   {formatBytes(selectedFile.size)}
                 </span>
                 <Button
                   size="sm"
                   onClick={handleUpload}
                   disabled={uploading}
-                  className="bg-primary hover:bg-primary/90 text-white h-7 px-3 text-xs"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-7 px-3 text-xs"
                 >
                   {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t("drive:vault.encryptAndUpload")}
                 </Button>
@@ -1995,7 +1995,7 @@ export default function Files() {
                         onClick={() => setSelectedNode({ type: "folder", folderId: folder.id, folderName: folder.name })}
                         className="flex items-center gap-3 p-4 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40 hover:shadow-md transition-all text-left group"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                           <FolderIcon className="w-5 h-5" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -2097,17 +2097,17 @@ export default function Files() {
       )}
 
       {uploadTray.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 w-72 bg-card border border-white/10 rounded-xl shadow-2xl p-3 space-y-2">
-          <div className="flex justify-between items-center text-white/70 text-xs font-medium px-1">
+        <div className="fixed bottom-6 right-6 z-40 w-72 bg-card border border-border rounded-xl shadow-2xl p-3 space-y-2">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-medium px-1">
             <span>{t("drive:vault.uploads")}</span>
-            <button type="button" onClick={() => setUploadTray([])} className="hover:text-white">✕</button>
+            <button type="button" onClick={() => setUploadTray([])} className="hover:text-foreground">✕</button>
 
           </div>
           {uploadTray.map((item) => (
             <div key={item.id} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-white text-xs truncate">{item.name}</p>
-                <div className="h-1 bg-white/10 rounded mt-1">
+                <p className="text-foreground text-xs truncate">{item.name}</p>
+                <div className="h-1 bg-muted rounded mt-1">
                   <div
                     className="h-1 bg-emerald-500 rounded transition-all"
                     style={{ width: `${item.progress}%` }}
@@ -2158,21 +2158,21 @@ export default function Files() {
         const usePin = isUpload ? ownerUsesPin : credScheme !== "password";
         return (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-labelledby="vault-credential-title"
         >
-          <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle id="vault-credential-title" className="flex items-center gap-2 text-white">
+          <Card className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
+            <CardHeader className="border-b border-primary-foreground/20">
+              <CardTitle id="vault-credential-title" className="flex items-center gap-2 text-primary-foreground">
                 <Lock className="w-5 h-5 text-primary-foreground" />
                 {isUpload
                   ? (ownerUsesPin ? t("drive:vault.passwordModal.usePin") : t("drive:vault.passwordModal.encryptFile"))
                   : usePin ? t("drive:vault.passwordModal.enterPin") : t("drive:vault.passwordModal.decryptFile")}
               </CardTitle>
 
-              <CardDescription className="text-white/70">
+              <CardDescription className="text-primary-foreground/80">
                 {isUpload
                   ? ownerUsesPin
                     ? t("drive:vault.passwordModal.pinUploadDesc")
@@ -2191,13 +2191,13 @@ export default function Files() {
             }}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm flex items-center gap-2">
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-primary/60" />
                   <span>{error}</span>
                 </div>
               )}
               <div className="space-y-2">
-                <label htmlFor="vault-credential" className="text-sm font-medium flex items-center gap-2 text-foreground">
+                <label htmlFor="vault-credential" className="text-sm font-medium flex items-center gap-2 text-primary-foreground">
                   <Key className="w-4 h-4" />
                   {usePin ? t("drive:vault.passwordModal.pinLabel") : t("drive:vault.passwordModal.credentialLabel")}
                 </label>
@@ -2220,7 +2220,7 @@ export default function Files() {
                       : e.target.value
                   )}
                   placeholder={usePin ? t("drive:vault.passwordModal.placeholderPin") : t("drive:vault.passwordModal.placeholderCredential")}
-                  className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${usePin ? " text-center tracking-widest text-xl" : ""}`}
+                  className={`w-full px-3 py-2 border rounded-md bg-primary-foreground/15 border-primary-foreground/25 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground/50 focus:bg-primary-foreground/20${usePin ? " text-center tracking-widest text-xl" : ""}`}
 
                 />
               </div>
@@ -2242,7 +2242,7 @@ export default function Files() {
                 <Button
                   type="submit"
                   disabled={!encryptionPassword || (usePin && !/^\d{4}$/.test(encryptionPassword)) || uploading || downloading}
-                  className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
+                  className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold"
                 >
                   {uploading || downloading ? (
                     <>
@@ -2292,11 +2292,11 @@ export default function Files() {
       />
 
       {showManageSharesModal && fileToManage && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <Card className="w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden flex flex-col bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-            <CardHeader className="border-b border-white/10">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
+            <CardHeader className="border-b border-primary-foreground/20">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 text-primary-foreground">
                   <Users className="w-5 h-5 text-primary-foreground" />
                   Manage File Shares
                 </CardTitle>
@@ -2304,19 +2304,19 @@ export default function Files() {
                   variant="ghost"
                   size="sm"
                   onClick={() => { setShowManageSharesModal(false); setFileToManage(null); setSharedUsers([]); }}
-                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/15"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              <CardDescription className="text-white/70">
+              <CardDescription className="text-primary-foreground/80">
                 View and manage who has access to this file
               </CardDescription>
             </CardHeader>
             <CardContent className="overflow-y-auto flex-1">
               <div className="space-y-4">
-                <div className="p-3 bg-white/10 border border-white/20 rounded-md">
-                  <p className="text-sm font-medium truncate flex items-center gap-2 text-white">
+                <div className="p-3 bg-primary-foreground/15 border border-primary-foreground/25 rounded-md">
+                  <p className="text-sm font-medium truncate flex items-center gap-2 text-primary-foreground">
                     <File className="w-4 h-4" />
                     {fileToManage.filename}
                   </p>
@@ -2371,20 +2371,20 @@ export default function Files() {
       )}
 
       {showDeleteModal && fileToDelete && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle className="flex items-center gap-2 text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <Card className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
+            <CardHeader className="border-b border-primary-foreground/20">
+              <CardTitle className="flex items-center gap-2 text-primary-foreground">
                 <Trash2 className="w-5 h-5 text-destructive" />
                 Delete File
               </CardTitle>
-              <CardDescription className="text-white/70">
+              <CardDescription className="text-primary-foreground/80">
                 Are you sure you want to delete this file? This action cannot be undone.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-3 bg-white/10 border border-white/20 rounded-md">
-                <p className="text-sm font-medium truncate text-white">{fileToDelete.filename}</p>
+              <div className="p-3 bg-primary-foreground/15 border border-primary-foreground/25 rounded-md">
+                <p className="text-sm font-medium truncate text-primary-foreground">{fileToDelete.filename}</p>
               </div>
               <div className="p-3 bg-primary/20 border border-primary/30 rounded-md">
                 <p className="text-xs text-primary-foreground flex items-start gap-2">
@@ -2405,7 +2405,7 @@ export default function Files() {
                   variant="destructive"
                   onClick={handleDeleteConfirm}
                   disabled={deleting}
-                  className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-white border-0"
+                  className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-destructive-foreground border-0"
                 >
                   {deleting ? "Deleting…" : "Delete File"}
                 </Button>
@@ -2416,26 +2416,26 @@ export default function Files() {
       )}
 
       {showBulkDeleteModal && bulkDeleteCandidates.length > 0 && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <Card className="w-full max-w-lg mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-            <CardHeader className="border-b border-white/10">
-              <CardTitle className="flex items-center gap-2 text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <Card className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
+            <CardHeader className="border-b border-primary-foreground/20">
+              <CardTitle className="flex items-center gap-2 text-primary-foreground">
                 <Trash2 className="w-5 h-5 text-destructive" />
                 Delete {bulkDeleteCandidates.length} File{bulkDeleteCandidates.length !== 1 ? "s" : ""}
               </CardTitle>
-              <CardDescription className="text-white/70">
+              <CardDescription className="text-primary-foreground/80">
                 This deletes the owned files in your current selection. Shared files stay untouched.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
                 {bulkDeleteCandidates.slice(0, 6).map((file) => (
-                  <div key={file.id} className="p-3 bg-white/10 border border-white/20 rounded-md">
-                    <p className="text-sm font-medium truncate text-white">{file.filename}</p>
+                  <div key={file.id} className="p-3 bg-primary-foreground/15 border border-primary-foreground/25 rounded-md">
+                    <p className="text-sm font-medium truncate text-primary-foreground">{file.filename}</p>
                   </div>
                 ))}
                 {bulkDeleteCandidates.length > 6 && (
-                  <p className="text-xs text-white/70 px-1">
+                  <p className="text-xs text-primary-foreground/80 px-1">
                     ...and {bulkDeleteCandidates.length - 6} more file{bulkDeleteCandidates.length - 6 !== 1 ? "s" : ""}
                   </p>
                 )}
@@ -2459,7 +2459,7 @@ export default function Files() {
                   variant="destructive"
                   onClick={handleBulkDeleteConfirm}
                   disabled={bulkDeleting}
-                  className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-white border-0"
+                  className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-destructive-foreground border-0"
                 >
                   {bulkDeleting ? "Deleting..." : `Delete ${bulkDeleteCandidates.length}`}
                 </Button>

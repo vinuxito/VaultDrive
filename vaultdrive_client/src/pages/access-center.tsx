@@ -163,7 +163,7 @@ export default function AccessCenter() {
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                 statusFilter === s
-                  ? "bg-primary text-white border-primary"
+                  ? "bg-primary text-primary-foreground border-primary"
                   : "bg-background text-muted-foreground border-border hover:border-primary/40"
               }`}
             >
@@ -303,4 +303,3 @@ function DropCard({ item, status, baseURL, copiedId, onCopy }: DropCardProps) {
     </div>
   );
 }
-

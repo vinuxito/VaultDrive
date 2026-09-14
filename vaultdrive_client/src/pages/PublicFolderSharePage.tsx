@@ -673,7 +673,7 @@ export default function PublicFolderSharePage() {
               <AlertCircle className="w-12 h-12 text-red-500" />
               <div>
                 <p className="text-lg font-semibold text-foreground">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2 break-words">{errorMsg}</p>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-2 break-words">{errorMsg}</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 {t("drive:publicShare.errorDesc", "Make sure you have the complete share link, including the key after #.")}

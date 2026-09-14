@@ -332,14 +332,14 @@ export default function SharedFiles() {
         </div>
 
         {showPinModal && pendingDownload && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
-              <CardHeader className="border-b border-white/10">
-                <CardTitle className="flex items-center gap-2 text-white">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <Card className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
+              <CardHeader className="border-b border-primary-foreground/20">
+                <CardTitle className="flex items-center gap-2 text-primary-foreground">
                   <Lock className="w-5 h-5 text-primary-foreground" />
                   {t("drive:shared.modal.title", "Decrypt Shared File")}
                 </CardTitle>
-                <CardDescription className="text-white/80">
+                <CardDescription className="text-primary-foreground/80">
                   {t("drive:shared.modal.desc", "Enter your 4-digit PIN to decrypt this file")}
                 </CardDescription>
               </CardHeader>
@@ -364,7 +364,7 @@ export default function SharedFiles() {
                     value={pinValue}
                     onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
                     placeholder={t("drive:shared.modal.placeholder", "4-digit PIN")}
-                    className="w-full px-3 py-2 border rounded-md bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                    className="w-full px-3 py-2 border rounded-md bg-primary-foreground/15 border-primary-foreground/25 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground/50"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
                     }}
@@ -386,7 +386,7 @@ export default function SharedFiles() {
                   <Button
                     onClick={handlePinSubmit}
                     disabled={pinValue.length !== 4}
-                    className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
+                    className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold"
                   >
                     {t("drive:shared.modal.button", "Decrypt & Download")}
                   </Button>

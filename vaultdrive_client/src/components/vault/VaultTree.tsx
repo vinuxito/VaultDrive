@@ -99,19 +99,19 @@ function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: Tre
         w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors
         ${
           active
-            ? "bg-primary/10 text-primary/90 font-medium"
-            : "text-muted-foreground hover:bg-primary/8 hover:text-primary"
+            ? "bg-primary/10 text-foreground font-medium"
+            : "text-muted-foreground hover:bg-primary/8 hover:text-foreground"
         }
         ${depth > 0 ? "pl-7" : ""}
       `}
     >
-      <span className={`shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`}>{icon}</span>
+      <span className={`shrink-0 ${active ? "text-foreground" : "text-muted-foreground"}`}>{icon}</span>
       <span className="flex-1 text-sm truncate">{label}</span>
       {badge}
       {count !== undefined && (
         <span
           className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
-            active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+            active ? "bg-primary/15 text-foreground" : "bg-muted text-muted-foreground"
           }`}
         >
           {count}
@@ -272,8 +272,8 @@ export function VaultTree({
             onClick={() => onSelect({ type: "manage-drops" })}
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-drops" })
-                ? "bg-primary/15 text-primary font-medium"
-                : "text-muted-foreground hover:text-primary hover:bg-primary/8"
+                ? "bg-primary/15 text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-primary/8"
             }`}
           >
             Manage
@@ -342,8 +342,8 @@ export function VaultTree({
             onClick={() => onSelect({ type: "manage-requests" })}
             className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
               isSameNode(selected, { type: "manage-requests" })
-                ? "bg-primary/15 text-primary font-medium"
-                : "text-muted-foreground hover:text-primary hover:bg-primary/8"
+                ? "bg-primary/15 text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-primary/8"
             }`}
           >
             Manage

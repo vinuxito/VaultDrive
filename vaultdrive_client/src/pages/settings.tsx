@@ -308,7 +308,7 @@ export default function Settings() {
                   <span
                     className={cn(
                       "text-xs font-semibold tracking-wide",
-                      "text-foreground"
+                      s.isDark ? "text-white" : "text-[#0f172a]"
                     )}
                   >
                     {s.label}
@@ -521,7 +521,7 @@ export default function Settings() {
                       className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       onKeyDown={(e) => { if (e.key === "Enter") handlePinSubmit(); }}
                     />
-                    <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-1">
+                    <p className="text-[10px] text-amber-700 dark:text-amber-300 mt-1">
                       Your administrator may have reset your password. Enter your previous password to recover your encryption key.
                     </p>
                   </div>
@@ -588,13 +588,13 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3 bg-primary/10 dark:bg-primary/90 border border-primary/40 dark:border-primary rounded-lg">
+              <div className="flex items-start gap-3 p-3 bg-primary/10 border border-primary/40 dark:border-primary rounded-lg">
                 <Key className="w-5 h-5 text-primary dark:text-primary mt-0.5" />
                 <div>
-                  <p className="font-medium text-primary/90 dark:text-primary-foreground">
+                  <p className="font-medium text-foreground">
                     RSA-2048 Key Pair
                   </p>
-                  <p className="text-sm text-primary dark:text-primary mt-1">
+                  <p className="text-sm text-foreground mt-1">
                     Your encryption keys are secured with password-based
                     derivation (PBKDF2)
                   </p>
@@ -787,7 +787,7 @@ export default function Settings() {
               <Button
                 onClick={() => void saveGovernanceSettings()}
                 disabled={govSaving}
-                className="bg-primary hover:bg-primary/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {govSaving ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</>

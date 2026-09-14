@@ -219,7 +219,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md border border-border">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border">
         <div className="flex items-start justify-between px-5 py-4 border-b border-border">
           <div>
             <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-primary">You (owner)</p>
+              <p className="text-sm font-semibold text-foreground">You (owner)</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Full access, always. This anchor remains constant even if every external path expires, is revoked, or fails closed.
               </p>
@@ -390,7 +390,7 @@ export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
                     type="button"
                     onClick={() => void revokeAll()}
                     disabled={revoking}
-                    className="flex-1 py-2 rounded-lg bg-destructive text-sm text-white font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 dark:bg-destructive/80"
+                    className="flex-1 py-2 rounded-lg bg-destructive text-sm text-destructive-foreground font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                   >
                     {revoking ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     {revoking ? LOADING.revokingAllExternal : CONFIRM_DESTRUCTIVE.revokeAllExternal.confirmLabel}

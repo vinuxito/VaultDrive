@@ -481,9 +481,9 @@ export default function DropUpload() {
         </div>
 
         {tokenInfo.description && (
-          <div className="flex gap-3 px-4 py-3 rounded-xl bg-primary-foreground/60 border border-primary/30">
+          <div className="flex gap-3 px-4 py-3 rounded-xl bg-muted border border-primary/30">
             <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-            <p className="text-sm text-primary/90">{tokenInfo.description}</p>
+            <p className="text-sm text-foreground">{tokenInfo.description}</p>
           </div>
         )}
 
@@ -512,7 +512,7 @@ export default function DropUpload() {
                 ))}
               </ul>
               {allChecked && (
-                <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium pt-1">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-medium pt-1">
                   <CheckCircle className="w-4 h-4" />
                   Checklist complete — you&apos;re ready to send.
                 </div>
@@ -651,7 +651,7 @@ export default function DropUpload() {
                     </div>
 
                     {progress.status === "error" && (
-                      <p className="text-xs text-red-600">{progress.error}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400">{progress.error}</p>
                     )}
                   </div>
                 ))}
@@ -700,7 +700,7 @@ export default function DropUpload() {
               <Lock className="w-5 h-5 text-primary dark:text-primary flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
                 <p className="font-medium text-primary">End-to-end encrypted</p>
-                <p className="text-primary/90">
+                <p className="text-foreground">
                   Your files are encrypted in your browser before being sent. Only {tokenInfo.owner_display_name || "the owner"} can decrypt them with their own trusted owner flow.
                 </p>
               </div>

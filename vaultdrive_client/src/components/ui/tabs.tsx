@@ -39,7 +39,7 @@ export const Tabs: React.FC<TabsProps> = ({
             ${
               activeTab === tab.id
                 ? "border-primary text-primary font-medium"
-                : "border-transparent text-foreground/50 hover:text-foreground/80 hover:border-primary/25"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-primary/25"
             }
             focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background
             min-h-[44px]
@@ -55,8 +55,8 @@ export const Tabs: React.FC<TabsProps> = ({
                 flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-medium
                 ${
                   activeTab === tab.id
-                    ? "bg-primary/20 text-primary"
-                    : "bg-primary/8 text-foreground/50"
+                    ? "bg-primary/20 text-foreground"
+                    : "bg-primary/8 text-muted-foreground"
                 }
               `}
             >

@@ -47,11 +47,11 @@ export function PasswordModal({
   return (
     <ElegantModal isOpen={isOpen} onClose={onClose} className="w-full max-w-md">
       <CardHeader className="border-b-0">
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Lock className="w-5 h-5 text-primary-foreground" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Lock className="w-5 h-5 text-primary" />
           {title}
         </CardTitle>
-        <CardDescription className="text-white/80">{description}</CardDescription>
+        <CardDescription className="text-muted-foreground">{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {action === 'upload' && encryptionStage !== 'idle' ? (
@@ -64,14 +64,14 @@ export function PasswordModal({
         ) : (
           <>
             {error && (
-              <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-primary/60" />
                 <span>{error}</span>
               </div>
             )}
             <div className="space-y-2">
-              <label htmlFor="encryption-password" className="text-sm font-medium flex items-center gap-2 text-white">
-                <Key className="w-4 h-4" />
+              <label htmlFor="encryption-password" className="text-sm font-medium flex items-center gap-2 text-foreground">
+                <Key className="w-4 h-4 text-primary" />
                 Encryption Password
               </label>
               <Input
@@ -81,7 +81,7 @@ export function PasswordModal({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 autoFocus
-                className="bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-ring"
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === 'Enter' && password) {
                     handleSubmit();

@@ -138,7 +138,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
             key={file.id}
             id={`file-row-${file.id}`}
             className={`
-              group flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-default
+              group flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-default
               ${isSelected
                 ? "bg-primary-foreground/60 border-primary/40"
                 : "bg-background border-border/60 hover:border-border hover:shadow-sm"
@@ -157,7 +157,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
             <button
               type="button"
               disabled={isPending}
-              className="flex items-center gap-2 cursor-pointer text-left shrink-0 disabled:cursor-not-allowed"
+              className="flex min-w-0 flex-[1_1_12rem] items-center gap-2 cursor-pointer text-left disabled:cursor-not-allowed"
               onContextMenu={(event) => onContextMenu(event, file)}
               onClick={() => onPreviewClick(file)}
             >
@@ -166,7 +166,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
               ) : (
                 <File className="w-4 h-4 text-muted-foreground shrink-0" />
               )}
-              <span className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground hover:text-primary transition-colors">
                 {file.filename}
               </span>
             </button>
@@ -196,7 +196,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
               {formatDate(file.created_at)}
             </div>
 
-            <div className="hidden md:flex items-center justify-end gap-1 shrink-0">
+            <div className="ml-auto hidden max-w-full shrink-0 flex-wrap items-center justify-end gap-1 md:flex">
               {!isPending && (
                 <>
                   {/* Primary actions — always visible */}
@@ -263,7 +263,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                   )}
 
                   {/* Secondary actions — revealed on row hover */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150">
                     {file.is_owner !== false && (
                       <button
                         type="button"

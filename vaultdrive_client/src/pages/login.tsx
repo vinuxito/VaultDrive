@@ -297,7 +297,7 @@ export default function Login() {
           )}
 
           {lockoutSeconds > 0 && (
-            <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border-2 border-amber-500/30 text-amber-500 text-sm flex flex-col gap-2">
+            <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border-2 border-amber-500/30 text-amber-700 dark:text-amber-300 text-sm flex flex-col gap-2">
               <div className="flex items-center gap-2 font-semibold">
                 <Fingerprint className="h-5 w-5 animate-pulse" />
                 {t("auth:login.lockoutTitle")}
@@ -450,7 +450,7 @@ export default function Login() {
                         Unlock with Biometrics
                       </Button>
                       {biometricError && (
-                        <p className="text-xs text-red-400 mt-1 text-center">{biometricError}</p>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1 text-center">{biometricError}</p>
                       )}
                     </div>
                   )}
@@ -636,7 +636,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => navigate("/recover")}
-                    className="text-primary/80 font-medium hover:underline text-xs"
+                    className="text-primary font-medium hover:underline text-xs"
                   >
                     Recover Lost Account
                   </button>

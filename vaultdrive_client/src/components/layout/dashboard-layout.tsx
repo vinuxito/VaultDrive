@@ -389,7 +389,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-0.5 bg-red-700 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -402,7 +402,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <button type="button" className="flex items-center gap-2">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
-                  <AvatarFallback className="bg-primary/20 text-primary font-semibold">
+                  <AvatarFallback className="bg-primary/20 text-foreground font-semibold">
                     {getInitials(user.first_name) || "?"}
                   </AvatarFallback>
                 </Avatar>
@@ -413,7 +413,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 className={cn(
                   "w-56 backdrop-blur-2xl shadow-xl",
                   isDark
-                    ? "bg-gradient-to-br from-primary to-primary/90 border-white/20 text-white"
+                    ? "bg-card border-border text-foreground"
                     : "bg-card border-border text-foreground"
                 )}
               >
@@ -425,7 +425,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuItem onClick={() => navigate('/profile')}>{t("common:userMenu.profile")}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/settings')}>{t("common:userMenu.settings")}</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:bg-red-500/10 focus:text-red-500">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-700 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300">
                   {t("common:userMenu.logout")}
                 </DropdownMenuItem>
 
@@ -489,10 +489,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
         </AnimatePresence>
 
-        <div 
-          style={{ viewTransitionName: "main-body" } as React.CSSProperties}
-          className="flex-1 overflow-auto p-4 sm:p-6 relative"
-        >
+        <div className="flex-1 overflow-auto p-4 sm:p-6 relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

@@ -40,7 +40,7 @@ export function StatusPanel() {
 
   if (error || !data) {
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5 flex items-center gap-3 text-red-400">
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5 flex items-center gap-3 text-red-600 dark:text-red-400">
         <AlertTriangle className="h-5 w-5 shrink-0" />
         <div className="text-xs">
           <p className="font-semibold">Metrics Unavailable</p>
@@ -57,8 +57,8 @@ export function StatusPanel() {
           <Server className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">System Metrics & Diagnostics</h3>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
           ONLINE
         </div>
       </div>
@@ -78,7 +78,7 @@ export function StatusPanel() {
               {data.db_ping_ms >= 0 ? `${data.db_ping_ms} ms` : "Offline"}
             </p>
             {data.db_ping_ms >= 0 && (
-              <span className="text-[10px] text-green-400 flex items-center gap-0.5">
+              <span className="text-[10px] text-green-700 dark:text-green-400 flex items-center gap-0.5">
                 <Database className="h-2.5 w-2.5" />
                 ping
               </span>
@@ -110,7 +110,7 @@ export function StatusPanel() {
         </div>
         <div className="flex items-center gap-1">
           <ShieldCheck className="h-3.5 w-3.5" />
-          <span>Errors: <strong className={data.errors_total > 0 ? "text-red-400 font-bold" : "text-foreground"}>{data.errors_total}</strong></span>
+          <span>Errors: <strong className={data.errors_total > 0 ? "text-red-600 dark:text-red-400 font-bold" : "text-foreground"}>{data.errors_total}</strong></span>
         </div>
         <div>
           <span>Version: <strong className="text-foreground">{data.version}</strong></span>

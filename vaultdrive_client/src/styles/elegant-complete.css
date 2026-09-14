@@ -10,7 +10,7 @@
   --surface-tertiary: hsl(var(--input));
   --text-primary: hsl(var(--foreground));
   --text-secondary: hsl(var(--muted-foreground));
-  --text-tertiary: hsl(var(--muted-foreground) / 0.8);
+  --text-tertiary: hsl(var(--muted-foreground));
   --accent-primary: hsl(var(--primary));
   --accent-secondary: hsl(var(--secondary));
   --accent-success: hsl(var(--accent-success-raw, 142 76% 36%));
@@ -64,7 +64,7 @@
 /* ========== Elegant Button ========== */
 .elegant-button {
   background: var(--accent-primary);
-  color: var(--surface-primary);
+  color: hsl(var(--primary-foreground));
   border: none;
   border-radius: 8px;
   padding: 10px 20px;
@@ -121,14 +121,14 @@
 
 /* ========== Elegant Modal ========== */
 .elegant-modal {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--lux-burgundy-700) 100%);
+  background: hsl(var(--card));
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 90vw;
   max-height: 90vh;
-  overflow: hidden;
-  color: #ffffff;
+  overflow-y: auto;
+  color: hsl(var(--card-foreground));
 }
 
 
@@ -195,7 +195,7 @@
 /* Color variants */
 .elegant-primary {
   background: var(--accent-primary);
-  color: var(--surface-primary);
+  color: hsl(var(--primary-foreground));
 }
 
 .elegant-secondary {
@@ -206,22 +206,22 @@
 
 .elegant-accent {
   background: var(--accent-secondary);
-  color: #ffffff;
+  color: hsl(var(--secondary-foreground));
 }
 
 .elegant-success {
   background: var(--accent-success);
-  color: var(--surface-primary);
+  color: #ffffff;
 }
 
 .elegant-warning {
   background: var(--accent-warning);
-  color: #ffffff;
+  color: #171717;
 }
 
 .elegant-danger {
   background: var(--accent-danger);
-  color: var(--surface-primary);
+  color: hsl(var(--destructive-foreground));
 }
 
 .elegant-subtle {
@@ -333,7 +333,7 @@
   border-radius: 9999px;
   background: linear-gradient(90deg, hsl(var(--primary) / 0.15), hsl(var(--secondary) / 0.15));
   border: 1px solid hsl(var(--primary) / 0.3);
-  color: hsl(var(--primary));
+  color: hsl(var(--foreground));
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;

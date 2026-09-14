@@ -93,7 +93,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
             <Link to="/profile" onClick={onClose} className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
                 <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
-                <AvatarFallback className="bg-primary/20 text-primary font-semibold">
+                <AvatarFallback className="bg-primary/20 text-foreground font-semibold">
                   {getInitials(user.first_name) || "?"}
                 </AvatarFallback>
               </Avatar>
@@ -123,7 +123,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           <div className="p-3 border-t border-primary/15">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-3 rounded-lg text-red-500/80 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+              className="w-full flex items-center gap-3 p-3 rounded-lg text-red-700 dark:text-red-300 hover:bg-red-500/10 hover:text-red-800 dark:hover:text-red-200 transition-colors"
               aria-label="Logout"
             >
               <LogOut className="w-5 h-5" />
@@ -158,7 +158,7 @@ function NavLink({ to, icon, label, onClick, isActive, handler }: NavLinkProps) 
       onClick={handleClick}
       className={cn(
         "flex items-center gap-3 p-3 rounded-lg transition-colors text-foreground/80",
-        isActive ? "bg-primary/15 text-primary font-semibold" : "hover:bg-primary/10 hover:text-foreground"
+        isActive ? "bg-primary/15 text-foreground font-semibold" : "hover:bg-primary/10 hover:text-foreground"
       )}
       role="menuitem"
     >

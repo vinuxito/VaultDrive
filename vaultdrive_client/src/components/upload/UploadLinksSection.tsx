@@ -172,7 +172,7 @@ export function UploadLinksSection() {
           <Button
             onClick={handleOpenCreateModal}
             size="sm"
-            className="gap-2 bg-primary hover:bg-primary/90 text-white border-0"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground border-0"
           >
             <Plus className="w-4 h-4" />
             Create New Link
@@ -229,7 +229,7 @@ export function UploadLinksSection() {
                     <p className="mt-1 text-amber-700">{sealCopy.body}</p>
                     <div className="mt-3 flex gap-2 justify-end">
                       <Button variant="outline" size="sm" onClick={() => setConfirmDeactivateId(null)}>{sealCopy.cancelLabel}</Button>
-                      <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-[hsl(var(--destructive)/0.8)] hover:bg-[hsl(var(--destructive)/0.9)] dark:bg-[hsl(var(--destructive)/0.6)] dark:hover:bg-[hsl(var(--destructive)/0.7)] text-white border-0">{sealCopy.confirmLabel}</Button>
+                      <Button size="sm" onClick={() => void handleDeactivate(tokenData.token)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground border-0">{sealCopy.confirmLabel}</Button>
                     </div>
                   </div>
                 )}

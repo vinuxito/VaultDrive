@@ -49,10 +49,10 @@ function getActionTone(action: string): string {
 
 function getActorTone(actorType: string): string {
   const t = actorType.toLowerCase();
-  if (t === "owner") return "bg-emerald-500/10 text-emerald-400 border-emerald-500/25";
-  if (t === "agent_key") return "bg-violet-500/10 text-violet-400 border-violet-500/25";
-  if (t === "anonymous_link") return "bg-sky-500/10 text-sky-400 border-sky-500/25";
-  return "bg-amber-500/10 text-amber-400 border-amber-500/25";
+  if (t === "owner") return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25";
+  if (t === "agent_key") return "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/25";
+  if (t === "anonymous_link") return "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/25";
+  return "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25";
 }
 
 function MetadataDetail({ meta }: { meta: Record<string, unknown> }) {
@@ -198,7 +198,7 @@ export function ActivityReceiptDrawer({ isOpen, onClose, fileId, filename }: Act
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-xs font-semibold text-emerald-500 tracking-wide">
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 tracking-wide">
                   {t("drive:receiptDrawer.activeAuditing")}
                 </span>
               </div>
@@ -206,11 +206,11 @@ export function ActivityReceiptDrawer({ isOpen, onClose, fileId, filename }: Act
               {/* Zero-Knowledge boundary notice */}
               <div className="relative overflow-hidden border border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.06] to-emerald-500/[0.02] rounded-2xl p-4 shadow-sm">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0 text-emerald-400">
+                  <div className="w-8 h-8 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0 text-emerald-700 dark:text-emerald-300">
                     <Lock className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
                       {t("drive:receiptDrawer.zeroKnowledgeBoundary")}
                     </h3>
                     <p className="mt-2 text-xs leading-relaxed text-muted-foreground">

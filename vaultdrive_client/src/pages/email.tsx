@@ -138,14 +138,14 @@ const EmailPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-background via-card to-primary/90">
+    <div className="flex min-h-full min-w-0 flex-col bg-gradient-to-br from-background via-card to-primary/10 md:flex-row">
       <EditEmailAccountModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         account={editingAccount}
         onUpdate={handleUpdateComplete}
       />
-      <div className="w-64 bg-card/80 backdrop-blur-sm border-r border-white/10 p-4">
+      <div className="w-full shrink-0 bg-card/80 backdrop-blur-sm border-b border-border p-4 md:w-64 md:border-b-0 md:border-r">
         <EmailAccountSettings />
         <h2 className="mt-4 text-lg font-semibold">Accounts</h2>
         {error && <p className="text-red-500">{error}</p>}
@@ -157,7 +157,7 @@ const EmailPage: React.FC = () => {
                 className={`flex-1 text-left px-4 py-2 text-sm rounded-md transition-colors ${
   selectedAccount?.id === account.id
     ? 'bg-primary/30 text-primary border border-primary/50'
-    : 'text-white/85 hover:bg-white/20 hover:text-white'
+    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
 }`}
               >
                 {account.email}
@@ -168,7 +168,7 @@ const EmailPage: React.FC = () => {
                   e.stopPropagation();
                   handleEditAccount(account);
                 }}
-                className="p-2 hover:bg-white/20 rounded-md text-white/85 hover:text-white transition-colors"
+                className="p-2 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
                 title="Edit account"
               >
                 <Pencil className="h-4 w-4" />
@@ -190,7 +190,7 @@ const EmailPage: React.FC = () => {
                   e.stopPropagation();
                   handleEditAccount(account);
                 }}
-                className="p-2 hover:bg-white/20 rounded-md text-white/85 hover:text-white transition-colors"
+                className="p-2 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
                 title="Edit account"
               >
                 <Pencil className="h-4 w-4" />
@@ -219,7 +219,7 @@ const EmailPage: React.FC = () => {
           onSelectMailbox={setSelectedMailbox}
         />
       </div>
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex-1 p-4">
           <h2 className="text-lg font-semibold">Emails</h2>
           <EmailList
@@ -228,7 +228,7 @@ const EmailPage: React.FC = () => {
             onSelectEmail={setSelectedEmail}
           />
         </div>
-        <div className="flex-1 p-4 border-t border-white/10">
+        <div className="flex-1 p-4 border-t border-border">
           <EmailView account={selectedAccount} mailbox={selectedMailbox} email={selectedEmail} />
         </div>
       </div>

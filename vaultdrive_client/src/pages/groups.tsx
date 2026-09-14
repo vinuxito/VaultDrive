@@ -142,23 +142,23 @@ export default function Groups() {
       <div className="brand-page-bg p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <div className="h-8 w-32 bg-white/15 rounded animate-pulse mb-2" />
-            <div className="h-4 w-64 bg-white/12 rounded animate-pulse" />
+            <div className="h-8 w-32 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-muted/70 rounded animate-pulse" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {["g1","g2","g3"].map((k) => (
               <div key={k} className="brand-glass-card p-6 animate-pulse">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-white/15 shrink-0" />
+                  <div className="w-12 h-12 rounded-full bg-muted shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-white/15 rounded w-3/4" />
-                    <div className="h-3 bg-white/12 rounded w-1/2" />
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted/70 rounded w-1/2" />
                   </div>
                 </div>
-                <div className="h-3 bg-white/12 rounded w-1/3 mb-4" />
-                <div className="pt-4 border-t border-white/15 flex gap-2">
-                  <div className="h-8 w-20 bg-white/15 rounded" />
-                  <div className="h-8 w-20 bg-white/15 rounded" />
+                <div className="h-3 bg-muted/70 rounded w-1/3 mb-4" />
+                <div className="pt-4 border-t border-border flex gap-2">
+                  <div className="h-8 w-20 bg-muted rounded" />
+                  <div className="h-8 w-20 bg-muted rounded" />
                 </div>
               </div>
             ))}
@@ -174,7 +174,7 @@ export default function Groups() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Groups</h1>
-            <p className="text-white/80 mt-1">
+            <p className="text-muted-foreground mt-1">
               Groups let you share files with multiple people at once.
             </p>
           </div>
@@ -187,7 +187,7 @@ export default function Groups() {
                 exit={{ opacity: 0, x: -20 }}
                 className="relative"
               >
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Search groups..."
                   value={searchQuery}
@@ -207,6 +207,7 @@ export default function Groups() {
             <Button
               onClick={() => setShowCreateModal(true)}
               size="icon"
+              aria-label="Create group"
             >
               <Plus className="w-5 h-5" />
             </Button>
@@ -221,10 +222,10 @@ export default function Groups() {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                     <Users className="w-8 h-8 text-primary" />
                   </div>
-                  <p className="text-white/85 text-lg font-medium">
+                  <p className="text-foreground text-lg font-medium">
                     {searchQuery ? "No groups found" : "No groups yet"}
                   </p>
-                  <p className="text-white/80 text-sm mt-2 max-w-xs mx-auto">
+                  <p className="text-muted-foreground text-sm mt-2 max-w-xs mx-auto">
                     {searchQuery ? "Try a different search term." : "Create your first group to share files with multiple people at once."}
                   </p>
                 </div>
@@ -240,23 +241,23 @@ export default function Groups() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-lg">
                           {group.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg">{group.name}</h3>
-                          <p className="text-sm text-white/80">
+                          <p className="text-sm text-muted-foreground">
                             {group.member_count || 0} members • {group.file_count || 0} files
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                       <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/15">
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -275,7 +276,7 @@ export default function Groups() {
                           e.stopPropagation();
                           handleDeleteGroup(group.id);
                         }}
-                        className="text-red-500 hover:text-red-400"
+                        className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
                         Delete
@@ -302,18 +303,19 @@ export default function Groups() {
 
       <AnimatePresence>
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl p-6 max-w-md w-full text-white"
+              className="bg-card border border-border rounded-2xl p-6 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto text-foreground"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-white">Create Group</h2>
+                <h2 className="text-xl font-semibold text-foreground">Create Group</h2>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="text-white/80 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label="Close create group dialog"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -322,7 +324,7 @@ export default function Groups() {
               <form onSubmit={handleCreateGroup}>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
                       Group Name *
                     </label>
                     <Input
@@ -331,12 +333,12 @@ export default function Groups() {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-white/12 border-white/10"
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-background"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-white mb-2">
+                    <label htmlFor="description" className="block text-sm font-medium text-foreground mb-2">
                       Description
                     </label>
                     <Input
@@ -344,19 +346,19 @@ export default function Groups() {
                       placeholder="What is this group for?"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="bg-white/12 border-white/10"
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-background"
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                  <div className="flex justify-end gap-3 pt-4 border-t border-border">
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="modal-cancel"
                       onClick={() => setShowCreateModal(false)}
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">
+                    <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
                       Create Group
                     </Button>
                   </div>
@@ -576,8 +578,8 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
       <div className="space-y-4 py-4">
         {["r1","r2"].map((k) => (
           <div key={k} className="brand-glass-card p-6 animate-pulse">
-            <div className="h-6 bg-white/15 rounded w-1/3 mb-3" />
-            <div className="h-4 bg-white/12 rounded w-2/3" />
+            <div className="h-6 bg-muted rounded w-1/3 mb-3" />
+            <div className="h-4 bg-muted/70 rounded w-2/3" />
           </div>
         ))}
       </div>
@@ -587,7 +589,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   if (!group) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-white/80">Group not found</div>
+        <div className="text-muted-foreground">Group not found</div>
       </div>
     );
   }
@@ -606,8 +608,8 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold brand-gradient-text">{group.name}</h2>
-            <p className="text-white/80 mt-1">{group.description}</p>
-            <p className="text-sm text-white/80 mt-1">
+            <p className="text-muted-foreground mt-1">{group.description}</p>
+            <p className="text-sm text-muted-foreground mt-1">
               {members.length} members • {files.length} files
             </p>
           </div>
@@ -615,7 +617,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
             variant="ghost"
             size="sm"
             onClick={handleDeleteGroup}
-            className="text-red-500"
+            className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
           >
             <Trash2 className="w-4 h-4 mr-1" />
             Delete
@@ -635,13 +637,13 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
           </Button>
         </div>
         {members.length === 0 ? (
-          <p className="text-white/80 text-sm">No members yet. Add users to this group.</p>
+          <p className="text-muted-foreground text-sm">No members yet. Add users to this group.</p>
         ) : (
           <div className="grid gap-3">
             {members.map((member) => (
               <div key={member.id} className="brand-glass-card flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-foreground">
                     {member.username.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -650,14 +652,14 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                         ? `${member.first_name} ${member.last_name}`
                         : member.username}
                     </p>
-                    <p className="text-xs text-white/80">{member.email}</p>
+                    <p className="text-xs text-muted-foreground">{member.email}</p>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveMember(member.user_id)}
-                  className="text-red-500 hover:text-red-400"
+                  className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -670,7 +672,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
       <div>
         <h3 className="text-lg font-semibold mb-4">Files Shared to Group</h3>
         {files.length === 0 ? (
-          <p className="text-white/80 text-sm">No files shared to this group yet.</p>
+          <p className="text-muted-foreground text-sm">No files shared to this group yet.</p>
         ) : (
           <div className="space-y-2">
             {files.map((file) => (
@@ -702,13 +704,13 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-br from-primary to-primary/90 border border-white/10 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col text-white"
+              className="bg-gradient-to-br from-primary to-primary/90 border border-primary-foreground/20 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto lg:overflow-hidden flex flex-col text-primary-foreground"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Add Members to Group</h2>
-                  <p className="text-sm text-white/80 mt-1">
+                  <h2 className="text-xl font-semibold text-primary-foreground">Add Members to Group</h2>
+                  <p className="text-sm text-primary-foreground/80 mt-1">
                     {selectedUserIds.size} user{selectedUserIds.size !== 1 ? 's' : ''} selected
                   </p>
                 </div>
@@ -719,7 +721,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                     setSelectedUserIds(new Set());
                     setCurrentPage(1);
                   }}
-                  className="text-white/80 hover:text-white"
+                  className="text-primary-foreground/80 hover:text-primary-foreground"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -734,16 +736,16 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                     setMemberSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="bg-white/12 border-white/10"
+                  className="bg-primary-foreground/15 border-primary-foreground/25 text-primary-foreground placeholder:text-primary-foreground/60"
                 />
               </div>
 
               {/* Content Area - Two Columns */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 lg:min-h-0 lg:overflow-hidden">
                 {/* Left: Available Users Table */}
                 <div className="lg:col-span-2 flex flex-col overflow-hidden">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-white">
+                    <h3 className="text-sm font-medium text-primary-foreground">
                       Available Users ({availableUsers.filter(u => !u.is_member).length})
                     </h3>
                     {availableUsers.filter(u => !u.is_member).length > 0 && (
@@ -761,10 +763,10 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
                   {searching ? (
                     <div className="flex items-center justify-center py-12">
-                      <div className="text-white/80">Loading users...</div>
+                      <div className="text-primary-foreground/80">Loading users...</div>
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-white/15 overflow-hidden flex-1 bg-white/15">
+                    <div className="rounded-lg border border-primary-foreground/20 overflow-hidden flex-1 bg-primary-foreground/15">
                       <div className="overflow-y-auto max-h-[400px]">
                         {(() => {
                           const startIdx = (currentPage - 1) * usersPerPage;
@@ -774,7 +776,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                           if (paginatedUsers.length === 0) {
                             return (
                               <div className="text-center py-12">
-                                <p className="text-white/80">No users found</p>
+                                <p className="text-primary-foreground/80">No users found</p>
                               </div>
                             );
                           }
@@ -784,7 +786,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                               key={user.id}
                               onClick={() => toggleUserSelection(user.id, user.is_member)}
                               disabled={user.is_member}
-                              className={`w-full flex items-center gap-3 p-3 border-b border-white/10 hover:bg-primary/5 transition-colors ${
+                              className={`w-full flex items-center gap-3 p-3 border-b border-primary-foreground/15 hover:bg-primary-foreground/10 transition-colors ${
                                 user.is_member ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                               } ${selectedUserIds.has(user.id) ? 'bg-primary/10' : ''}`}
                             >
@@ -793,9 +795,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                 checked={selectedUserIds.has(user.id)}
                                 disabled={user.is_member}
                                 onChange={() => {}}
-                                className="w-4 h-4 rounded border-white/20"
+                                className="w-4 h-4 rounded border-primary-foreground/25"
                               />
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold">
+                              <div className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center text-primary-foreground font-semibold">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 text-left">
@@ -804,10 +806,10 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                     ? `${user.first_name} ${user.last_name}`
                                     : user.username}
                                 </p>
-                                <p className="text-xs text-white/80">{user.email}</p>
+                                <p className="text-xs text-primary-foreground/80">{user.email}</p>
                               </div>
                               {user.is_member && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                                <span className="text-xs px-2 py-1 rounded-full bg-primary-foreground/15 text-primary-foreground">
                                   Already Member
                                 </span>
                               )}
@@ -818,7 +820,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
                       {/* Pagination */}
                       {availableUsers.length > usersPerPage && (
-                        <div className="flex items-center justify-center gap-2 p-3 border-t border-white/15">
+                        <div className="flex items-center justify-center gap-2 p-3 border-t border-primary-foreground/20">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -827,7 +829,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                           >
                             Previous
                           </Button>
-                          <span className="text-sm text-white/80">
+                          <span className="text-sm text-primary-foreground/80">
                             Page {currentPage} of {Math.ceil(availableUsers.length / usersPerPage)}
                           </span>
                           <Button
@@ -850,14 +852,14 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
                 {/* Right: Selected Users Preview */}
                 <div className="flex flex-col overflow-hidden">
-                  <h3 className="text-sm font-medium text-white mb-3">
+                  <h3 className="text-sm font-medium text-primary-foreground mb-3">
                     Selected ({selectedUserIds.size})
                   </h3>
-                  <div className="rounded-lg border border-white/15 flex-1 overflow-y-auto p-3 bg-white/15">
+                  <div className="rounded-lg border border-primary-foreground/20 flex-1 overflow-y-auto p-3 bg-primary-foreground/15">
                     {selectedUserIds.size === 0 ? (
                       <div className="text-center py-8">
-                        <UserPlus className="w-12 h-12 text-white/80 mx-auto mb-2" />
-                        <p className="text-sm text-white/80">No users selected</p>
+                        <UserPlus className="w-12 h-12 text-primary-foreground/80 mx-auto mb-2" />
+                        <p className="text-sm text-primary-foreground/80">No users selected</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -867,9 +869,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                           return (
                             <div
                               key={userId}
-                              className="flex items-center gap-2 p-2 bg-white/20 rounded-lg border border-white/10"
+                              className="flex items-center gap-2 p-2 bg-primary-foreground/20 rounded-lg border border-primary-foreground/15"
                             >
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white text-sm font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-primary-foreground/15 flex items-center justify-center text-primary-foreground text-sm font-semibold">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -878,11 +880,11 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                     ? `${user.first_name} ${user.last_name}`
                                     : user.username}
                                 </p>
-                                <p className="text-xs text-white/80 truncate">{user.email}</p>
+                                <p className="text-xs text-primary-foreground/80 truncate">{user.email}</p>
                               </div>
                               <button
                                 onClick={() => toggleUserSelection(userId, false)}
-                                className="text-white/80 hover:text-white"
+                                className="text-primary-foreground/80 hover:text-primary-foreground"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -896,7 +898,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
               </div>
 
               {/* Footer */}
-              <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-white/15">
+              <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-primary-foreground/20">
                 <Button
                   type="button"
                   variant="ghost"
@@ -913,6 +915,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                   type="button"
                   onClick={handleAddMembers}
                   disabled={selectedUserIds.size === 0}
+                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
                 >
                   Add {selectedUserIds.size} Member{selectedUserIds.size !== 1 ? 's' : ''}
                 </Button>

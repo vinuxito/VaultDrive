@@ -97,7 +97,7 @@ export function FolderCollaboratorsModal({
       } else {
         setErrorMsg("Failed to load active collaborators.");
       }
-    } catch (err) {
+    } catch {
       setErrorMsg("Network error loading collaborators.");
     } finally {
       setLoadingShares(false);
@@ -173,7 +173,7 @@ export function FolderCollaboratorsModal({
             )
           );
         }
-      } catch (err) {
+      } catch {
         setErrorMsg("Failed to search users.");
       } finally {
         setSearching(false);
@@ -352,11 +352,11 @@ export function FolderCollaboratorsModal({
                       await getOrInitFolderKey(pinInput);
                       setNeedPin(false);
                       setPinInput("");
-                    } catch (err) {
+                    } catch {
                       setErrorMsg("Incorrect credential. Please try again.");
                     }
                   }}
-                  className="bg-primary hover:bg-primary/90 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Unlock
                 </Button>

@@ -116,12 +116,12 @@ export function UploadLinkCard({
   });
 
   return (
-    <div className="rounded-[1.4rem] border border-border overflow-hidden bg-white shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:bg-muted/60">
+    <div className="rounded-[1.4rem] border border-border overflow-hidden bg-card shadow-[0_16px_36px_rgba(0,0,0,0.06)] dark:bg-muted/60">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary/60 to-primary/20 flex items-center justify-center text-white shadow-[0_12px_24px_rgba(0,0,0,0.22)]">
+              <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-[0_12px_24px_rgba(0,0,0,0.22)]">
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div className="flex-1">

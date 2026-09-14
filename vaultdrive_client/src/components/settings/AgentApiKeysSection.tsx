@@ -318,7 +318,7 @@ function CreateKeyModal({
       >
         <div className="px-6 py-5 border-b border-border bg-gradient-to-r from-muted/50 to-card shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div>
@@ -331,11 +331,11 @@ function CreateKeyModal({
         {created ? (
           <div className="p-6 space-y-4 overflow-y-auto">
             <div className="brand-receipt-surface rounded-2xl px-4 py-4">
-              <div className="flex items-center gap-2 text-primary font-medium">
+              <div className="flex items-center gap-2 text-foreground font-medium">
                 <ShieldCheck className="w-4 h-4" />
                 Agent key created — save it now
               </div>
-              <p className="mt-2 text-sm text-primary/90">
+              <p className="mt-2 text-sm text-muted-foreground">
                 {`This is the only time ${branding.productName} will show the full key. After you close this window, only the visible prefix remains.`}
               </p>
             </div>
@@ -351,7 +351,7 @@ function CreateKeyModal({
                   await navigator.clipboard.writeText(created.plaintext_key || "");
                   setCopied(true);
                 }}
-                className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/90"
+                className="inline-flex items-center gap-2 text-sm text-foreground hover:text-foreground/90"
               >
                 <Copy className="w-4 h-4" />
                 {copied ? "Copied" : "Copy key"}
@@ -393,7 +393,7 @@ function CreateKeyModal({
               <Button
                 onClick={handleClose}
                 disabled={!confirmedCopy}
-                className="bg-primary hover:bg-primary/90 text-white disabled:cursor-not-allowed"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:cursor-not-allowed"
               >
                 Done
               </Button>
@@ -464,7 +464,7 @@ function CreateKeyModal({
                         onClick={() => setSelectedScopes([...tmpl.scopes])}
                         className={`text-left rounded-xl border px-3 py-2 text-sm transition-colors ${
                           isActive
-                            ? "border-primary bg-muted text-primary/90"
+                            ? "border-primary bg-muted text-foreground"
                             : "border-border bg-card text-foreground hover:bg-muted"
                         }`}
                       >
@@ -508,7 +508,7 @@ function CreateKeyModal({
               <Button
                 onClick={() => void handleCreate()}
                 disabled={loading || !name.trim() || selectedScopes.length === 0}
-                className="bg-primary hover:bg-primary/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4 mr-2" />}
                 Create key
@@ -585,7 +585,7 @@ export function AgentApiKeysSection() {
             createKeyTriggerRef.current = event.currentTarget;
             setShowCreateModal(true);
           }}
-          className="bg-primary hover:bg-primary/90 text-white shrink-0"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
         >
           <KeyRound className="w-4 h-4 mr-2" />
           New key
@@ -618,9 +618,9 @@ export function AgentApiKeysSection() {
       </div>
 
       {receipt && (
-        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-primary dark:text-primary">
+        <div className="brand-receipt-surface rounded-2xl px-4 py-4 text-sm text-foreground">
           <p className="font-medium">Done, safe, under control.</p>
-          <p className="mt-1 text-primary dark:text-emerald-200">{receipt}</p>
+          <p className="mt-1 text-foreground">{receipt}</p>
         </div>
       )}
 

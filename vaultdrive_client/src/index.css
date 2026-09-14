@@ -150,60 +150,40 @@
     animation: float 3s ease-in-out infinite;
   }
 
+  /* Trust content shares the active skin's opaque surfaces and text pairs.
+     Translucent dark gradients previously washed out light-template dialogs. */
   .brand-trust-shell {
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%),
-      linear-gradient(160deg, hsl(var(--primary) / 0.18) 0%, rgba(26, 10, 12, 0.8) 50%, rgba(10, 13, 18, 0.92) 100%);
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-lg);
   }
 
-  .brand-trust-shell::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at top right, hsl(var(--secondary) / 0.18), transparent 38%),
-      linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 48%, transparent 100%);
-    opacity: 0.7;
-  }
-
-  .brand-trust-panel {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.12);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  .brand-trust-panel,
+  .brand-trust-panel-strong,
+  .brand-trust-stat {
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted));
   }
 
   .brand-trust-panel-strong {
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%),
-      rgba(255, 255, 255, 0.10);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 12px 28px rgba(0, 0, 0, 0.22);
+    box-shadow: var(--shadow-sm);
   }
 
   .brand-trust-kicker {
-    color: rgba(255, 255, 255, 0.85);
+    color: hsl(var(--muted-foreground));
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
 
-  .brand-trust-stat {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.10);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
-
   .brand-trust-divider {
     height: 1px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+    background: hsl(var(--border));
   }
 
   .brand-receipt-surface {
@@ -307,33 +287,15 @@
   }
 }
 
-/* Bulletproof theme overrides to guarantee background and text legibility across skins */
-.bg-popover {
-  background-color: hsl(var(--popover)) !important;
+/* Editable controls must remain identifiable on every skin's surface.
+   Keep focus colors owned by the existing ring/border utilities. */
+[data-theme] :is(input, textarea, select):not(:focus):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]) {
+  border-color: hsl(var(--muted-foreground));
 }
-.bg-card {
-  background-color: hsl(var(--card)) !important;
-}
-.bg-muted {
-  background-color: hsl(var(--muted)) !important;
-}
-.bg-background {
-  background-color: hsl(var(--background)) !important;
-}
-.border-border {
-  border-color: hsl(var(--border)) !important;
-}
-.text-popover-foreground {
-  color: hsl(var(--popover-foreground)) !important;
-}
-.text-card-foreground {
-  color: hsl(var(--card-foreground)) !important;
-}
-.text-foreground {
-  color: hsl(var(--foreground)) !important;
-}
-.text-muted-foreground {
-  color: hsl(var(--muted-foreground)) !important;
+
+select option {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
 }
 
 @keyframes highlightPulse {

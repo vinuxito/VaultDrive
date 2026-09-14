@@ -51,7 +51,7 @@ export function UploadProgress({
           <h3 className="font-semibold text-sm">
             {activeCount > 0 ? 'Uploading' : completedCount === files.length ? 'Complete' : 'Upload Queue'}
           </h3>
-          <span className="text-xs text-white/80">
+          <span className="text-xs text-muted-foreground">
             {completedCount}/{files.length} files
           </span>
         </div>
@@ -74,7 +74,7 @@ export function UploadProgress({
       </div>
 
       {/* File list */}
-      <div className="divide-y divide-white/15 max-h-[300px] overflow-y-auto">
+      <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
         {files.map((file) => (
           <UploadFileItem
             key={file.id}
@@ -89,7 +89,7 @@ export function UploadProgress({
       {/* Footer with overall progress */}
       {activeCount > 0 && (
         <div className="px-4 py-2 border-t border-primary/15 bg-primary/10">
-          <div className="flex items-center justify-between text-xs text-white/80 mb-1">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
             <span>Overall Progress</span>
             <span>{Math.round((completedCount / files.length) * 100)}%</span>
           </div>
@@ -133,7 +133,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
           <div className="relative flex-shrink-0">
             <File className={cn(
               'w-5 h-5',
-              isComplete ? 'text-green-500' : isError ? 'text-destructive' : 'text-white/80'
+              isComplete ? 'text-green-600 dark:text-green-500' : isError ? 'text-destructive' : 'text-muted-foreground'
             )} />
             {isActive && (
               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -143,7 +143,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
           {/* File name and size */}
           <div className="min-w-0 flex-1">
             <p className="font-medium text-sm truncate">{file.name}</p>
-            <p className="text-xs text-white/80">{formatSize(file.size)}</p>
+            <p className="text-xs text-muted-foreground">{formatSize(file.size)}</p>
           </div>
         </div>
 
@@ -176,7 +176,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
             <button
               type="button"
               onClick={onCancel}
-              className="p-1 text-white/80 hover:text-white hover:bg-primary/15 rounded transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground hover:bg-primary/15 rounded transition-colors"
               title="Cancel upload"
             >
               <X className="w-4 h-4" />
@@ -187,7 +187,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
             <button
               type="button"
               onClick={onRemove}
-              className="p-1 text-white/80 hover:text-white hover:bg-primary/15 rounded transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground hover:bg-primary/15 rounded transition-colors"
               title="Remove from list"
             >
               <X className="w-4 h-4" />
@@ -204,7 +204,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
             <Lock className={cn(
               'w-3 h-3 flex-shrink-0 transition-colors',
               file.encryptionProgress === 100 ? 'text-green-500' : 
-              isEncrypting ? 'text-primary' : 'text-white/75'
+              isEncrypting ? 'text-primary' : 'text-muted-foreground'
             )} />
             <div className="flex-1 h-1.5 bg-primary/15 rounded-full overflow-hidden">
               <div
@@ -220,7 +220,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
             </div>
             <span className={cn(
               'text-xs w-10 text-right tabular-nums',
-              file.encryptionProgress === 100 ? 'text-green-500' : 'text-white/80'
+              file.encryptionProgress === 100 ? 'text-green-600 dark:text-green-500' : 'text-muted-foreground'
             )}>
               {file.encryptionProgress}%
             </span>
@@ -231,7 +231,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
             <Cloud className={cn(
               'w-3 h-3 flex-shrink-0 transition-colors',
               file.uploadProgress === 100 ? 'text-green-500' : 
-              isUploading ? 'text-primary' : 'text-white/75'
+              isUploading ? 'text-primary' : 'text-muted-foreground'
             )} />
             <div className="flex-1 h-1.5 bg-primary/15 rounded-full overflow-hidden">
               <div
@@ -247,7 +247,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
             </div>
             <span className={cn(
               'text-xs w-10 text-right tabular-nums',
-              file.uploadProgress === 100 ? 'text-green-500' : 'text-white/80'
+              file.uploadProgress === 100 ? 'text-green-600 dark:text-green-500' : 'text-muted-foreground'
             )}>
               {file.uploadProgress}%
             </span>
@@ -257,7 +257,7 @@ function UploadFileItem({ file, onCancel, onRetry, onRemove }: UploadFileItemPro
 
       {/* Status text */}
       {isPending && (
-        <p className="text-xs text-white/80 mt-1">Waiting in queue...</p>
+        <p className="text-xs text-muted-foreground mt-1">Waiting in queue...</p>
       )}
       
       {isEncrypting && (

@@ -423,7 +423,7 @@ export default function Admin() {
             setShowCreateUser(true);
             setError("");
           }}
-          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2 cursor-pointer"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2 cursor-pointer"
         >
           <UserPlus className="h-4 w-4" />
           {t("drive:admin.newUser")}
@@ -440,7 +440,7 @@ export default function Admin() {
             type="button"
             onClick={handleBulkDelete}
             disabled={bulkDeleting}
-            className="bg-destructive text-white px-3 py-1.5 rounded-md hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2 text-sm cursor-pointer"
+            className="bg-destructive text-destructive-foreground px-3 py-1.5 rounded-md hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2 text-sm cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {bulkDeleting ? t("drive:admin.deleting") : t("drive:admin.bulkDeleteTitle")}
@@ -564,7 +564,7 @@ export default function Admin() {
                     </button>
                     <button
                       onClick={() => setResetPasswordUser(user.id)}
-                      className="text-green-600 hover:text-green-900 mr-3 cursor-pointer"
+                      className="text-green-700 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3 cursor-pointer"
                       title={t("drive:admin.resetPasswordHelp")}
                     >
                       <Key className="h-4 w-4" />
@@ -576,7 +576,7 @@ export default function Admin() {
                           `${user.first_name} ${user.last_name}`
                         )
                       }
-                      className="text-orange-500 hover:text-orange-700 mr-3 cursor-pointer"
+                      className="text-orange-700 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300 mr-3 cursor-pointer"
                       title={t("drive:admin.resetPinHelp")}
                     >
                       <Lock className="h-4 w-4" />
@@ -618,8 +618,8 @@ export default function Admin() {
 
       {/* Create User Modal */}
       {showCreateUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">{t("drive:admin.createUserTitle")}</h2>
               <button
@@ -709,7 +709,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleCreateUser}
-                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
                 {t("drive:admin.btnCreateUser")}
@@ -721,8 +721,8 @@ export default function Admin() {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">{t("drive:admin.editUserTitle")}</h2>
               <button
@@ -796,7 +796,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleUpdateUser}
-                className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
                 {t("drive:admin.btnSaveChanges")}
@@ -808,8 +808,8 @@ export default function Admin() {
 
       {/* Reset Password Modal */}
       {resetPasswordUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">{t("drive:admin.resetPasswordTitle")}</h2>
               <button
@@ -837,7 +837,7 @@ export default function Admin() {
               </div>
               <button
                 onClick={handleResetPassword}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-800 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Key className="h-4 w-4" />
                 {t("drive:admin.btnResetPassword")}
@@ -864,7 +864,7 @@ export default function Admin() {
               onClick={() =>
                 setConfirmDialog((prev) => ({ ...prev, open: false }))
               }
-              className="px-4 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white rounded-md mr-2 transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm font-medium bg-muted hover:bg-muted/80 text-foreground rounded-md mr-2 transition-colors cursor-pointer"
             >
               {confirmDialog.cancelLabel}
             </button>
@@ -873,7 +873,7 @@ export default function Admin() {
                 confirmDialog.onConfirm();
                 setConfirmDialog((prev) => ({ ...prev, open: false }));
               }}
-              className="px-4 py-2 text-sm font-medium bg-destructive hover:bg-destructive/90 text-white rounded-md transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm font-medium bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md transition-colors cursor-pointer"
             >
               {confirmDialog.confirmLabel}
             </button>

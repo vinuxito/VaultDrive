@@ -9,7 +9,6 @@ import { getCachedPinValue } from "../../utils/pin-trust";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
 import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
-import { useTheme } from "../theme-provider";
 import { cn } from "../../lib/utils";
 
 interface Folder {
@@ -35,8 +34,6 @@ export function CreateUploadLinkModal({
   initialFolderName,
   introMessage,
 }: CreateUploadLinkModalProps) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const { getCredential } = useSessionVault();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState("");
@@ -213,15 +210,13 @@ export function CreateUploadLinkModal({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div
         className={cn(
-          "border rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6",
-          isDark
-            ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
-            : "bg-card border-border text-foreground"
+          "border rounded-2xl shadow-2xl w-full max-w-md mx-auto p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto",
+          "bg-card border-border text-foreground"
         )}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className={cn("text-xl font-semibold flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
-            <Plus className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
+          <h2 className={cn("text-xl font-semibold flex items-center gap-2", "text-foreground")}>
+            <Plus className="w-5 h-5 text-primary" />
             {createdLink ? "Upload Link Created" : "Create Client Upload Link"}
           </h2>
           <Button
@@ -229,7 +224,7 @@ export function CreateUploadLinkModal({
             size="icon"
             onClick={onClose}
             className={cn(
-              isDark ? "text-white/80 hover:text-white hover:bg-white/15" : "text-muted-foreground hover:text-foreground"
+              "text-muted-foreground hover:text-foreground"
             )}
           >
             <X className="w-5 h-5" />
@@ -240,7 +235,7 @@ export function CreateUploadLinkModal({
           <div
             className={cn(
               "mb-4 rounded-2xl border px-4 py-3 text-xs leading-relaxed",
-              isDark ? "border-white/10 bg-white/12 text-white/85" : "bg-muted border-border text-muted-foreground"
+              "bg-muted border-border text-muted-foreground"
             )}
           >
             {introMessage ??
@@ -254,8 +249,8 @@ export function CreateUploadLinkModal({
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-emerald-900 font-semibold text-sm">Secure Drop route ready</p>
-                  <p className="text-emerald-800 text-xs mt-1 leading-relaxed">
+                  <p className="text-emerald-900 dark:text-emerald-100 font-semibold text-sm">Secure Drop route ready</p>
+                  <p className="text-emerald-800 dark:text-emerald-200 text-xs mt-1 leading-relaxed">
                     Share this URL when you want a client to deliver files. You can review the route later, seal it
                     after use, or revoke it from your vault.
                   </p>
@@ -263,9 +258,9 @@ export function CreateUploadLinkModal({
               </div>
             </div>
 
-            <div className={cn("p-3 rounded-xl border space-y-1.5", isDark ? "bg-white/12 border-white/15" : "bg-muted border-border")}>
-              <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>Trust receipt</p>
-              <p className={cn("text-xs leading-relaxed", isDark ? "text-white/80" : "text-muted-foreground")}>
+            <div className={cn("p-3 rounded-xl border space-y-1.5", "bg-muted border-border")}>
+              <p className={cn("text-sm font-medium", "text-foreground")}>Trust receipt</p>
+              <p className={cn("text-xs leading-relaxed", "text-muted-foreground")}>
                 This route now accepts uploads into the folder you selected. You can watch uploads arrive, seal the
                 route, or remove it later from Upload Links.
               </p>
@@ -282,7 +277,7 @@ export function CreateUploadLinkModal({
               rawUrl={createdLink.url}
               expectedPath={new URL(createdLink.url, window.location.origin).pathname}
               kind="upload-link"
-              variant={isDark ? "dark" : "light"}
+              variant={"light"}
               copyButtonLabel="Copy full upload link"
               guidanceText="Enter your 4-digit PIN to copy the full URL."
               onResolveUrl={async (pin) => {
@@ -294,16 +289,16 @@ export function CreateUploadLinkModal({
               }}
             />
 
-            <div className={cn("p-3 rounded-xl border", isDark ? "bg-white/12 border-white/10" : "bg-muted border-border")}>
-              <p className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
+            <div className={cn("p-3 rounded-xl border", "bg-muted border-border")}>
+              <p className={cn("text-xs", "text-muted-foreground")}>
                 The encryption key travels in the URL fragment and never reaches the server. Verify your PIN when you
                 need to copy the full route, or manage it later from Upload Links.
               </p>
             </div>
 
-            <div className={cn("p-3 rounded-xl border", isDark ? "bg-white/12 border-white/15" : "bg-muted border-border")}>
-              <p className={cn("text-sm flex items-center gap-2", isDark ? "text-white/85" : "text-foreground")}>
-                <Fingerprint className={cn("w-4 h-4 shrink-0", isDark ? "text-primary-foreground" : "text-primary")} />
+            <div className={cn("p-3 rounded-xl border", "bg-muted border-border")}>
+              <p className={cn("text-sm flex items-center gap-2", "text-foreground")}>
+                <Fingerprint className="w-4 h-4 shrink-0 text-primary" />
                 <span>
                   Files uploaded through this route stay bound to your app-wide <strong>4-digit PIN</strong> so the
                   route feels delegated, not detached.
@@ -316,9 +311,7 @@ export function CreateUploadLinkModal({
                 onClick={onClose}
                 className={cn(
                   "font-semibold",
-                  isDark
-                    ? "bg-white text-primary hover:bg-primary/10"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  "bg-primary text-primary-foreground hover:bg-primary/90"
                 )}
               >
                 Done
@@ -328,7 +321,7 @@ export function CreateUploadLinkModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="linkName" className={cn("text-sm", isDark ? "text-white" : "text-foreground")}>
+              <Label htmlFor="linkName" className={cn("text-sm", "text-foreground")}>
                 Link Name (optional)
               </Label>
               <Input
@@ -338,15 +331,13 @@ export function CreateUploadLinkModal({
                 value={linkName}
                 onChange={(e) => setLinkName(e.target.value)}
                 className={cn(
-                  isDark
-                    ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                    : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                  "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
                 )}
               />
             </div>
 
             <div>
-              <Label htmlFor="description" className={cn("text-sm", isDark ? "text-white" : "text-foreground")}>
+              <Label htmlFor="description" className={cn("text-sm", "text-foreground")}>
                 Instructions for client (optional)
               </Label>
               <textarea
@@ -357,20 +348,18 @@ export function CreateUploadLinkModal({
                 rows={2}
                 className={cn(
                   "mt-1 w-full rounded-md border text-sm resize-none focus:outline-none px-3 py-2",
-                  isDark
-                    ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                    : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                  "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
                 )}
               />
             </div>
 
             <div>
-              <Label htmlFor="folder" className={cn("text-sm", isDark ? "text-white" : "text-foreground")}>
+              <Label htmlFor="folder" className={cn("text-sm", "text-foreground")}>
                 Destination Folder
               </Label>
               <div className="mt-1 flex gap-2">
                 {fetchingFolders ? (
-                  <div className={cn("text-sm", isDark ? "text-white/80" : "text-muted-foreground")}>
+                  <div className={cn("text-sm", "text-muted-foreground")}>
                     Loading folders...
                   </div>
                 ) : showCreateFolder ? (
@@ -383,9 +372,7 @@ export function CreateUploadLinkModal({
                       onChange={(e) => setNewFolderName(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
                       className={cn(
-                        isDark
-                          ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                          : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                        "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
                       )}
                       disabled={creatingFolder}
                       autoFocus
@@ -396,9 +383,7 @@ export function CreateUploadLinkModal({
                       disabled={creatingFolder || !newFolderName.trim()}
                       className={cn(
                         "font-semibold",
-                        isDark
-                          ? "bg-white text-primary hover:bg-primary/10"
-                          : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        "bg-primary text-primary-foreground hover:bg-primary/90"
                       )}
                     >
                       {creatingFolder ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create"}
@@ -411,9 +396,7 @@ export function CreateUploadLinkModal({
                         setNewFolderName("");
                       }}
                       className={cn(
-                        isDark
-                          ? "text-white/80 hover:text-white hover:bg-white/15"
-                          : "text-muted-foreground hover:text-foreground"
+                        "text-muted-foreground hover:text-foreground"
                       )}
                     >
                       Cancel
@@ -427,15 +410,13 @@ export function CreateUploadLinkModal({
                       onChange={(e) => setSelectedFolderId(e.target.value)}
                       className={cn(
                         "flex-1 border rounded-md px-3 py-2 focus:outline-none",
-                        isDark
-                          ? "bg-white/15 border-white/20 text-white focus:border-white/40 focus:bg-white/20"
-                          : "bg-muted border-border text-foreground focus:border-primary focus:bg-background"
+                        "bg-muted border-border text-foreground focus:border-primary focus:bg-background"
                       )}
                     >
                       {folders.length === 0 ? (
                         <option
                           value=""
-                          className={cn(isDark ? "bg-card text-white" : "bg-background text-foreground")}
+                          className={cn("bg-background text-foreground")}
                         >
                           -- Create a folder --
                         </option>
@@ -444,7 +425,7 @@ export function CreateUploadLinkModal({
                           <option
                             key={folder.id}
                             value={folder.id}
-                            className={cn(isDark ? "bg-card text-white" : "bg-background text-foreground")}
+                            className={cn("bg-background text-foreground")}
                           >
                             {folder.name}
                           </option>
@@ -459,7 +440,7 @@ export function CreateUploadLinkModal({
                         setNewFolderName("");
                       }}
                       title="Create new folder"
-                      className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
+                      className={cn("")}
                     >
                       <FolderIcon className="w-4 h-4" />
                     </Button>
@@ -467,14 +448,14 @@ export function CreateUploadLinkModal({
                 )}
               </div>
               {folders.length === 0 && !showCreateFolder && (
-                <div className="mt-1 text-sm text-primary-foreground">
+                <div className="mt-1 text-sm text-muted-foreground">
                   ↑ Click folder icon to create your first folder
                 </div>
               )}
             </div>
 
             <div>
-              <Label htmlFor="expiresIn" className={cn("text-sm", isDark ? "text-white" : "text-foreground")}>
+              <Label htmlFor="expiresIn" className={cn("text-sm", "text-foreground")}>
                 Link Expiration
               </Label>
               <select
@@ -483,28 +464,26 @@ export function CreateUploadLinkModal({
                 onChange={(e) => setExpiresIn(e.target.value)}
                 className={cn(
                   "w-full border rounded-md px-3 py-2 mt-1 focus:outline-none",
-                  isDark
-                    ? "bg-white/15 border-white/20 text-white focus:border-white/40 focus:bg-white/20"
-                    : "bg-muted border-border text-foreground focus:border-primary focus:bg-background"
+                  "bg-muted border-border text-foreground focus:border-primary focus:bg-background"
                 )}
               >
-                <option value="0" className={cn(isDark ? "bg-card text-white" : "bg-background text-foreground")}>
+                <option value="0" className={cn("bg-background text-foreground")}>
                   Never
                 </option>
-                <option value="1" className={cn(isDark ? "bg-card text-white" : "bg-background text-foreground")}>
+                <option value="1" className={cn("bg-background text-foreground")}>
                   1 Day
                 </option>
-                <option value="7" className={cn(isDark ? "bg-card text-white" : "bg-background text-foreground")}>
+                <option value="7" className={cn("bg-background text-foreground")}>
                   7 Days
                 </option>
-                <option value="30" className={cn(isDark ? "bg-card text-white" : "bg-background text-foreground")}>
+                <option value="30" className={cn("bg-background text-foreground")}>
                   30 Days
                 </option>
               </select>
             </div>
 
             <div>
-              <Label htmlFor="maxFiles" className={cn("text-sm", isDark ? "text-white" : "text-foreground")}>
+              <Label htmlFor="maxFiles" className={cn("text-sm", "text-foreground")}>
                 Max Files (0 = Unlimited)
               </Label>
               <Input
@@ -514,9 +493,7 @@ export function CreateUploadLinkModal({
                 value={maxFiles}
                 onChange={(e) => setMaxFiles(parseInt(e.target.value, 10) || 0)}
                 className={cn(
-                  isDark
-                    ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                    : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                  "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
                 )}
               />
             </div>
@@ -531,9 +508,7 @@ export function CreateUploadLinkModal({
                   "relative w-10 h-6 rounded-full transition-colors focus:outline-none",
                   sealAfterUpload
                     ? "bg-amber-500"
-                    : isDark
-                      ? "bg-white/25"
-                      : "bg-muted-foreground/30"
+                    : "bg-muted-foreground/30"
                 )}
               >
                 <span
@@ -544,19 +519,19 @@ export function CreateUploadLinkModal({
                 />
               </button>
               <div>
-                <p className={cn("text-sm font-medium", isDark ? "text-white" : "text-foreground")}>
+                <p className={cn("text-sm font-medium", "text-foreground")}>
                   Seal after first upload
                 </p>
-                <p className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
+                <p className={cn("text-xs", "text-muted-foreground")}>
                   Link closes automatically after one use
                 </p>
               </div>
             </div>
 
             {cachedPin ? (
-              <div className={cn("p-3 rounded-lg border", isDark ? "bg-white/15 border-white/20" : "bg-muted border-border")}>
-                <p className={cn("text-sm flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
-                  <Fingerprint className={cn("w-4 h-4 shrink-0", isDark ? "text-primary-foreground" : "text-primary")} />
+              <div className={cn("p-3 rounded-lg border", "bg-muted border-border")}>
+                <p className={cn("text-sm flex items-center gap-2", "text-foreground")}>
+                  <Fingerprint className="w-4 h-4 shrink-0 text-primary" />
                   <span>
                     Your vault PIN is already trusted for this session. This link will use the same app-wide PIN
                     automatically.
@@ -565,7 +540,7 @@ export function CreateUploadLinkModal({
               </div>
             ) : (
               <div>
-                <Label htmlFor="pin" className={cn("text-sm flex items-center gap-1", isDark ? "text-white" : "text-foreground")}>
+                <Label htmlFor="pin" className={cn("text-sm flex items-center gap-1", "text-foreground")}>
                   <Fingerprint className="w-4 h-4" />
                   Your 4-digit PIN
                 </Label>
@@ -579,12 +554,10 @@ export function CreateUploadLinkModal({
                   placeholder="••••"
                   className={cn(
                     "mt-1 w-full px-3 py-2 border rounded-md text-center tracking-widest text-xl focus:outline-none",
-                    isDark
-                      ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                      : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                    "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
                   )}
                 />
-                <p className={cn("text-xs mt-1", isDark ? "text-white/75" : "text-muted-foreground")}>
+                <p className={cn("text-xs mt-1", "text-muted-foreground")}>
                   Files will be encrypted so only you can decrypt them with this PIN. Set your PIN in Settings if you
                   haven't yet.
                 </p>
@@ -595,9 +568,7 @@ export function CreateUploadLinkModal({
               <div
                 className={cn(
                   "p-3 rounded-lg border text-sm",
-                  isDark
-                    ? "bg-primary/20 border-primary/30 text-primary-foreground"
-                    : "bg-destructive/10 border-destructive/20 text-destructive"
+                  "bg-destructive/10 border-destructive/20 text-destructive"
                 )}
               >
                 {error}
@@ -610,7 +581,6 @@ export function CreateUploadLinkModal({
                 variant="modal-cancel"
                 onClick={onClose}
                 disabled={loading}
-                className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
               >
                 Cancel
               </Button>
@@ -625,9 +595,7 @@ export function CreateUploadLinkModal({
                 }
                 className={cn(
                   "font-semibold",
-                  isDark
-                    ? "bg-white text-primary hover:bg-primary/10"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  "bg-primary text-primary-foreground hover:bg-primary/90"
                 )}
               >
                 {loading ? (

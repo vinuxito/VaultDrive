@@ -19,7 +19,7 @@ export function EncryptionProof({ event }: EncryptionProofProps) {
         <span className="text-emerald-400 font-semibold uppercase tracking-wider">Zero-Knowledge Encryption</span>
       </div>
 
-      <div className="text-zinc-300">
+      <div className="text-foreground">
         {event.type === "generating-key" && (
           <div>Generating {event.algorithm} ({event.keyLength} bits) key...</div>
         )}
@@ -31,18 +31,18 @@ export function EncryptionProof({ event }: EncryptionProofProps) {
         {event.type === "encrypted" && (
           <div className="space-y-1">
             <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-zinc-500">Input:</span>
+              <span className="text-muted-foreground">Input:</span>
               <span>{formatSize(event.inputSize)} (Plaintext)</span>
             </div>
             <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-zinc-500">Output:</span>
+              <span className="text-muted-foreground">Output:</span>
               <span>{formatSize(event.outputSize)} (+16B auth tag)</span>
             </div>
             <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-zinc-500">Performance:</span>
+              <span className="text-muted-foreground">Performance:</span>
               <span className="text-emerald-400">⚡ {event.durationMs.toFixed(0)}ms</span>
             </div>
-            <div className="text-xs text-zinc-500 mt-2 italic border-l-2 border-emerald-500/30 pl-2">
+            <div className="text-xs text-muted-foreground mt-2 italic border-l-2 border-emerald-500/30 pl-2">
               Server will receive ONLY ciphertext. The plaintext never leaves this device.
             </div>
           </div>

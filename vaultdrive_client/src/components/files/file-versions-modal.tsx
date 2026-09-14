@@ -80,18 +80,18 @@ export function FileVersionsModal({
     <ElegantModal isOpen={isOpen} onClose={onClose} title={`Version History: ${filename}`}>
       <div className="space-y-4">
         {error && (
-          <div className="p-3 bg-primary/20 border border-primary/30 rounded-md text-primary-foreground text-sm">
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="text-center py-8 text-white/70">
+          <div className="text-center py-8 text-muted-foreground">
             <Clock className="w-8 h-8 mx-auto mb-2 animate-spin" />
             <p>Loading versions...</p>
           </div>
         ) : versions.length === 0 ? (
-          <div className="text-center py-8 text-white/70">
+          <div className="text-center py-8 text-muted-foreground">
             <Clock className="w-8 h-8 mx-auto mb-2" />
             <p>No versions found</p>
           </div>
@@ -100,19 +100,19 @@ export function FileVersionsModal({
             {versions.map((version, index) => (
               <div
                 key={version.id}
-                className="p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"
+                className="p-4 bg-muted/60 hover:bg-muted rounded-lg border border-border transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-white">Version {version.version_number}</span>
+                      <span className="font-medium text-foreground">Version {version.version_number}</span>
                       {index === 0 && (
-                        <span className="px-2 py-0.5 bg-primary/20 text-white text-xs rounded-full">
+                        <span className="px-2 py-0.5 bg-muted text-foreground text-xs rounded-full">
                           Current
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-white/70 space-y-1">
+                    <div className="text-sm text-muted-foreground space-y-1">
                       <div>{formatSize(version.file_size)}</div>
                       <div>{formatDate(version.created_at)}</div>
                     </div>

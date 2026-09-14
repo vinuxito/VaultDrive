@@ -18,7 +18,6 @@ import { ProtectedLinkCopyField } from "../links/ProtectedLinkCopyField";
 import { DataState } from "../ui/data-state";
 import { RowActionMenu } from "../ui/row-action-menu";
 import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
-import { useTheme } from "../theme-provider";
 
 interface FolderSharedLinksSectionProps {
   folder: {
@@ -94,8 +93,6 @@ function getLinkUnavailableReason(link: SyncableFolderShareLink): string | undef
 
 export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage, refreshKey = 0 }: FolderSharedLinksSectionProps) {
   const sessionVault = useSessionVault();
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const [links, setLinks] = useState<SyncableFolderShareLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -258,7 +255,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
               Manage every public folder link for <span className="font-medium text-foreground">{folder.name}</span>.
             </p>
           </div>
-          <Button type="button" onClick={onCreateLink} className="bg-primary hover:bg-primary/90 text-white">
+          <Button type="button" onClick={onCreateLink} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="w-4 h-4 mr-2" />
             Create New Link
           </Button>
@@ -368,12 +365,12 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                           : "Enter your current password to recover and copy the full share link."}
                         unavailableReason={getLinkUnavailableReason(link)}
                         onResolveUrl={(pin) => buildShareUrlForCopy(link, pin)}
-                        variant={isDark ? "dark" : "light"}
+                        variant="light"
                       />
                     )}
 
                     <div className="flex flex-wrap gap-2 items-center">
-                      <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-primary hover:bg-primary/90 text-white">
+                      <Button type="button" onClick={() => void handleSync(link)} disabled={busyId === link.id || !canSync} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                         {busyId === link.id ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                         Update Link
                       </Button>
@@ -414,7 +411,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                             size="sm"
                             onClick={() => void handleRevoke(link)}
                             disabled={busyId === link.id}
-                            className="bg-rose-600 hover:bg-rose-700 text-white"
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                           >
                             {busyId === link.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
                             {busyId === link.id ? LOADING.revokingLink : CONFIRM_DESTRUCTIVE.revokeFolderShare.confirmLabel}

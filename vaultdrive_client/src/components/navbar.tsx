@@ -101,16 +101,16 @@ const getInitials = (name: string) => {
   return (
     <>
       <nav className="lux-navbar sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div
-              className="flex items-center gap-4 cursor-pointer"
-              onClick={() => navigate("/")}
-            >
-              <BrandLogo className="w-10 h-10 m-1" />
-              <h1 className="text-2xl font-bold text-primary">{branding.productName}</h1>
-            </div>
-            <ul className="flex gap-6">
+        <div className="container mx-auto grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-3 px-4 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-4">
+          <div
+            className="flex min-w-0 items-center gap-2 cursor-pointer md:gap-4"
+            onClick={() => navigate("/")}
+          >
+            <BrandLogo className="m-1 h-8 w-8 shrink-0 md:h-10 md:w-10" />
+            <h1 className="truncate text-lg font-bold text-primary md:text-2xl">{branding.productName}</h1>
+          </div>
+
+            <ul className="col-span-2 row-start-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-border/50 pt-3 text-sm md:col-span-1 md:col-start-2 md:row-start-1 md:justify-start md:border-0 md:pt-0">
               <li>
                 <Link to="/" className="text-foreground/85 hover:text-primary transition-colors font-medium text-sm">
                   {t("common:nav.home")}
@@ -156,16 +156,15 @@ const getInitials = (name: string) => {
                 </Link>
               </li>
             </ul>
-          </div>
 
-          <div className="flex items-center gap-4">
+          <div className="col-start-2 row-start-1 flex shrink-0 items-center gap-1.5 sm:gap-3 md:col-start-3 md:gap-4">
             <LanguageToggle />
             <ThemeToggle />
             {isLoggedIn && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="hidden text-sm font-medium text-foreground sm:inline">
                       {t("common:nav.greeting", { name: user.username })}
                     </span>
                     <Avatar>

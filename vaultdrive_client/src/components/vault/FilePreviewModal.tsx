@@ -261,7 +261,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
     if (textContent !== null) {
       return (
-        <pre className="text-sm text-white overflow-auto max-h-[70vh] p-4 bg-black/40 rounded whitespace-pre-wrap break-words">
+        <pre className="text-sm text-foreground overflow-auto max-h-[70vh] p-4 bg-muted rounded whitespace-pre-wrap break-words">
           {textContent}
         </pre>
       );
@@ -290,11 +290,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     }
 
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-white/75 gap-4">
+      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-4">
         <p className="text-lg">Preview not available for this file type</p>
         <Button
           onClick={handleDownloadDecrypted}
-          className="bg-white text-primary hover:bg-primary/10 font-semibold"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
         >
           <Download className="w-4 h-4 mr-2" />
           Download
@@ -309,15 +309,15 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
-          <h2 className="text-white font-semibold truncate max-w-lg text-sm">{file.filename}</h2>
+      <div className="bg-card text-card-foreground border border-border rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border shrink-0">
+          <h2 className="min-w-0 flex-1 text-foreground font-semibold truncate text-sm">{file.filename}</h2>
           <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
               onClick={handleDownloadDecrypted}
               disabled={!decryptedBlob}
-              className="bg-white/15 hover:bg-white/25 text-white border border-white/20 h-8 px-3 text-xs gap-1.5"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-8 px-3 text-xs gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               Download
@@ -325,7 +325,8 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-white/75 hover:text-white hover:bg-white/15 transition-colors"
+              aria-label="Close preview"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -338,26 +339,26 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               <button
                 type="button"
                 onClick={() => setTrustExpanded((prev) => !prev)}
-                className="w-full text-left mb-2 group rounded-2xl border border-white/10 bg-white/12 px-3.5 py-3 hover:bg-white/18 transition-colors"
+                className="w-full text-left mb-2 group rounded-2xl border border-border bg-muted/60 px-3.5 py-3 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300 shrink-0">
+                    <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shrink-0">
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-1.5 text-white/75">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
                         {trustExpanded
                           ? <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" />
                           : <ChevronRight className="w-3.5 h-3.5 shrink-0 transition-transform" />
                         }
                         <span className="text-[11px] font-medium uppercase tracking-[0.18em]">Protection & History</span>
                       </div>
-                      <p className="mt-1 text-sm font-medium text-white/90">See how this file is protected, shared, and controlled.</p>
-                      <p className="mt-1 text-xs text-white/75">This keeps the trust story visible while you preview the file itself.</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">See how this file is protected, shared, and controlled.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">This keeps the trust story visible while you preview the file itself.</p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/12 px-2.5 py-1 text-[11px] font-medium text-white/85 whitespace-nowrap">
+                  <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground whitespace-nowrap">
                     {trustExpanded ? "Open" : "Show details"}
                   </span>
                 </div>
@@ -372,14 +373,14 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           )}
 
           {file.is_owner === false && (
-            <div className="mb-5 rounded-2xl border border-white/10 bg-white/12 px-4 py-3">
+            <div className="mb-5 rounded-2xl border border-border bg-muted/60 px-4 py-3">
               <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300 shrink-0">
+                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white/90">This file was shared with you.</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/75">
+                  <p className="text-sm font-medium text-foreground">This file was shared with you.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {`The owner controls access, can revoke the share at any time, and ${branding.productName} still keeps the protected content unreadable outside the trusted decrypt flow.`}
                   </p>
                 </div>
@@ -389,15 +390,15 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
           {showCredentialPrompt && (
             <div className="flex items-center justify-center min-h-[200px]">
-              <div className="bg-white/12 border border-white/10 rounded-2xl p-6 w-full max-w-sm space-y-4">
-                <div className="flex items-center gap-2 text-white">
-                  <Lock className="w-5 h-5 text-primary-foreground" />
+              <div className="bg-muted/60 border border-border rounded-2xl p-6 w-full max-w-sm space-y-4">
+                <div className="flex items-center gap-2 text-foreground">
+                  <Lock className="w-5 h-5 text-primary" />
                   <span className="font-medium">
                     {credType === "password" ? "Enter your file credential" : "Enter your 4-digit PIN"}
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="preview-credential" className="text-xs text-white/75 flex items-center gap-1.5">
+                  <label htmlFor="preview-credential" className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5" />
                     {credType === "password" ? "Credential" : "PIN"}
                   </label>
@@ -413,14 +414,14 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                         : e.target.value
                     )}
                     placeholder={credType !== "password" ? "••••" : "Enter credential"}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:outline-none${credType !== "password" ? " text-center tracking-widest text-xl" : ""}`}
+                    className={`w-full px-3 py-2 border rounded-lg bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none${credType !== "password" ? " text-center tracking-widest text-xl" : ""}`}
                     onKeyDown={(e) => { if (e.key === "Enter" && credential) handleCredentialSubmit(); }}
                   />
                 </div>
                 <Button
                   onClick={handleCredentialSubmit}
                   disabled={!credential || (credType !== "password" && credential.length !== 4)}
-                  className="w-full bg-primary hover:bg-primary/90 text-white"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Decrypt & Preview
                 </Button>
@@ -429,7 +430,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           )}
 
           {isLoading && (
-            <div className="flex items-center justify-center min-h-[200px] text-white/75">
+            <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
               <Loader2 className="w-8 h-8 animate-spin mr-3" />
               Decrypting…
             </div>
@@ -437,7 +438,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
           {loadError && !isLoading && (
             <div className="flex items-center justify-center min-h-[200px]">
-              <div className="flex items-center gap-2 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm max-w-md">
+              <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm max-w-md">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 {loadError}
               </div>
@@ -447,38 +448,38 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           {!showCredentialPrompt && !isLoading && !loadError && (
             <>
               {decryptedBlob && (
-                <div className="mb-5 rounded-2xl border border-white/10 bg-white/12 px-4 py-4 space-y-3">
+                <div className="mb-5 rounded-2xl border border-border bg-muted/60 px-4 py-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                      <span className="text-xs font-semibold uppercase tracking-wider text-white">Zero-Knowledge RSA-PSS Signature</span>
+                      <ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Zero-Knowledge RSA-PSS Signature</span>
                     </div>
                     {isSignatureVerified ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                         VERIFIED
                       </span>
                     ) : signatureB64 ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">
                         INVALID / ALTERED
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/60">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                         UNSIGNED
                       </span>
                     )}
                   </div>
 
-                  <div className="text-xs text-white/75 space-y-2">
+                  <div className="text-xs text-muted-foreground space-y-2">
                     {isSignatureVerified ? (
                       <p>
                         This decrypted content has been cryptographically signed locally using your RSA private key. The signature verification matches your public key 100% client-side, guaranteeing absolute document integrity and non-repudiation.
                       </p>
                     ) : signatureB64 ? (
-                      <p className="text-red-400">
+                      <p className="text-destructive">
                         Warning: A digital signature was found but verification failed! The decrypted file data does not match the signature hash.
                       </p>
                     ) : (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background p-3 rounded-xl border border-border">
                         <p className="max-w-md">
                           This file does not have a local digital signature. You can sign this file locally with your ZK private key to establish a mathematical proof of authenticity.
                         </p>
@@ -486,7 +487,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                           size="sm"
                           onClick={handleSignFile}
                           disabled={isSigning}
-                          className="bg-white hover:bg-white/90 text-slate-900 shrink-0 self-start sm:self-center font-semibold"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 self-start sm:self-center font-semibold"
                         >
                           {isSigning ? (
                             <>
@@ -501,8 +502,8 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                     )}
                   </div>
                   {signatureB64 && (
-                    <div className="pt-2 border-t border-white/5">
-                      <p className="text-[10px] text-white/55 font-mono truncate">
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-[10px] text-muted-foreground font-mono truncate">
                         Signature: {signatureB64}
                       </p>
                     </div>

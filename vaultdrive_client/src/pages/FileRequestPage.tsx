@@ -754,7 +754,7 @@ export default function FileRequestPage() {
                       />
                     </div>
                     {progress.status === "error" && (
-                      <p className="text-xs text-red-600">{progress.error}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400">{progress.error}</p>
                     )}
                   </div>
                 ))}
@@ -763,7 +763,7 @@ export default function FileRequestPage() {
 
             {/* Inline error */}
             {error && !uploading && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300 text-sm">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
               </div>
@@ -777,7 +777,7 @@ export default function FileRequestPage() {
               disabled={
                 uploading || selectedFiles.length === 0 || !passphrase.trim()
               }
-              className="w-full bg-primary hover:bg-primary/90 text-white border-0"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-0"
             >
               {uploading ? (
                 <>

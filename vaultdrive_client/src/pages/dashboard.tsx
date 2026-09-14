@@ -191,28 +191,28 @@ export default function Dashboard() {
       label: t("drive:dashboard.start.upload", "Upload File"),
       description: t("drive:dashboard.start.uploadDesc", "Add encrypted files to your vault"),
       icon: Upload,
-      color: "bg-primary hover:bg-primary/90 text-white",
+      color: "bg-primary hover:bg-primary/90 text-primary-foreground",
       onClick: () => navigate("/files"),
     },
     {
       label: t("drive:dashboard.start.createLink", "Create Client Upload Link"),
       description: t("drive:dashboard.start.createLinkDesc", "Create a secure link for client file delivery"),
       icon: FolderPlus,
-      color: "bg-violet-600 hover:bg-violet-700 text-white",
+      color: "bg-violet-700 hover:bg-violet-800 text-white",
       onClick: () => navigate("/files"),
     },
     {
       label: t("drive:dashboard.start.share", "Share a File"),
       description: t("drive:dashboard.start.shareDesc", "Securely share with a user"),
       icon: Share2,
-      color: "bg-emerald-600 hover:bg-emerald-700 text-white",
+      color: "bg-emerald-700 hover:bg-emerald-800 text-white",
       onClick: () => navigate("/files"),
     },
     {
       label: t("drive:dashboard.start.createRoom", "Create ZK Room"),
       description: t("drive:dashboard.start.createRoomDesc", "Create an ephemeral collaborative encrypted room"),
       icon: Lock,
-      color: "bg-secondary hover:bg-secondary/90 text-white",
+      color: "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
       onClick: () => navigate(`/room/${crypto.randomUUID()}`),
     },
   ];
@@ -255,7 +255,7 @@ export default function Dashboard() {
                   </div>
                   {posture.expiring_tokens.map((tObj) => (
                     <div key={tObj.id} className="flex items-start gap-2 pl-6">
-                      <p className="text-xs text-amber-700">
+                      <p className="text-xs text-amber-700 dark:text-amber-300">
                         <Trans i18nKey="drive:dashboard.attention.uploadLinkExpires" values={{ name: tObj.link_name || tObj.id.slice(0, 8), time: formatRelativeTime(tObj.expires_at) }}>
                           Upload link <strong>{ tObj.link_name || tObj.id.slice(0, 8) }</strong> expires { formatRelativeTime(tObj.expires_at) }
                         </Trans>

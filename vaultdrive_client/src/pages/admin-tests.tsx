@@ -192,13 +192,13 @@ export default function AdminTests() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">
+                  <div className="text-3xl font-bold text-green-700 dark:text-green-300">
                     {stats.passed}
                   </div>
                   <div className="text-sm text-muted-foreground">{t("drive:admin.passed")}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600">
+                  <div className="text-3xl font-bold text-red-700 dark:text-red-300">
                     {stats.failed}
                   </div>
                   <div className="text-sm text-muted-foreground">{t("drive:admin.failed")}</div>
@@ -249,9 +249,9 @@ export default function AdminTests() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3 flex-1">
                         {test.pass ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+                          <CheckCircle2 className="w-5 h-5 text-green-700 dark:text-green-300 mt-0.5 shrink-0" />
                         ) : (
-                          <XCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                          <XCircle className="w-5 h-5 text-red-700 dark:text-red-300 mt-0.5 shrink-0" />
                         )}
                         <div className="flex-1">
                           <div className="font-medium mb-1">{test.name}</div>

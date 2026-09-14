@@ -69,7 +69,7 @@ export const FileSearch: React.FC<FileSearchProps> = ({
               onClick={() => setTypeFilter(type)}
               className={`text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap ${
                 typeFilter === type
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >

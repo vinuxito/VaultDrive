@@ -98,7 +98,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
                   "hover:bg-primary/10 hover:text-foreground",
-                  isActive && "bg-primary/20 text-primary font-semibold border border-primary/40",
+                  isActive && "bg-primary/20 text-foreground font-semibold border border-primary/40",
                   "text-left",
                   collapsed && "justify-center"
                 )}
@@ -123,7 +123,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
             "hover:bg-primary/10 hover:text-foreground",
-            location.pathname === '/settings' && "bg-primary/20 text-primary font-semibold border border-primary/40",
+            location.pathname === '/settings' && "bg-primary/20 text-foreground font-semibold border border-primary/40",
             "text-left",
             collapsed && "justify-center"
           )}
@@ -139,7 +139,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
             "hover:bg-primary/10 hover:text-foreground",
-            location.pathname.startsWith('/help') && "bg-primary/20 text-primary font-semibold border border-primary/40",
+            location.pathname.startsWith('/help') && "bg-primary/20 text-foreground font-semibold border border-primary/40",
             "text-left",
             collapsed && "justify-center"
           )}
@@ -154,7 +154,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             onClick={handleLogout}
             className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                "text-destructive/80 hover:bg-destructive/10 hover:text-destructive",
+                "text-red-700 dark:text-red-300 hover:bg-destructive/10",
                 "text-left",
                 collapsed && "justify-center"
             )}

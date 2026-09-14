@@ -59,9 +59,9 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     <div
       className={`group flex items-center gap-2 rounded-lg transition-colors relative ${
         active
-          ? "bg-primary/10 text-primary/90"
+          ? "bg-primary/10 text-foreground"
           : isSidebar
-            ? "text-muted-foreground hover:bg-primary/8 hover:text-primary"
+            ? "text-muted-foreground hover:bg-primary/8 hover:text-foreground"
             : "hover:bg-primary/5"
       } ${isSidebar ? "px-2.5 py-1.5" : "px-3 py-2"}`}
       style={{ paddingLeft: `${indentPx}px` }}
@@ -74,9 +74,9 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
           aria-label={folder.isExpanded ? "Collapse folder" : "Expand folder"}
         >
           {folder.isExpanded ? (
-            <ChevronDown className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
+            <ChevronDown className={`w-4 h-4 ${active ? "text-foreground" : "text-muted-foreground"}`} />
           ) : (
-            <ChevronRight className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
+            <ChevronRight className={`w-4 h-4 ${active ? "text-foreground" : "text-muted-foreground"}`} />
           )}
         </button>
       ) : (
@@ -90,9 +90,9 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         aria-label={`Navigate to ${folder.name}`}
       >
         {folder.isExpanded ? (
-          <FolderOpen className={`w-4 h-4 ${active ? "text-primary" : "text-amber-500"}`} />
+          <FolderOpen className={`w-4 h-4 ${active ? "text-foreground" : "text-amber-500"}`} />
         ) : (
-          <Folder className={`w-4 h-4 ${active ? "text-primary" : "text-primary"}`} />
+          <Folder className={`w-4 h-4 ${active ? "text-foreground" : "text-primary"}`} />
         )}
       </button>
 
@@ -100,7 +100,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         type="button"
         onClick={onNavigate}
         className={`flex-1 text-left truncate transition-colors ${isSidebar ? "text-sm" : "text-sm"} ${
-          active ? "font-medium text-primary/90" : ""
+          active ? "font-medium text-foreground" : ""
         }`}
       >
         {folder.name}
@@ -110,7 +110,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         <span
           className={`flex-shrink-0 px-2 py-0.5 text-xs rounded-full ${
             active
-              ? "bg-primary/15 text-primary"
+              ? "bg-primary/15 text-foreground"
               : isSidebar
                 ? "bg-muted text-muted-foreground"
                 : "bg-primary/8 text-muted-foreground"

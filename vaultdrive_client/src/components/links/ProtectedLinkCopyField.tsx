@@ -4,7 +4,6 @@ import { CheckCircle2, Copy, KeyRound, Loader2, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useSessionVault } from "../../context/SessionVaultContext";
-import { branding } from "../../config/branding";
 import {
   buildMaskedProtectedLink,
   validateProtectedLinkForCopy,
@@ -27,25 +26,14 @@ function looksLikePinError(message: string): boolean {
   return /pin/i.test(message) || /didn't match/i.test(message);
 }
 
-const variantStyles = {
-  light: {
-    field: "border-border bg-muted text-foreground",
-    helper: "text-muted-foreground",
-    info: "text-muted-foreground",
-    error: "text-destructive",
-    button: "bg-primary text-white hover:bg-primary/90",
-    secondaryButton: "text-muted-foreground hover:text-foreground hover:bg-muted",
-    label: "text-foreground",
-  },
-  dark: {
-    field: "border-white/20 bg-white/10 text-white/90",
-    helper: "text-white/70",
-    info: "text-white/80",
-    error: "text-rose-200",
-    button: "bg-white text-primary hover:bg-primary/10",
-    secondaryButton: "text-white/60 hover:text-white hover:bg-white/10",
-    label: "text-white/90",
-  },
+const semanticStyles = {
+  field: "border-border bg-background text-foreground placeholder:text-muted-foreground",
+  helper: "text-muted-foreground",
+  info: "text-muted-foreground",
+  error: "text-destructive",
+  button: "bg-primary text-primary-foreground hover:bg-primary/90",
+  secondaryButton: "text-muted-foreground hover:text-foreground hover:bg-muted",
+  label: "text-foreground",
 } as const;
 
 export function ProtectedLinkCopyField({
@@ -57,12 +45,9 @@ export function ProtectedLinkCopyField({
   guidanceText,
   onResolveUrl,
   unavailableReason,
-  variant = "light",
 }: ProtectedLinkCopyFieldProps) {
   const { getCredential } = useSessionVault();
-  const isABRN = branding.productSlug === "abrn-drive";
-
-  const styles = variantStyles[variant];
+  const styles = semanticStyles;
   const fieldId = useId();
   const pinFieldId = `${fieldId}-pin`;
   const guidanceId = `${fieldId}-guidance`;
@@ -227,15 +212,13 @@ export function ProtectedLinkCopyField({
               value={displayValue}
               className={`w-full rounded-md border px-3 py-2 text-xs resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 ${
                 statusMessage === "Copied!"
-                  ? isABRN
-                    ? "border-red-900 bg-red-950/5 text-red-900 dark:text-red-300"
-                    : "border-cyan-500 ring-2 ring-cyan-500/30 bg-cyan-500/5 text-cyan-900 dark:text-cyan-200"
+                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
                   : styles.field
               }`}
               onClick={(event) => (event.target as HTMLTextAreaElement).select()}
             />
-            {statusMessage === "Copied!" && isABRN && (
-              <span className="absolute top-1 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-red-900 text-white border border-red-800 animate-pulse">
+            {statusMessage === "Copied!" && (
+              <span className="absolute top-1 right-2 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-primary text-primary-foreground border border-primary animate-pulse">
                 Copied!
               </span>
             )}
@@ -243,13 +226,7 @@ export function ProtectedLinkCopyField({
           <Button
             type="button"
             onClick={openPinPrompt}
-            className={`h-auto min-h-10 shrink-0 gap-1.5 px-3 py-2 font-semibold transition-all duration-300 ${
-              statusMessage === "Copied!"
-                ? isABRN
-                  ? "bg-red-900 text-white hover:bg-red-950"
-                  : "bg-cyan-600 text-white hover:bg-cyan-700"
-                : styles.button
-            }`}
+            className={`h-auto min-h-10 shrink-0 gap-1.5 px-3 py-2 font-semibold transition-all duration-300 ${styles.button}`}
             aria-describedby={`${guidanceId} ${statusId} ${errorId}`}
           >
             {statusMessage === "Copied!" ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

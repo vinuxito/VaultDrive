@@ -39,12 +39,12 @@ export function ActivityFeedPanel({ isOpen, onClose, events }: ActivityFeedPanel
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-          <span className="font-semibold text-primary-foreground text-sm tracking-wide">
+          <span className="font-semibold text-foreground text-sm tracking-wide">
             Activity Feed
           </span>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-primary/40 transition-colors text-primary-foreground"
+            className="p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             aria-label="Close activity feed"
           >
             <X className="w-4 h-4" />

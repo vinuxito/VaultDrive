@@ -1,0 +1,3963 @@
+{
+  "changed_files": [
+    "README.md",
+    "docs/memories/session-2026-09-14-theme-contrast.md",
+    "docs/plans/2026-09-14-theme-contrast-repair.md",
+    "docs/reports/2026-09-14-theme-contrast-results.json",
+    "docs/reports/2026-09-14-theme-contrast-verification.html",
+    "docs/reports/2026-09-14-theme-contrast-verification.md",
+    "vaultdrive_client/e2e/theme-visibility.spec.ts",
+    "vaultdrive_client/src/components/control-plane/ApiCallTrace.tsx",
+    "vaultdrive_client/src/components/dashboard/StatusPanel.tsx",
+    "vaultdrive_client/src/components/elegant/elegant-modal.tsx",
+    "vaultdrive_client/src/components/files/MoveFileModal.tsx",
+    "vaultdrive_client/src/components/files/MyFilesSection.tsx",
+    "vaultdrive_client/src/components/files/file-versions-modal.tsx",
+    "vaultdrive_client/src/components/files/password-modal.tsx",
+    "vaultdrive_client/src/components/folders/DeleteFolderModal.tsx",
+    "vaultdrive_client/src/components/folders/FolderCollaboratorsModal.tsx",
+    "vaultdrive_client/src/components/folders/FolderModal.tsx",
+    "vaultdrive_client/src/components/folders/FolderTreeItem.tsx",
+    "vaultdrive_client/src/components/folders/MyFoldersSection.tsx",
+    "vaultdrive_client/src/components/layout/ActivityFeedPanel.tsx",
+    "vaultdrive_client/src/components/layout/Toast.tsx",
+    "vaultdrive_client/src/components/layout/dashboard-layout.tsx",
+    "vaultdrive_client/src/components/layout/mobile-nav.tsx",
+    "vaultdrive_client/src/components/layout/sidebar.tsx",
+    "vaultdrive_client/src/components/links/ProtectedLinkCopyField.test.tsx",
+    "vaultdrive_client/src/components/links/ProtectedLinkCopyField.tsx",
+    "vaultdrive_client/src/components/navbar.tsx",
+    "vaultdrive_client/src/components/onboarding/OnboardingWizard.tsx",
+    "vaultdrive_client/src/components/settings/AgentApiKeysSection.tsx",
+    "vaultdrive_client/src/components/settings/AgentDeveloperPortalSection.tsx",
+    "vaultdrive_client/src/components/settings/AgentOperationsSection.tsx",
+    "vaultdrive_client/src/components/settings/ApiSimulationSection.tsx",
+    "vaultdrive_client/src/components/share-modal.tsx",
+    "vaultdrive_client/src/components/ui/badge.tsx",
+    "vaultdrive_client/src/components/ui/button.tsx",
+    "vaultdrive_client/src/components/ui/dialog.tsx",
+    "vaultdrive_client/src/components/ui/tabs.tsx",
+    "vaultdrive_client/src/components/upload/CreateUploadLinkModal.tsx",
+    "vaultdrive_client/src/components/upload/EncryptionProof.tsx",
+    "vaultdrive_client/src/components/upload/UploadLinkCard.tsx",
+    "vaultdrive_client/src/components/upload/UploadLinksSection.tsx",
+    "vaultdrive_client/src/components/upload/encryption-preview.tsx",
+    "vaultdrive_client/src/components/upload/upload-progress.tsx",
+    "vaultdrive_client/src/components/vault/AccessPanel.tsx",
+    "vaultdrive_client/src/components/vault/ActivityReceiptDrawer.tsx",
+    "vaultdrive_client/src/components/vault/BulkActionBar.tsx",
+    "vaultdrive_client/src/components/vault/BulkDownloadModal.test.tsx",
+    "vaultdrive_client/src/components/vault/BulkDownloadModal.tsx",
+    "vaultdrive_client/src/components/vault/CreateFolderShareLinkModal.tsx",
+    "vaultdrive_client/src/components/vault/CreateShareLinkModal.tsx",
+    "vaultdrive_client/src/components/vault/FileGrid.tsx",
+    "vaultdrive_client/src/components/vault/FilePreviewModal.test.tsx",
+    "vaultdrive_client/src/components/vault/FilePreviewModal.tsx",
+    "vaultdrive_client/src/components/vault/FileRequestsSection.tsx",
+    "vaultdrive_client/src/components/vault/FileSearch.tsx",
+    "vaultdrive_client/src/components/vault/FileSecurityTimeline.tsx",
+    "vaultdrive_client/src/components/vault/FolderSharedLinksSection.tsx",
+    "vaultdrive_client/src/components/vault/TrustRail.tsx",
+    "vaultdrive_client/src/components/vault/UpdateFolderShareLinkModal.tsx",
+    "vaultdrive_client/src/components/vault/VaultTree.tsx",
+    "vaultdrive_client/src/components/vault/VaultTreeContrast.test.tsx",
+    "vaultdrive_client/src/components/vault/VaultTrustContrast.test.tsx",
+    "vaultdrive_client/src/config/skin-contrast.test.ts",
+    "vaultdrive_client/src/index.css",
+    "vaultdrive_client/src/pages/FileRequestPage.tsx",
+    "vaultdrive_client/src/pages/PublicFolderSharePage.tsx",
+    "vaultdrive_client/src/pages/PublicSharePage.tsx",
+    "vaultdrive_client/src/pages/access-center.tsx",
+    "vaultdrive_client/src/pages/admin-tests.tsx",
+    "vaultdrive_client/src/pages/admin.tsx",
+    "vaultdrive_client/src/pages/dashboard.tsx",
+    "vaultdrive_client/src/pages/drop-upload.tsx",
+    "vaultdrive_client/src/pages/email.tsx",
+    "vaultdrive_client/src/pages/files.tsx",
+    "vaultdrive_client/src/pages/force-password-change.tsx",
+    "vaultdrive_client/src/pages/groups.tsx",
+    "vaultdrive_client/src/pages/home.tsx",
+    "vaultdrive_client/src/pages/login.tsx",
+    "vaultdrive_client/src/pages/settings.tsx",
+    "vaultdrive_client/src/pages/shared.tsx",
+    "vaultdrive_client/src/pages/zk-room.tsx",
+    "vaultdrive_client/src/styles/elegant-complete.css",
+    "vaultdrive_client/src/styles/skins.css"
+  ],
+  "date": "2026-09-14",
+  "source": "public deployed assets with intercepted synthetic APIs",
+  "screens": 426,
+  "measured_text_nodes": 15672,
+  "by_skin": {
+    "light": 71,
+    "business": 71,
+    "dark": 71,
+    "quantix": 71,
+    "cyberpunk": 71,
+    "elegant": 71
+  },
+  "deployment": {
+    "index_sha256": "3c156ccb1159d0328f549b19511b861cacebd573af23abc597ed654d9eda43b6",
+    "previous_index_sha256": "a50f9d62bbe82e8f54a39863bd9d68e59051ad60eacf99c51805605c3aab6cd7",
+    "backup": "/home/vinuxito/.cache/abrndrive-theme/dist-before-final",
+    "staged_assets": 52,
+    "ready": {
+      "diagnostics": {
+        "database": "ok",
+        "migrations": "ok (version: 49)",
+        "secrets": "ok",
+        "stored_files": "ok (files: 439)",
+        "uploads_dir": "ok"
+      },
+      "status": "ready"
+    },
+    "health": {
+      "db_ping_ms": 0,
+      "errors_total": 0,
+      "goroutines": 21,
+      "memory_mb": 1.4000320434570312,
+      "requests_total": 42,
+      "status": "ok",
+      "uptime": "5h0m8s",
+      "uptime_seconds": 18008,
+      "version": "dev"
+    },
+    "service": "NRestarts=0\nActiveState=active\nUnitFileState=enabled"
+  },
+  "states": {
+    "business-1280/home": {
+      "measured": 62,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2080
+    },
+    "business-1280/about": {
+      "measured": 59,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2194
+    },
+    "business-1280/login": {
+      "measured": 18,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "business-1280/recover": {
+      "measured": 4,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "business-1280/force-password-change": {
+      "measured": 6,
+      "gradients": 6,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "business-1280/dashboard": {
+      "measured": 51,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 824
+    },
+    "business-1280/files": {
+      "measured": 53,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 538
+    },
+    "business-1280/protection": {
+      "measured": 87,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1616
+    },
+    "business-1280/download-pin": {
+      "measured": 60,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 699
+    },
+    "business-1280/shared": {
+      "measured": 20,
+      "gradients": 8,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "business-1280/profile": {
+      "measured": 43,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 584
+    },
+    "business-1280/settings": {
+      "measured": 44,
+      "gradients": 1,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 927
+    },
+    "business-1280/settings-security": {
+      "measured": 74,
+      "gradients": 3,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2937
+    },
+    "business-1280/settings-advanced": {
+      "measured": 71,
+      "gradients": 1,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2379
+    },
+    "business-1280/settings-governance": {
+      "measured": 31,
+      "gradients": 1,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 926
+    },
+    "business-1280/groups": {
+      "measured": 20,
+      "gradients": 8,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 275
+    },
+    "business-1280/groups-visual-group": {
+      "measured": 26,
+      "gradients": 14,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 410
+    },
+    "business-1280/admin": {
+      "measured": 24,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "business-1280/admin-tests": {
+      "measured": 30,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "business-1280/access-center": {
+      "measured": 39,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 479
+    },
+    "business-1280/help": {
+      "measured": 42,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1344
+    },
+    "business-1280/room-visual-room": {
+      "measured": 19,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "business-1280/drop-visual": {
+      "measured": 21,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "business-1280/share-visual": {
+      "measured": 10,
+      "gradients": 10,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "business-1280/folder-share-visual": {
+      "measured": 14,
+      "gradients": 14,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "business-1280/request-visual": {
+      "measured": 18,
+      "gradients": 18,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "business-390/home": {
+      "measured": 61,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2061
+    },
+    "business-390/about": {
+      "measured": 58,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2175
+    },
+    "business-390/login": {
+      "measured": 18,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "business-390/recover": {
+      "measured": 4,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "business-390/force-password-change": {
+      "measured": 6,
+      "gradients": 6,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "business-390/dashboard": {
+      "measured": 46,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 761
+    },
+    "business-390/files": {
+      "measured": 22,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 434
+    },
+    "business-390/mobile-navigation": {
+      "measured": 32,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 550
+    },
+    "business-390/protection": {
+      "measured": 56,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1512
+    },
+    "business-390/download-pin": {
+      "measured": 29,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 595
+    },
+    "business-390/shared": {
+      "measured": 13,
+      "gradients": 8,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 379
+    },
+    "business-390/profile": {
+      "measured": 29,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 458
+    },
+    "business-390/settings": {
+      "measured": 37,
+      "gradients": 1,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 864
+    },
+    "business-390/settings-security": {
+      "measured": 67,
+      "gradients": 3,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2874
+    },
+    "business-390/settings-advanced": {
+      "measured": 64,
+      "gradients": 1,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2316
+    },
+    "business-390/settings-governance": {
+      "measured": 24,
+      "gradients": 1,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 863
+    },
+    "business-390/groups": {
+      "measured": 13,
+      "gradients": 8,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 212
+    },
+    "business-390/groups-visual-group": {
+      "measured": 19,
+      "gradients": 14,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 347
+    },
+    "business-390/admin": {
+      "measured": 13,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "business-390/admin-tests": {
+      "measured": 16,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 316
+    },
+    "business-390/access-center": {
+      "measured": 24,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 353
+    },
+    "business-390/help": {
+      "measured": 28,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1218
+    },
+    "business-390/room-visual-room": {
+      "measured": 12,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "business-390/drop-visual": {
+      "measured": 21,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "business-390/share-visual": {
+      "measured": 10,
+      "gradients": 10,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "business-390/folder-share-visual": {
+      "measured": 14,
+      "gradients": 14,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "business-390/request-visual": {
+      "measured": 18,
+      "gradients": 18,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "business-created-link/business-created-link": {
+      "measured": 41,
+      "gradients": 2,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1675
+    },
+    "business-es/home": {
+      "measured": 20,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2088
+    },
+    "business-es/files": {
+      "measured": 22,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 443
+    },
+    "business-es/protection": {
+      "measured": 56,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1521
+    },
+    "business-extra/move-file": {
+      "measured": 61,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 798
+    },
+    "business-extra/share-user": {
+      "measured": 59,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 646
+    },
+    "business-extra/file-share-link": {
+      "measured": 68,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 988
+    },
+    "business-extra/selected-upload": {
+      "measured": 56,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 587
+    },
+    "business-extra/active-folder": {
+      "measured": 53,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 541
+    },
+    "business-extra/folder-share-link": {
+      "measured": 65,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 862
+    },
+    "business-extra/agent-key-form": {
+      "measured": 112,
+      "gradients": 3,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 3610
+    },
+    "business-extra/admin-user-form": {
+      "measured": 20,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 294
+    },
+    "business-extra/group-form": {
+      "measured": 18,
+      "gradients": 13,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 270
+    },
+    "business-extra/onboarding-privacy": {
+      "measured": 57,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1434
+    },
+    "business-extra/onboarding-pin": {
+      "measured": 61,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1181
+    },
+    "business-extra/onboarding-folder": {
+      "measured": 53,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 903
+    },
+    "business-extra/onboarding-ready": {
+      "measured": 57,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1286
+    },
+    "business-forms/business-forms": {
+      "measured": 34,
+      "gradients": 0,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1356
+    },
+    "cyberpunk-1280/home": {
+      "measured": 62,
+      "gradients": 131,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2080
+    },
+    "cyberpunk-1280/about": {
+      "measured": 59,
+      "gradients": 109,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2194
+    },
+    "cyberpunk-1280/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "cyberpunk-1280/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "cyberpunk-1280/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "cyberpunk-1280/dashboard": {
+      "measured": 49,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 824
+    },
+    "cyberpunk-1280/files": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 538
+    },
+    "cyberpunk-1280/protection": {
+      "measured": 87,
+      "gradients": 87,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1616
+    },
+    "cyberpunk-1280/download-pin": {
+      "measured": 60,
+      "gradients": 60,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 699
+    },
+    "cyberpunk-1280/shared": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "cyberpunk-1280/profile": {
+      "measured": 43,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 584
+    },
+    "cyberpunk-1280/settings": {
+      "measured": 44,
+      "gradients": 45,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 927
+    },
+    "cyberpunk-1280/settings-security": {
+      "measured": 74,
+      "gradients": 77,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2937
+    },
+    "cyberpunk-1280/settings-advanced": {
+      "measured": 71,
+      "gradients": 72,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2379
+    },
+    "cyberpunk-1280/settings-governance": {
+      "measured": 31,
+      "gradients": 32,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 926
+    },
+    "cyberpunk-1280/groups": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 275
+    },
+    "cyberpunk-1280/groups-visual-group": {
+      "measured": 26,
+      "gradients": 40,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 410
+    },
+    "cyberpunk-1280/admin": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "cyberpunk-1280/admin-tests": {
+      "measured": 30,
+      "gradients": 30,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "cyberpunk-1280/access-center": {
+      "measured": 39,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 479
+    },
+    "cyberpunk-1280/help": {
+      "measured": 42,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1344
+    },
+    "cyberpunk-1280/room-visual-room": {
+      "measured": 19,
+      "gradients": 19,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "cyberpunk-1280/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "cyberpunk-1280/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "cyberpunk-1280/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "cyberpunk-1280/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "cyberpunk-390/home": {
+      "measured": 61,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2061
+    },
+    "cyberpunk-390/about": {
+      "measured": 58,
+      "gradients": 108,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2175
+    },
+    "cyberpunk-390/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "cyberpunk-390/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "cyberpunk-390/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "cyberpunk-390/dashboard": {
+      "measured": 46,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 761
+    },
+    "cyberpunk-390/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 434
+    },
+    "cyberpunk-390/mobile-navigation": {
+      "measured": 32,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 550
+    },
+    "cyberpunk-390/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1512
+    },
+    "cyberpunk-390/download-pin": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 595
+    },
+    "cyberpunk-390/shared": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 379
+    },
+    "cyberpunk-390/profile": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 458
+    },
+    "cyberpunk-390/settings": {
+      "measured": 37,
+      "gradients": 38,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 864
+    },
+    "cyberpunk-390/settings-security": {
+      "measured": 67,
+      "gradients": 70,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2874
+    },
+    "cyberpunk-390/settings-advanced": {
+      "measured": 64,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2316
+    },
+    "cyberpunk-390/settings-governance": {
+      "measured": 24,
+      "gradients": 25,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 863
+    },
+    "cyberpunk-390/groups": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 212
+    },
+    "cyberpunk-390/groups-visual-group": {
+      "measured": 19,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 347
+    },
+    "cyberpunk-390/admin": {
+      "measured": 13,
+      "gradients": 13,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "cyberpunk-390/admin-tests": {
+      "measured": 16,
+      "gradients": 16,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 316
+    },
+    "cyberpunk-390/access-center": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 353
+    },
+    "cyberpunk-390/help": {
+      "measured": 28,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1218
+    },
+    "cyberpunk-390/room-visual-room": {
+      "measured": 12,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "cyberpunk-390/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "cyberpunk-390/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "cyberpunk-390/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "cyberpunk-390/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "cyberpunk-created-link/cyberpunk-created-link": {
+      "measured": 41,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1675
+    },
+    "cyberpunk-es/home": {
+      "measured": 20,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2088
+    },
+    "cyberpunk-es/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 443
+    },
+    "cyberpunk-es/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1521
+    },
+    "cyberpunk-extra/move-file": {
+      "measured": 61,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 798
+    },
+    "cyberpunk-extra/share-user": {
+      "measured": 59,
+      "gradients": 59,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 646
+    },
+    "cyberpunk-extra/file-share-link": {
+      "measured": 68,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 988
+    },
+    "cyberpunk-extra/selected-upload": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 587
+    },
+    "cyberpunk-extra/active-folder": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 541
+    },
+    "cyberpunk-extra/folder-share-link": {
+      "measured": 65,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 862
+    },
+    "cyberpunk-extra/agent-key-form": {
+      "measured": 112,
+      "gradients": 115,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 3610
+    },
+    "cyberpunk-extra/admin-user-form": {
+      "measured": 20,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 294
+    },
+    "cyberpunk-extra/group-form": {
+      "measured": 18,
+      "gradients": 31,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 270
+    },
+    "cyberpunk-extra/onboarding-privacy": {
+      "measured": 59,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1434
+    },
+    "cyberpunk-extra/onboarding-pin": {
+      "measured": 61,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1181
+    },
+    "cyberpunk-extra/onboarding-folder": {
+      "measured": 53,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 903
+    },
+    "cyberpunk-extra/onboarding-ready": {
+      "measured": 57,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1286
+    },
+    "cyberpunk-forms/cyberpunk-forms": {
+      "measured": 34,
+      "gradients": 34,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1356
+    },
+    "dark-1280/home": {
+      "measured": 62,
+      "gradients": 131,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2080
+    },
+    "dark-1280/about": {
+      "measured": 59,
+      "gradients": 109,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2194
+    },
+    "dark-1280/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "dark-1280/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "dark-1280/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "dark-1280/dashboard": {
+      "measured": 51,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 824
+    },
+    "dark-1280/files": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 538
+    },
+    "dark-1280/protection": {
+      "measured": 87,
+      "gradients": 87,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1616
+    },
+    "dark-1280/download-pin": {
+      "measured": 60,
+      "gradients": 60,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 699
+    },
+    "dark-1280/shared": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "dark-1280/profile": {
+      "measured": 43,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 584
+    },
+    "dark-1280/settings": {
+      "measured": 44,
+      "gradients": 45,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 927
+    },
+    "dark-1280/settings-security": {
+      "measured": 74,
+      "gradients": 77,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2937
+    },
+    "dark-1280/settings-advanced": {
+      "measured": 71,
+      "gradients": 72,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2379
+    },
+    "dark-1280/settings-governance": {
+      "measured": 31,
+      "gradients": 32,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 926
+    },
+    "dark-1280/groups": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 275
+    },
+    "dark-1280/groups-visual-group": {
+      "measured": 26,
+      "gradients": 40,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 410
+    },
+    "dark-1280/admin": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "dark-1280/admin-tests": {
+      "measured": 30,
+      "gradients": 30,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "dark-1280/access-center": {
+      "measured": 39,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 479
+    },
+    "dark-1280/help": {
+      "measured": 42,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1344
+    },
+    "dark-1280/room-visual-room": {
+      "measured": 19,
+      "gradients": 19,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "dark-1280/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "dark-1280/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "dark-1280/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "dark-1280/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "dark-390/home": {
+      "measured": 61,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2061
+    },
+    "dark-390/about": {
+      "measured": 58,
+      "gradients": 108,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2175
+    },
+    "dark-390/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "dark-390/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "dark-390/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "dark-390/dashboard": {
+      "measured": 44,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 761
+    },
+    "dark-390/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 434
+    },
+    "dark-390/mobile-navigation": {
+      "measured": 32,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 550
+    },
+    "dark-390/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1512
+    },
+    "dark-390/download-pin": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 595
+    },
+    "dark-390/shared": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 379
+    },
+    "dark-390/profile": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 458
+    },
+    "dark-390/settings": {
+      "measured": 37,
+      "gradients": 38,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 864
+    },
+    "dark-390/settings-security": {
+      "measured": 67,
+      "gradients": 70,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2874
+    },
+    "dark-390/settings-advanced": {
+      "measured": 64,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2316
+    },
+    "dark-390/settings-governance": {
+      "measured": 24,
+      "gradients": 25,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 863
+    },
+    "dark-390/groups": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 212
+    },
+    "dark-390/groups-visual-group": {
+      "measured": 19,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 347
+    },
+    "dark-390/admin": {
+      "measured": 13,
+      "gradients": 13,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "dark-390/admin-tests": {
+      "measured": 16,
+      "gradients": 16,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 316
+    },
+    "dark-390/access-center": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 353
+    },
+    "dark-390/help": {
+      "measured": 28,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1218
+    },
+    "dark-390/room-visual-room": {
+      "measured": 12,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "dark-390/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "dark-390/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "dark-390/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "dark-390/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "dark-created-link/dark-created-link": {
+      "measured": 41,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1675
+    },
+    "dark-es/home": {
+      "measured": 20,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2088
+    },
+    "dark-es/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 443
+    },
+    "dark-es/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1521
+    },
+    "dark-extra/move-file": {
+      "measured": 61,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 798
+    },
+    "dark-extra/share-user": {
+      "measured": 59,
+      "gradients": 59,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 646
+    },
+    "dark-extra/file-share-link": {
+      "measured": 68,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 988
+    },
+    "dark-extra/selected-upload": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 587
+    },
+    "dark-extra/active-folder": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 541
+    },
+    "dark-extra/folder-share-link": {
+      "measured": 65,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 862
+    },
+    "dark-extra/agent-key-form": {
+      "measured": 112,
+      "gradients": 115,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 3610
+    },
+    "dark-extra/admin-user-form": {
+      "measured": 20,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 294
+    },
+    "dark-extra/group-form": {
+      "measured": 18,
+      "gradients": 31,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 270
+    },
+    "dark-extra/onboarding-privacy": {
+      "measured": 59,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1434
+    },
+    "dark-extra/onboarding-pin": {
+      "measured": 61,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1181
+    },
+    "dark-extra/onboarding-folder": {
+      "measured": 53,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 903
+    },
+    "dark-extra/onboarding-ready": {
+      "measured": 57,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1286
+    },
+    "dark-forms/dark-forms": {
+      "measured": 34,
+      "gradients": 34,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1356
+    },
+    "elegant-1280/home": {
+      "measured": 62,
+      "gradients": 131,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2080
+    },
+    "elegant-1280/about": {
+      "measured": 59,
+      "gradients": 109,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2194
+    },
+    "elegant-1280/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "elegant-1280/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "elegant-1280/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "elegant-1280/dashboard": {
+      "measured": 51,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 824
+    },
+    "elegant-1280/files": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 538
+    },
+    "elegant-1280/protection": {
+      "measured": 87,
+      "gradients": 87,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1616
+    },
+    "elegant-1280/download-pin": {
+      "measured": 60,
+      "gradients": 60,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 699
+    },
+    "elegant-1280/shared": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "elegant-1280/profile": {
+      "measured": 43,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 584
+    },
+    "elegant-1280/settings": {
+      "measured": 44,
+      "gradients": 45,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 927
+    },
+    "elegant-1280/settings-security": {
+      "measured": 74,
+      "gradients": 77,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2937
+    },
+    "elegant-1280/settings-advanced": {
+      "measured": 71,
+      "gradients": 72,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2379
+    },
+    "elegant-1280/settings-governance": {
+      "measured": 31,
+      "gradients": 32,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 926
+    },
+    "elegant-1280/groups": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 275
+    },
+    "elegant-1280/groups-visual-group": {
+      "measured": 26,
+      "gradients": 40,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 410
+    },
+    "elegant-1280/admin": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "elegant-1280/admin-tests": {
+      "measured": 30,
+      "gradients": 30,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "elegant-1280/access-center": {
+      "measured": 39,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 479
+    },
+    "elegant-1280/help": {
+      "measured": 42,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1344
+    },
+    "elegant-1280/room-visual-room": {
+      "measured": 19,
+      "gradients": 19,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "elegant-1280/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "elegant-1280/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "elegant-1280/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "elegant-1280/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "elegant-390/home": {
+      "measured": 61,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2061
+    },
+    "elegant-390/about": {
+      "measured": 58,
+      "gradients": 108,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2175
+    },
+    "elegant-390/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "elegant-390/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "elegant-390/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "elegant-390/dashboard": {
+      "measured": 42,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 761
+    },
+    "elegant-390/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 434
+    },
+    "elegant-390/mobile-navigation": {
+      "measured": 32,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 550
+    },
+    "elegant-390/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1512
+    },
+    "elegant-390/download-pin": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 595
+    },
+    "elegant-390/shared": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 379
+    },
+    "elegant-390/profile": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 458
+    },
+    "elegant-390/settings": {
+      "measured": 37,
+      "gradients": 38,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 864
+    },
+    "elegant-390/settings-security": {
+      "measured": 67,
+      "gradients": 70,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2874
+    },
+    "elegant-390/settings-advanced": {
+      "measured": 64,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2316
+    },
+    "elegant-390/settings-governance": {
+      "measured": 24,
+      "gradients": 25,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 863
+    },
+    "elegant-390/groups": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 212
+    },
+    "elegant-390/groups-visual-group": {
+      "measured": 19,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 347
+    },
+    "elegant-390/admin": {
+      "measured": 13,
+      "gradients": 13,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "elegant-390/admin-tests": {
+      "measured": 16,
+      "gradients": 16,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 316
+    },
+    "elegant-390/access-center": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 353
+    },
+    "elegant-390/help": {
+      "measured": 28,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1218
+    },
+    "elegant-390/room-visual-room": {
+      "measured": 12,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "elegant-390/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "elegant-390/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "elegant-390/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "elegant-390/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "elegant-created-link/elegant-created-link": {
+      "measured": 41,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1675
+    },
+    "elegant-es/home": {
+      "measured": 20,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2088
+    },
+    "elegant-es/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 443
+    },
+    "elegant-es/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1521
+    },
+    "elegant-extra/move-file": {
+      "measured": 61,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 798
+    },
+    "elegant-extra/share-user": {
+      "measured": 59,
+      "gradients": 59,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 646
+    },
+    "elegant-extra/file-share-link": {
+      "measured": 68,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 988
+    },
+    "elegant-extra/selected-upload": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 587
+    },
+    "elegant-extra/active-folder": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 541
+    },
+    "elegant-extra/folder-share-link": {
+      "measured": 65,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 862
+    },
+    "elegant-extra/agent-key-form": {
+      "measured": 112,
+      "gradients": 115,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 3610
+    },
+    "elegant-extra/admin-user-form": {
+      "measured": 20,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 294
+    },
+    "elegant-extra/group-form": {
+      "measured": 18,
+      "gradients": 31,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 270
+    },
+    "elegant-extra/onboarding-privacy": {
+      "measured": 59,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1434
+    },
+    "elegant-extra/onboarding-pin": {
+      "measured": 61,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1181
+    },
+    "elegant-extra/onboarding-folder": {
+      "measured": 53,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 903
+    },
+    "elegant-extra/onboarding-ready": {
+      "measured": 57,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1286
+    },
+    "elegant-forms/elegant-forms": {
+      "measured": 34,
+      "gradients": 34,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1356
+    },
+    "light-1280/home": {
+      "measured": 62,
+      "gradients": 131,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2080
+    },
+    "light-1280/about": {
+      "measured": 59,
+      "gradients": 109,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2194
+    },
+    "light-1280/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "light-1280/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "light-1280/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "light-1280/dashboard": {
+      "measured": 49,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 824
+    },
+    "light-1280/files": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 538
+    },
+    "light-1280/protection": {
+      "measured": 87,
+      "gradients": 87,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1616
+    },
+    "light-1280/download-pin": {
+      "measured": 60,
+      "gradients": 60,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 699
+    },
+    "light-1280/shared": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "light-1280/profile": {
+      "measured": 43,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 584
+    },
+    "light-1280/settings": {
+      "measured": 44,
+      "gradients": 45,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 927
+    },
+    "light-1280/settings-security": {
+      "measured": 74,
+      "gradients": 77,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2937
+    },
+    "light-1280/settings-advanced": {
+      "measured": 71,
+      "gradients": 72,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2379
+    },
+    "light-1280/settings-governance": {
+      "measured": 31,
+      "gradients": 32,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 926
+    },
+    "light-1280/groups": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 275
+    },
+    "light-1280/groups-visual-group": {
+      "measured": 26,
+      "gradients": 40,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 410
+    },
+    "light-1280/admin": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "light-1280/admin-tests": {
+      "measured": 30,
+      "gradients": 30,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "light-1280/access-center": {
+      "measured": 39,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 479
+    },
+    "light-1280/help": {
+      "measured": 42,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1344
+    },
+    "light-1280/room-visual-room": {
+      "measured": 19,
+      "gradients": 19,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "light-1280/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "light-1280/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "light-1280/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "light-1280/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "light-390/home": {
+      "measured": 61,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2061
+    },
+    "light-390/about": {
+      "measured": 58,
+      "gradients": 108,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2175
+    },
+    "light-390/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "light-390/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "light-390/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "light-390/dashboard": {
+      "measured": 44,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 761
+    },
+    "light-390/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 434
+    },
+    "light-390/mobile-navigation": {
+      "measured": 32,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 550
+    },
+    "light-390/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1512
+    },
+    "light-390/download-pin": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 595
+    },
+    "light-390/shared": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 379
+    },
+    "light-390/profile": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 458
+    },
+    "light-390/settings": {
+      "measured": 37,
+      "gradients": 38,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 864
+    },
+    "light-390/settings-security": {
+      "measured": 67,
+      "gradients": 70,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2874
+    },
+    "light-390/settings-advanced": {
+      "measured": 64,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2316
+    },
+    "light-390/settings-governance": {
+      "measured": 24,
+      "gradients": 25,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 863
+    },
+    "light-390/groups": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 212
+    },
+    "light-390/groups-visual-group": {
+      "measured": 19,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 347
+    },
+    "light-390/admin": {
+      "measured": 13,
+      "gradients": 13,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "light-390/admin-tests": {
+      "measured": 16,
+      "gradients": 16,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 316
+    },
+    "light-390/access-center": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 353
+    },
+    "light-390/help": {
+      "measured": 28,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1218
+    },
+    "light-390/room-visual-room": {
+      "measured": 12,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "light-390/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "light-390/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "light-390/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "light-390/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "light-created-link/light-created-link": {
+      "measured": 41,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1675
+    },
+    "light-es/home": {
+      "measured": 20,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2088
+    },
+    "light-es/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 443
+    },
+    "light-es/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1521
+    },
+    "light-extra/move-file": {
+      "measured": 61,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 798
+    },
+    "light-extra/share-user": {
+      "measured": 59,
+      "gradients": 59,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 646
+    },
+    "light-extra/file-share-link": {
+      "measured": 68,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 988
+    },
+    "light-extra/selected-upload": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 587
+    },
+    "light-extra/active-folder": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 541
+    },
+    "light-extra/folder-share-link": {
+      "measured": 65,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 862
+    },
+    "light-extra/agent-key-form": {
+      "measured": 112,
+      "gradients": 115,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 3610
+    },
+    "light-extra/admin-user-form": {
+      "measured": 20,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 294
+    },
+    "light-extra/group-form": {
+      "measured": 18,
+      "gradients": 31,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 270
+    },
+    "light-extra/onboarding-privacy": {
+      "measured": 57,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1434
+    },
+    "light-extra/onboarding-pin": {
+      "measured": 61,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1181
+    },
+    "light-extra/onboarding-folder": {
+      "measured": 53,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 903
+    },
+    "light-extra/onboarding-ready": {
+      "measured": 57,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1286
+    },
+    "light-forms/light-forms": {
+      "measured": 34,
+      "gradients": 34,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1356
+    },
+    "quantix-1280/home": {
+      "measured": 62,
+      "gradients": 131,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2080
+    },
+    "quantix-1280/about": {
+      "measured": 59,
+      "gradients": 109,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2194
+    },
+    "quantix-1280/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "quantix-1280/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "quantix-1280/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "quantix-1280/dashboard": {
+      "measured": 51,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 824
+    },
+    "quantix-1280/files": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 538
+    },
+    "quantix-1280/protection": {
+      "measured": 87,
+      "gradients": 87,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1616
+    },
+    "quantix-1280/download-pin": {
+      "measured": 60,
+      "gradients": 60,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 699
+    },
+    "quantix-1280/shared": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "quantix-1280/profile": {
+      "measured": 43,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 584
+    },
+    "quantix-1280/settings": {
+      "measured": 44,
+      "gradients": 45,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 927
+    },
+    "quantix-1280/settings-security": {
+      "measured": 74,
+      "gradients": 77,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2937
+    },
+    "quantix-1280/settings-advanced": {
+      "measured": 71,
+      "gradients": 72,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 2379
+    },
+    "quantix-1280/settings-governance": {
+      "measured": 31,
+      "gradients": 32,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 926
+    },
+    "quantix-1280/groups": {
+      "measured": 20,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 275
+    },
+    "quantix-1280/groups-visual-group": {
+      "measured": 26,
+      "gradients": 40,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 410
+    },
+    "quantix-1280/admin": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "quantix-1280/admin-tests": {
+      "measured": 30,
+      "gradients": 30,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 442
+    },
+    "quantix-1280/access-center": {
+      "measured": 39,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 479
+    },
+    "quantix-1280/help": {
+      "measured": 42,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 1344
+    },
+    "quantix-1280/room-visual-room": {
+      "measured": 19,
+      "gradients": 19,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 284
+    },
+    "quantix-1280/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "quantix-1280/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "quantix-1280/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "quantix-1280/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "quantix-390/home": {
+      "measured": 61,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2061
+    },
+    "quantix-390/about": {
+      "measured": 58,
+      "gradients": 108,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2175
+    },
+    "quantix-390/login": {
+      "measured": 18,
+      "gradients": 39,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 535
+    },
+    "quantix-390/recover": {
+      "measured": 4,
+      "gradients": 4,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 139
+    },
+    "quantix-390/force-password-change": {
+      "measured": 6,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 208
+    },
+    "quantix-390/dashboard": {
+      "measured": 44,
+      "gradients": 50,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 761
+    },
+    "quantix-390/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 434
+    },
+    "quantix-390/mobile-navigation": {
+      "measured": 32,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 550
+    },
+    "quantix-390/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1512
+    },
+    "quantix-390/download-pin": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 595
+    },
+    "quantix-390/shared": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 379
+    },
+    "quantix-390/profile": {
+      "measured": 29,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 458
+    },
+    "quantix-390/settings": {
+      "measured": 37,
+      "gradients": 38,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 864
+    },
+    "quantix-390/settings-security": {
+      "measured": 67,
+      "gradients": 70,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2874
+    },
+    "quantix-390/settings-advanced": {
+      "measured": 64,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2316
+    },
+    "quantix-390/settings-governance": {
+      "measured": 24,
+      "gradients": 25,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 863
+    },
+    "quantix-390/groups": {
+      "measured": 13,
+      "gradients": 21,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 212
+    },
+    "quantix-390/groups-visual-group": {
+      "measured": 19,
+      "gradients": 33,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 347
+    },
+    "quantix-390/admin": {
+      "measured": 13,
+      "gradients": 13,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "quantix-390/admin-tests": {
+      "measured": 16,
+      "gradients": 16,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 316
+    },
+    "quantix-390/access-center": {
+      "measured": 24,
+      "gradients": 24,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 353
+    },
+    "quantix-390/help": {
+      "measured": 28,
+      "gradients": 29,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1218
+    },
+    "quantix-390/room-visual-room": {
+      "measured": 12,
+      "gradients": 12,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 221
+    },
+    "quantix-390/drop-visual": {
+      "measured": 21,
+      "gradients": 42,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 806
+    },
+    "quantix-390/share-visual": {
+      "measured": 10,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 181
+    },
+    "quantix-390/folder-share-visual": {
+      "measured": 14,
+      "gradients": 28,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 238
+    },
+    "quantix-390/request-visual": {
+      "measured": 18,
+      "gradients": 36,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 922
+    },
+    "quantix-created-link/quantix-created-link": {
+      "measured": 41,
+      "gradients": 43,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1675
+    },
+    "quantix-es/home": {
+      "measured": 20,
+      "gradients": 130,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 2088
+    },
+    "quantix-es/files": {
+      "measured": 22,
+      "gradients": 22,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 443
+    },
+    "quantix-es/protection": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1521
+    },
+    "quantix-extra/move-file": {
+      "measured": 61,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 798
+    },
+    "quantix-extra/share-user": {
+      "measured": 59,
+      "gradients": 59,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 646
+    },
+    "quantix-extra/file-share-link": {
+      "measured": 68,
+      "gradients": 68,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 988
+    },
+    "quantix-extra/selected-upload": {
+      "measured": 56,
+      "gradients": 56,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 587
+    },
+    "quantix-extra/active-folder": {
+      "measured": 53,
+      "gradients": 53,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 541
+    },
+    "quantix-extra/folder-share-link": {
+      "measured": 65,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 1280,
+      "overflowElements": [],
+      "textLength": 862
+    },
+    "quantix-extra/agent-key-form": {
+      "measured": 112,
+      "gradients": 115,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 3610
+    },
+    "quantix-extra/admin-user-form": {
+      "measured": 20,
+      "gradients": 20,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 294
+    },
+    "quantix-extra/group-form": {
+      "measured": 18,
+      "gradients": 31,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 270
+    },
+    "quantix-extra/onboarding-privacy": {
+      "measured": 59,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1434
+    },
+    "quantix-extra/onboarding-pin": {
+      "measured": 61,
+      "gradients": 65,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1181
+    },
+    "quantix-extra/onboarding-folder": {
+      "measured": 53,
+      "gradients": 57,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 903
+    },
+    "quantix-extra/onboarding-ready": {
+      "measured": 57,
+      "gradients": 61,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1286
+    },
+    "quantix-forms/quantix-forms": {
+      "measured": 34,
+      "gradients": 34,
+      "failures": [],
+      "overflow": false,
+      "width": 390,
+      "overflowElements": [],
+      "textLength": 1356
+    }
+  }
+}

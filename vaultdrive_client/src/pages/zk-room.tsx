@@ -320,7 +320,7 @@ export default function ZKRoom() {
 
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-semibold cursor-pointer transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-xl text-xs font-semibold cursor-pointer transition-all active:scale-95"
           >
             {copied ? (
               <>
@@ -440,7 +440,7 @@ export default function ZKRoom() {
                       <div
                         className={`rounded-2xl px-4 py-2 text-xs font-medium ${
                           isSelf
-                            ? "bg-primary text-black rounded-tr-none"
+                            ? "bg-primary text-primary-foreground rounded-tr-none"
                             : "bg-muted text-foreground rounded-tl-none border border-border"
                         }`}
                       >
@@ -464,7 +464,7 @@ export default function ZKRoom() {
               />
               <button
                 type="submit"
-                className="p-2.5 bg-primary hover:bg-primary/95 text-black rounded-xl transition-all cursor-pointer active:scale-95"
+                className="p-2.5 bg-primary hover:bg-primary/95 text-primary-foreground rounded-xl transition-all cursor-pointer active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </button>

@@ -19,16 +19,16 @@
   --primary-foreground:     240 44% 7%;    /* dark on cyan */
 
   --secondary:              295 94% 54%;   /* #ea12ff magenta */
-  --secondary-foreground:   0 0% 100%;
+  --secondary-foreground:   240 44% 7%;
 
   --muted:                  240 30% 15%;
-  --muted-foreground:       220 15% 55%;
+  --muted-foreground:       220 15% 68%;
 
   --accent:                 295 94% 54%;   /* magenta */
-  --accent-foreground:      0 0% 100%;
+  --accent-foreground:      240 44% 7%;
 
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive:            0 80% 76%;
+  --destructive-foreground: 0 0% 5%;
 
   --border:                 240 35% 20%;
   --input:                  240 30% 15%;
@@ -94,12 +94,12 @@
   --secondary-foreground:   214 15% 29%;
 
   --muted:                  36 15% 94%;
-  --muted-foreground:       220 9% 46%;
+  --muted-foreground:       220 9% 40%;
 
   --accent:                 358 24% 40%;
   --accent-foreground:      0 0% 100%;
 
-  --destructive:            0 84% 60%;
+  --destructive:            0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
   --border:                 214 15% 29% / 0.08;
@@ -160,13 +160,13 @@
   --secondary-foreground:   36 15% 94%;
 
   --muted:                  214 15% 29%;
-  --muted-foreground:       220 12% 65%;   /* bumped from 46% → 65% to hit WCAG AA 4.5:1 on card */
+  --muted-foreground:       220 12% 76%;
 
   --accent:                 357 23% 68%;
   --accent-foreground:      225 23% 16%;
 
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive:            0 80% 81%;
+  --destructive-foreground: 0 0% 5%;
 
   --border:                 0 0% 90% / 0.08;
   --input:                  214 15% 29%;
@@ -223,16 +223,16 @@
   --primary-foreground:     0 0% 5%;
 
   --secondary:              322 100% 50%;  /* #ff0090 hot pink */
-  --secondary-foreground:   0 0% 100%;
+  --secondary-foreground:   0 0% 5%;
 
   --muted:                  0 0% 12%;
-  --muted-foreground:       0 0% 55%;
+  --muted-foreground:       0 0% 68%;
 
   --accent:                 322 100% 50%;
-  --accent-foreground:      0 0% 100%;
+  --accent-foreground:      0 0% 5%;
 
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive:            0 80% 76%;
+  --destructive-foreground: 0 0% 5%;
 
   --border:                 66 100% 50% / 0.15;
   --input:                  0 0% 12%;
@@ -288,13 +288,13 @@
   --secondary-foreground:   40 25% 90%;
 
   --muted:                  35 30% 15%;
-  --muted-foreground:       40 15% 55%;
+  --muted-foreground:       40 15% 68%;
 
   --accent:                 41 80% 47%;    /* #d4a017 lighter gold */
   --accent-foreground:      35 50% 7%;
 
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive:            0 80% 76%;
+  --destructive-foreground: 0 0% 5%;
 
   --border:                 43 87% 38% / 0.20;
   --input:                  35 30% 15%;
@@ -349,12 +349,12 @@
   --secondary-foreground:   222 47% 11%;
 
   --muted:                  214 32% 91%;
-  --muted-foreground:       215 16% 47%;   /* #64748b */
+  --muted-foreground:       215 16% 39%;
 
   --accent:                 213 94% 68%;   /* #3b82f6 */
-  --accent-foreground:      0 0% 100%;
+  --accent-foreground:      222 47% 11%;
 
-  --destructive:            0 84% 60%;
+  --destructive:            0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
   --border:                 214 32% 91%;

@@ -9,8 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { useTheme } from "../theme-provider";
-import { cn } from "../../lib/utils";
 import { getFileCredentialScheme } from "../../utils/file-credential";
 
 export interface BulkDownloadFile {
@@ -51,8 +49,6 @@ export function BulkDownloadModal({
   onDownloadFile,
   onClose,
 }: BulkDownloadModalProps) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const needsPin = files.some((file) => {
     const scheme = getFileCredentialScheme(file);
     return scheme === "drop-pin" || scheme === "pin";
@@ -151,41 +147,28 @@ export function BulkDownloadModal({
       aria-labelledby="bulk-download-title"
       aria-describedby="bulk-download-description"
     >
-      <Card
-        className={cn(
-          "w-full max-w-lg mx-4 max-h-[85vh] flex flex-col border",
-          isDark
-            ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
-            : "bg-card border-border text-foreground"
-        )}
-      >
-        <CardHeader className={cn("border-b shrink-0", isDark ? "border-white/10" : "border-border")}>
+      <Card className="w-full max-w-lg mx-4 max-h-[85vh] flex flex-col border bg-card border-border text-foreground">
+        <CardHeader className="border-b border-border shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle
               id="bulk-download-title"
-              className={cn("flex items-center gap-2", isDark ? "text-white" : "text-foreground")}
+              className="flex items-center gap-2 text-foreground"
             >
-              <Download className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
+              <Download className="w-5 h-5 text-primary" />
               Download {files.length} file{files.length !== 1 ? "s" : ""}
             </CardTitle>
             {!running && (
               <button
                 type="button"
                 onClick={onClose}
-                className={cn(
-                  "transition-colors",
-                  isDark ? "text-white/75 hover:text-white" : "text-muted-foreground hover:text-foreground"
-                )}
+                className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <CardDescription
-            id="bulk-download-description"
-            className={isDark ? "text-white/80" : "text-muted-foreground"}
-          >
+          <CardDescription id="bulk-download-description" className="text-muted-foreground">
             {files.length === 0
               ? "No files selected."
               : done
@@ -215,11 +198,11 @@ export function BulkDownloadModal({
                 <div className="space-y-1.5">
                   <label
                     htmlFor="bulk-download-pin"
-                    className={cn("text-sm font-medium flex items-center gap-1.5", isDark ? "text-white" : "text-foreground")}
+                    className="text-sm font-medium flex items-center gap-1.5 text-foreground"
                   >
                     <Key className="w-3.5 h-3.5" />
                     4-digit PIN
-                    <span className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
+                    <span className="text-xs text-muted-foreground">
                       (used across your vault)
                     </span>
                   </label>
@@ -234,12 +217,7 @@ export function BulkDownloadModal({
                     value={pinCredential}
                     onChange={(e) => setPinCredential(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     placeholder="••••"
-                    className={cn(
-                      "w-full px-3 py-2 border rounded-md text-center tracking-widest text-xl focus:outline-none",
-                      isDark
-                        ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                        : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
-                    )}
+                    className="w-full px-3 py-2 border rounded-md text-center tracking-widest text-xl focus:outline-none bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </div>
               )}
@@ -248,11 +226,11 @@ export function BulkDownloadModal({
                 <div className="space-y-1.5">
                   <label
                     htmlFor="bulk-download-password"
-                    className={cn("text-sm font-medium flex items-center gap-1.5", isDark ? "text-white" : "text-foreground")}
+                    className="text-sm font-medium flex items-center gap-1.5 text-foreground"
                   >
                     <Key className="w-3.5 h-3.5" />
                     File credential
-                    <span className={cn("text-xs", isDark ? "text-white/75" : "text-muted-foreground")}>
+                    <span className="text-xs text-muted-foreground">
                       (only for older non-PIN files)
                     </span>
                   </label>
@@ -265,12 +243,7 @@ export function BulkDownloadModal({
                     value={passwordCredential}
                     onChange={(e) => setPasswordCredential(e.target.value)}
                     placeholder="Enter password"
-                    className={cn(
-                      "w-full px-3 py-2 border rounded-md focus:outline-none",
-                      isDark
-                        ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                        : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
-                    )}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </div>
               )}
@@ -284,38 +257,32 @@ export function BulkDownloadModal({
                 return (
                 <div
                   key={file.id}
-                  className={cn(
-                    "flex items-center gap-3 p-2.5 rounded-lg border",
-                    isDark ? "bg-white/12 border-white/10" : "bg-muted border-border"
-                  )}
+                  className="flex items-center gap-3 p-2.5 rounded-lg border bg-muted border-border"
                 >
                   <div className="shrink-0">
                     {status === "pending" && (
                       <div
-                        className={cn(
-                          "w-4 h-4 rounded-full border-2",
-                          isDark ? "border-white/30" : "border-muted-foreground/35"
-                        )}
+                        className="w-4 h-4 rounded-full border-2 border-muted-foreground/50"
                       />
                     )}
                     {status === "downloading" && (
-                      <Loader2 className={cn("w-4 h-4 animate-spin", isDark ? "text-primary-foreground" : "text-primary")} />
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     )}
                     {status === "done" && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                     {status === "error" && <AlertCircle className="w-4 h-4 text-red-500" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-medium truncate", isDark ? "text-white" : "text-foreground")}>
+                    <p className="text-sm font-medium truncate text-foreground">
                       {file.filename}
                     </p>
                     {status === "error" && fileErrors[file.id] && (
-                      <p className={cn("text-xs truncate mt-0.5", isDark ? "text-red-300" : "text-destructive")}>
+                      <p className="text-xs truncate mt-0.5 text-destructive">
                         {fileErrors[file.id]}
                       </p>
                     )}
                   </div>
                   {(scheme === "drop-pin" || scheme === "pin") && (
-                    <span className={cn("text-xs shrink-0", isDark ? "text-violet-300" : "text-primary")}>PIN</span>
+                    <span className="text-xs shrink-0 text-foreground">PIN</span>
                   )}
                 </div>
                 );
@@ -323,17 +290,12 @@ export function BulkDownloadModal({
             </div>
           </CardContent>
 
-          <div className={cn("border-t p-4 shrink-0 flex gap-2", isDark ? "border-white/10" : "border-border")}>
+          <div className="border-t border-border p-4 shrink-0 flex gap-2">
             {done ? (
               <Button
                 type="button"
                 onClick={onClose}
-                className={cn(
-                  "w-full font-semibold",
-                  isDark
-                    ? "bg-white text-primary hover:bg-primary/10"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                )}
+                className="w-full font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Done
               </Button>
@@ -344,19 +306,13 @@ export function BulkDownloadModal({
                   variant="modal-cancel"
                   onClick={onClose}
                   disabled={running}
-                  className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={!credentialsReady || running}
-                  className={cn(
-                    "flex-1 font-semibold gap-1.5",
-                    isDark
-                      ? "bg-white text-primary hover:bg-primary/10"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  )}
+                  className="flex-1 font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {running ? (
                     <>

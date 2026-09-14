@@ -202,7 +202,7 @@ export function AgentDeveloperPortalSection() {
           onClick={() => setActiveCategory(null)}
           className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
             activeCategory === null
-              ? "bg-primary text-white border-primary"
+              ? "bg-primary text-primary-foreground border-primary"
               : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
           }`}
         >
@@ -217,7 +217,7 @@ export function AgentDeveloperPortalSection() {
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
               className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
                 activeCategory === cat
-                  ? "bg-primary text-white border-primary"
+                  ? "bg-primary text-primary-foreground border-primary"
                   : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
               }`}
             >

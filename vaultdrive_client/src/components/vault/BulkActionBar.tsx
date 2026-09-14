@@ -23,18 +23,18 @@ export function BulkActionBar({
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
       <div
-        className="pointer-events-auto flex items-center gap-3 rounded-full px-5 py-3 shadow-2xl border border-white/10 bg-card"
+        className="pointer-events-auto flex items-center gap-3 rounded-full px-5 py-3 shadow-2xl border border-border bg-card text-card-foreground"
       >
-        <span className="text-sm font-semibold text-white">
+        <span className="text-sm font-semibold text-foreground">
           {selectedCount} selected {scopeLabel}
         </span>
 
-        <div className="w-px h-5 bg-white/30" />
+        <div className="w-px h-5 bg-border" />
 
         <Button
           size="sm"
           onClick={onDownload}
-          className="rounded-full bg-primary hover:bg-primary/80 text-white border-0 gap-1.5 px-4 h-8 text-sm font-medium"
+          className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground border-0 gap-1.5 px-4 h-8 text-sm font-medium"
         >
           <Download className="w-3.5 h-3.5" />
           Download {selectedCount}
@@ -54,7 +54,7 @@ export function BulkActionBar({
         <button
           type="button"
           onClick={onClear}
-          className="ml-1 text-white/80 hover:text-white transition-colors"
+          className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Clear selection"
         >
           <X className="w-4 h-4" />

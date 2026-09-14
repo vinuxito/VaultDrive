@@ -84,6 +84,21 @@ describe("BulkDownloadModal", () => {
     expect(screen.queryByText(/credentials ready/i)).not.toBeInTheDocument();
   });
 
+  it("uses semantic card and control colors so every skin remains readable", () => {
+    const onDownloadFile = vi.fn().mockResolvedValue({ success: true });
+    render(
+      <BulkDownloadModal files={[files[0]]} onDownloadFile={onDownloadFile} onClose={() => undefined} />,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: /download 1 file/i });
+    expect(dialog.firstElementChild).toHaveClass("bg-card", "text-foreground", "border-border");
+    expect(screen.getByLabelText(/4-digit pin/i)).toHaveClass("bg-background", "text-foreground");
+    expect(screen.getByRole("button", { name: /start download/i })).toHaveClass(
+      "bg-primary",
+      "text-primary-foreground",
+    );
+  });
+
   it("asks for a PIN when metadata declares the PIN credential scheme", async () => {
     vaultMocks.getCredential.mockReturnValue(null);
     const onDownloadFile = vi.fn().mockResolvedValue({ success: true });

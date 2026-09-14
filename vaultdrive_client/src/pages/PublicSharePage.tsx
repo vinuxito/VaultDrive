@@ -473,7 +473,7 @@ export default function PublicSharePage() {
               <div className="w-full text-left bg-muted border border-border rounded-lg p-4 font-mono text-xs space-y-2 mt-2">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-4 h-4 text-emerald-500" />
-                  <span className="text-emerald-500 font-semibold uppercase tracking-wider">{t("drive:publicShare.zkp", "Zero-Knowledge Proof")}</span>
+                  <span className="text-emerald-700 dark:text-emerald-300 font-semibold uppercase tracking-wider">{t("drive:publicShare.zkp", "Zero-Knowledge Proof")}</span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between border-b border-border pb-1">
@@ -487,7 +487,7 @@ export default function PublicSharePage() {
                   {decryptDuration !== null && (
                     <div className="flex justify-between border-b border-border pb-1">
                       <span className="text-muted-foreground">{t("drive:publicShare.performance", "Performance:")}</span>
-                      <span className="text-emerald-500">⚡ {decryptDuration.toFixed(0)}ms</span>
+                      <span className="text-emerald-700 dark:text-emerald-300">⚡ {decryptDuration.toFixed(0)}ms</span>
                     </div>
                   )}
                   <div className="text-xs text-muted-foreground mt-2 italic border-l-2 border-emerald-500/30 pl-2">

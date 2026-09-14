@@ -181,11 +181,11 @@ export function AgentOperationsSection() {
         </div>
         <div className="rounded-2xl border border-border bg-muted px-4 py-3">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Requests served</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.requests}</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">{stats.requests}</p>
         </div>
         <div className="rounded-2xl border border-border bg-muted px-4 py-3">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Scope denials</p>
-          <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.denied}</p>
+          <p className="mt-1 text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.denied}</p>
         </div>
       </div>
 

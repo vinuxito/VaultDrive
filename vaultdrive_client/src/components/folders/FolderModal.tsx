@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { X, Folder, Loader2, AlertCircle } from "lucide-react";
-import { useTheme } from "../theme-provider";
 import { cn } from "../../lib/utils";
 
 interface FolderModalProps {
@@ -26,8 +25,6 @@ export default function FolderModal({
   const [name, setName] = useState(initialName);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
 
   useEffect(() => {
     if (isOpen) {
@@ -76,22 +73,20 @@ export default function FolderModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             className={cn(
-              "w-full max-w-md mx-4 rounded-2xl shadow-2xl border",
-              isDark
-                ? "bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white"
-                : "bg-card border-border text-foreground"
+              "w-full max-w-md rounded-2xl shadow-2xl border max-h-[calc(100dvh-2rem)] overflow-y-auto",
+              "bg-card border-border text-foreground"
             )}
           >
-            <div className={cn("flex items-center justify-between p-4 border-b", isDark ? "border-white/10" : "border-border")}>
+            <div className={cn("flex items-center justify-between p-4 border-b", "border-border")}>
               <div className="flex items-center gap-2">
-                <Folder className={cn("h-5 w-5", isDark ? "text-primary-foreground" : "text-primary")} />
-                <h2 className={cn("text-xl font-semibold", isDark ? "text-white" : "text-foreground")}>{getTitle()}</h2>
+                <Folder className={cn("h-5 w-5", "text-primary")} />
+                <h2 className={cn("text-xl font-semibold", "text-foreground")}>{getTitle()}</h2>
               </div>
               <button
                 type="button"
@@ -99,7 +94,7 @@ export default function FolderModal({
                 disabled={loading}
                 className={cn(
                   "transition-colors",
-                  isDark ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"
+                  "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <X className="h-5 w-5" />
@@ -109,7 +104,7 @@ export default function FolderModal({
             <form onSubmit={handleSubmit} className="p-4">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="folder-name" className={cn("block text-sm font-medium mb-2", isDark ? "text-white" : "text-foreground")}>
+                  <label htmlFor="folder-name" className={cn("block text-sm font-medium mb-2", "text-foreground")}>
                     Folder Name
                   </label>
                   <Input
@@ -122,9 +117,7 @@ export default function FolderModal({
                     autoFocus
                     placeholder="Enter folder name"
                     className={cn(
-                      isDark
-                        ? "bg-white/15 border-white/20 text-white placeholder-white/60 focus:border-white/40 focus:bg-white/20"
-                        : "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
+                      "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
                     )}
                   />
                 </div>
@@ -132,11 +125,9 @@ export default function FolderModal({
                 {error && (
                   <div className={cn(
                     "flex items-start gap-2 p-3 border rounded-lg",
-                    isDark
-                      ? "bg-primary/20 border-primary/30"
-                      : "bg-destructive/10 border-destructive/20 text-destructive"
+                    "bg-destructive/10 border-destructive/20 text-destructive"
                   )}>
-                    <AlertCircle className={cn("h-5 w-5 flex-shrink-0 mt-0.5", isDark ? "text-primary/60" : "text-destructive")} />
+                    <AlertCircle className={cn("h-5 w-5 flex-shrink-0 mt-0.5", "text-destructive")} />
                     <p className="text-sm">{error}</p>
                   </div>
                 )}
@@ -153,7 +144,7 @@ export default function FolderModal({
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                   >
                     {loading ? (
                       <>

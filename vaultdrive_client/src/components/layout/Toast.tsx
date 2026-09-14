@@ -15,7 +15,7 @@ interface ToastProps {
 
 const toastStyles: Record<ToastMessage["type"], string> = {
   info: "bg-primary text-primary-foreground",
-  success: "bg-emerald-600 text-white",
+  success: "bg-emerald-700 text-white",
   error: "bg-red-600 text-white",
 };
 

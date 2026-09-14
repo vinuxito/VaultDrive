@@ -108,7 +108,7 @@ export default function Home() {
             </p>
 
             {/* Encryption trust signal — cycling badge */}
-            <div className="flex items-center justify-center gap-2 text-sm text-primary/80 font-mono">
+            <div className="flex items-center justify-center gap-2 text-sm text-foreground font-mono">
               <Lock className="w-3.5 h-3.5" />
               <span key={trustIdx} className="stat-card-enter">
                 {trustLines[trustIdx]}

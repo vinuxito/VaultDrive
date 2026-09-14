@@ -8,6 +8,18 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
+## Six-template contrast repair (2026-09-14)
+
+All six existing templates retain their palette and layout while fixing unreadable
+panels, controls and dialogs. Verification: **246 unit tests passed, 1 skipped**;
+**30 public browser tests passed**, including download/PIN regressions;
+**426 recorded visual states** across all 21 route patterns, desktop and phone
+viewports. No recorded contrast failures or horizontal overflows. Repository lint
+still has 75 pre-existing errors and 29 warnings; no new errors were introduced.
+See the [verification report](docs/reports/2026-09-14-theme-contrast-verification.md),
+[HTML gallery](docs/reports/2026-09-14-theme-contrast-verification.html), and
+[session record](docs/memories/session-2026-09-14-theme-contrast.md).
+
 ## Download/PIN repair (2026-09-14)
 
 The download dialog preserves its selection during autofill and displays the
