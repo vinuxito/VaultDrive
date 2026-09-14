@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Bot, AlertTriangle } from "lucide-react";
 
 import { useSSE, type ActivityEvent } from "../../hooks/useSSE";
@@ -34,31 +34,44 @@ function toLiveEntry(event: ActivityEvent): AgentOperationEntry | null {
   };
 }
 
+async function fetchControlPlaneSnapshot(signal: AbortSignal) {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  const [keysRes, auditRes] = await Promise.all([
+    fetch(`${API_URL}/v1/agent-keys`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    }),
+    fetch(`${API_URL}/v1/audit?resource_type=agent_api_key&limit=20&offset=0`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    }),
+  ]);
+
+  const keysPayload = (await keysRes.json().catch(() => null)) as Envelope<AgentKeyRecord[]> | null;
+  const auditPayload = (await auditRes.json().catch(() => null)) as Envelope<AgentOperationEntry[]> | null;
+  return {
+    activeKeyCount: (keysPayload?.data ?? []).filter((key) => key.status === "active").length,
+    entries: auditPayload?.data ?? [],
+  };
+}
+
 export function ControlPlaneStatusSection() {
   const [entries, setEntries] = useState<AgentOperationEntry[]>([]);
   const [activeKeyCount, setActiveKeyCount] = useState(0);
 
-  const fetchSnapshot = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const [keysRes, auditRes] = await Promise.all([
-      fetch(`${API_URL}/v1/agent-keys`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${API_URL}/v1/audit?resource_type=agent_api_key&limit=20&offset=0`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-    ]);
-
-    const keysPayload = (await keysRes.json().catch(() => null)) as Envelope<AgentKeyRecord[]> | null;
-    const auditPayload = (await auditRes.json().catch(() => null)) as Envelope<AgentOperationEntry[]> | null;
-
-    setActiveKeyCount((keysPayload?.data ?? []).filter((key) => key.status === "active").length);
-    setEntries(auditPayload?.data ?? []);
-  }, []);
-
   useEffect(() => {
-    void fetchSnapshot();
-  }, [fetchSnapshot]);
+    const controller = new AbortController();
+    void fetchControlPlaneSnapshot(controller.signal).then((snapshot) => {
+      if (!snapshot || controller.signal.aborted) return;
+      setActiveKeyCount(snapshot.activeKeyCount);
+      setEntries(snapshot.entries);
+    }).catch((error: unknown) => {
+      if (!controller.signal.aborted) console.error(error);
+    });
+    return () => controller.abort();
+  }, []);
 
   useSSE((event) => {
     const liveEntry = toLiveEntry(event);

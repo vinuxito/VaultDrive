@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 export function useTransitionNavigate() {
   const navigate = useNavigate();
 
-  return (to: string, options?: { replace?: boolean; state?: any }) => {
-    const doc = document as any;
+  return (to: string, options?: { replace?: boolean; state?: unknown }) => {
+    const doc = document;
     if (doc.startViewTransition) {
       try {
         doc.startViewTransition(() => {

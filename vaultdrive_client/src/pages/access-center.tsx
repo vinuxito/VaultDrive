@@ -67,18 +67,25 @@ export default function AccessCenter() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
-    setLoading(true);
     Promise.all([
-      fetch(`${API_URL}/v1/shares`, { headers }).then((r) => r.ok ? r.json() as Promise<ShareItem[]> : []),
-      fetch(`${API_URL}/drop/tokens`, { headers }).then((r) => r.ok ? r.json() as Promise<DropToken[]> : []),
+      fetch(`${API_URL}/v1/shares`, { headers, signal: controller.signal }).then((r) => r.ok ? r.json() as Promise<ShareItem[]> : []),
+      fetch(`${API_URL}/drop/tokens`, { headers, signal: controller.signal }).then((r) => r.ok ? r.json() as Promise<DropToken[]> : []),
     ])
       .then(([s, d]) => {
+        if (controller.signal.aborted) return;
         setShares(s ?? []);
         setDropTokens(d ?? []);
       })
-      .finally(() => setLoading(false));
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) console.error(error);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
   }, []);
 
   function handleCopy(id: string, text: string) {

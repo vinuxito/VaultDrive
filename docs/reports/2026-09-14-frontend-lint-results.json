@@ -1,0 +1,38 @@
+{
+  "baseline_errors": 75,
+  "baseline_warnings": 29,
+  "errors": 0,
+  "warnings": 0,
+  "unit_passed": 265,
+  "unit_skipped": 1,
+  "staged_browser_passed": 30,
+  "live_browser_passed": 6,
+  "deployment": {
+    "index_sha256": "10d7c6374d3b902959ff86d6b75beb8d4d42da55ecc5fe4d98e4213a32ba2aa4",
+    "previous_index_sha256": "3c156ccb1159d0328f549b19511b861cacebd573af23abc597ed654d9eda43b6",
+    "backup": "/home/vinuxito/.cache/abrndrive-lint/dist-before",
+    "staged_assets": 52,
+    "ready": {
+      "diagnostics": {
+        "database": "ok",
+        "migrations": "ok (version: 49)",
+        "secrets": "ok",
+        "stored_files": "ok (files: 439)",
+        "uploads_dir": "ok"
+      },
+      "status": "ready"
+    },
+    "health": {
+      "db_ping_ms": 0,
+      "errors_total": 0,
+      "goroutines": 11,
+      "memory_mb": 1.3639984130859375,
+      "requests_total": 44,
+      "status": "ok",
+      "uptime": "12h58m21s",
+      "uptime_seconds": 46701,
+      "version": "dev"
+    },
+    "service": "NRestarts=0\nActiveState=active\nUnitFileState=enabled"
+  }
+}

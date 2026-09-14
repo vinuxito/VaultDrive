@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -394,6 +394,30 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
+  const loadAvailableUsers = useCallback(async (query: string) => {
+    setSearching(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(query)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const users = await response.json();
+
+      const memberIds = new Set(members.map((member) => member.user_id));
+      const usersWithStatus: UserForSelection[] = (users || []).map((user: SearchResult) => ({
+        ...user,
+        is_member: memberIds.has(user.id),
+      }));
+
+      setAvailableUsers(usersWithStatus);
+    } catch (error) {
+      console.error("Error loading users:", error);
+      setAvailableUsers([]);
+    } finally {
+      setSearching(false);
+    }
+  }, [members]);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -425,7 +449,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
     if (showAddMemberModal) {
       loadAvailableUsers("");
     }
-  }, [showAddMemberModal]);
+  }, [showAddMemberModal, loadAvailableUsers]);
 
   // Debounced search
   useEffect(() => {
@@ -435,32 +459,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
       }
     }, 300);
     return () => clearTimeout(timeout);
-  }, [memberSearch, showAddMemberModal]);
-
-  async function loadAvailableUsers(query: string) {
-    setSearching(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(query)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const users = await response.json();
-
-      // Mark users who are already members
-      const memberIds = new Set(members.map(m => m.user_id));
-      const usersWithStatus: UserForSelection[] = (users || []).map((user: SearchResult) => ({
-        ...user,
-        is_member: memberIds.has(user.id),
-      }));
-
-      setAvailableUsers(usersWithStatus);
-    } catch (error) {
-      console.error("Error loading users:", error);
-      setAvailableUsers([]);
-    } finally {
-      setSearching(false);
-    }
-  }
+  }, [memberSearch, showAddMemberModal, loadAvailableUsers]);
 
   async function handleAddMembers() {
     if (selectedUserIds.size === 0) return;

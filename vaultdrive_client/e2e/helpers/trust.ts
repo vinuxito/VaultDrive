@@ -5,7 +5,6 @@ export const productName = getProductName();
 
 const configuredBaseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}`;
 const appBaseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
-const appOrigin = new URL(appBaseURL).origin;
 const configuredApiBaseURL = process.env.E2E_API_BASE_URL ?? `${appBaseURL}api`;
 const apiBaseURL = configuredApiBaseURL.endsWith("/") ? configuredApiBaseURL.slice(0, -1) : configuredApiBaseURL;
 

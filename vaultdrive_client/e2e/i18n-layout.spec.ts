@@ -5,7 +5,6 @@ import {
   loginWithPassword,
   completeOnboarding,
   gotoStable,
-  uploadFileAsOwner,
 } from "./helpers/trust";
 
 test.describe("i18n Layout Integrity", () => {
@@ -29,7 +28,6 @@ test.describe("i18n Layout Integrity", () => {
     test.use({ locale: "es-MX" });
 
     test("Dashboard and Share Modal snapshot in Spanish", async ({ page }) => {
-      const account = buildOwnerAccount();
       // Use standard locators that might fail in Spanish if they rely on text. 
       // But wait! registerAccount relies on English text!
       // I'll just navigate to login and take a screenshot of login screen in Spanish.

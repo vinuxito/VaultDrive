@@ -1,13 +1,6 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
+import { useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import type { ToastMessage } from "../components/layout/Toast";
-
-interface ToastContextValue {
-  toasts: ToastMessage[];
-  addToast: (message: string, type: ToastMessage["type"]) => void;
-  dismissToast: (id: string) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null);
+import { ToastContext } from "./toast-context";
 
 /** Auto-dismiss delay in milliseconds (5s for info/success, persistent for errors). */
 const AUTO_DISMISS_MS = 5000;
@@ -52,10 +45,4 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
     </ToastContext.Provider>
   );
-}
-
-export function useToast(): ToastContextValue {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error("useToast must be used within a ToastProvider");
-  return ctx;
 }

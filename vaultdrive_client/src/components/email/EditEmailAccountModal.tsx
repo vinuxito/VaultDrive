@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -34,26 +34,36 @@ const EditEmailAccountModal: React.FC<EditEmailAccountModalProps> = ({
   account,
   onUpdate
 }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        {isOpen ? (
+          <EditEmailAccountForm
+            key={account ? [account.id, account.email, account.imapHost, account.imapPort, account.imapUser].join('\0') : 'no-account'}
+            account={account}
+            onClose={onClose}
+            onUpdate={onUpdate}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+type EditEmailAccountFormProps = Pick<
+  EditEmailAccountModalProps,
+  'account' | 'onClose' | 'onUpdate'
+>;
+
+function EditEmailAccountForm({ account, onClose, onUpdate }: EditEmailAccountFormProps) {
   const [formData, setFormData] = useState<EmailAccountPayload>({
-    email: '',
-    imap_host: '',
-    imap_port: 993,
-    imap_user: '',
+    email: account?.email ?? '',
+    imap_host: account?.imapHost ?? '',
+    imap_port: account?.imapPort ?? 993,
+    imap_user: account?.imapUser ?? '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (account) {
-      setFormData({
-        email: account.email,
-        imap_host: account.imapHost,
-        imap_port: account.imapPort,
-        imap_user: account.imapUser,
-        password: '', // Don't pre-fill password for security
-      });
-    }
-  }, [account]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -97,8 +107,6 @@ const EditEmailAccountModal: React.FC<EditEmailAccountModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Edit Email Account</DialogTitle>
@@ -155,9 +163,7 @@ const EditEmailAccountModal: React.FC<EditEmailAccountModalProps> = ({
             <Button type="submit">Update</Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
   );
-};
+}
 
 export default EditEmailAccountModal;

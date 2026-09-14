@@ -2,6 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 import { mutate } from "swr";
+import type { ReactNode } from "react";
 
 afterEach(() => {
   cleanup();
@@ -17,27 +18,43 @@ import { MotionGlobalConfig } from "framer-motion";
 
 MotionGlobalConfig.skipAnimations = true;
 
-const resources: Record<string, Record<string, any>> = {
+type TranslationValue = string | Record<string, unknown>;
+
+const resources: Record<string, Record<string, unknown>> = {
   auth: enAuth,
   drive: enDrive,
   common: enCommon,
   settings: enSettings,
 };
 
+function readTranslation(root: unknown, keys: string[]): TranslationValue | undefined {
+  let value = root;
+  for (const key of keys) {
+    if (typeof value !== "object" || value === null || !(key in value)) {
+      return undefined;
+    }
+    value = (value as Record<string, unknown>)[key];
+  }
+  if (typeof value === "string" || (typeof value === "object" && value !== null)) {
+    return value as TranslationValue;
+  }
+  return undefined;
+}
+
 vi.mock("react-i18next", () => ({
   useTranslation: (ns: string | string[] = "common") => {
     const namespace = Array.isArray(ns) ? ns[0] : ns;
     return {
-      t: (key: string, options?: any) => {
+      t: (key: string, options?: Record<string, unknown>) => {
         const parts = key.split(":");
         const actualNs = parts.length > 1 ? parts[0] : namespace;
         const actualKey = parts.length > 1 ? parts[1] : parts[0];
         
-        let val = actualKey.split('.').reduce((o, i) => o ? o[i] : null, resources[actualNs] as any);
+        let val = readTranslation(resources[actualNs], actualKey.split('.'));
         if (!val) return key;
         
-        if (options && options.product) {
-          val = (val as string).replace("{{product}}", options.product);
+        if (typeof val === "string" && typeof options?.product === "string") {
+          val = val.replace("{{product}}", options.product);
         }
         return val;
       },
@@ -47,7 +64,7 @@ vi.mock("react-i18next", () => ({
       },
     };
   },
-  Trans: ({ children }: any) => children,
+  Trans: ({ children }: { children?: ReactNode }) => children,
   initReactI18next: {
     type: "3rdParty",
     init: () => {},

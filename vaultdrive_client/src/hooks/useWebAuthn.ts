@@ -36,11 +36,11 @@ async function wrapPin(pin: string, key: CryptoKey): Promise<string> {
 }
 
 async function unwrapPin(wrapped: string, key: CryptoKey): Promise<string> {
-  const { iv, ct } = JSON.parse(wrapped);
+  const { iv, ct } = JSON.parse(wrapped) as { iv: string; ct: string };
   const pt = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: hexToBuf(iv) as any },
+    { name: "AES-GCM", iv: hexToBuf(iv) as BufferSource },
     key,
-    hexToBuf(ct) as any
+    hexToBuf(ct) as BufferSource
   );
   return new TextDecoder().decode(pt);
 }
@@ -103,7 +103,7 @@ export async function unlockWithPasskey(userId: string): Promise<string> {
     publicKey: {
       challenge,
       rpId: window.location.hostname,
-      allowCredentials: [{ type: "public-key", id: hexToBuf(storedCredIdHex) as any }],
+      allowCredentials: [{ type: "public-key", id: hexToBuf(storedCredIdHex) as BufferSource }],
       userVerification: "required",
       timeout: 60000,
     },

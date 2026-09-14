@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -27,6 +27,7 @@ import {
   decryptRoomKeyEnvelope,
   encryptRoomData,
   decryptRoomData,
+  type WrappedEnvelope,
 } from "../utils/zk-room-crypto";
 
 interface ChatMessage {
@@ -34,6 +35,12 @@ interface ChatMessage {
   senderId: string;
   text: string;
   timestamp: string;
+}
+
+interface RelayFrame {
+  event: string;
+  sender_id: string;
+  data: unknown;
 }
 
 export default function ZKRoom() {
@@ -64,6 +71,26 @@ export default function ZKRoom() {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const activePeersRef = useRef<Set<string>>(new Set());
   const roomKeyRef = useRef<CryptoKey | null>(null);
+
+  const broadcastEvent = useCallback(async (
+    sender: string,
+    event: string,
+    data: unknown
+  ) => {
+    try {
+      await fetch(`${API_URL}/v1/rooms/${roomId}/broadcast`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender_id: sender,
+          event,
+          data,
+        }),
+      });
+    } catch (err) {
+      console.error("Broadcast failed:", err);
+    }
+  }, [roomId]);
 
   useEffect(() => {
     let active = true;
@@ -125,7 +152,10 @@ export default function ZKRoom() {
         sse.onmessage = async (e) => {
           if (!active) return;
           try {
-            const msg = JSON.parse(e.data);
+            const msg = JSON.parse(e.data) as {
+              event: string;
+              client_id: string;
+            };
             
             if (msg.event === "connected") {
               setClientId(msg.client_id);
@@ -142,10 +172,10 @@ export default function ZKRoom() {
         };
 
         // Custom Event Handlers
-        sse.addEventListener("message", async (e: any) => {
+        sse.addEventListener("message", async (event: MessageEvent<string>) => {
           if (!active) return;
           try {
-            const outer = JSON.parse(e.data);
+            const outer = JSON.parse(event.data) as RelayFrame;
             if (!outer.event || outer.sender_id === clientIdRef.current) return;
 
             const sender = outer.sender_id;
@@ -153,11 +183,12 @@ export default function ZKRoom() {
             const innerData = outer.data;
 
             if (eventType === "peer-joined") {
+              const { pubKey } = innerData as { pubKey: JsonWebKey };
               // Peer joined: add to list and derive ECDH shared secret
               setPeers((prev) => new Set([...prev, sender]));
               activePeersRef.current.add(sender);
 
-              const peerPub = await importECDHPublicKey(innerData.pubKey);
+              const peerPub = await importECDHPublicKey(pubKey);
               const shared = await deriveSharedSecret(keyPair.privateKey, peerPub);
               peerSecrets.current.set(sender, shared);
 
@@ -173,11 +204,16 @@ export default function ZKRoom() {
               }
             } else if (eventType === "key-delivery") {
               // We received key delivery
-              if (innerData.target !== clientIdRef.current) return;
+              const { target, pubKey, envelope } = innerData as {
+                target: string;
+                pubKey: JsonWebKey;
+                envelope: WrappedEnvelope;
+              };
+              if (target !== clientIdRef.current) return;
 
-              const peerPub = await importECDHPublicKey(innerData.pubKey);
+              const peerPub = await importECDHPublicKey(pubKey);
               const shared = await deriveSharedSecret(keyPair.privateKey, peerPub);
-              const decryptedRoomKey = await decryptRoomKeyEnvelope(shared, innerData.envelope);
+              const decryptedRoomKey = await decryptRoomKeyEnvelope(shared, envelope);
 
               setRoomKey(decryptedRoomKey);
               roomKeyRef.current = decryptedRoomKey;
@@ -188,15 +224,15 @@ export default function ZKRoom() {
               // Document text synced
               const currentKey = roomKeyRef.current;
               if (currentKey) {
-                const plaintext = await decryptRoomData(currentKey, innerData);
+                const plaintext = await decryptRoomData(currentKey, innerData as WrappedEnvelope);
                 setDocText(plaintext);
               }
             } else if (eventType === "chat-message") {
               // Chat message received
               const currentKey = roomKeyRef.current;
               if (currentKey) {
-                const plainJSON = await decryptRoomData(currentKey, innerData);
-                const msgObj = JSON.parse(plainJSON);
+                const plainJSON = await decryptRoomData(currentKey, innerData as WrappedEnvelope);
+                const msgObj = JSON.parse(plainJSON) as ChatMessage;
                 setMessages((prev) => [...prev, msgObj]);
               }
             }
@@ -213,11 +249,11 @@ export default function ZKRoom() {
           }
         };
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Initialization error:", err);
         if (active) {
           setStatus("error");
-          setErrorMessage(err.message || "Failed to initialize secure session.");
+          setErrorMessage(err instanceof Error ? err.message : "Failed to initialize secure session.");
         }
       }
     }
@@ -230,24 +266,7 @@ export default function ZKRoom() {
         sseRef.current.close();
       }
     };
-  }, [roomId, navigate]);
-
-  // Helper function to send encrypted payloads to Go relay
-  async function broadcastEvent(sender: string, event: string, data: any) {
-    try {
-      await fetch(`${API_URL}/v1/rooms/${roomId}/broadcast`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sender_id: sender,
-          event,
-          data,
-        }),
-      });
-    } catch (err) {
-      console.error("Broadcast failed:", err);
-    }
-  }
+  }, [broadcastEvent, roomId, navigate]);
 
   // Handle typing inside editor
   const handleEditorChange = async (val: string) => {

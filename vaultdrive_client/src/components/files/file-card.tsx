@@ -30,6 +30,62 @@ export interface FileCardProps {
   viewMode: 'grid' | 'list';
 }
 
+type MoreMenuProps = Pick<
+  FileCardProps,
+  'file' | 'onShare' | 'onDelete' | 'onToggleMetadata'
+>;
+
+function MoreMenu({ file, onShare, onDelete, onToggleMetadata }: MoreMenuProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="w-8 h-8"
+              aria-label="More actions"
+              onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+            >
+              <MoreVertical size={16} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>More actions</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 z-20 bg-popover rounded-lg shadow-lg border border-border min-w-[152px] py-1">
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2"
+              onClick={() => { onShare(file.id, file.filename); setMenuOpen(false); }}
+            >
+              <Share2 size={14} /> Share Link
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2"
+              onClick={() => { onToggleMetadata(file.id); setMenuOpen(false); }}
+            >
+              <FileIcon size={14} /> View Details
+            </button>
+            <div className="my-1 border-t border-border" />
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
+              onClick={() => { onDelete(file.id, file.filename); setMenuOpen(false); }}
+            >
+              <Trash2 size={14} /> Delete File
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -85,55 +141,6 @@ export function FileCard({
   onToggleStar,
   viewMode,
 }: FileCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const MoreMenu = () => (
-    <div className="relative">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="w-8 h-8"
-              aria-label="More actions"
-              onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
-            >
-              <MoreVertical size={16} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>More actions</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      {menuOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-20 bg-popover rounded-lg shadow-lg border border-border min-w-[152px] py-1">
-            <button
-              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2"
-              onClick={() => { onShare(file.id, file.filename); setMenuOpen(false); }}
-            >
-              <Share2 size={14} /> Share Link
-            </button>
-            <button
-              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2"
-              onClick={() => { onToggleMetadata(file.id); setMenuOpen(false); }}
-            >
-              <FileIcon size={14} /> View Details
-            </button>
-            <div className="my-1 border-t border-border" />
-            <button
-              className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2"
-              onClick={() => { onDelete(file.id, file.filename); setMenuOpen(false); }}
-            >
-              <Trash2 size={14} /> Delete File
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-
   if (viewMode === 'list') {
     return (
       <ElegantCard
@@ -163,7 +170,7 @@ export function FileCard({
                 <TooltipContent>Download</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <MoreMenu />
+            <MoreMenu file={file} onShare={onShare} onDelete={onDelete} onToggleMetadata={onToggleMetadata} />
           </div>
         </div>
       </ElegantCard>
@@ -220,7 +227,7 @@ export function FileCard({
               <TooltipContent>Download</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <MoreMenu />
+          <MoreMenu file={file} onShare={onShare} onDelete={onDelete} onToggleMetadata={onToggleMetadata} />
         </div>
       </div>
     </ElegantCard>

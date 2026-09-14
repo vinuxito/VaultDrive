@@ -15,7 +15,7 @@ describe("useTransitionNavigate hook", () => {
   });
 
   afterEach(() => {
-    delete (document as any).startViewTransition;
+    Reflect.deleteProperty(document, "startViewTransition");
   });
 
   it("should fall back to normal navigate if startViewTransition is not supported", () => {
@@ -32,7 +32,7 @@ describe("useTransitionNavigate hook", () => {
       return { ready: Promise.resolve() };
     });
     
-    (document as any).startViewTransition = mockStartViewTransition;
+    Object.defineProperty(document, "startViewTransition", { value: mockStartViewTransition, configurable: true });
 
     const { result } = renderHook(() => useTransitionNavigate());
     

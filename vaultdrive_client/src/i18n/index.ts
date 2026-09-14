@@ -7,7 +7,11 @@ import abrnEsOverrides from '../locales/overrides/abrn/es.json';
 import { branding } from '../config/branding';
 import { deepMerge } from './merge';
 
-const dynamicLocales: Record<string, Record<string, () => Promise<any>>> = {
+type TranslationResource = Record<string, unknown>;
+type LocaleModule = { default: TranslationResource };
+type BackendReadCallback = (error: Error | null, data: TranslationResource | null) => void;
+
+const dynamicLocales: Record<string, Record<string, () => Promise<LocaleModule>>> = {
   en: {
     common: () => import('../locales/en/common.json'),
     settings: () => import('../locales/en/settings.json'),
@@ -27,7 +31,7 @@ const dynamicLocales: Record<string, Record<string, () => Promise<any>>> = {
 const dynamicLoaderBackend = {
   type: 'backend' as const,
   init() {},
-  read(language: string, namespace: string, callback: (err: any, data: any) => void) {
+  read(language: string, namespace: string, callback: BackendReadCallback) {
     const load = dynamicLocales[language]?.[namespace];
     if (!load) {
       callback(new Error(`Locale namespace not found: ${language}/${namespace}`), null);
@@ -40,12 +44,12 @@ const dynamicLoaderBackend = {
         // Merge branding overrides if ABRN Drive
         if (branding.productSlug === 'abrn-drive') {
           if (language === 'en') {
-            const override = (abrnEnOverrides as any)[namespace];
+            const override = (abrnEnOverrides as TranslationResource)[namespace];
             if (override) {
               deepMerge(resources, override);
             }
           } else if (language === 'es') {
-            const override = (abrnEsOverrides as any)[namespace];
+            const override = (abrnEsOverrides as TranslationResource)[namespace];
             if (override) {
               deepMerge(resources, override);
             }

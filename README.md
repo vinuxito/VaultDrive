@@ -8,14 +8,24 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
+## Frontend lint repair (2026-09-14)
+
+**Lint: 0 errors, 0 warnings**, using the unchanged rules. **265 unit tests
+passed, 1 skipped**; TypeScript and production build passed. **30 staged browser
+tests and 6 published smoke tests passed**, retaining all six templates and the
+PIN/download fixes. No dependencies added; no sudo or service restart required.
+See the [verification report](docs/reports/2026-09-14-frontend-lint-verification.md),
+[HTML report](docs/reports/2026-09-14-frontend-lint-verification.html), and
+[session record](docs/memories/session-2026-09-14-frontend-lint.md).
+
 ## Six-template contrast repair (2026-09-14)
 
 All six existing templates retain their palette and layout while fixing unreadable
 panels, controls and dialogs. Verification: **246 unit tests passed, 1 skipped**;
 **30 public browser tests passed**, including download/PIN regressions;
 **426 recorded visual states** across all 21 route patterns, desktop and phone
-viewports. No recorded contrast failures or horizontal overflows. Repository lint
-still has 75 pre-existing errors and 29 warnings; no new errors were introduced.
+viewports. No recorded contrast failures or horizontal overflows. The 75 pre-existing lint errors and 29 warnings recorded at that checkpoint
+were subsequently resolved by the frontend lint repair above.
 See the [verification report](docs/reports/2026-09-14-theme-contrast-verification.md),
 [HTML gallery](docs/reports/2026-09-14-theme-contrast-verification.html), and
 [session record](docs/memories/session-2026-09-14-theme-contrast.md).

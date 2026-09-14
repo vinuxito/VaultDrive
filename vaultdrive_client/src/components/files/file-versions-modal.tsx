@@ -30,31 +30,58 @@ export function FileVersionsModal({
   token,
   onVersionRestored,
 }: FileVersionsModalProps) {
+  return (
+    <ElegantModal isOpen={isOpen} onClose={onClose} title={`Version History: ${filename}`}>
+      {isOpen && fileId ? (
+        <FileVersionsContent
+          key={`${fileId}\0${token}`}
+          fileId={fileId}
+          token={token}
+          onClose={onClose}
+          onVersionRestored={onVersionRestored}
+        />
+      ) : null}
+    </ElegantModal>
+  );
+}
+
+type FileVersionsContentProps = Pick<
+  FileVersionsModalProps,
+  'fileId' | 'token' | 'onClose' | 'onVersionRestored'
+>;
+
+function FileVersionsContent({
+  fileId,
+  token,
+  onClose,
+  onVersionRestored,
+}: FileVersionsContentProps) {
   const [versions, setVersions] = useState<Version[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
 
   useEffect(() => {
-    if (isOpen && fileId) {
-      loadVersions();
-    }
-  }, [isOpen, fileId]);
+    let cancelled = false;
+    getFileVersions(fileId, token)
+      .then((data) => {
+        if (!cancelled) setVersions(data || []);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError('Failed to load file versions');
+          console.error(err);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  const loadVersions = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getFileVersions(fileId, token);
-      setVersions(data || []);
-    } catch (err) {
-      setError('Failed to load file versions');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [fileId, token]);
 
   const handleRestore = async (versionId: string, versionNumber: number) => {
     if (!confirm(`Restore version ${versionNumber}? This will create a new version with the restored content.`)) {
@@ -77,7 +104,6 @@ export function FileVersionsModal({
   };
 
   return (
-    <ElegantModal isOpen={isOpen} onClose={onClose} title={`Version History: ${filename}`}>
       <div className="space-y-4">
         {error && (
           <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm">
@@ -142,6 +168,5 @@ export function FileVersionsModal({
           </Button>
         </div>
       </div>
-    </ElegantModal>
   );
 }

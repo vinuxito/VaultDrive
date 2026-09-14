@@ -79,7 +79,12 @@ function partitionActions(actions: RowAction[]): {
   return { primary, destructive };
 }
 
-export function RowActionMenu({
+export function RowActionMenu(props: RowActionMenuProps) {
+  if (props.actions.length === 0) return null;
+  return <RowActionMenuContent {...props} />;
+}
+
+function RowActionMenuContent({
   actions,
   label,
   align = "end",
@@ -88,16 +93,15 @@ export function RowActionMenu({
   triggerTestId,
   triggerClassName,
 }: RowActionMenuProps) {
-  if (actions.length === 0) return null;
-
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 640,
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
     };
-    checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);

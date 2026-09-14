@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -14,6 +14,11 @@ const cryptoMocks = vi.hoisted(() => ({
   decryptPrivateKeyWithPassword: vi.fn().mockResolvedValue("pem"),
   decryptPrivateKeyWithPIN: vi.fn().mockResolvedValue("pem"),
   importRSAPrivateKey: vi.fn().mockResolvedValue({ id: "rsa-key" }),
+}));
+const webAuthnMocks = vi.hoisted(() => ({
+  hasRegisteredPasskey: vi.fn(() => false),
+  unlockWithPasskey: vi.fn(),
+  getWebAuthnEmail: vi.fn(() => ""),
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -35,12 +40,17 @@ vi.mock("../utils/crypto", () => ({
   importRSAPrivateKey: cryptoMocks.importRSAPrivateKey,
 }));
 
+vi.mock("../hooks/useWebAuthn", () => webAuthnMocks);
+
 describe("Login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cryptoMocks.decryptPrivateKeyWithPassword.mockResolvedValue("pem");
     cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("pem");
     cryptoMocks.importRSAPrivateKey.mockResolvedValue({ id: "rsa-key" });
+    webAuthnMocks.hasRegisteredPasskey.mockReturnValue(false);
+    webAuthnMocks.getWebAuthnEmail.mockReturnValue("");
+    webAuthnMocks.unlockWithPasskey.mockReset();
     localStorage.clear();
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(
@@ -99,5 +109,34 @@ describe("Login", () => {
     expect(localStorage.getItem("token")).toBeNull();
     expect(localStorage.getItem("refresh_token")).toBeNull();
     expect(localStorage.getItem("user")).toBeNull();
+  });
+
+  it("does not relaunch automatic biometrics when the email field changes", async () => {
+    vi.useFakeTimers();
+    webAuthnMocks.hasRegisteredPasskey.mockReturnValue(true);
+    webAuthnMocks.getWebAuthnEmail.mockReturnValue("stored@example.com");
+    webAuthnMocks.unlockWithPasskey.mockRejectedValue(new Error("cancelled"));
+
+    try {
+      render(<Login />);
+      fireEvent.click(screen.getByRole("button", { name: /pin/i }));
+      await act(async () => {
+        vi.advanceTimersByTime(500);
+        await Promise.resolve();
+      });
+      expect(webAuthnMocks.unlockWithPasskey).toHaveBeenCalledTimes(1);
+
+      fireEvent.change(screen.getByLabelText(/email/i), {
+        target: { value: "different@example.com" },
+      });
+      await act(async () => {
+        vi.advanceTimersByTime(1_000);
+        await Promise.resolve();
+      });
+
+      expect(webAuthnMocks.unlockWithPasskey).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -30,6 +30,41 @@ describe("<RowActionMenu>", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("supports actions being removed and restored across renders", () => {
+    const { rerender } = render(<RowActionMenu actions={makeActions()} />);
+
+    expect(() => rerender(<RowActionMenu actions={[]} />)).not.toThrow();
+    expect(() => rerender(<RowActionMenu actions={makeActions()} />)).not.toThrow();
+    expect(screen.getByRole("button", { name: /row actions/i })).toBeInTheDocument();
+  });
+
+  it("closes the mobile drawer if all actions are removed", async () => {
+    const originalInnerWidth = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 390,
+    });
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <RowActionMenu actions={makeActions()} triggerTestId="changing-trigger" />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /row actions/i }));
+    expect(await screen.findByTestId("changing-trigger-content")).toBeInTheDocument();
+
+    rerender(<RowActionMenu actions={[]} triggerTestId="changing-trigger" />);
+
+    expect(screen.queryByTestId("changing-trigger-content")).not.toBeInTheDocument();
+    rerender(<RowActionMenu actions={makeActions()} triggerTestId="changing-trigger" />);
+    expect(screen.queryByTestId("changing-trigger-content")).not.toBeInTheDocument();
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
+  });
+
   it("renders trigger with accessible label", () => {
     render(<RowActionMenu actions={makeActions()} triggerAriaLabel="File actions" />);
     expect(screen.getByRole("button", { name: /file actions/i })).toBeInTheDocument();

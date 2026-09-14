@@ -1,7 +1,22 @@
 import { describe, expect, it, beforeEach } from "vitest";
 
 // In-memory mock storage for IndexedDB
-const mockStores: Record<string, any[]> = {
+interface MockStoredItem {
+  id?: number;
+  [key: string]: unknown;
+}
+
+interface MutableMockRequest<T> {
+  onsuccess: ((event: Event) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  result: T | undefined;
+}
+
+function createMockRequest<T>(): MutableMockRequest<T> {
+  return { onsuccess: null, onerror: null, result: undefined };
+}
+
+const mockStores: Record<string, MockStoredItem[]> = {
   files: [],
   folders: [],
   queue: [],
@@ -13,27 +28,25 @@ const mockTransaction = (_storeNames: string | string[], _mode: "readonly" | "re
     objectStore: (name: string) => {
       const store = mockStores[name] || [];
       return {
-        add: (item: any) => {
+        add: (item: MockStoredItem) => {
           const id = store.length + 1;
           const newItem = { ...item, id };
           store.push(newItem);
-          const req: any = { onsuccess: null, onerror: null, result: undefined };
+          const req = createMockRequest<number>();
           setTimeout(() => {
             req.result = id;
             if (req.onsuccess) {
-              const mockEvent = { target: { result: id } };
-              req.onsuccess(mockEvent);
+              req.onsuccess(new Event("success"));
             }
           }, 0);
           return req;
         },
         getAll: () => {
-          const req: any = { onsuccess: null, onerror: null, result: undefined };
+          const req = createMockRequest<MockStoredItem[]>();
           setTimeout(() => {
             req.result = [...store];
             if (req.onsuccess) {
-              const mockEvent = { target: { result: store } };
-              req.onsuccess(mockEvent);
+              req.onsuccess(new Event("success"));
             }
           }, 0);
           return req;
@@ -41,32 +54,30 @@ const mockTransaction = (_storeNames: string | string[], _mode: "readonly" | "re
         delete: (id: number) => {
           const idx = store.findIndex((x) => x.id === id);
           if (idx !== -1) store.splice(idx, 1);
-          const req: any = { onsuccess: null, onerror: null, result: undefined };
+          const req = createMockRequest<void>();
           setTimeout(() => {
             req.result = undefined;
             if (req.onsuccess) {
-              const mockEvent = { target: { result: undefined } };
-              req.onsuccess(mockEvent);
+              req.onsuccess(new Event("success"));
             }
           }, 0);
           return req;
         },
         clear: () => {
           store.length = 0;
-          const req: any = { onsuccess: null, onerror: null, result: undefined };
+          const req = createMockRequest<void>();
           setTimeout(() => {
             req.result = undefined;
             if (req.onsuccess) {
-              const mockEvent = { target: { result: undefined } };
-              req.onsuccess(mockEvent);
+              req.onsuccess(new Event("success"));
             }
           }, 0);
           return req;
         },
       };
     },
-    oncomplete: null as any,
-    onerror: null as any,
+    oncomplete: null as ((event: Event) => void) | null,
+    onerror: null as ((event: Event) => void) | null,
   };
 };
 
@@ -77,11 +88,16 @@ const mockDB = {
   transaction: mockTransaction,
 };
 
-const mockIDBRequest: any = {
+const mockIDBRequest = {
   onsuccess: null,
   onerror: null,
   onupgradeneeded: null,
   result: undefined,
+} as {
+  onsuccess: ((event: Event) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onupgradeneeded: ((event: Event) => void) | null;
+  result: typeof mockDB | undefined;
 };
 
 const mockIndexedDB = {
@@ -90,8 +106,7 @@ const mockIndexedDB = {
     setTimeout(() => {
       mockIDBRequest.result = mockDB;
       if (mockIDBRequest.onsuccess) {
-        const mockEvent = { target: { result: mockDB } };
-        mockIDBRequest.onsuccess(mockEvent);
+        mockIDBRequest.onsuccess(new Event("success"));
       }
     }, 0);
     return mockIDBRequest;
@@ -99,7 +114,7 @@ const mockIndexedDB = {
 };
 
 // Set mock globally in JSDOM environment
-global.indexedDB = mockIndexedDB as any;
+globalThis.indexedDB = mockIndexedDB as unknown as IDBFactory;
 
 // Now import the DB coordinator that uses the global indexedDB object
 import {

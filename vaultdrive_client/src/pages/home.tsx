@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "../components/ui/button";
 import {
   Shield,
@@ -17,19 +17,18 @@ import { branding } from "../config/branding";
 
 /* ─── Scroll-triggered fade-in hook ─── */
 function useInView(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null);
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    if (!element) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setInView(true); },
       { threshold }
     );
-    observer.observe(el);
+    observer.observe(element);
     return () => observer.disconnect();
-  }, [threshold]);
-  return { ref, inView };
+  }, [element, threshold]);
+  return [setElement, inView] as const;
 }
 
 /* ─── Feature card data ─── */
@@ -62,9 +61,9 @@ const features = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const featuresSection = useInView(0.08);
-  const techSection = useInView(0.08);
-  const trustSection = useInView(0.15);
+  const [featuresRef, featuresInView] = useInView(0.08);
+  const [techRef, techInView] = useInView(0.08);
+  const [trustRef, trustInView] = useInView(0.15);
 
   /* Encryption trust signal — cycling animation */
   const trustLines = [
@@ -139,8 +138,8 @@ export default function Home() {
       {/* Features Overview — scroll-triggered */}
       <section className="container mx-auto px-4 py-16">
         <div
-          ref={featuresSection.ref}
-          className={`max-w-5xl mx-auto scroll-fade-in ${featuresSection.inView ? "in-view" : ""}`}
+          ref={featuresRef}
+          className={`max-w-5xl mx-auto scroll-fade-in ${featuresInView ? "in-view" : ""}`}
         >
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 brand-section-heading">
             Why Zero-Knowledge Matters
@@ -152,9 +151,9 @@ export default function Home() {
                 key={f.title}
                 className="brand-glass-card p-6 scroll-fade-in"
                 style={{
-                  transitionDelay: featuresSection.inView ? `${i * 80}ms` : "0ms",
-                  opacity: featuresSection.inView ? 1 : 0,
-                  transform: featuresSection.inView ? "translateY(0)" : "translateY(20px)",
+                  transitionDelay: featuresInView ? `${i * 80}ms` : "0ms",
+                  opacity: featuresInView ? 1 : 0,
+                  transform: featuresInView ? "translateY(0)" : "translateY(20px)",
                 }}
               >
                 <div className={`w-12 h-12 rounded-lg ${f.bg} flex items-center justify-center mb-4`}>
@@ -171,8 +170,8 @@ export default function Home() {
       {/* Architecture Trust Signal */}
       <section className="container mx-auto px-4 py-12">
         <div
-          ref={trustSection.ref}
-          className={`max-w-3xl mx-auto scroll-fade-in ${trustSection.inView ? "in-view" : ""}`}
+          ref={trustRef}
+          className={`max-w-3xl mx-auto scroll-fade-in ${trustInView ? "in-view" : ""}`}
         >
           <div className="brand-glass-card p-8">
             <h2 className="text-xl font-semibold mb-6 brand-section-heading text-center">
@@ -200,8 +199,8 @@ export default function Home() {
       {/* Tech Stack — scroll-triggered */}
       <section className="container mx-auto px-4 py-16">
         <div
-          ref={techSection.ref}
-          className={`max-w-5xl mx-auto scroll-fade-in ${techSection.inView ? "in-view" : ""}`}
+          ref={techRef}
+          className={`max-w-5xl mx-auto scroll-fade-in ${techInView ? "in-view" : ""}`}
         >
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 brand-section-heading">
             Technology Stack

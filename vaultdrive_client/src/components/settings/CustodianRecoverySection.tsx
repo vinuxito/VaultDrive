@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -19,7 +19,10 @@ import {
   AlertCircle,
   ShieldAlert,
 } from "lucide-react";
-import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
+import {
+  getNormalizedErrorMessage,
+  getStoredUserFromLocalStorage,
+} from "../../utils/browser-storage";
 import { branding } from "../../config/branding";
 import {
   decryptPrivateKeyWithPIN,
@@ -34,16 +37,53 @@ import {
 import { shamirSplit } from "../../utils/shamir";
 import { useSessionVault } from "../../context/SessionVaultContext";
 
+interface CustodianUser {
+  id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
+interface ActiveCustodian {
+  custodian_id: string;
+  custodian_username: string;
+  custodian_first_name: string;
+  custodian_last_name: string;
+  status: string;
+}
+
+interface PendingRecoveryRequest {
+  id: string;
+  owner_id: string;
+  owner_username: string;
+  owner_email: string;
+  owner_first_name: string;
+  owner_last_name: string;
+  wrapped_share_payload: string;
+}
+
+interface WrappedShareEnvelope {
+  wrapped_key: string;
+  iv: string;
+  ciphertext: string;
+}
+
+interface RecoverySharePayload {
+  custodian_id: string;
+  wrapped_share_payload: string;
+}
+
 export function CustodianRecoverySection() {
   const { t } = useTranslation(["drive"]);
   const { getCredential } = useSessionVault();
 
   const [currentUser] = useState(() => getStoredUserFromLocalStorage());
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<CustodianUser[]>([]);
   const [searching, setSearching] = useState(false);
   
-  const [selectedCustodians, setSelectedCustodians] = useState<any[]>([]);
+  const [selectedCustodians, setSelectedCustodians] = useState<CustodianUser[]>([]);
   const [threshold, setThreshold] = useState(2);
   const [passwordInput, setPasswordInput] = useState("");
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
@@ -53,29 +93,27 @@ export function CustodianRecoverySection() {
   const [success, setSuccess] = useState("");
 
   const [activeThreshold, setActiveThreshold] = useState<number | null>(null);
-  const [activeCustodians, setActiveCustodians] = useState<any[]>([]);
+  const [activeCustodians, setActiveCustodians] = useState<ActiveCustodian[]>([]);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
   // Custodian approvals list
-  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<PendingRecoveryRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalPasswordInput, setApprovalPasswordInput] = useState("");
   const [showApprovalPromptId, setShowApprovalPromptId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchActiveConfig();
-    fetchPendingRequests();
-  }, [currentUser]);
-
-  const fetchActiveConfig = async () => {
+  const fetchActiveConfig = useCallback(async () => {
     if (!currentUser) return;
     try {
       const response = await fetch(
         `${branding.apiBasePath}/v1/recovery/status?username=${currentUser.username}`
       );
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as {
+          threshold?: number;
+          shares?: ActiveCustodian[];
+        };
         setActiveThreshold(data.threshold || null);
         setActiveCustodians(data.shares || []);
       }
@@ -84,9 +122,9 @@ export function CustodianRecoverySection() {
     } finally {
       setLoadingConfig(false);
     }
-  };
+  }, [currentUser]);
 
-  const fetchPendingRequests = async () => {
+  const fetchPendingRequests = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
@@ -94,7 +132,7 @@ export function CustodianRecoverySection() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as PendingRecoveryRequest[];
         setPendingRequests(data);
       }
     } catch (err) {
@@ -102,7 +140,12 @@ export function CustodianRecoverySection() {
     } finally {
       setLoadingRequests(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void fetchActiveConfig();
+    void fetchPendingRequests();
+  }, [fetchActiveConfig, fetchPendingRequests]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -115,20 +158,20 @@ export function CustodianRecoverySection() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as CustodianUser[];
         // Exclude current user from search results
-        setSearchResults(data.filter((u: any) => u.id !== currentUser?.id));
+        setSearchResults(data.filter((user) => user.id !== currentUser?.id));
       } else {
         setError("Failed to search users.");
       }
-    } catch (err) {
+    } catch {
       setError("Search request failed.");
     } finally {
       setSearching(false);
     }
   };
 
-  const addCustodian = (user: any) => {
+  const addCustodian = (user: CustodianUser) => {
     if (selectedCustodians.some((c) => c.id === user.id)) return;
     setSelectedCustodians([...selectedCustodians, user]);
     setSearchResults([]);
@@ -161,13 +204,17 @@ export function CustodianRecoverySection() {
         privateKeyPem = await decryptPrivateKeyWithPIN(
           keyVal,
           currentUser.private_key_pin_encrypted,
-          currentUser.kek_envelope_version as number | undefined
+          typeof currentUser.kek_envelope_version === "number"
+            ? currentUser.kek_envelope_version
+            : undefined
         );
       } else if (currentUser?.private_key_encrypted) {
         privateKeyPem = await decryptPrivateKeyWithPassword(
           keyVal,
           currentUser.private_key_encrypted,
-          currentUser.kek_envelope_version as number | undefined
+          typeof currentUser.kek_envelope_version === "number"
+            ? currentUser.kek_envelope_version
+            : undefined
         );
       } else {
         throw new Error("Unable to locate private key metadata.");
@@ -184,7 +231,7 @@ export function CustodianRecoverySection() {
 
       // 4. Wrap each share with custodian's public key (hybrid encryption)
       const token = localStorage.getItem("token");
-      const sharesPayload: any[] = [];
+      const sharesPayload: RecoverySharePayload[] = [];
 
       for (let i = 0; i < sortedCustodians.length; i++) {
         const custodian = sortedCustodians[i];
@@ -197,7 +244,7 @@ export function CustodianRecoverySection() {
         if (!pubKeyResponse.ok) {
           throw new Error(`Failed to retrieve public key for ${custodian.username}`);
         }
-        const pubKeyData = await pubKeyResponse.json();
+        const pubKeyData = (await pubKeyResponse.json()) as { public_key: string };
         
         // Import custodian public RSA key
         const custodianPubKey = await importRSAPublicKey(pubKeyData.public_key);
@@ -214,7 +261,7 @@ export function CustodianRecoverySection() {
         const encryptedShare = await window.crypto.subtle.encrypt(
           { name: "AES-GCM", iv },
           aesKey,
-          shares[i].y as any
+          shares[i].y as BufferSource
         );
 
         // Wrap the AES key with custodian's public RSA key
@@ -257,14 +304,17 @@ export function CustodianRecoverySection() {
       
       // Refresh configurations
       await fetchActiveConfig();
-    } catch (err: any) {
-      setError(err.message || "Failed to enable custodian recovery.");
+    } catch (err: unknown) {
+      setError(getNormalizedErrorMessage(err, "Failed to enable custodian recovery."));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleApproveRequest = async (request: any, passwordOrPinToUse?: string) => {
+  const handleApproveRequest = async (
+    request: PendingRecoveryRequest,
+    passwordOrPinToUse?: string
+  ) => {
     setError("");
     setSuccess("");
 
@@ -286,13 +336,17 @@ export function CustodianRecoverySection() {
         privateKeyPem = await decryptPrivateKeyWithPIN(
           keyVal,
           currentUser.private_key_pin_encrypted,
-          currentUser.kek_envelope_version as number | undefined
+          typeof currentUser.kek_envelope_version === "number"
+            ? currentUser.kek_envelope_version
+            : undefined
         );
       } else if (currentUser?.private_key_encrypted) {
         privateKeyPem = await decryptPrivateKeyWithPassword(
           keyVal,
           currentUser.private_key_encrypted,
-          currentUser.kek_envelope_version as number | undefined
+          typeof currentUser.kek_envelope_version === "number"
+            ? currentUser.kek_envelope_version
+            : undefined
         );
       } else {
         throw new Error("Unable to locate private key metadata.");
@@ -301,7 +355,9 @@ export function CustodianRecoverySection() {
       const custodianPrivateKey = await importRSAPrivateKey(privateKeyPem);
 
       // 2. Parse the wrapped share payload
-      const shareEnvelope = JSON.parse(request.wrapped_share_payload);
+      const shareEnvelope = JSON.parse(
+        request.wrapped_share_payload
+      ) as WrappedShareEnvelope;
       const wrappedKeyBytes = shareEnvelope.wrapped_key;
       const ivBytes = new Uint8Array(base64ToArrayBuffer(shareEnvelope.iv));
       const ciphertextBytes = new Uint8Array(base64ToArrayBuffer(shareEnvelope.ciphertext));
@@ -345,8 +401,8 @@ export function CustodianRecoverySection() {
       
       // Refresh pending requests
       await fetchPendingRequests();
-    } catch (err: any) {
-      setError(err.message || "Approval failed.");
+    } catch (err: unknown) {
+      setError(getNormalizedErrorMessage(err, "Approval failed."));
     } finally {
       setApprovingId(null);
     }

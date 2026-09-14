@@ -7,6 +7,17 @@ interface HelpContentProps {
   activeSection: HelpSection;
 }
 
+interface HelpSectionContent {
+  title?: string;
+  paragraphs?: string[];
+  bulletPoints?: string[];
+  callout?: {
+    type?: "warning" | "info";
+    title?: string;
+    text?: string;
+  };
+}
+
 export function HelpContent({ activeSection }: HelpContentProps) {
   const { t } = useTranslation(["help"]);
   
@@ -14,7 +25,7 @@ export function HelpContent({ activeSection }: HelpContentProps) {
   const sectionData = t(`help:content.${activeSection}`, { 
     returnObjects: true,
     product: branding.productName 
-  }) as any;
+  }) as HelpSectionContent;
 
   if (!sectionData || typeof sectionData !== "object") {
     return <div className="text-muted-foreground p-8">Loading manual...</div>;

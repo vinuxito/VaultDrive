@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { API_URL } from "../utils/api";
-import { handleUnauthorized } from "../components/protected-route";
+import { handleUnauthorized } from "../utils/auth-session";
 
 export interface ActivityEvent {
   id: string;
@@ -118,7 +118,10 @@ async function connectSharedSource() {
 
 export function useSSE(onEvent: (event: ActivityEvent) => void): void {
   const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
+
+  useLayoutEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   useEffect(() => {
     const listener = (event: ActivityEvent) => onEventRef.current(event);

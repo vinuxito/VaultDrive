@@ -5,8 +5,7 @@ import {
   loginWithPassword,
   completeOnboarding,
   gotoStable,
-  uploadFileAsOwner,
-  productName
+  uploadFileAsOwner
 } from "./helpers/trust";
 
 test.describe("File upload with browser-side encryption", () => {

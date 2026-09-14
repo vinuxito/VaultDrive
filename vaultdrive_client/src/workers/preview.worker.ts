@@ -1,6 +1,43 @@
 // preview.worker.ts — off-thread decryption for previewing files
 import { mapDownloadHttpError } from "../utils/download-error";
 
+interface PreviewFile {
+  id: string;
+  metadata: string;
+  pin_wrapped_key?: string | null;
+  is_owner?: boolean;
+}
+
+interface PreviewRequest {
+  file: PreviewFile;
+  credential: string;
+  rawPrivateKeyPem?: string;
+  authToken: string;
+  API_URL: string;
+}
+
+interface EncryptionMetadata {
+  iv: string;
+  salt?: string | null;
+}
+
+interface PreviewWorkerScope {
+  onmessage: ((event: MessageEvent<PreviewRequest>) => void) | null;
+  postMessage(message: object, transfer?: Transferable[]): void;
+}
+
+const workerScope = self as unknown as PreviewWorkerScope;
+
+export function isEncryptionMetadata(value: unknown): value is EncryptionMetadata {
+  return typeof value === "object"
+    && value !== null
+    && "iv" in value
+    && typeof (value as Record<string, unknown>).iv === "string"
+    && (!("salt" in value)
+      || (value as Record<string, unknown>).salt === null
+      || typeof (value as Record<string, unknown>).salt === "string");
+}
+
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binaryString = atob(base64);
   const bytes = new Uint8Array(binaryString.length);
@@ -10,8 +47,8 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
+function hexToBytes(hex: string): Uint8Array<ArrayBuffer> {
+  const bytes = new Uint8Array(new ArrayBuffer(hex.length / 2));
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   }
@@ -21,10 +58,10 @@ function hexToBytes(hex: string): Uint8Array {
 async function decryptFile(
   encryptedData: ArrayBuffer,
   key: CryptoKey,
-  iv: Uint8Array
+  iv: Uint8Array<ArrayBuffer>
 ): Promise<ArrayBuffer> {
   return crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: iv as any },
+    { name: "AES-GCM", iv },
     key,
     encryptedData
   );
@@ -41,7 +78,7 @@ async function unwrapKey(credential: string, wrappedKeyHex: string): Promise<str
     ["deriveKey"]
   );
   const derivedKey = await crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt as any, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
     baseKey,
     { name: "AES-GCM", length: 256 },
     false,
@@ -50,7 +87,7 @@ async function unwrapKey(credential: string, wrappedKeyHex: string): Promise<str
   const decrypted = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: new Uint8Array(12) },
     derivedKey,
-    keyBytes as any
+    keyBytes
   );
   return new TextDecoder().decode(decrypted);
 }
@@ -63,14 +100,14 @@ async function importRSAPrivateKey(pem: string): Promise<CryptoKey> {
     .replace(pemFooter, "")
     .replace(/\s+/g, "");
   const binaryDerString = atob(pemContents);
-  const binaryDer = new Uint8Array(binaryDerString.length);
+  const binaryDer = new Uint8Array(new ArrayBuffer(binaryDerString.length));
   for (let i = 0; i < binaryDerString.length; i++) {
     binaryDer[i] = binaryDerString.charCodeAt(i);
   }
   return crypto.subtle.importKey(
     "pkcs8",
     binaryDer.buffer,
-    { name: "RSA-OAEP", hash: "SHA-256" },
+    { name: "RSA-OAEP" },
     false,
     ["unwrapKey"]
   );
@@ -85,14 +122,14 @@ async function unwrapKeyWithRSA(
     "raw",
     wrappedKeyBuffer,
     privateKey,
-    { name: "RSA-OAEP", hash: "SHA-256" } as any,
+    { name: "RSA-OAEP" },
     { name: "AES-GCM", length: 256 },
     false,
     ["decrypt"]
   );
 }
 
-async function deriveKeyFromPassword(password: string, salt: Uint8Array, iterations = 100000): Promise<CryptoKey> {
+async function deriveKeyFromPassword(password: string, salt: Uint8Array<ArrayBuffer>, iterations = 100000): Promise<CryptoKey> {
   const baseKey = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(password),
@@ -101,7 +138,7 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array, iterati
     ["deriveKey"]
   );
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt as any, iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
     baseKey,
     { name: "AES-GCM", length: 256 },
     false,
@@ -109,7 +146,7 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array, iterati
   );
 }
 
-self.onmessage = async (e: MessageEvent) => {
+workerScope.onmessage = async (e: MessageEvent<PreviewRequest>) => {
   const { file, credential, rawPrivateKeyPem, authToken, API_URL } = e.data;
   let failureKind: "credential" | "auth" | "storage" | "metadata" | "unknown" = "storage";
   try {
@@ -128,8 +165,9 @@ self.onmessage = async (e: MessageEvent) => {
 
     failureKind = "metadata";
     const metaStr = response.headers.get("X-File-Metadata") ?? file.metadata;
-    const metaObj = JSON.parse(metaStr);
-    if (!metaObj.iv) throw new Error("Missing encryption IV");
+    const parsedMetadata: unknown = JSON.parse(metaStr);
+    if (!isEncryptionMetadata(parsedMetadata)) throw new Error("Missing encryption IV");
+    const metaObj = parsedMetadata;
 
     const iv = new Uint8Array(base64ToArrayBuffer(metaObj.iv));
     const isDropUpload = !metaObj.salt || metaObj.salt === "";
@@ -144,7 +182,7 @@ self.onmessage = async (e: MessageEvent) => {
       const keyBytes = hexToBytes(rawKey);
       encryptionKey = await crypto.subtle.importKey(
         "raw",
-        keyBytes as any,
+        keyBytes,
         { name: "AES-GCM", length: 256 },
         false,
         ["decrypt"]
@@ -168,12 +206,12 @@ self.onmessage = async (e: MessageEvent) => {
     const decryptedData = await decryptFile(encryptedData, encryptionKey, iv);
 
     // Send back decrypted array buffer via Transferable list
-    (self as any).postMessage(
+    workerScope.postMessage(
       { success: true, decryptedBuffer: decryptedData },
       [decryptedData]
     );
   } catch (err) {
-    self.postMessage({
+    workerScope.postMessage({
       success: false,
       error: err instanceof Error ? err.message : "Decryption failed",
       failureKind,

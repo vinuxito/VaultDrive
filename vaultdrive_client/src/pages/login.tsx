@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffectEvent, useState } from "react";
 import { Button } from "../components/ui/button";
 import { LanguageToggle } from "../components/ui/language-toggle";
 import {
@@ -46,35 +46,6 @@ export default function Login() {
   const [pinValue, setPinValue] = useState("");
   const [biometricError, setBiometricError] = useState<string | null>(null);
 
-  const handleBiometricUnlock = async () => {
-    setBiometricError(null);
-    const email = loginData.email || getWebAuthnEmail();
-    if (!email) {
-      setBiometricError("Please enter your email first to use biometrics.");
-      return;
-    }
-    try {
-      const pin = await unlockWithPasskey(email);
-      setPinValue(pin);
-      await performLogin(email, pin, "pin");
-    } catch (e) {
-      setBiometricError(e instanceof Error ? e.message : "Biometric unlock failed");
-    }
-  };
-
-  useEffect(() => {
-    if (loginMode === "pin" && hasRegisteredPasskey()) {
-      const email = getWebAuthnEmail();
-      if (email) {
-        setLoginData((prev) => ({ ...prev, email }));
-        const timer = setTimeout(() => {
-          handleBiometricUnlock();
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [loginMode]);
-
   const [registerData, setRegisterData] = useState({
     first_name: "",
     last_name: "",
@@ -83,7 +54,7 @@ export default function Login() {
     password: "",
   });
 
-  const performLogin = async (email: string, passwordOrPin: string, mode: "password" | "pin") => {
+  const performLogin = useCallback(async (email: string, passwordOrPin: string, mode: "password" | "pin") => {
     setError("");
     setLoading(true);
 
@@ -193,7 +164,46 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clearVault, navigate, setCredential, setPrivateKey, t]);
+
+  const handleBiometricUnlock = useCallback(async () => {
+    setBiometricError(null);
+    const email = loginData.email || getWebAuthnEmail();
+    if (!email) {
+      setBiometricError("Please enter your email first to use biometrics.");
+      return;
+    }
+    try {
+      const pin = await unlockWithPasskey(email);
+      setPinValue(pin);
+      await performLogin(email, pin, "pin");
+    } catch (e) {
+      setBiometricError(e instanceof Error ? e.message : "Biometric unlock failed");
+    }
+  }, [loginData.email, performLogin]);
+
+  const handleAutomaticBiometricUnlock = useEffectEvent(async (email: string) => {
+    setBiometricError(null);
+    try {
+      const pin = await unlockWithPasskey(email);
+      setPinValue(pin);
+      await performLogin(email, pin, "pin");
+    } catch (e) {
+      setBiometricError(e instanceof Error ? e.message : "Biometric unlock failed");
+    }
+  });
+
+  useEffect(() => {
+    if (loginMode === "pin" && hasRegisteredPasskey()) {
+      const email = getWebAuthnEmail();
+      if (email) {
+        const timer = setTimeout(() => {
+          void handleAutomaticBiometricUnlock(email);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loginMode]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,6 +264,12 @@ export default function Login() {
   };
 
   const switchLoginMode = (mode: "password" | "pin") => {
+    if (mode === "pin") {
+      const passkeyEmail = getWebAuthnEmail();
+      if (passkeyEmail) {
+        setLoginData((current) => ({ ...current, email: passkeyEmail }));
+      }
+    }
     setLoginMode(mode);
     setError("");
     setPinValue("");

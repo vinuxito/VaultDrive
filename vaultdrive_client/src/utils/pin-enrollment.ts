@@ -64,7 +64,9 @@ export async function createPinProtectedPrivateKey({
         kekEnvelopeVersion = userObj.kek_envelope_version;
       }
     }
-  } catch(e) {}
+  } catch {
+    // Keep the legacy envelope version when stored user data is unavailable.
+  }
   console.log("pin-enrollment using kekEnvelopeVersion:", kekEnvelopeVersion);
 
   try {

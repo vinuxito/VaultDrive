@@ -18,6 +18,21 @@ import { branding } from "../config/branding";
 import { useTheme } from "../components/theme-provider";
 import { hexToBytes, encryptPrivateKeyWithPassword } from "../utils/crypto";
 import { shamirReconstruct, type ShamirShare } from "../utils/shamir";
+import { getNormalizedErrorMessage } from "../utils/browser-storage";
+
+interface RecoveryShare {
+  custodian_id: string;
+  custodian_username: string;
+  custodian_first_name: string;
+  custodian_last_name: string;
+  status: string;
+  decrypted_share_part?: string | null;
+}
+
+interface RecoveryStatus {
+  threshold: number;
+  shares?: RecoveryShare[];
+}
 
 export default function Recover() {
   const { t } = useTranslation(["auth", "drive"]);
@@ -32,13 +47,13 @@ export default function Recover() {
   const [error, setError] = useState("");
 
   const [threshold, setThreshold] = useState<number | null>(null);
-  const [shares, setShares] = useState<any[]>([]);
+  const [shares, setShares] = useState<RecoveryShare[]>([]);
   const [approvedCount, setApprovedCount] = useState(0);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const pollIntervalRef = useRef<any>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     return () => {
@@ -66,8 +81,8 @@ export default function Recover() {
       // Start polling status immediately
       fetchStatus();
       pollIntervalRef.current = setInterval(fetchStatus, 5000);
-    } catch (err: any) {
-      setError(err.message || "Request failed.");
+    } catch (err: unknown) {
+      setError(getNormalizedErrorMessage(err, "Request failed."));
     } finally {
       setLoading(false);
     }
@@ -80,12 +95,12 @@ export default function Recover() {
         `${branding.apiBasePath}/v1/recovery/status?username=${encodeURIComponent(username.trim())}`
       );
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as RecoveryStatus;
         setThreshold(data.threshold);
         setShares(data.shares || []);
 
         const approved = (data.shares || []).filter(
-          (s: any) => s.status === "approved" && s.decrypted_share_part
+          (share) => share.status === "approved" && share.decrypted_share_part
         ).length;
         setApprovedCount(approved);
 
@@ -117,7 +132,10 @@ export default function Recover() {
     try {
       // 1. Gather all approved shares
       const approvedShares = shares.filter(
-        (s: any) => s.status === "approved" && s.decrypted_share_part
+        (share): share is RecoveryShare & { decrypted_share_part: string } =>
+          share.status === "approved"
+          && typeof share.decrypted_share_part === "string"
+          && share.decrypted_share_part.length > 0
       );
 
       if (threshold === null || approvedShares.length < threshold) {
@@ -171,8 +189,8 @@ export default function Recover() {
       }
 
       setPhase("success");
-    } catch (err: any) {
-      setError(err.message || "Failed to reset password.");
+    } catch (err: unknown) {
+      setError(getNormalizedErrorMessage(err, "Failed to reset password."));
     } finally {
       setLoading(false);
     }

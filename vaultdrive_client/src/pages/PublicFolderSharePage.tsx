@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { API_URL } from "../utils/api";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { useToast } from "../context/ToastContext";
@@ -76,7 +77,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function formatExpiry(expiresAt: string | null, t: any): string {
+function formatExpiry(expiresAt: string | null, t: TFunction): string {
   if (!expiresAt) return t("drive:publicShare.noExpiry", "No expiry");
   const date = new Date(expiresAt);
   return t("drive:publicShare.expiresOn", "Expires {{date}}", { 
@@ -394,7 +395,7 @@ export default function PublicFolderSharePage() {
         setDownloadingFileId(null);
       }
     },
-    [token, folderShareKey, wrappedKeys]
+    [addToast, token, folderShareKey, wrappedKeys]
   );
 
   async function handleDownloadAll() {

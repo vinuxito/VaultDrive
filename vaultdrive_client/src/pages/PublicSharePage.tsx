@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { TFunction } from "i18next";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { API_URL } from "../utils/api";
@@ -44,7 +45,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function formatExpiry(expiresAt: string | null, t: any): string {
+function formatExpiry(expiresAt: string | null, t: TFunction): string {
   if (!expiresAt) return t("drive:publicShare.noExpiry", "No expiry");
   const date = new Date(expiresAt);
   // Optional: We can keep the basic date string for now or pass format params
@@ -75,7 +76,7 @@ export default function PublicSharePage() {
   const [decryptDuration, setDecryptDuration] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
-  const fetchInfo = async () => {
+  const fetchInfo = useCallback(async () => {
     try {
       if (!token) {
         setErrorMsg("Invalid share link — missing token");
@@ -124,11 +125,11 @@ export default function PublicSharePage() {
       setErrorMsg(err instanceof Error ? err.message : "Failed to load file info");
       setState("error");
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     void fetchInfo();
-  }, [token]);
+  }, [fetchInfo]);
 
   useEffect(() => {
     if (state !== "locked" || !shareInfo?.unlock_at) return;
@@ -158,7 +159,7 @@ export default function PublicSharePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state, shareInfo?.unlock_at]);
+  }, [fetchInfo, state, shareInfo?.unlock_at]);
 
   async function handleDownload() {
     if (!token || !shareInfo) return;
