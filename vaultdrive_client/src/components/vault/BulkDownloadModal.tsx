@@ -11,6 +11,7 @@ import {
 } from "../ui/card";
 import { useTheme } from "../theme-provider";
 import { cn } from "../../lib/utils";
+import { getFileCredentialScheme } from "../../utils/file-credential";
 
 export interface BulkDownloadFile {
   id: string;
@@ -52,8 +53,13 @@ export function BulkDownloadModal({
 }: BulkDownloadModalProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const needsPin = files.some((f) => f.pin_wrapped_key);
-  const needsPassword = files.some((f) => !f.pin_wrapped_key);
+  const needsPin = files.some((file) => {
+    const scheme = getFileCredentialScheme(file);
+    return scheme === "drop-pin" || scheme === "pin";
+  });
+  const needsPassword = files.some(
+    (file) => getFileCredentialScheme(file) === "password",
+  );
 
   const { getCredential, clearCredential } = useSessionVault();
 
@@ -80,6 +86,8 @@ export function BulkDownloadModal({
     setFileErrors((prev) => ({ ...prev, [id]: msg }));
 
   const handleStart = async () => {
+    if (files.length === 0) return;
+
     setRunning(true);
     setDone(false);
     setStopped(false);
@@ -90,7 +98,13 @@ export function BulkDownloadModal({
       for (const file of files) {
         setStatus(file.id, "downloading");
 
-        const credential = file.pin_wrapped_key ? pinCredential : passwordCredential;
+        const scheme = getFileCredentialScheme(file);
+        const credential =
+          scheme === "drop-pin" || scheme === "pin"
+            ? pinCredential
+            : scheme === "password"
+              ? passwordCredential
+              : "";
 
         let result: DownloadAttemptResult;
         try {
@@ -113,8 +127,8 @@ export function BulkDownloadModal({
         setStopped(true);
         if (result.failureKind === "credential") {
           clearCredential();
-          if (file.pin_wrapped_key) setPinCredential("");
-          else setPasswordCredential("");
+          if (scheme === "drop-pin" || scheme === "pin") setPinCredential("");
+          if (scheme === "password") setPasswordCredential("");
         }
         return;
       }
@@ -125,11 +139,18 @@ export function BulkDownloadModal({
   };
 
   const credentialsReady =
+    files.length > 0 &&
     (!needsPin || pinCredential.length === 4) &&
     (!needsPassword || passwordCredential.length > 0);
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bulk-download-title"
+      aria-describedby="bulk-download-description"
+    >
       <Card
         className={cn(
           "w-full max-w-lg mx-4 max-h-[85vh] flex flex-col border",
@@ -140,7 +161,10 @@ export function BulkDownloadModal({
       >
         <CardHeader className={cn("border-b shrink-0", isDark ? "border-white/10" : "border-border")}>
           <div className="flex items-center justify-between">
-            <CardTitle className={cn("flex items-center gap-2", isDark ? "text-white" : "text-foreground")}>
+            <CardTitle
+              id="bulk-download-title"
+              className={cn("flex items-center gap-2", isDark ? "text-white" : "text-foreground")}
+            >
               <Download className={cn("w-5 h-5", isDark ? "text-primary-foreground" : "text-primary")} />
               Download {files.length} file{files.length !== 1 ? "s" : ""}
             </CardTitle>
@@ -158,20 +182,35 @@ export function BulkDownloadModal({
               </button>
             )}
           </div>
-          <CardDescription className={isDark ? "text-white/80" : "text-muted-foreground"}>
-            {done
+          <CardDescription
+            id="bulk-download-description"
+            className={isDark ? "text-white/80" : "text-muted-foreground"}
+          >
+            {files.length === 0
+              ? "No files selected."
+              : done
               ? "All downloads processed."
               : stopped
               ? "Download stopped at the first failure. Correct the issue, then retry."
+              : credentialsReady && !needsPin && !needsPassword
+              ? "Ready to download — click Start to decrypt and download."
               : credentialsReady
               ? "Credentials ready — click Start to decrypt and download."
               : "Enter credentials, then click Start to decrypt and download."}
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-y-auto space-y-4 py-4">
-          {!done && !running && (
-            <div className="space-y-3">
+        <form
+          className="contents"
+          autoComplete="off"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleStart();
+          }}
+        >
+          <CardContent className="flex-1 overflow-y-auto space-y-4 py-4">
+            {!done && !running && (
+              <div className="space-y-3">
               {needsPin && (
                 <div className="space-y-1.5">
                   <label
@@ -186,9 +225,12 @@ export function BulkDownloadModal({
                   </label>
                   <input
                     id="bulk-download-pin"
+                    name="bulk-file-pin"
                     type="password"
+                    autoComplete="one-time-code"
                     inputMode="numeric"
                     maxLength={4}
+                    autoFocus={needsPin}
                     value={pinCredential}
                     onChange={(e) => setPinCredential(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     placeholder="••••"
@@ -216,7 +258,10 @@ export function BulkDownloadModal({
                   </label>
                   <input
                     id="bulk-download-password"
+                    name="bulk-file-credential"
                     type="password"
+                    autoComplete="new-password"
+                    autoFocus={!needsPin && needsPassword}
                     value={passwordCredential}
                     onChange={(e) => setPasswordCredential(e.target.value)}
                     placeholder="Enter password"
@@ -229,13 +274,14 @@ export function BulkDownloadModal({
                   />
                 </div>
               )}
-            </div>
-          )}
+              </div>
+            )}
 
-          <div className="space-y-1.5">
-            {files.map((file) => {
-              const status = fileStatuses[file.id] ?? "pending";
-              return (
+            <div className="space-y-1.5">
+              {files.map((file) => {
+                const status = fileStatuses[file.id] ?? "pending";
+                const scheme = getFileCredentialScheme(file);
+                return (
                 <div
                   key={file.id}
                   className={cn(
@@ -268,63 +314,66 @@ export function BulkDownloadModal({
                       </p>
                     )}
                   </div>
-                  {file.pin_wrapped_key && (
+                  {(scheme === "drop-pin" || scheme === "pin") && (
                     <span className={cn("text-xs shrink-0", isDark ? "text-violet-300" : "text-primary")}>PIN</span>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </CardContent>
+                );
+              })}
+            </div>
+          </CardContent>
 
-        <div className={cn("border-t p-4 shrink-0 flex gap-2", isDark ? "border-white/10" : "border-border")}>
-          {done ? (
-            <Button
-              onClick={onClose}
-              className={cn(
-                "w-full font-semibold",
-                isDark
-                  ? "bg-white text-primary hover:bg-primary/10"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
-              )}
-            >
-              Done
-            </Button>
-          ) : (
-            <>
+          <div className={cn("border-t p-4 shrink-0 flex gap-2", isDark ? "border-white/10" : "border-border")}>
+            {done ? (
               <Button
-                variant="modal-cancel"
+                type="button"
                 onClick={onClose}
-                disabled={running}
-                className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleStart}
-                disabled={!credentialsReady || running}
                 className={cn(
-                  "flex-1 font-semibold gap-1.5",
+                  "w-full font-semibold",
                   isDark
                     ? "bg-white text-primary hover:bg-primary/10"
                     : "bg-primary text-primary-foreground hover:bg-primary/90"
                 )}
               >
-                {running ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    {stopped ? "Retry Downloads" : "Start Download"}
-                  </>
-                )}
+                Done
               </Button>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="modal-cancel"
+                  onClick={onClose}
+                  disabled={running}
+                  className={cn(isDark ? "bg-white/15 border-white/20 text-white hover:bg-white/25 border" : "")}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!credentialsReady || running}
+                  className={cn(
+                    "flex-1 font-semibold gap-1.5",
+                    isDark
+                      ? "bg-white text-primary hover:bg-primary/10"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
+                >
+                  {running ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      {stopped ? "Retry Downloads" : "Start Download"}
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </form>
       </Card>
     </div>
   );

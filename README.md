@@ -8,6 +8,17 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
+## Download/PIN repair (2026-09-14)
+
+The download dialog preserves its selection during autofill and displays the
+correct PIN/credential prompt. Wrong-PIN retries remain editable and only
+successfully verified decryption keys are cached. Frontend unit tests: **162
+passed, 1 skipped**; local browser download regressions: **4 passed**.
+The production frontend is deployed; all **4 browser regressions also passed
+against the public deployed assets**, using encrypted test files.
+See the [verification report](docs/reports/2026-09-14-download-pin-verification.md)
+and [HTML report](docs/reports/2026-09-14-download-pin-verification.html).
+
 ## Service recovery (2026-09-14)
 
 The ABRN backend service is installed, **active and enabled** after recovery

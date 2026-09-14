@@ -9,6 +9,7 @@ interface FileSearchProps {
   setSearchQuery: (query: string) => void;
   typeFilter: FileTypeFilter;
   setTypeFilter: (filter: FileTypeFilter) => void;
+  disabled?: boolean;
 }
 
 export const FileSearch: React.FC<FileSearchProps> = ({
@@ -16,6 +17,7 @@ export const FileSearch: React.FC<FileSearchProps> = ({
   setSearchQuery,
   typeFilter,
   setTypeFilter,
+  disabled = false,
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -31,12 +33,19 @@ export const FileSearch: React.FC<FileSearchProps> = ({
   return (
     <div className="px-6 py-3 border-b border-border/60 bg-background shrink-0">
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
+        <form role="search" autoComplete="off" onSubmit={(event) => event.preventDefault()} className="relative flex-1 max-w-md">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
-            type="text"
+            type="search"
+            name="vault-file-search"
+            autoComplete="off"
+            data-lpignore="true"
+            data-1p-ignore
+            disabled={disabled}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              if (!disabled) setSearchQuery(e.target.value);
+            }}
             placeholder={t("drive:vault.search")}
             className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
           />
@@ -44,13 +53,14 @@ export const FileSearch: React.FC<FileSearchProps> = ({
           {searchQuery && (
             <button
               type="button"
+              disabled={disabled}
               onClick={() => setSearchQuery("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-        </div>
+        </form>
         <div className="flex items-center gap-1 flex-wrap">
           {(Object.keys(TYPE_FILTER_LABELS) as FileTypeFilter[]).map((type) => (
             <button

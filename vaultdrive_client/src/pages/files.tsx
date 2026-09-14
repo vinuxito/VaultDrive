@@ -85,6 +85,7 @@ import { buildMoveTargetOptions } from "../utils/file-move";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import type { DragDataTransferItem } from "../utils/drop-drag";
 import { mapDownloadHttpError } from "../utils/download-error";
+import { getFileCredentialScheme } from "../utils/file-credential";
 import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
@@ -146,18 +147,6 @@ function formatBytes(bytes: number): string {
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
-
-function getFileCredentialScheme(file: { pin_wrapped_key?: string | null; metadata?: string; is_owner?: boolean }): "drop-pin" | "pin" | "password" | "folder" {
-  if (file.pin_wrapped_key) return "drop-pin";
-  if (!file.metadata) return !file.is_owner ? "pin" : "password";
-  try {
-    const meta = JSON.parse(file.metadata) as { credential_scheme?: string };
-    if (meta.credential_scheme === "folder") return "folder";
-    return meta.credential_scheme === "pin" ? "pin" : "password";
-  } catch {
-    return !file.is_owner ? "pin" : "password";
-  }
 }
 
 function getFileExtension(filename: string): string {
@@ -307,7 +296,7 @@ export default function Files() {
     hasSubfolders: boolean;
   } | null>(null);
 
-  const [showBulkDownload, setShowBulkDownload] = useState(false);
+  const [bulkDownloadFiles, setBulkDownloadFiles] = useState<BulkDownloadFile[] | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [uploadTray, setUploadTray] = useState<UploadTrayItem[]>([]);
@@ -711,8 +700,9 @@ export default function Files() {
       metadata: file.metadata,
       pin_wrapped_key: file.pin_wrapped_key,
       is_owner: file.is_owner,
+      folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
     }));
-  }, [selectedVisibleFiles]);
+  }, [selectedVisibleFiles, selectedNode]);
   const deletableSelectedCount = useMemo(
     () => selectedVisibleFiles.filter((file) => file.is_owner !== false).length,
     [selectedVisibleFiles]
@@ -1094,7 +1084,6 @@ export default function Files() {
           throw new Error("Folder key not found. Please re-open the folder to unlock it.");
         }
         encryptionKey = await unwrapKeyWithAES(folderKey, wrappedKeyB64);
-        sessionVault.setFileKey(file.id, encryptionKey);
       } else if (isDropUpload && (file.pin_wrapped_key || wrappedKeyB64)) {
         failureKind = "credential";
         const pinWrapped = file.pin_wrapped_key || wrappedKeyB64 || "";
@@ -1108,7 +1097,6 @@ export default function Files() {
           ["decrypt"]
         );
         failureKind = "unknown";
-        sessionVault.setFileKey(file.id, encryptionKey);
       } else if (wrappedKeyB64 && file.is_owner === false) {
         const sessionKey = sessionVault.getPrivateKey();
         let rsaPrivateKey: CryptoKey;
@@ -1127,19 +1115,20 @@ export default function Files() {
         }
         failureKind = "unknown";
         encryptionKey = await unwrapKeyWithRSA(rsaPrivateKey, wrappedKeyB64);
-        sessionVault.setFileKey(file.id, encryptionKey);
       } else {
         finalDecryptVerifiesCredential = true;
         failureKind = "credential";
         const salt = new Uint8Array(base64ToArrayBuffer(metadataObj.salt!));
         encryptionKey = await deriveKeyFromPassword(credential, salt, 100000);
-        sessionVault.setFileKey(file.id, encryptionKey);
       }
 
       failureKind = finalDecryptVerifiesCredential ? "credential" : "unknown";
       const encryptedBlob = await response.blob();
       const encryptedData = await encryptedBlob.arrayBuffer();
       const decryptedData = await decryptFile(encryptedData, encryptionKey, iv);
+      // A derived key is only trustworthy after authenticated decryption succeeds.
+      // Otherwise a wrong PIN would poison the cache and defeat later retries.
+      sessionVault.setFileKey(file.id, encryptionKey);
 
       const decryptedBlob = new Blob([decryptedData]);
       const url = window.URL.createObjectURL(decryptedBlob);
@@ -1155,7 +1144,9 @@ export default function Files() {
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : "Decryption failed",
+        error: failureKind === "credential"
+          ? "Incorrect PIN or file credential. Please try again."
+          : err instanceof Error ? err.message : "Decryption failed",
         failureKind,
       };
     }
@@ -1283,7 +1274,6 @@ export default function Files() {
   const performDownload = async (password: string): Promise<boolean> => {
     if (!pendingDownload) return false;
     const fileId = pendingDownload.fileId;
-    setShowPasswordModal(false);
     setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
     setDownloading(true);
     setError("");
@@ -1299,7 +1289,13 @@ export default function Files() {
         },
         password
       );
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) {
+        if (result.failureKind === "credential") {
+          sessionVault.clearCredential();
+          setEncryptionPassword("");
+        }
+        throw new Error(result.error);
+      }
       setPendingDownload(null);
       return true;
     } catch (err) {
@@ -1777,7 +1773,7 @@ export default function Files() {
 
   return (
     <>
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col" inert={bulkDownloadFiles !== null || showPasswordModal}>
         <div className="px-6 pt-6 pb-4 border-b border-border/60">
           <h1 className="text-2xl font-bold text-foreground">{t("drive:vault.title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -1791,6 +1787,7 @@ export default function Files() {
           setSearchQuery={setSearchQuery}
           typeFilter={typeFilter}
           setTypeFilter={setTypeFilter}
+          disabled={bulkDownloadFiles !== null || showPasswordModal}
         />
 
         <div className="flex flex-1 overflow-hidden">
@@ -2125,20 +2122,22 @@ export default function Files() {
         </div>
       )}
 
-      <BulkActionBar
+      {bulkDownloadFiles === null && <BulkActionBar
         selectedCount={selectedVisibleFiles.length}
         deletableCount={deletableSelectedCount}
         scopeLabel="in this view"
-        onDownload={() => setShowBulkDownload(true)}
+        onDownload={() => {
+          if (selectedBulkFiles.length > 0) setBulkDownloadFiles(selectedBulkFiles);
+        }}
         onDelete={handleBulkDeleteClick}
         onClear={() => setSelectedFileIds(new Set())}
-      />
+      />}
 
-      {showBulkDownload && (
+      {bulkDownloadFiles !== null && (
         <BulkDownloadModal
-          files={selectedBulkFiles}
+          files={bulkDownloadFiles}
           onDownloadFile={downloadFileWithCredential}
-          onClose={() => { setShowBulkDownload(false); setSelectedFileIds(new Set()); }}
+          onClose={() => { setBulkDownloadFiles(null); setSelectedFileIds(new Set()); }}
         />
       )}
 
@@ -2158,10 +2157,15 @@ export default function Files() {
         const isUpload = passwordAction === "upload" || passwordAction === "drop-upload";
         const usePin = isUpload ? ownerUsesPin : credScheme !== "password";
         return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="vault-credential-title"
+        >
           <Card className="w-full max-w-md mx-4 bg-gradient-to-br from-primary to-primary/90 border-white/10 text-white">
             <CardHeader className="border-b border-white/10">
-              <CardTitle className="flex items-center gap-2 text-white">
+              <CardTitle id="vault-credential-title" className="flex items-center gap-2 text-white">
                 <Lock className="w-5 h-5 text-primary-foreground" />
                 {isUpload
                   ? (ownerUsesPin ? t("drive:vault.passwordModal.usePin") : t("drive:vault.passwordModal.encryptFile"))
@@ -2179,6 +2183,12 @@ export default function Files() {
               </CardDescription>
 
             </CardHeader>
+            <form autoComplete="off" onSubmit={(event) => {
+              event.preventDefault();
+              if (encryptionPassword && (!usePin || /^\d{4}$/.test(encryptionPassword)) && !uploading && !downloading) {
+                void handlePasswordSubmit();
+              }
+            }}>
             <CardContent className="space-y-4">
               {error && (
                 <div className="p-3 rounded-lg bg-primary/20 border border-primary/30 text-primary-foreground text-sm flex items-center gap-2">
@@ -2194,7 +2204,13 @@ export default function Files() {
 
                 <input
                   id="vault-credential"
+                  name="vault-decryption-credential"
                   type="password"
+                  disabled={uploading || downloading}
+                  autoComplete={usePin ? "one-time-code" : "new-password"}
+                  data-lpignore="true"
+                  data-1p-ignore
+                  autoFocus
                   inputMode={usePin ? "numeric" : undefined}
                   maxLength={usePin ? 4 : undefined}
                   value={encryptionPassword}
@@ -2206,12 +2222,13 @@ export default function Files() {
                   placeholder={usePin ? t("drive:vault.passwordModal.placeholderPin") : t("drive:vault.passwordModal.placeholderCredential")}
                   className={`w-full px-3 py-2 border rounded-md bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15${usePin ? " text-center tracking-widest text-xl" : ""}`}
 
-                  onKeyDown={(e) => { if (e.key === "Enter" && encryptionPassword) handlePasswordSubmit(); }}
                 />
               </div>
               <div className="flex gap-2">
                 <Button
+                  type="button"
                   variant="modal-cancel"
+                  disabled={uploading || downloading}
                   onClick={() => {
                     setShowPasswordModal(false);
                     setEncryptionPassword("");
@@ -2223,8 +2240,8 @@ export default function Files() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handlePasswordSubmit}
-                  disabled={!encryptionPassword || uploading || downloading}
+                  type="submit"
+                  disabled={!encryptionPassword || (usePin && !/^\d{4}$/.test(encryptionPassword)) || uploading || downloading}
                   className="flex-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/0.9] font-semibold"
                 >
                   {uploading || downloading ? (
@@ -2241,6 +2258,7 @@ export default function Files() {
                 </Button>
               </div>
             </CardContent>
+            </form>
           </Card>
         </div>
         );
