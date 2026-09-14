@@ -8,6 +8,13 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
+## UI/UX coherence roadmap (2026-09-14)
+
+[Current assessment and seven-step roadmap](docs/roadmaps/2026-09-14-ui-ux-coherence-upgrade-roadmap/index.md)
+for this ABRN deployment: source evidence, live/browser observations, prioritized
+journey repairs and testable acceptance criteria. Proposed work; no app changes
+are included in the roadmap commit.
+
 ## Frontend lint repair (2026-09-14)
 
 **Lint: 0 errors, 0 warnings**, using the unchanged rules. **265 unit tests
