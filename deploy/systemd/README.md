@@ -1,3 +1,30 @@
+# Install the missing ABRN Drive service (2026-09-14 recovery)
+
+The new `abrndrive.service`, `prepare-runtime-env.py`, and `install-abrndrive.sh`
+restore the native backend. Prepare a current-source Go binary first. Stage all
+three deployment files and the binary under a private user-owned directory
+(mode 0700, files not writable by the service account). Run
+`prepare-runtime-env.py` as the current user to create `runtime.env` beside the
+staged installer; verify that snapshot before the sudo step. Then run:
+
+```bash
+sudo bash /home/vinuxito/.cache/abrndrive-recovery/install/install-abrndrive.sh /home/vinuxito/.cache/abrndrive-recovery/abrndrive
+```
+
+Do not sudo-execute the installer from the shared writable application tree.
+The helper preserves `.env.runtime` precedence and existing secrets, translates
+the Docker database address to `127.0.0.1:5432`, and preserves Compose's
+`ENABLE_ARGON2ID=false`. The unit bind-mounts `uploads` at `/data/uploads` within
+its filesystem namespace. PostgreSQL restart recovery uses `Wants`/`After`,
+`pg_isready` and automatic backend restarts.
+
+The installer backs up replaced files, installs only ABRN Drive, enables startup,
+and verifies readiness plus public HTTPS. It does not run migrations. Full
+systemd and public verification passed after the administrator completed the sudo
+step on 2026-09-14: active/enabled, public HTTP 200, and 439/439 stored files.
+
+---
+
 # Reboot-survival hardening for the Drive backends
 
 This directory makes **ABRN Drive** (`abrndrive.service`, port 8082) and

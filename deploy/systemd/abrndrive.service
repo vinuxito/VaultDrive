@@ -1,0 +1,26 @@
+[Unit]
+Description=ABRN Drive backend
+After=network-online.target postgresql@16-main.service
+Wants=network-online.target postgresql@16-main.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=daemon
+Group=lampedit
+WorkingDirectory=/lamp/www/ABRN-Drive
+EnvironmentFile=/etc/abrndrive/runtime.env
+ExecStartPre=/usr/bin/pg_isready -q -h 127.0.0.1 -p 5432
+ExecStart=/usr/local/lib/abrndrive/abrndrive
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+BindPaths=/lamp/www/ABRN-Drive/uploads:/data/uploads
+UMask=0002
+
+[Install]
+WantedBy=multi-user.target

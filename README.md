@@ -8,6 +8,16 @@ QuantiX Drive is designed as a reusable **upstream product**. Deployments brand 
 
 ---
 
+## Service recovery (2026-09-14)
+
+The ABRN backend service is installed, **active and enabled** after recovery
+from a public 503. Public health, readiness and the landing page return **HTTP 200**;
+readiness verifies **439/439 stored files**. The live login page renders without
+console errors. Reboot and authenticated workflows were not exercised.
+See the [verification report](docs/reports/2026-09-14-service-recovery-verification.md),
+[HTML report](docs/reports/2026-09-14-service-recovery-verification.html), and
+[service installation instructions](deploy/systemd/README.md).
+
 ## Current Status (2026-07-10 — v10 ZK Shared Folders & Key Exchange)
 
 **Production-ready.** Zero-Knowledge Multi-User Shared Folders & Client-Side Key Exchange has been fully implemented, type-checked, and compiled with zero errors.
