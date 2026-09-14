@@ -74,6 +74,10 @@ jobs:
         working-directory: vaultdrive_client
         run: npm test
 
+      - name: Lint frontend
+        working-directory: vaultdrive_client
+        run: npm run lint
+
       - name: Type-check frontend
         working-directory: vaultdrive_client
         run: npx tsc --noEmit

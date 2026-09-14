@@ -9,86 +9,93 @@ if (fs.existsSync(".env.test")) {
   dotenv.config();
 }
 
-const configuredBaseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:8090${process.env.VITE_BASE_PATH ?? "/quantix"}`;
-const baseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
-const e2eUploadDir = process.env.E2E_UPLOAD_DIR ?? "/tmp/quantix-playwright-uploads";
-const e2eDbName = process.env.E2E_DB_NAME ?? "vaultdrive_playwright";
-const e2eAdminDbUrl =
-  process.env.E2E_ADMIN_DB_URL ??
-  "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable";
-const e2eDbUrl =
-  process.env.E2E_DB_URL ??
-  `postgres://postgres:postgres@localhost:5432/${e2eDbName}?sslmode=disable`;
+export function createPlaywrightConfig(env: NodeJS.ProcessEnv = process.env) {
+  const explicitBaseURL = env.E2E_BASE_URL?.trim();
+  const configuredBaseURL = explicitBaseURL || `http://127.0.0.1:8090${env.VITE_BASE_PATH ?? "/quantix"}`;
+  const baseURL = configuredBaseURL.endsWith("/") ? configuredBaseURL : `${configuredBaseURL}/`;
+  const e2eUploadDir = env.E2E_UPLOAD_DIR ?? "/tmp/quantix-playwright-uploads";
+  const e2eDbName = env.E2E_DB_NAME ?? "vaultdrive_playwright";
+  const e2eAdminDbUrl =
+    env.E2E_ADMIN_DB_URL ??
+    "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable";
+  const e2eDbUrl =
+    env.E2E_DB_URL ??
+    `postgres://postgres:postgres@localhost:5432/${e2eDbName}?sslmode=disable`;
 
-// Filter out VITE_ variables from process.env to prevent overriding the build-time env vars
-const cleanProcessEnv = Object.keys(process.env).reduce((acc, key) => {
-  if (!key.startsWith("VITE_")) {
-    acc[key] = process.env[key]!;
-  }
-  return acc;
-}, {} as Record<string, string>);
+  // Filter out VITE_ variables to prevent overriding the build-time environment.
+  const cleanProcessEnv = Object.keys(env).reduce((acc, key) => {
+    if (!key.startsWith("VITE_") && env[key] !== undefined) {
+      acc[key] = env[key];
+    }
+    return acc;
+  }, {} as Record<string, string>);
 
-const e2eBackendEnv = {
-  ...cleanProcessEnv,
-  PORT: process.env.PORT ?? "8090",
-  DB_URL: process.env.DB_URL ?? e2eDbUrl,
-  JWT_SECRET:
-    process.env.JWT_SECRET ?? "local-dev-secret-minimum-32-characters-long",
-  BASE_PATH: process.env.BASE_PATH ?? "/quantix/",
-  UPLOAD_DIR: process.env.UPLOAD_DIR ?? e2eUploadDir,
-  E2E_DB_NAME: e2eDbName,
-  E2E_ADMIN_DB_URL: e2eAdminDbUrl,
-  ENABLE_ARGON2ID: "true",
-};
+  const e2eBackendEnv = {
+    ...cleanProcessEnv,
+    PORT: env.PORT ?? "8090",
+    DB_URL: env.DB_URL ?? e2eDbUrl,
+    JWT_SECRET:
+      env.JWT_SECRET ?? "local-dev-secret-minimum-32-characters-long",
+    BASE_PATH: env.BASE_PATH ?? "/quantix/",
+    UPLOAD_DIR: env.UPLOAD_DIR ?? e2eUploadDir,
+    E2E_DB_NAME: e2eDbName,
+    E2E_ADMIN_DB_URL: e2eAdminDbUrl,
+    ENABLE_ARGON2ID: "true",
+  };
 
-export default defineConfig({
-  testDir: "./e2e",
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI
-    ? [["github"], ["html", { open: "never" }]]
-    : [["list"], ["html", { open: "never" }]],
-  projects: [
-    {
-      name: "Desktop Chrome",
-      use: {
-        viewport: { width: 1280, height: 720 },
+  return defineConfig({
+    testDir: "./e2e",
+    fullyParallel: false,
+    forbidOnly: !!env.CI,
+    retries: env.CI ? 2 : 0,
+    workers: env.CI ? 1 : undefined,
+    reporter: env.CI
+      ? [["github"], ["html", { open: "never" }]]
+      : [["list"], ["html", { open: "never" }]],
+    projects: [
+      {
+        name: "Desktop Chrome",
+        use: {
+          viewport: { width: 1280, height: 720 },
+        },
+        testIgnore: "**/mobile/**",
       },
-      testIgnore: "**/mobile/**",
-    },
-    {
-      name: "Mobile Chrome",
-      use: {
-        viewport: { width: 390, height: 844 },
-        isMobile: true,
-        hasTouch: true,
+      {
+        name: "Mobile Chrome",
+        use: {
+          viewport: { width: 390, height: 844 },
+          isMobile: true,
+          hasTouch: true,
+        },
+        testMatch: "**/mobile/**",
       },
-      testMatch: "**/mobile/**",
+    ],
+    use: {
+      baseURL,
+      trace: "on-first-retry",
+      screenshot: "only-on-failure",
+      video: "retain-on-failure",
     },
-  ],
-  use: {
-    baseURL,
-    trace: "on-first-retry",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
-  },
-  expect: {
-    timeout: 15000,
-  },
-  timeout: 120000,
-  webServer: {
-    command:
-      "npm run build -- --mode test" +
-      " && cd .." +
-      " && mkdir -p \"$UPLOAD_DIR\"" +
-      " && (psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\" || true)" +
-      " && go run github.com/pressly/goose/v3/cmd/goose@latest -dir sql/schema postgres \"$DB_URL\" up" +
-      " && go run .",
-    env: e2eBackendEnv,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 300000,
-  },
-});
+    expect: {
+      timeout: 15000,
+    },
+    timeout: 120000,
+    webServer: explicitBaseURL
+      ? undefined
+      : {
+          command:
+            "npm run build -- --mode test" +
+            " && cd .." +
+            " && mkdir -p \"$UPLOAD_DIR\"" +
+            " && (psql \"$E2E_ADMIN_DB_URL\" -tAc \"SELECT 1 FROM pg_database WHERE datname = '$E2E_DB_NAME'\" | grep -q 1 || psql \"$E2E_ADMIN_DB_URL\" -c \"CREATE DATABASE \\\"$E2E_DB_NAME\\\"\" || true)" +
+            " && go run github.com/pressly/goose/v3/cmd/goose@latest -dir sql/schema postgres \"$DB_URL\" up" +
+            " && go run .",
+          env: e2eBackendEnv,
+          url: baseURL,
+          reuseExistingServer: !env.CI,
+          timeout: 300000,
+        },
+  });
+}
+
+export default createPlaywrightConfig();

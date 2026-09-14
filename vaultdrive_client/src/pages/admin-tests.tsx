@@ -17,7 +17,6 @@ import {
   Download,
   AlertCircle,
 } from "lucide-react";
-import { DashboardLayout } from "../components/layout/dashboard-layout";
 import { branding } from "../config/branding";
 import {
   runAllTests,
@@ -103,8 +102,7 @@ export default function AdminTests() {
   const stats = getTotalStats();
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-6 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">{t("drive:admin.systemTestsTitle")}</h1>
@@ -297,7 +295,6 @@ export default function AdminTests() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

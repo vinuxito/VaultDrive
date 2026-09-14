@@ -1,4 +1,4 @@
-import { Files, Share2, Settings, User, LogOut, X, Users } from "lucide-react";
+import { CircleHelp, Files, LayoutDashboard, LogOut, Settings, Share2, ShieldCheck, User, Users, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useTransitionNavigate } from "../../hooks";
 import { useTranslation } from "react-i18next";
@@ -61,11 +61,14 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   };
 
   const navItems = [
+    { to: "/dashboard", icon: <LayoutDashboard />, label: t("common:nav.dashboard", "Dashboard") },
     { to: "/files", icon: <Files />, label: t("common:nav.files", "Files") },
     { to: "/groups", icon: <Users />, label: t("common:nav.groups", "Groups") },
     { to: "/shared", icon: <Share2 />, label: t("common:nav.shared", "Shared with Me") },
+    { to: "/access-center", icon: <ShieldCheck />, label: t("common:nav.accessCenter", "Access Center") },
     { to: "/profile", icon: <User />, label: t("common:nav.profile", "Profile") },
     { to: "/settings", icon: <Settings />, label: t("common:nav.settings", "Settings") },
+    { to: "/help", icon: <CircleHelp />, label: t("common:nav.help", "Help Center") },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Command } from "cmdk";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -22,25 +22,76 @@ import { useFileSearch } from "../../hooks/useFileSearch";
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
   const fileResults = useFileSearch(inputValue);
+
+  const closePalette = useCallback(() => {
+    setOpen(false);
+    previousFocusRef.current?.focus();
+  }, []);
 
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        if (open) {
+          closePalette();
+        } else {
+          previousFocusRef.current = document.activeElement as HTMLElement | null;
+          setOpen(true);
+        }
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [closePalette, open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closePalette();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((element) => element.getAttribute("aria-hidden") !== "true");
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (focusable.length === 1 || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleDialogKeyDown);
+    return () => document.removeEventListener("keydown", handleDialogKeyDown);
+  }, [closePalette, open]);
 
   const runCommand = (command: () => void) => {
     setInputValue("");
-    setOpen(false);
+    closePalette();
     command();
   };
 
@@ -56,7 +107,8 @@ export function CommandPalette() {
             exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/50"
-            onClick={() => setOpen(false)}
+            onClick={closePalette}
+            aria-hidden="true"
           />
 
           {/* Command Menu Modal */}
@@ -66,8 +118,14 @@ export function CommandPalette() {
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="relative z-50 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl ring-1 ring-black/5"
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search and commands"
+            tabIndex={-1}
           >
             <Command
+              label="Search and commands"
               className="w-full text-foreground"
               filter={(value, search) => {
                 if (value.toLowerCase().includes(search.toLowerCase())) return 1;

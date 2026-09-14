@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { branding } from "../../config/branding";
-import { DashboardLayout } from "../../components/layout/dashboard-layout";
 import { HelpSidebar } from "./components/HelpSidebar";
 import { HelpContent } from "./components/HelpContent";
 
@@ -21,8 +20,7 @@ export default function HelpCenter() {
   const [activeSection, setActiveSection] = useState<HelpSection>("getting_started");
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
         {/* Header */}
         <div className="shrink-0 border-b border-primary/10 bg-background/50 backdrop-blur-md px-6 py-8">
           <div className="max-w-6xl mx-auto w-full">
@@ -51,7 +49,6 @@ export default function HelpCenter() {
 
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

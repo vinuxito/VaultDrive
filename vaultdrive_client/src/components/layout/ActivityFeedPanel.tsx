@@ -1,3 +1,4 @@
+import { useEffect, useRef, type KeyboardEvent } from "react";
 import { X, Share2, Upload } from "lucide-react";
 import type { ActivityEvent } from "../../hooks";
 
@@ -24,25 +25,70 @@ function eventLabel(eventType: string): string {
 }
 
 export function ActivityFeedPanel({ isOpen, onClose, events }: ActivityFeedPanelProps) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const opener = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    return () => opener?.focus();
+  }, [isOpen]);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+
+    const focusable = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    if (focusable.length === 0) {
+      event.preventDefault();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (focusable.length === 1 || (event.shiftKey && document.activeElement === first)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className="fixed inset-0 bg-black/30 z-40 md:hidden"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-80 bg-card border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="fixed inset-y-0 right-0 z-50 w-80 bg-card border-l border-border shadow-2xl flex flex-col transition-transform duration-300 translate-x-0"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="activity-feed-title"
+        onKeyDown={handleKeyDown}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-          <span className="font-semibold text-foreground text-sm tracking-wide">
+          <span id="activity-feed-title" className="font-semibold text-foreground text-sm tracking-wide">
             Activity Feed
           </span>
           <button
+            ref={closeButtonRef}
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             aria-label="Close activity feed"

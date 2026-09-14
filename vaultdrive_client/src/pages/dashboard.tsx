@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import { API_URL } from "../utils/api";
@@ -22,12 +22,30 @@ import {
 } from "lucide-react";
 
 interface StatCard {
+  key: StatKey;
   label: string;
-  value: number | null;
   icon: React.ElementType;
   color: string;
   bg: string;
 }
+
+type StatKey = "files" | "links" | "shared" | "groups";
+
+interface StatSource {
+  value: number | null;
+  loading: boolean;
+  error: boolean;
+  stale: boolean;
+}
+
+const STAT_ENDPOINTS: Record<StatKey, string> = {
+  files: "/files",
+  links: "/drop/tokens",
+  shared: "/files/shared",
+  groups: "/groups",
+};
+
+const INITIAL_STAT_SOURCE: StatSource = { value: null, loading: true, error: false, stale: false };
 
 interface ActivityItem {
   id: string;
@@ -88,52 +106,77 @@ function SkeletonCard() {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation(["drive", "common"]);
+  const copy = (key: string, fallback: string) => {
+    const translated = t(key, { defaultValue: fallback });
+    return translated === key ? fallback : translated;
+  };
   const user = getStoredUserFromLocalStorage() ?? {};
   const firstName = user.first_name || user.email?.split("@")[0] || "there";
 
-  const [stats, setStats] = useState<{
-    files: number | null;
-    links: number | null;
-    shared: number | null;
-    groups: number | null;
-  }>({ files: null, links: null, shared: null, groups: null });
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [statSources, setStatSources] = useState<Record<StatKey, StatSource>>({
+    files: { ...INITIAL_STAT_SOURCE },
+    links: { ...INITIAL_STAT_SOURCE },
+    shared: { ...INITIAL_STAT_SOURCE },
+    groups: { ...INITIAL_STAT_SOURCE },
+  });
 
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityUnavailable, setActivityUnavailable] = useState(false);
   const [posture, setPosture] = useState<SecurityPosture | null>(null);
 
+  const loadStat = useCallback(async (key: StatKey, signal?: AbortSignal) => {
+    setStatSources((current) => ({
+      ...current,
+      [key]: { ...current[key], loading: true, error: false },
+    }));
+
+    try {
+      const authToken = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}${STAT_ENDPOINTS[key]}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        signal,
+      });
+      if (!response.ok) throw new Error(`Request failed (${response.status})`);
+      const data: unknown = await response.json();
+      if (!Array.isArray(data)) throw new Error("Unexpected response");
+
+      const value = key === "links"
+        ? data.filter(
+            (token: { used?: boolean; is_active?: boolean; expires_at?: string | null }) =>
+              !token.used &&
+              token.is_active !== false &&
+              (!token.expires_at || new Date(token.expires_at) > new Date()),
+          ).length
+        : data.length;
+
+      setStatSources((current) => ({
+        ...current,
+        [key]: { value, loading: false, error: false, stale: false },
+      }));
+    } catch {
+      if (signal?.aborted) return;
+      setStatSources((current) => ({
+        ...current,
+        [key]: {
+          ...current[key],
+          loading: false,
+          error: true,
+          stale: current[key].value !== null,
+        },
+      }));
+    }
+  }, []);
+
   useEffect(() => {
     const authToken = localStorage.getItem("token");
     if (!authToken) { navigate("/login"); return; }
 
     const headers = { Authorization: `Bearer ${authToken}` };
-
-    Promise.all([
-      fetch(`${API_URL}/files`, { headers }).then((r) => r.ok ? r.json() : []),
-      fetch(`${API_URL}/drop/tokens`, { headers }).then((r) => r.ok ? r.json() : []),
-      fetch(`${API_URL}/files/shared`, { headers }).then((r) => r.ok ? r.json() : []),
-      fetch(`${API_URL}/groups`, { headers }).then((r) => r.ok ? r.json() : []),
-    ])
-      .then(([files, tokens, shared, groups]) => {
-        const activeTokens = Array.isArray(tokens)
-          ? tokens.filter(
-              (t: { used?: boolean; is_active?: boolean; expires_at?: string | null }) =>
-                !t.used &&
-                (t.is_active !== false) &&
-                (!t.expires_at || new Date(t.expires_at) > new Date())
-            )
-          : [];
-        setStats({
-          files: Array.isArray(files) ? files.length : 0,
-          links: activeTokens.length,
-          shared: Array.isArray(shared) ? shared.length : 0,
-          groups: Array.isArray(groups) ? groups.length : 0,
-        });
-      })
-      .catch(() => setStats({ files: 0, links: 0, shared: 0, groups: 0 }))
-      .finally(() => setStatsLoading(false));
+    const controller = new AbortController();
+    (Object.keys(STAT_ENDPOINTS) as StatKey[]).forEach((key) => {
+      void loadStat(key, controller.signal);
+    });
 
     fetch(`${API_URL}/activity`, { headers })
       .then((r) => {
@@ -153,33 +196,34 @@ export default function Dashboard() {
       .then((r) => r.ok ? r.json() : null)
       .then((data: SecurityPosture | null) => { if (data) setPosture(data); })
       .catch(() => undefined);
-  }, [navigate]);
+    return () => controller.abort();
+  }, [loadStat, navigate]);
 
   const statCards: StatCard[] = [
     {
+      key: "files",
       label: t("drive:dashboard.overview.totalFiles", "Total Files"),
-      value: stats.files,
       icon: FolderOpen,
       color: "text-primary",
       bg: "bg-primary/10",
     },
     {
+      key: "links",
       label: t("drive:dashboard.overview.activeLinks", "Active Links"),
-      value: stats.links,
       icon: Link2,
       color: "text-violet-600 dark:text-violet-400",
       bg: "bg-violet-500/15",
     },
     {
+      key: "shared",
       label: t("drive:dashboard.overview.sharedFiles", "Shared Files"),
-      value: stats.shared,
       icon: Share2,
       color: "text-emerald-600 dark:text-emerald-400",
       bg: "bg-emerald-500/15",
     },
     {
+      key: "groups",
       label: t("drive:dashboard.overview.groups", "Groups"),
-      value: stats.groups,
       icon: Users,
       color: "text-amber-600 dark:text-amber-400",
       bg: "bg-amber-500/15",
@@ -280,11 +324,15 @@ export default function Dashboard() {
             {t("drive:dashboard.overview.title", "Vault Overview")}
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {statsLoading
-              ? ["s1","s2","s3","s4"].map((k) => <SkeletonCard key={k} />)
-              : statCards.map((card, index) => (
+            {statCards.map((card, index) => {
+              const source = statSources[card.key];
+              if (source.loading && source.value === null) {
+                return <SkeletonCard key={card.key} />;
+              }
+              return (
                   <div
                     key={card.label}
+                    data-testid={`dashboard-stat-${card.key}`}
                     className="stat-card-enter rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-sm p-5 hover:shadow-md hover:shadow-primary/5 transition-shadow duration-200 cursor-default flex flex-col h-full"
                     style={{ animationDelay: `${index * 60}ms` }}
                   >
@@ -293,12 +341,32 @@ export default function Dashboard() {
                     </div>
                     <div className="mt-auto">
                       <p className="text-3xl font-bold text-foreground">
-                        {card.value ?? "—"}
+                        {source.value ?? "—"}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 font-medium">{card.label}</p>
+                      {source.stale && (
+                        <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                          {copy("drive:dashboard.overview.stale", "May be out of date")}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        className="mt-2 text-left text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                        onClick={() => void loadStat(card.key)}
+                        disabled={source.loading}
+                        aria-label={(source.error
+                          ? copy("drive:dashboard.overview.trySourceAgain", "Try {{label}} again")
+                          : copy("drive:dashboard.overview.refreshSource", "Refresh {{label}}"))
+                          .replace("{{label}}", card.label)}
+                      >
+                        {source.error
+                          ? copy("drive:dashboard.overview.tryAgain", "Try again")
+                          : copy("drive:dashboard.overview.refresh", "Refresh")}
+                      </button>
                     </div>
                   </div>
-                ))}
+                );
+            })}
           </div>
         </section>
 
@@ -341,8 +409,14 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-            ) : activityUnavailable || activity.length === 0 ? (
-              stats.files === 0 ? (
+            ) : activityUnavailable ? (
+              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                <AlertTriangle className="mb-3 h-5 w-5 text-amber-500" />
+                <p className="text-sm font-medium text-foreground">{copy("drive:dashboard.activity.unavailable", "Activity is unavailable")}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{copy("drive:dashboard.activity.unavailableDesc", "Your vault data is unchanged. Try again later.")}</p>
+              </div>
+            ) : activity.length === 0 ? (
+              statSources.files.value === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
                   <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-3">
                     <Activity className="w-5 h-5 text-muted-foreground" />

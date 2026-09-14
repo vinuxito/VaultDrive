@@ -11,7 +11,6 @@ import { Label } from "../components/ui/label";
 import { User, Mail, Calendar, AlertCircle, CheckCircle2, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/api";
-import { DashboardLayout } from "../components/layout/dashboard-layout";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 
 export default function Profile() {
@@ -216,7 +215,6 @@ export default function Profile() {
   }
 
   return (
-    <DashboardLayout>
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
         <Card>
@@ -452,6 +450,5 @@ export default function Profile() {
       </Card>
       </div>
     </div>
-    </DashboardLayout>
   );
 }

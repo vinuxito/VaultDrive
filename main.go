@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -567,7 +568,8 @@ func main() {
 		http.ServeFile(w, r, "vaultdrive_client/dist/index.html")
 	})
 
-	log.Printf("Server listening on port %s", port)
+	listenAddress := net.JoinHostPort(os.Getenv("LISTEN_HOST"), port)
+	log.Printf("Server listening on %s", listenAddress)
 	var finalHandler http.Handler = mux
 	if basePathNoSlash != "" {
 		parentMux := http.NewServeMux()
@@ -585,7 +587,7 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    listenAddress,
 		Handler: middlewareSecurityHeaders(middlewareCORS(productCfg.CORSOrigins)(apiConfig.middlewareAcceptLanguage(finalHandler))),
 		// Timeouts configured for 2GB uploads (30 minutes)
 
