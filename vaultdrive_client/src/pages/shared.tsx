@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useDialogFocus } from "../hooks/useDialogFocus";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/button";
 import {
@@ -64,6 +65,9 @@ export default function SharedFiles() {
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinValue, setPinValue] = useState("");
+  const [pinBusy, setPinBusy] = useState(false);
+  const pinDialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus({ open: showPinModal, onClose: () => { if (!pinBusy) setShowPinModal(false); }, containerRef: pinDialogRef });
   const [pendingDownload, setPendingDownload] = useState<{
     fileId: string;
     filename: string;
@@ -112,7 +116,7 @@ export default function SharedFiles() {
         return;
       } catch (err) {
         if (!shouldFallbackToPinPrompt(err)) {
-          setError(err instanceof Error ? err.message : "Failed to download shared file.");
+          setError(t("drive:shared.modal.decryptError", "This file could not be decrypted. Try again or ask the sender to share it again."));
           return;
         }
       }
@@ -132,7 +136,7 @@ export default function SharedFiles() {
         return;
       } catch (err) {
         if (!shouldFallbackToPinPrompt(err)) {
-          setError(err instanceof Error ? err.message : "Failed to download shared file.");
+          setError(t("drive:shared.modal.decryptError", "This file could not be decrypted. Try again or ask the sender to share it again."));
           return;
         }
       }
@@ -184,6 +188,7 @@ export default function SharedFiles() {
   const performDownload = async (pin: string) => {
     if (!pendingDownload) return false;
     setError("");
+    let accountKeyUnlocked = false;
 
     try {
       const token = localStorage.getItem("token");
@@ -210,6 +215,7 @@ export default function SharedFiles() {
 
       const privateKeyPem = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted, userObj?.kek_envelope_version);
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+      accountKeyUnlocked = true;
       setPrivateKey(rsaPrivateKey, privateKeyPem);
       setCredential(pin, "pin");
 
@@ -236,8 +242,10 @@ export default function SharedFiles() {
 
       setPendingDownload(null);
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to decrypt. Check your PIN.");
+    } catch {
+      setError(accountKeyUnlocked
+        ? t("drive:shared.modal.decryptError", "This file could not be decrypted. Try again or ask the sender to share it again.")
+        : t("drive:shared.modal.pinError", "That PIN could not unlock your account key. Re-enter your current vault PIN. If it still fails, recover your account or ask the sender to share the file again."));
       return false;
     }
   };
@@ -257,7 +265,7 @@ export default function SharedFiles() {
           </div>
         </div>
 
-        {error && (
+        {error && !showPinModal && (
           <div className="mb-6 p-4 rounded-lg bg-destructive/10 text-destructive flex items-center gap-2">
             <AlertCircle className="w-5 h-5" />
             <span>{error}</span>
@@ -344,18 +352,19 @@ export default function SharedFiles() {
 
         {showPinModal && pendingDownload && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <Card className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
-              <CardHeader className="border-b border-primary-foreground/20">
-                <CardTitle className="flex items-center gap-2 text-primary-foreground">
-                  <Lock className="w-5 h-5 text-primary-foreground" />
+            <Card ref={pinDialogRef} role="dialog" aria-modal="true" aria-labelledby="shared-pin-title" tabIndex={-1} className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-card border-border text-card-foreground">
+              <CardHeader className="border-b border-border">
+                <CardTitle id="shared-pin-title" className="flex items-center gap-2 text-foreground">
+                  <Lock className="w-5 h-5 text-primary" />
                   {t("drive:shared.modal.title", "Decrypt Shared File")}
                 </CardTitle>
-                <CardDescription className="text-primary-foreground/80">
-                  {t("drive:shared.modal.desc", "Enter your 4-digit PIN to decrypt this file")}
+                <CardDescription className="text-muted-foreground">
+                  {t("drive:shared.modal.desc", "Enter your current vault PIN. This is your account credential, not a password from the sender.")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
-                <div className="p-3 bg-muted rounded-md">
+                {error && <p role="alert" className="text-destructive bg-destructive/10 border border-destructive/30 p-3 rounded-lg text-sm">{error}</p>}
+                <div className="p-3 bg-muted text-foreground rounded-md">
                   <p className="text-sm font-medium truncate flex items-center gap-2">
                     <File className="w-4 h-4" />
                     {pendingDownload.filename}
@@ -365,26 +374,30 @@ export default function SharedFiles() {
                 <div className="space-y-2">
                   <label htmlFor="shared-file-pin" className="text-sm font-medium flex items-center gap-2">
                     <Key className="w-4 h-4" />
-                    {t("drive:shared.modal.pinLabel", "Your PIN")}
+                    {t("drive:shared.modal.pinLabel", "Your vault PIN")}
                   </label>
                   <input
                     id="shared-file-pin"
                     type="password"
+                    autoComplete="new-password"
+                    name="shared-file-pin"
+                    disabled={pinBusy}
                     inputMode="numeric"
                     maxLength={4}
                     value={pinValue}
                     onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ""))}
                     placeholder={t("drive:shared.modal.placeholder", "4-digit PIN")}
-                    className="w-full px-3 py-2 border rounded-md bg-primary-foreground/15 border-primary-foreground/25 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground/50"
+                    className="w-full px-3 py-2 border rounded-md bg-background border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && pinValue.length === 4) handlePinSubmit();
+                      if (e.key === "Enter" && pinValue.length === 4 && !pinBusy) handlePinSubmit();
                     }}
                   />
                 </div>
 
                 <div className="flex gap-2">
                   <Button
-                    variant="modal-cancel"
+                    variant="outline"
+                    disabled={pinBusy}
                     onClick={() => {
                       setShowPinModal(false);
                       setPinValue("");
@@ -396,10 +409,10 @@ export default function SharedFiles() {
                   </Button>
                   <Button
                     onClick={handlePinSubmit}
-                    disabled={pinValue.length !== 4}
-                    className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold"
+                    disabled={pinValue.length !== 4 || pinBusy}
+                    className="flex-1 h-auto min-h-10 whitespace-normal bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                   >
-                    {t("drive:shared.modal.button", "Decrypt & Download")}
+                    {pinBusy ? t("drive:coherence.preview.decrypting", { defaultValue: "Decrypting…" }) : t("drive:shared.modal.button", "Decrypt & Download")}
                   </Button>
                 </div>
               </CardContent>
@@ -411,11 +424,13 @@ export default function SharedFiles() {
   );
 
   async function handlePinSubmit() {
-    if (pinValue.length !== 4) return;
+    if (pinValue.length !== 4 || pinBusy) return;
     const pin = pinValue;
-    setPinValue("");
+    setPinBusy(true);
     const success = await performDownload(pin);
+    setPinBusy(false);
     if (success) {
+      setPinValue("");
       setShowPinModal(false);
     }
   }

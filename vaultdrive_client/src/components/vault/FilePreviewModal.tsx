@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { useDialogFocus } from "../../hooks/useDialogFocus";
 import { X, Download, Loader2, AlertCircle, Lock, Key, ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
 import { Button } from "../ui/button";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { API_URL } from "../../utils/api";
 import { TrustRail } from "./TrustRail";
 import { FileSecurityTimeline } from "./FileSecurityTimeline";
-import { branding } from "../../config/branding";
 import {
   decryptPrivateKeyWithPIN,
   importRSAPSSPrivateKey,
@@ -21,6 +22,7 @@ export interface FileEntry {
   filename: string;
   metadata: string;
   is_owner?: boolean;
+  folder_id?: string | null;
   pin_wrapped_key?: string | null;
 }
 
@@ -28,6 +30,58 @@ interface FilePreviewModalProps {
   file: FileEntry | null;
   onClose: () => void;
   onDownload: () => void;
+}
+
+interface ActivePreview {
+  id: number;
+  worker: Worker;
+  cancel: () => void;
+}
+
+interface SigningUnlockDialogProps {
+  busy: boolean;
+  error: string;
+  onCancel: () => void;
+  onSubmit: (credential: string) => void;
+}
+
+function SigningUnlockDialog({ busy, error, onCancel, onSubmit }: SigningUnlockDialogProps) {
+  const { t } = useTranslation("drive");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [credential, setCredential] = useState("");
+  useDialogFocus({ open: true, onClose: onCancel, containerRef: dialogRef, initialFocusRef: inputRef });
+
+  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="signing-unlock-title" tabIndex={-1} className="w-full min-w-0 max-w-sm space-y-4 rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-2xl sm:p-5">
+      <div className="space-y-1">
+        <h3 id="signing-unlock-title" className="font-semibold text-foreground">{t("coherence.preview.signUnlockTitle", { defaultValue: "Unlock local signing" })}</h3>
+        <p className="text-sm text-muted-foreground">{t("coherence.preview.signUnlockBody", { defaultValue: "Enter your account PIN. It is used only in this browser to unlock your signing key." })}</p>
+      </div>
+      <div className="space-y-1.5">
+        <label htmlFor="preview-signing-credential" className="text-sm text-foreground">{t("coherence.preview.accountPin", { defaultValue: "Account PIN" })}</label>
+        <input
+          ref={inputRef}
+          id="preview-signing-credential"
+          name="preview-signing-credential"
+          type="password"
+          autoComplete="current-password"
+          inputMode="numeric"
+          maxLength={4}
+          data-lpignore="true"
+          value={credential}
+          onChange={(event) => setCredential(event.target.value.replace(/\D/g, "").slice(0, 4))}
+          onKeyDown={(event) => { if (event.key === "Enter" && credential && !busy) onSubmit(credential); }}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+        />
+      </div>
+      {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>{t("coherence.preview.cancelSigning", { defaultValue: "Cancel signing" })}</Button>
+        <Button type="button" disabled={busy || !credential} onClick={() => onSubmit(credential)}>{busy ? t("coherence.preview.signing", { defaultValue: "Signing..." }) : t("coherence.preview.unlockAndSign", { defaultValue: "Unlock and sign" })}</Button>
+      </div>
+    </div>
+  </div>;
 }
 
 
@@ -38,7 +92,12 @@ function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
+  const { t } = useTranslation("drive");
+  const panelRef = useRef<HTMLDivElement>(null);
+  useDialogFocus({ open: !!file, onClose, containerRef: panelRef });
   const {
+    getFileKey,
+    getFolderKey,
     getPrivateKey,
     getPrivateKeyPem,
     getCredential,
@@ -59,15 +118,31 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const [signatureB64, setSignatureB64] = useState<string | null>(null);
   const [isSignatureVerified, setIsSignatureVerified] = useState<boolean | null>(null);
   const [isSigning, setIsSigning] = useState(false);
+  const [showSigningUnlock, setShowSigningUnlock] = useState(false);
+  const [signingUnlockError, setSigningUnlockError] = useState("");
+  const previewGeneration = useRef(0);
+  const activePreview = useRef<ActivePreview | null>(null);
 
-  const checkSignature = useCallback(async (dataBuffer: ArrayBuffer) => {
+  const cancelActivePreview = useCallback(() => {
+    previewGeneration.current += 1;
+    const active = activePreview.current;
+    activePreview.current = null;
+    if (active) {
+      active.worker.terminate();
+      active.cancel();
+    }
+  }, []);
+
+  const checkSignature = useCallback(async (dataBuffer: ArrayBuffer, requestId: number) => {
     if (!file) return;
     const storedSig = localStorage.getItem(`signature_${file.id}`);
     if (!storedSig) {
+      if (requestId !== previewGeneration.current) return;
       setSignatureB64(null);
       setIsSignatureVerified(null);
       return;
     }
+    if (requestId !== previewGeneration.current) return;
     setSignatureB64(storedSig);
     try {
       const userObj = getStoredUserFromLocalStorage();
@@ -77,36 +152,62 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       }
       const pubKey = await importRSAPSSPublicKey(userObj.public_key);
       const verified = await verifyWithRSAPSS(pubKey, storedSig, dataBuffer);
+      if (requestId !== previewGeneration.current) return;
       setIsSignatureVerified(verified);
     } catch {
+      if (requestId !== previewGeneration.current) return;
       setIsSignatureVerified(false);
     }
   }, [file]);
+
+  const signWithPrivateKey = async (pem: string) => {
+    if (!file || !decryptedBlob) return;
+    const pssPrivKey = await importRSAPSSPrivateKey(pem);
+    const buffer = await decryptedBlob.arrayBuffer();
+    const sig = await signWithRSAPSS(pssPrivKey, buffer);
+    localStorage.setItem(`signature_${file.id}`, sig);
+    setSignatureB64(sig);
+    setIsSignatureVerified(true);
+  };
 
   const handleSignFile = async () => {
     if (!file || !decryptedBlob) return;
     setIsSigning(true);
     try {
-      let pem = await getPrivateKeyPem();
+      const pem = await getPrivateKeyPem();
       if (!pem) {
         const userObj = getStoredUserFromLocalStorage();
         const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
         if (pinEncrypted) {
-          const cred = prompt("Please enter your PIN/Password to authorize digital signing:");
-          if (cred) {
-            pem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
-          }
+          setSigningUnlockError("");
+          setShowSigningUnlock(true);
+          return;
         }
       }
-      if (!pem) throw new Error("Could not unlock private key for signing");
-      const pssPrivKey = await importRSAPSSPrivateKey(pem);
-      const buffer = await decryptedBlob.arrayBuffer();
-      const sig = await signWithRSAPSS(pssPrivKey, buffer);
-      localStorage.setItem(`signature_${file.id}`, sig);
-      setSignatureB64(sig);
-      setIsSignatureVerified(true);
+      if (!pem) throw new Error(t("coherence.preview.signUnlockError", { defaultValue: "Signing is locked. Unlock your account PIN in Settings and try again." }));
+      await signWithPrivateKey(pem);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Signing failed");
+      alert(err instanceof Error ? err.message : t("coherence.preview.signError", { defaultValue: "Local signing failed. Try again after unlocking your account." }));
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
+  const handleSigningUnlock = async (signingCredential: string) => {
+    const userObj = getStoredUserFromLocalStorage();
+    const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
+    if (!pinEncrypted) {
+      setSigningUnlockError(t("coherence.preview.signUnlockMissing", { defaultValue: "No PIN-protected signing key is available. Unlock signing in Settings and try again." }));
+      return;
+    }
+    setIsSigning(true);
+    setSigningUnlockError("");
+    try {
+      const pem = await decryptPrivateKeyWithPIN(signingCredential, pinEncrypted, userObj?.kek_envelope_version);
+      await signWithPrivateKey(pem);
+      setShowSigningUnlock(false);
+    } catch {
+      setSigningUnlockError(t("coherence.preview.signUnlockRejected", { defaultValue: "Could not unlock signing. Check your account PIN and try again." }));
     } finally {
       setIsSigning(false);
     }
@@ -116,30 +217,41 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     cred: string,
   ): Promise<{ success: boolean; failureKind?: string }> => {
     if (!file) return { success: false, failureKind: "unknown" };
+    cancelActivePreview();
+    const requestId = ++previewGeneration.current;
     let localFailureKind = "unknown";
     setIsLoading(true);
     setLoadError("");
     setLoadFailureKind("unknown");
     try {
+      const cachedFileKey = getFileKey(file.id);
+      const cachedFolderKey = file.folder_id ? getFolderKey(file.folder_id) : null;
       let rawPrivateKeyPem: string | null = null;
-      if (file.is_owner === false && !file.pin_wrapped_key) {
+      if (file.is_owner === false && !file.pin_wrapped_key && !cachedFileKey && !cachedFolderKey) {
         rawPrivateKeyPem = await getPrivateKeyPem();
+        if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
         if (!rawPrivateKeyPem) {
           const userObj = getStoredUserFromLocalStorage();
           const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
           if (pinEncrypted && cred) {
             localFailureKind = "credential";
             rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
+            if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
           }
         }
       }
 
+      if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
       const authToken = localStorage.getItem("token") ?? "";
       const decryptedBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
         const worker = new Worker(
           new URL("../../workers/preview.worker.ts", import.meta.url),
           { type: "module" }
         );
+        const finish = () => {
+          if (activePreview.current?.id === requestId) activePreview.current = null;
+          worker.terminate();
+        };
         worker.onmessage = (e) => {
           if (e.data.success) {
             resolve(e.data.decryptedBuffer);
@@ -150,50 +262,73 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
             failure.failureKind = e.data.failureKind;
             reject(failure);
           }
-          worker.terminate();
+          finish();
         };
         worker.onerror = (err) => {
           reject(err);
-          worker.terminate();
+          finish();
+        };
+        activePreview.current = {
+          id: requestId,
+          worker,
+          cancel: () => reject(Object.assign(new Error("Preview cancelled"), { name: "AbortError" })),
         };
         worker.postMessage({
           file,
           credential: cred,
+          fileKey: cachedFileKey ?? undefined,
+          folderKey: cachedFolderKey ?? undefined,
           rawPrivateKeyPem,
           authToken,
           API_URL,
         });
       });
 
+      if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
+
       const blob = new Blob([decryptedBuffer]);
       setDecryptedBlob(blob);
-      await checkSignature(decryptedBuffer);
+      await checkSignature(decryptedBuffer, requestId);
+      if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
 
       const ext = file.filename.split(".").pop()?.toLowerCase() ?? "";
       const textTypes = ["txt", "md", "json", "csv", "xml", "html", "js", "ts", "py", "go", "sh"];
 
       if (textTypes.includes(ext)) {
         const text = await blob.text();
+        if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
         setTextContent(text);
       } else {
         const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
+        if (requestId !== previewGeneration.current) URL.revokeObjectURL(url);
+        else setBlobUrl(url);
       }
       return { success: true };
     } catch (err) {
+      if ((err instanceof Error && err.name === "AbortError") || requestId !== previewGeneration.current) {
+        return { success: false, failureKind: "cancelled" };
+      }
       const failureKind = err instanceof Error && "failureKind" in err
         ? String((err as Error & { failureKind?: string }).failureKind)
         : localFailureKind;
-      setLoadError(err instanceof Error ? err.message : "Failed to decrypt file");
+      setLoadError(failureKind === "credential"
+        ? t("coherence.preview.credentialError", { defaultValue: "Decryption failed. Check the original PIN or file password and try again." })
+        : failureKind === "auth"
+          ? t("coherence.preview.authError", { defaultValue: "Your session expired. Sign in again to open this file." })
+          : failureKind === "storage"
+            ? t("coherence.preview.storageError", { defaultValue: "The service is temporarily unavailable. Check your connection and retry." })
+            : t("coherence.preview.openError", { defaultValue: "This preview could not be opened. Retry, or ask the owner to check the file and access." }));
       setLoadFailureKind(failureKind);
       return {
         success: false,
         failureKind,
       };
     } finally {
-      setIsLoading(false);
+      if (requestId === previewGeneration.current) setIsLoading(false);
     }
-  }, [file, getPrivateKeyPem, checkSignature]);
+  }, [file, getPrivateKeyPem, getFileKey, getFolderKey, checkSignature, t, cancelActivePreview]);
+
+  useEffect(() => cancelActivePreview, [file?.id, cancelActivePreview]);
 
   useEffect(() => {
     if (!file) return;
@@ -202,7 +337,23 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     setLoadError("");
     setDecryptedBlob(null);
     setCredential("");
-    setTrustExpanded(file.is_owner !== false);
+    setTrustExpanded(false);
+    setSignatureB64(null);
+    setIsSignatureVerified(null);
+    setShowSigningUnlock(false);
+    setSigningUnlockError("");
+    const folderRoute = getFileCredentialScheme(file) === "folder"
+      && (file.is_owner !== false || Boolean(file.folder_id));
+    if (folderRoute) {
+      setShowCredentialPrompt(false);
+      if (getFileKey(file.id) || (file.folder_id && getFolderKey(file.folder_id))) {
+        void loadPreview("");
+      } else {
+        setLoadFailureKind("folder");
+        setLoadError(t("coherence.preview.folderError", { defaultValue: "Close this preview and reopen the containing folder to unlock it, then try again." }));
+      }
+      return;
+    }
 
     const vaultKey = getPrivateKey();
     if (vaultKey && file.is_owner === false && !file.pin_wrapped_key) {
@@ -225,7 +376,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         setShowCredentialPrompt(true);
       }
     }
-  }, [file, getPrivateKey, getCredential, loadPreview, clearCredential]);
+  }, [file, getPrivateKey, getCredential, getFileKey, getFolderKey, loadPreview, clearCredential, t]);
 
   useEffect(() => {
     return () => {
@@ -287,20 +438,20 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       }
       if (ext === "pdf") {
         return (
-          <iframe src={blobUrl} className="w-full h-[70vh] rounded-xl border border-white/10 bg-white/12" title="PDF Preview" />
+          <iframe src={blobUrl} className="w-full h-[70vh] rounded-xl border border-white/10 bg-white/12" title={t("coherence.preview.pdf", { defaultValue: "PDF preview" })} />
         );
       }
     }
 
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-4">
-        <p className="text-lg">Preview not available for this file type</p>
+        <p className="text-lg">{t("coherence.preview.unsupported", { defaultValue: "Preview not available for this file type" })}</p>
         <Button
           onClick={handleDownloadDecrypted}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
         >
           <Download className="w-4 h-4 mr-2" />
-          Download
+          {t("coherence.preview.download", { defaultValue: "Download" })}
         </Button>
       </div>
     );
@@ -311,11 +462,11 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const credType = getCredentialType(file);
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card text-card-foreground border border-border rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border shrink-0">
-          <h2 className="min-w-0 flex-1 text-foreground font-semibold truncate text-sm">{file.filename}</h2>
-          <div className="flex items-center gap-2 shrink-0">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="preview-title" tabIndex={-1} className="bg-card text-card-foreground border border-border rounded-2xl w-full min-w-0 max-w-5xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 border-b border-border shrink-0 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-4">
+          <h2 id="preview-title" className="min-w-0 flex-1 text-foreground font-semibold truncate text-sm">{file.filename}</h2>
+          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1.5 shrink-0 sm:gap-2">
             <Button
               size="sm"
               onClick={handleDownloadDecrypted}
@@ -323,12 +474,12 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-8 px-3 text-xs gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
-              Download
+              {t("coherence.preview.download", { defaultValue: "Download" })}
             </Button>
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close preview"
+              aria-label={t("coherence.preview.close", { defaultValue: "Close preview" })}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="w-4 h-4" />
@@ -336,33 +487,34 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 pr-2 min-h-0 scrollable-panel">
+        <div className="flex-1 min-w-0 overflow-y-auto p-3 pr-2 min-h-0 scrollable-panel sm:p-5 sm:pr-2">
           {file.is_owner !== false && (
             <div className="mb-5">
               <button
                 type="button"
+                aria-expanded={trustExpanded}
                 onClick={() => setTrustExpanded((prev) => !prev)}
                 className="w-full text-left mb-2 group rounded-2xl border border-border bg-muted/60 px-3.5 py-3 hover:bg-muted transition-colors"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-start gap-2.5">
+                <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-2.5">
                     <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shrink-0">
                       <ShieldCheck className="w-4 h-4" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <div className="min-w-0">
+                      <div className="flex min-w-0 items-start gap-1.5 text-muted-foreground">
                         {trustExpanded
                           ? <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" />
                           : <ChevronRight className="w-3.5 h-3.5 shrink-0 transition-transform" />
                         }
-                        <span className="text-[11px] font-medium uppercase tracking-[0.18em]">Protection & History</span>
+                        <span className="min-w-0 break-words text-[11px] font-medium uppercase tracking-[0.08em] sm:tracking-[0.18em]">{t("coherence.preview.protection", { defaultValue: "Protection & History" })}</span>
                       </div>
-                      <p className="mt-1 text-sm font-medium text-foreground">See how this file is protected, shared, and controlled.</p>
-                      <p className="mt-1 text-xs text-muted-foreground">This keeps the trust story visible while you preview the file itself.</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{t("coherence.preview.protectionHint", { defaultValue: "See how this file is protected, shared, and controlled." })}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t("coherence.preview.protectionSub", { defaultValue: "This keeps the trust story visible while you preview the file itself." })}</p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground whitespace-nowrap">
-                    {trustExpanded ? "Open" : "Show details"}
+                  <span className="inline-flex max-w-full self-start items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground sm:self-center">
+                    {trustExpanded ? t("coherence.preview.hideDetails", { defaultValue: "Hide details" }) : t("coherence.preview.showDetails", { defaultValue: "Show details" })}
                   </span>
                 </div>
               </button>
@@ -382,9 +534,9 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">This file was shared with you.</p>
+                  <p className="text-sm font-medium text-foreground">{t("coherence.preview.shared", { defaultValue: "This file was shared with you." })}</p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {`The owner controls access, can revoke the share at any time, and ${branding.productName} still keeps the protected content unreadable outside the trusted decrypt flow.`}
+                    {t("coherence.preview.sharedLimits", { defaultValue: "The owner controls future downloads. Copies already downloaded cannot be recalled." })}
                   </p>
                 </div>
               </div>
@@ -393,21 +545,24 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
           {showCredentialPrompt && (
             <div className="flex items-center justify-center min-h-[200px]">
-              <div className="bg-muted/60 border border-border rounded-2xl p-6 w-full max-w-sm space-y-4">
+              <div className="bg-muted/60 border border-border rounded-2xl p-3 w-full min-w-0 max-w-sm space-y-4 sm:p-6">
                 <div className="flex items-center gap-2 text-foreground">
                   <Lock className="w-5 h-5 text-primary" />
                   <span className="font-medium">
-                    {credType === "password" ? "Enter your file credential" : "Enter your 4-digit PIN"}
+                    {credType === "password" ? t("coherence.preview.filePassword", { defaultValue: "Enter the original file password" }) : t("coherence.preview.enterPin", { defaultValue: "Enter your 4-digit PIN" })}
                   </span>
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="preview-credential" className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5" />
-                    {credType === "password" ? "Credential" : "PIN"}
+                    {credType === "password" ? t("coherence.preview.passwordLabel", { defaultValue: "File password" }) : "PIN"}
                   </label>
                   <input
                     id="preview-credential"
                     type="password"
+                    autoComplete="new-password"
+                    name="preview-file-credential"
+                    data-lpignore="true"
                     inputMode={credType !== "password" ? "numeric" : undefined}
                     maxLength={credType !== "password" ? 4 : undefined}
                     value={credential}
@@ -416,7 +571,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                         ? e.target.value.replace(/\D/g, "").slice(0, 4)
                         : e.target.value
                     )}
-                    placeholder={credType !== "password" ? "••••" : "Enter credential"}
+                    placeholder={credType !== "password" ? "••••" : t("coherence.preview.passwordLabel", { defaultValue: "File password" })}
                     className={`w-full px-3 py-2 border rounded-lg bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none${credType !== "password" ? " text-center tracking-widest text-xl" : ""}`}
                     onKeyDown={(e) => { if (e.key === "Enter" && credential) handleCredentialSubmit(); }}
                   />
@@ -426,34 +581,35 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                   disabled={!credential || (credType !== "password" && credential.length !== 4)}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  Decrypt & Preview
+                  {t("coherence.preview.decrypt", { defaultValue: "Decrypt & Preview" })}
                 </Button>
               </div>
             </div>
           )}
 
           {isLoading && (
-            <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
+            <div role="status" className="flex items-center justify-center min-h-[200px] text-muted-foreground">
               <Loader2 className="w-8 h-8 animate-spin mr-3" />
-              Decrypting…
+              {t("coherence.preview.decrypting", { defaultValue: "Decrypting…" })}
             </div>
           )}
 
           {loadError && !isLoading && (
-            <div className="flex items-center justify-center min-h-[200px]">
+            <div className="flex items-center justify-center mt-3" role="alert">
               <div className="flex flex-col items-center gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm max-w-md text-center">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   {loadError}
                 </div>
-                {loadFailureKind !== "credential" && (
+                {loadFailureKind === "folder" && <Button onClick={onClose}>{t("coherence.preview.close", { defaultValue: "Close preview" })}</Button>}
+                {loadFailureKind !== "credential" && loadFailureKind !== "folder" && (
                   <div className="flex flex-wrap justify-center gap-2">
                     <Button
                       type="button"
                       size="sm"
                       onClick={() => void loadPreview(credential)}
                     >
-                      Retry preview
+                      {t("coherence.preview.retry", { defaultValue: "Retry preview" })}
                     </Button>
                     <Button
                       type="button"
@@ -464,7 +620,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                         setShowCredentialPrompt(true);
                       }}
                     >
-                      Edit credential
+                      {t("coherence.preview.edit", { defaultValue: "Edit credential" })}
                     </Button>
                   </div>
                 )}
@@ -475,23 +631,23 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           {!showCredentialPrompt && !isLoading && !loadError && (
             <>
               {decryptedBlob && (
-                <div className="mb-5 rounded-2xl border border-border bg-muted/60 px-4 py-4 space-y-3">
-                  <div className="flex items-center justify-between">
+                <details className="mb-5 rounded-2xl border border-border bg-muted/60 px-4 py-4 space-y-3"><summary className="cursor-pointer text-sm">{t("coherence.preview.localSignature", { defaultValue: "Local file signature" })}</summary>
+                  <div className="flex flex-wrap gap-2 items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
-                      <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Zero-Knowledge RSA-PSS Signature</span>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-foreground">{t("coherence.preview.localSignature", { defaultValue: "Local file signature" })}</span>
                     </div>
                     {isSignatureVerified ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                        VERIFIED
+                        {t("coherence.preview.verified", { defaultValue: "VERIFIED" })}
                       </span>
                     ) : signatureB64 ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">
-                        INVALID / ALTERED
+                        {t("coherence.preview.invalid", { defaultValue: "INVALID / ALTERED" })}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                        UNSIGNED
+                        {t("coherence.preview.unsigned", { defaultValue: "UNSIGNED" })}
                       </span>
                     )}
                   </div>
@@ -499,16 +655,16 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                   <div className="text-xs text-muted-foreground space-y-2">
                     {isSignatureVerified ? (
                       <p>
-                        This decrypted content has been cryptographically signed locally using your RSA private key. The signature verification matches your public key 100% client-side, guaranteeing absolute document integrity and non-repudiation.
+                        {t("coherence.preview.signatureMatch", { defaultValue: "These bytes match the signature stored in this browser for your account key. This does not verify the sender’s identity or establish legal non-repudiation." })}
                       </p>
                     ) : signatureB64 ? (
                       <p className="text-destructive">
-                        Warning: A digital signature was found but verification failed! The decrypted file data does not match the signature hash.
+                        {t("coherence.preview.signatureMismatch", { defaultValue: "These bytes could not be verified against the locally stored signature. Check the original file before relying on it." })}
                       </p>
                     ) : (
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background p-3 rounded-xl border border-border">
                         <p className="max-w-md">
-                          This file does not have a local digital signature. You can sign this file locally with your ZK private key to establish a mathematical proof of authenticity.
+                          {t("coherence.preview.signatureAbsent", { defaultValue: "No signature is stored in this browser. A local signature lets this account check whether these bytes changed." })}
                         </p>
                         <Button
                           size="sm"
@@ -519,10 +675,10 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                           {isSigning ? (
                             <>
                               <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                              Signing...
+                              {t("coherence.preview.signing", { defaultValue: "Signing..." })}
                             </>
                           ) : (
-                            "Sign File"
+                            t("coherence.preview.sign", { defaultValue: "Sign locally" })
                           )}
                         </Button>
                       </div>
@@ -531,17 +687,23 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                   {signatureB64 && (
                     <div className="pt-2 border-t border-border">
                       <p className="text-[10px] text-muted-foreground font-mono truncate">
-                        Signature: {signatureB64}
+                        {t("coherence.preview.signature", { defaultValue: "Signature" })}: {signatureB64}
                       </p>
                     </div>
                   )}
-                </div>
+                </details>
               )}
               {renderPreview()}
             </>
           )}
         </div>
       </div>
+      {showSigningUnlock && <SigningUnlockDialog
+        busy={isSigning}
+        error={signingUnlockError}
+        onCancel={() => { setShowSigningUnlock(false); setSigningUnlockError(""); }}
+        onSubmit={(value) => { void handleSigningUnlock(value); }}
+      />}
     </div>
   );
 }

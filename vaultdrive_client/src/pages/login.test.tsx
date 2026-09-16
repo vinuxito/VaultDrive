@@ -166,10 +166,26 @@ describe("Login", () => {
 
     render(<Login />);
     await userEvent.click(screen.getByRole("button", { name: /pin/i }));
-    await userEvent.click(screen.getByRole("button", { name: /unlock with biometrics/i }));
+    await userEvent.click(screen.getByRole("button", { name: /unlock with passkey/i }));
 
     expect(await screen.findByText(/passkey prompt was canceled.*enter your pin/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/pin/i)).toBeEnabled();
+    expect(screen.getByLabelText(/4-digit pin/i)).toBeEnabled();
+  });
+
+  it("gives password and PIN visibility controls accessible names", async () => {
+    const user = userEvent.setup();
+    render(<Login />);
+
+    const password = screen.getByLabelText(/^password$/i);
+    expect(password).toHaveAttribute("type", "password");
+    await user.click(screen.getByRole("button", { name: /show password/i }));
+    expect(password).toHaveAttribute("type", "text");
+
+    await user.click(screen.getByRole("button", { name: /^pin$/i }));
+    const pin = screen.getByLabelText(/4-digit pin/i);
+    expect(pin).toHaveAttribute("type", "password");
+    await user.click(screen.getByRole("button", { name: /show pin/i }));
+    expect(pin).toHaveAttribute("type", "text");
   });
 
   it("cleans the rate-limit countdown timer when the screen unmounts", async () => {

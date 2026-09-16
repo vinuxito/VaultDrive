@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Dashboard from "./dashboard";
@@ -117,5 +117,31 @@ describe("Dashboard truthful overview counts", () => {
     const refreshedFilesCard = await screen.findByTestId("dashboard-stat-files");
     expect(await within(refreshedFilesCard).findByText("May be out of date")).toBeInTheDocument();
     expect(within(refreshedFilesCard).getByText("1")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["Upload File", "upload"],
+    ["Create Client Upload Link", "receive"],
+    ["Share a File", "share"],
+  ])("routes %s into the matching guided Files task", async (buttonName, onboardingTask) => {
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/security-posture")) return jsonResponse(null);
+      return jsonResponse([]);
+    }) as typeof fetch;
+
+    function LocationState() {
+      return <output data-testid="location-state">{JSON.stringify(useLocation().state)}</output>;
+    }
+
+    render(
+      <MemoryRouter>
+        <Dashboard />
+        <LocationState />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByRole("button", { name: new RegExp(buttonName, "i") }));
+    expect(screen.getByTestId("location-state")).toHaveTextContent(JSON.stringify({ onboardingTask }));
   });
 });

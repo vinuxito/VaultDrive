@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { relativeTime } from "./format";
+import { relativeTime, formatDate } from "./format";
 
 describe("relativeTime", () => {
-  it("returns 'Just now' for very recent timestamps", () => {
+  it("returns 'now' for very recent timestamps", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-15T12:00:00.000Z"));
 
-    expect(relativeTime("2026-03-15T11:59:15.000Z")).toBe("Just now");
+    expect(relativeTime("2026-03-15T11:59:15.000Z")).toBe("now");
 
     vi.useRealTimers();
   });
@@ -16,8 +16,8 @@ describe("relativeTime", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-15T12:00:00.000Z"));
 
-    expect(relativeTime("2026-03-15T11:40:00.000Z")).toBe("20m ago");
-    expect(relativeTime("2026-03-15T07:00:00.000Z")).toBe("5h ago");
+    expect(relativeTime("2026-03-15T11:40:00.000Z")).toBe("20 minutes ago");
+    expect(relativeTime("2026-03-15T07:00:00.000Z")).toBe("5 hours ago");
 
     vi.useRealTimers();
   });
@@ -26,7 +26,7 @@ describe("relativeTime", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-15T12:00:00.000Z"));
 
-    expect(relativeTime("2026-03-14T06:00:00.000Z")).toBe("Yesterday");
+    expect(relativeTime("2026-03-14T06:00:00.000Z")).toBe("yesterday");
     expect(relativeTime("2026-03-12T12:00:00.000Z")).toBe("3 days ago");
 
     vi.useRealTimers();
@@ -43,12 +43,22 @@ describe("relativeTime", () => {
     vi.useRealTimers();
   });
 
-  it("treats future timestamps as just now instead of exposing negative time", () => {
+  it("describes future timestamps as future instead of treating them as recent events", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-15T12:00:00.000Z"));
 
-    expect(relativeTime("2026-03-15T13:00:00.000Z")).toBe("Just now");
+    expect(relativeTime("2026-03-15T13:00:00.000Z")).toBe("in 1 hour");
 
     vi.useRealTimers();
   });
+});
+
+it("formats relative time in the selected language", () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date("2026-09-16T12:00:00Z"));
+  expect(relativeTime("2026-09-16T11:00:00Z", "es")).toBe("hace 1 hora");
+  vi.useRealTimers();
+});
+it("does not turn invalid dates into a recent event", () => {
+  expect(relativeTime("invalid", "en")).toBe("—");
+  expect(formatDate("invalid", "es")).toBe("—");
 });

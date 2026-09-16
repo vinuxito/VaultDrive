@@ -60,4 +60,19 @@ describe("HelpCenter section URLs", () => {
     expect(screen.getByText("getting_started")).toBeInTheDocument();
     expect(screen.queryByText("user_management")).not.toBeInTheDocument();
   });
+
+  it("recovers from corrupt cached user data and keeps both panes scrollable on small screens", () => {
+    localStorage.setItem("user", "{broken-json");
+
+    const { container } = render(
+      <MemoryRouter initialEntries={["/help?section=getting_started"]}>
+        <HelpCenter />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("getting_started")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass("min-h-full");
+    expect(container.querySelector('[data-testid="help-layout"]')).toHaveClass("md:overflow-hidden");
+    expect(container.querySelector('[data-testid="help-content"]')).toHaveClass("overflow-visible", "md:overflow-y-auto");
+  });
 });

@@ -12,14 +12,14 @@ describe("vault trust surfaces", () => {
   it("keeps unavailable trust copy readable with every semantic skin", () => {
     render(<TrustRail fileId="file-one" />);
 
-    expect(screen.getByText("Trust data is temporarily unavailable.")).toHaveClass("text-foreground");
-    expect(screen.getByText("Your file remains encrypted and under your control.")).toHaveClass("text-muted-foreground");
+    expect(screen.getByText("Access could not be checked. No access conclusion is available.")).toHaveClass("text-foreground");
+    expect(screen.queryByText("Your file remains encrypted and under your control.")).not.toBeInTheDocument();
   });
 
   it("keeps unavailable timeline copy readable with every semantic skin", () => {
     render(<FileSecurityTimeline fileId="file-one" />);
 
-    expect(screen.getByText("Security history is temporarily unavailable.")).toHaveClass("text-foreground");
-    expect(screen.getByText("The file remains protected; only the event feed could not be loaded.")).toHaveClass("text-muted-foreground");
+    expect(screen.getByText("History could not be loaded. This does not establish whether access occurred.")).toHaveClass("text-foreground");
+    expect(screen.queryByText("The file remains protected; only the event feed could not be loaded.")).not.toBeInTheDocument();
   });
 });

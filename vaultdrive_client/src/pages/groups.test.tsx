@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -47,5 +48,26 @@ describe("Groups data state", () => {
 
     expect(await screen.findByText("You do not have access to this group's details.")).toBeInTheDocument();
     expect(screen.queryByText("Group not found")).not.toBeInTheDocument();
+  });
+
+  it("uses an accessible create dialog that closes with Escape", async () => {
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify([]), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })) as typeof fetch;
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/groups"]}>
+        <Groups />
+      </MemoryRouter>,
+    );
+
+    const create = await screen.findByRole("button", { name: "Create group" });
+    create.focus();
+    await user.click(create);
+    expect(screen.getByRole("dialog", { name: "Create group" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Create group" })).not.toBeInTheDocument();
+    expect(create).toHaveFocus();
   });
 });

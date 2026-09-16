@@ -28,7 +28,20 @@ beforeAll(() => {
 });
 
 describe("CommandPalette", () => {
+  it("does not open on public routes without an authenticated session", async () => {
+    localStorage.clear();
+    render(
+      <MemoryRouter initialEntries={["/share/public-token"]}>
+        <CommandPalette />
+      </MemoryRouter>,
+    );
+
+    await userEvent.keyboard("{Control>}k{/Control}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("closes with Escape and restores focus to the opener", async () => {
+    localStorage.setItem("token", "session-token");
     const user = userEvent.setup();
 
     render(
@@ -52,6 +65,7 @@ describe("CommandPalette", () => {
   });
 
   it("keeps tab focus inside the open dialog", async () => {
+    localStorage.setItem("token", "session-token");
     const user = userEvent.setup();
 
     render(
@@ -71,6 +85,7 @@ describe("CommandPalette", () => {
   });
 
   it("uses the shared logout operation", async () => {
+    localStorage.setItem("token", "session-token");
     logout.mockClear();
     const user = userEvent.setup();
     render(
@@ -81,8 +96,27 @@ describe("CommandPalette", () => {
     );
 
     await user.keyboard("{Control>}k{/Control}");
-    await user.click(screen.getByText("Sign Out"));
+    await user.click(screen.getByText("Logout"));
 
     expect(logout).toHaveBeenCalledOnce();
+  });
+
+  it("uses the same navigation names and exposes all owner destinations", async () => {
+    localStorage.setItem("token", "session-token");
+    localStorage.setItem("user", JSON.stringify({ username: "ada", is_admin: true }));
+    render(
+      <MemoryRouter initialEntries={["/files"]}>
+        <CommandPalette />
+      </MemoryRouter>,
+    );
+
+    await userEvent.keyboard("{Control>}k{/Control}");
+
+    expect(screen.getByText("Files", { selector: "[cmdk-item]" })).toBeInTheDocument();
+    expect(screen.getByText("Shared with Me", { selector: "[cmdk-item]" })).toBeInTheDocument();
+    expect(screen.getByText("Profile", { selector: "[cmdk-item]" })).toBeInTheDocument();
+    expect(screen.getByText("Help Center", { selector: "[cmdk-item]" })).toBeInTheDocument();
+    expect(screen.getByText("Admin", { selector: "[cmdk-item]" })).toBeInTheDocument();
+    expect(screen.getByText("Logout", { selector: "[cmdk-item]" })).toBeInTheDocument();
   });
 });

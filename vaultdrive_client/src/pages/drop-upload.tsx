@@ -9,6 +9,7 @@ import { buildDropUploadFormData } from "../utils/drop-upload";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import BrandLogo from "../components/branding/brand-logo";
 import { branding } from "../config/branding";
+import { useTranslation } from "react-i18next";
 import {
   classifyPublicUploadOutcome,
   getRetryableUploadIds,
@@ -46,6 +47,11 @@ function readKeyFromUrl(): string {
 }
 
 export default function DropUpload() {
+  const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const value = t(key, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
 
@@ -338,7 +344,7 @@ export default function DropUpload() {
     return (
       <div className="brand-page-bg flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Verifying your upload link…</p>
+        <p className="text-sm text-muted-foreground" role="status" aria-live="polite">{copy("drive:transfers.drop.verifying", "Verifying your upload link…")}</p>
       </div>
     );
   }
@@ -349,13 +355,13 @@ export default function DropUpload() {
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-            <CardTitle>This upload link is no longer available</CardTitle>
+            <CardTitle>{copy("drive:transfers.drop.unavailableTitle", "This upload link is no longer available")}</CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardFooter>
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
+              {copy("drive:transfers.common.backHome", "Back to Home")}
             </Button>
           </CardFooter>
         </Card>
@@ -369,16 +375,15 @@ export default function DropUpload() {
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <AlertCircle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
-            <CardTitle>Incomplete upload link</CardTitle>
+            <CardTitle>{copy("drive:transfers.drop.incompleteTitle", "Incomplete upload link")}</CardTitle>
             <CardDescription>
-              This link is missing the encryption key needed to secure your files.
-              Please ask the sender to re-send the full link (the part after # is required).
+              {copy("drive:transfers.drop.incompleteDescription", "This link is missing the encryption key needed to secure your files. Ask the sender to resend the full link; the part after # is required.")}
             </CardDescription>
           </CardHeader>
           <CardFooter>
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
+              {copy("drive:transfers.common.backHome", "Back to Home")}
             </Button>
           </CardFooter>
         </Card>
@@ -413,7 +418,7 @@ export default function DropUpload() {
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Your files have been delivered securely.</h1>
+            <h1 className="text-2xl font-bold text-foreground">{copy("drive:transfers.drop.deliveredTitle", "Your files have been delivered securely.")}</h1>
             <p className="text-muted-foreground">
               {completedCount} file{completedCount > 1 ? "s" : ""} encrypted and delivered
               {tokenInfo.link_name ? ` to ${tokenInfo.link_name}` : ""}. Keep this reference for your records.
@@ -421,7 +426,7 @@ export default function DropUpload() {
           </div>
 
           <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
-            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Delivery receipt</p>
+            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">{copy("drive:transfers.common.deliveryReceipt", "Delivery receipt")}</p>
             <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">
               The route worked, the upload is complete, and the owner can now review the delivery from the vault without the server learning the key from your link.
             </p>
@@ -442,7 +447,7 @@ export default function DropUpload() {
           </div>
 
           <div className="text-left bg-card/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
-            <p className="font-medium text-foreground">What happened</p>
+            <p className="font-medium text-foreground">{copy("drive:transfers.common.whatHappened", "What happened")}</p>
             <p className="text-muted-foreground leading-relaxed">
               {`Your files were encrypted in this browser before upload. ${branding.productName} received the protected files and delivery metadata, not the decryption key from your link.`}
             </p>
@@ -461,7 +466,7 @@ export default function DropUpload() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card text-muted-foreground text-sm hover:bg-muted transition-colors cursor-pointer"
           >
             {receiptCopied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-            {receiptCopied ? "Copied!" : "Copy receipt"}
+            {receiptCopied ? copy("drive:transfers.common.copied", "Copied!") : copy("drive:transfers.common.copyReceipt", "Copy receipt")}
           </button>
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
@@ -497,7 +502,7 @@ export default function DropUpload() {
 
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary">
-            Secure File Delivery
+            {copy("drive:transfers.drop.title", "Secure File Delivery")}
           </h1>
           <p className="text-muted-foreground">
             {tokenInfo.link_name ? `${tokenInfo.link_name}` : tokenInfo.folder_name}
@@ -506,17 +511,24 @@ export default function DropUpload() {
 
         <div className="grid gap-3 md:grid-cols-2">
           <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-800 dark:text-emerald-200">
-            <p className="font-medium text-emerald-900 dark:text-emerald-100">What stays private</p>
+            <p className="font-medium text-emerald-900 dark:text-emerald-100">{copy("drive:transfers.common.privateTitle", "What stays private")}</p>
             <p className="mt-1.5 leading-relaxed">
               Your files are encrypted in this browser before upload. The link key stays with the URL fragment rather than the server.
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-card/75 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_28px_rgba(0,0,0,0.06)]">
-            <p className="font-medium text-foreground">What the owner can see</p>
+            <p className="font-medium text-foreground">{copy("drive:transfers.drop.ownerCanSeeTitle", "What the owner can see")}</p>
             <p className="mt-1.5 leading-relaxed">
               They can see that files arrived, when the route was used, and any note you include below. They still need their own trusted owner flow to open protected content.
             </p>
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground" role="note">
+          <p className="font-medium">{copy("drive:transfers.drop.noOwnerPinTitle", "No owner PIN is required")}</p>
+          <p className="mt-1 text-muted-foreground">
+            {copy("drive:transfers.drop.noOwnerPinDescription", "You do not need the owner's PIN. The link key protects this upload route.")}
+          </p>
         </div>
 
         {tokenInfo.description && (
@@ -564,7 +576,7 @@ export default function DropUpload() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UploadCloud className="w-5 h-5" />
-              Upload Area
+              {copy("drive:transfers.common.uploadArea", "Upload Area")}
             </CardTitle>
             <CardDescription>
               {tokenInfo.files_limit && (
@@ -596,7 +608,7 @@ export default function DropUpload() {
                     <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 cursor-pointer">
                       <FileIcon className="w-8 h-8 mx-auto mb-3 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                        Select Files
+                        {copy("drive:transfers.common.selectFiles", "Select Files")}
                       </span>
                     </div>
                   </label>
@@ -613,7 +625,7 @@ export default function DropUpload() {
                     <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-6 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 cursor-pointer">
                       <FolderOpen className="w-8 h-8 mx-auto mb-3 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                        Select Folder
+                        {copy("drive:transfers.common.selectFolder", "Select Folder")}
                       </span>
                     </div>
                   </label>
@@ -630,10 +642,10 @@ export default function DropUpload() {
                   </div>
                   <div className="space-y-3">
                     <p className="text-base font-medium text-foreground">
-                      Drag & drop files or folders here
+                      {copy("drive:transfers.common.dropPrompt", "Drag & drop files or folders here")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Or use the buttons above
+                      {copy("drive:transfers.common.useButtons", "Or use the buttons above")}
                     </p>
                     <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                       <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -652,9 +664,9 @@ export default function DropUpload() {
             )}
 
             {uploadProgress.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3" aria-live="polite" aria-busy={uploading}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Upload Progress</h3>
+                  <h3 className="text-sm font-medium">{copy("drive:transfers.common.uploadProgress", "Upload Progress")}</h3>
                   <span className="text-xs text-muted-foreground">
                     {completedCount}/{totalCount} completed
                   </span>
@@ -700,13 +712,13 @@ export default function DropUpload() {
               </div>
             )}
             {!uploading && uploadProgress.length > 0 && !delivered && (
-              <div className="space-y-2" role="status">
+              <div className="space-y-2" role="status" aria-live="polite">
                 <p className="text-sm text-muted-foreground">
                   {completedCount} accepted · {uploadProgress.length - completedCount - unknownCount} failed · {unknownCount} need confirmation
                 </p>
                 {unknownCount > 0 && (
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Do not resend files marked “needs confirmation.” Ask the recipient to check their vault first.
+                    {copy("drive:transfers.publicUpload.unknownGuidance", "Do not upload files marked “needs confirmation” again yet. Ask the owner to confirm whether they arrived first.")}
                   </p>
                 )}
                 {retryableIds.length > 0 && (
@@ -748,7 +760,7 @@ export default function DropUpload() {
               variant="outline"
               className="w-full sm:w-auto"
             >
-              Cancel
+                  {copy("drive:transfers.common.cancel", "Cancel")}
             </Button>
           </CardFooter>
         </Card>

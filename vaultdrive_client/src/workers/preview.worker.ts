@@ -12,6 +12,8 @@ interface PreviewFile {
 interface PreviewRequest {
   file: PreviewFile;
   credential: string;
+  fileKey?: CryptoKey;
+  folderKey?: CryptoKey;
   rawPrivateKeyPem?: string;
   authToken: string;
   API_URL: string;
@@ -192,7 +194,7 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array<ArrayBuf
 }
 
 workerScope.onmessage = async (e: MessageEvent<PreviewRequest>) => {
-  const { file, credential, rawPrivateKeyPem, authToken, API_URL } = e.data;
+  const { file, credential, rawPrivateKeyPem, authToken, API_URL, fileKey, folderKey } = e.data;
   let failureKind: "credential" | "auth" | "storage" | "metadata" | "unknown" = "storage";
   try {
     // 1. Fetch encrypted file
@@ -223,7 +225,14 @@ workerScope.onmessage = async (e: MessageEvent<PreviewRequest>) => {
     let finalDecryptVerifiesCredential = false;
 
     failureKind = "unknown";
-    if (isDropUpload && pinWrappedKey) {
+    if (fileKey) {
+      encryptionKey = fileKey;
+    } else if (metaObj.credential_scheme === "folder" && folderKey) {
+      if (!wrappedKeyB64) throw new Error("Reopen the folder to unlock this file.");
+      const wrapped = new Uint8Array(base64ToArrayBuffer(wrappedKeyB64));
+      const raw = await crypto.subtle.decrypt({ name: "AES-GCM", iv: wrapped.slice(0, 12) }, folderKey, wrapped.slice(12));
+      encryptionKey = await crypto.subtle.importKey("raw", raw, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    } else if (isDropUpload && pinWrappedKey && file.is_owner !== false) {
       failureKind = "credential";
       const rawKey = await unwrapKey(credential, pinWrappedKey);
       const keyBytes = hexToBytes(rawKey);

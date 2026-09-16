@@ -115,4 +115,24 @@ describe("PublicSharePage recoverable errors", () => {
     expect(await screen.findByText("Browser save started")).toBeInTheDocument();
     expect(anchorClick).toHaveBeenCalledTimes(1);
   });
+
+  it("explains a consumed limited-use link without claiming any file copy was deleted", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      ...shareInfo,
+      is_shredded: true,
+      max_downloads: 1,
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }));
+
+    render(<PublicSharePage />);
+
+    expect(await screen.findByRole("heading", { name: /link has already been used/i }))
+      .toBeInTheDocument();
+    expect(screen.getByText(/owner's file and any copies already saved are unaffected/i))
+      .toBeInTheDocument();
+    expect(screen.getByText(/ask the owner for a new link/i)).toBeInTheDocument();
+    expect(screen.queryByText(/key.*deleted|shredded/i)).not.toBeInTheDocument();
+  });
 });

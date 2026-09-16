@@ -14,6 +14,7 @@ import enAuth from "./locales/en/auth.json";
 import enDrive from "./locales/en/drive.json";
 import enCommon from "./locales/en/common.json";
 import enSettings from "./locales/en/settings.json";
+import enHelp from "./locales/en/help.json";
 import { MotionGlobalConfig } from "framer-motion";
 
 MotionGlobalConfig.skipAnimations = true;
@@ -25,6 +26,7 @@ const resources: Record<string, Record<string, unknown>> = {
   drive: enDrive,
   common: enCommon,
   settings: enSettings,
+  help: enHelp,
 };
 
 function readTranslation(root: unknown, keys: string[]): TranslationValue | undefined {
@@ -41,28 +43,34 @@ function readTranslation(root: unknown, keys: string[]): TranslationValue | unde
   return undefined;
 }
 
+const translationHooks = new Map<string, { t: (key: string, options?: Record<string, unknown> | string) => unknown; i18n: { changeLanguage: () => Promise<void>; language: string } }>();
+
 vi.mock("react-i18next", () => ({
   useTranslation: (ns: string | string[] = "common") => {
     const namespace = Array.isArray(ns) ? ns[0] : ns;
-    return {
-      t: (key: string, options?: Record<string, unknown>) => {
+    const cached = translationHooks.get(namespace);
+    if (cached) return cached;
+    const hook = {
+      t: (key: string, options?: Record<string, unknown> | string) => {
         const parts = key.split(":");
         const actualNs = parts.length > 1 ? parts[0] : namespace;
         const actualKey = parts.length > 1 ? parts[1] : parts[0];
         
-        let val = readTranslation(resources[actualNs], actualKey.split('.'));
-        if (!val) return key;
-        
-        if (typeof val === "string" && typeof options?.product === "string") {
-          val = val.replace("{{product}}", options.product);
-        }
-        return val;
+        const fallback = typeof options === "string" ? options : options?.defaultValue;
+        const val = readTranslation(resources[actualNs], actualKey.split('.')) ?? fallback ?? key;
+        if (typeof val !== "string") return val;
+        return val.replace(/\{\{(\w+)\}\}/g, (match, name: string) => {
+          const value = typeof options === "object" ? options[name] : undefined;
+          return typeof value === "string" || typeof value === "number" ? String(value) : match;
+        });
       },
       i18n: {
-        changeLanguage: () => new Promise(() => {}),
+        changeLanguage: () => Promise.resolve(),
         language: "en",
       },
     };
+    translationHooks.set(namespace, hook);
+    return hook;
   },
   Trans: ({ children }: { children?: ReactNode }) => children,
   initReactI18next: {

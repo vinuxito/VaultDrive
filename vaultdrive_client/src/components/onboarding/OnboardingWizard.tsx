@@ -36,13 +36,16 @@ type Step = 1 | 2 | 3 | 4;
 
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const { setCredential } = useSessionVault();
-  const { t } = useTranslation(['drive']);
+  const { t } = useTranslation(['drive', 'auth']);
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
 
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [showPin, setShowPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
+  const [showAccountPassword, setShowAccountPassword] = useState(false);
+  const [showPreviousPassword, setShowPreviousPassword] = useState(false);
   const [pinError, setPinError] = useState("");
   const [settingPin, setSettingPin] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
@@ -309,6 +312,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
+                      aria-label={showPin ? t("auth:credentials.hidePin") : t("auth:credentials.showPin")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -320,32 +324,52 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                   <Label htmlFor="onboarding-confirm-pin" className="text-foreground text-xs font-medium uppercase tracking-wider">
                     {t("drive:onboarding.confirmPinLabel")}
                   </Label>
-                  <Input
-                    id="onboarding-confirm-pin"
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder="••••"
-                    value={confirmPin}
-                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
-                    className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 text-center text-2xl tracking-[0.5em] h-12"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="onboarding-confirm-pin"
+                      type={showConfirmPin ? "text" : "password"}
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={confirmPin}
+                      onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
+                      className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 text-center text-2xl tracking-[0.5em] h-12 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPin(!showConfirmPin)}
+                      aria-label={showConfirmPin ? t("auth:credentials.hidePinConfirmation") : t("auth:credentials.showPinConfirmation")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="onboarding-account-password" className="text-foreground text-xs font-medium uppercase tracking-wider">
                     {t("drive:onboarding.accountPasswordLabel")}
                   </Label>
-                  <Input
-                    id="onboarding-account-password"
-                    type="password"
-                    placeholder={t("drive:onboarding.accountPasswordPlaceholder")}
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
-                    className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-12"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="onboarding-account-password"
+                      type={showAccountPassword ? "text" : "password"}
+                      placeholder={t("drive:onboarding.accountPasswordPlaceholder")}
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
+                      className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-12 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAccountPassword(!showAccountPassword)}
+                      aria-label={showAccountPassword ? t("auth:credentials.hideAccountPassword") : t("auth:credentials.showAccountPassword")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showAccountPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     {t("drive:onboarding.accountPasswordHelp", { productName: branding.productName })}
                   </p>
@@ -356,15 +380,25 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     <Label htmlFor="onboarding-previous-password" className="text-amber-700 dark:text-amber-300 text-xs font-medium uppercase tracking-wider">
                       {t("drive:onboarding.previousPasswordLabel")}
                     </Label>
-                    <Input
-                      id="onboarding-previous-password"
-                      type="password"
-                      placeholder={t("drive:onboarding.previousPasswordPlaceholder")}
-                      value={previousPassword}
-                      onChange={(e) => setPreviousPassword(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
-                      className="bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-foreground placeholder:text-muted-foreground focus:border-amber-500 focus:ring-amber-500/10 h-12"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="onboarding-previous-password"
+                        type={showPreviousPassword ? "text" : "password"}
+                        placeholder={t("drive:onboarding.previousPasswordPlaceholder")}
+                        value={previousPassword}
+                        onChange={(e) => setPreviousPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSetPin()}
+                        className="bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-foreground placeholder:text-muted-foreground focus:border-amber-500 focus:ring-amber-500/10 h-12 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPreviousPassword(!showPreviousPassword)}
+                        aria-label={showPreviousPassword ? t("auth:credentials.hidePreviousPassword") : t("auth:credentials.showPreviousPassword")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-700 dark:text-amber-300"
+                      >
+                        {showPreviousPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                     <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
                       {t("drive:onboarding.previousPasswordHelp")}
                     </p>

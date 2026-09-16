@@ -1,415 +1,86 @@
-import { useCallback, useEffect, useState } from "react";
-import { ShieldCheck, ShieldOff, Users, Link2, X, Loader2, Inbox } from "lucide-react";
-import { API_URL } from "../../utils/api";
-import { relativeTime } from "../../utils/format";
-import { DataState } from "../ui/data-state";
-import { CONFIRM_DESTRUCTIVE, EMPTY, LOADING } from "../../constants/copy";
-
-interface AccessEntry {
-  kind: string;
-  label: string;
-  since: string;
-  state: string;
-  expires_at?: string;
-  access_count?: number;
-  max_downloads?: number;
-  unlock_at?: string;
-}
-
-function CountdownLabel({ expiresAt }: { expiresAt: string }) {
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const calculate = () => {
-      const diff = new Date(expiresAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setTimeLeft("Expired");
-        return;
-      }
-      const hrs = Math.floor(diff / (1000 * 60 * 60));
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
-
-      const parts = [];
-      if (hrs > 0) parts.push(`${hrs}h`);
-      if (mins > 0 || hrs > 0) parts.push(`${mins}m`);
-      parts.push(`${secs}s`);
-
-      setTimeLeft(`Expires in ${parts.join(" ")}`);
-    };
-
-    calculate();
-    const interval = setInterval(calculate, 1000);
-    return () => clearInterval(interval);
-  }, [expiresAt]);
-
-  return <span className="text-amber-600 dark:text-amber-400 font-medium">{timeLeft}</span>;
-}
-
-function UnlockCountdownLabel({ unlockAt }: { unlockAt: string }) {
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const calculate = () => {
-      const diff = new Date(unlockAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setTimeLeft("Unlocked");
-        return;
-      }
-      const hrs = Math.floor(diff / (1000 * 60 * 60));
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
-
-      const parts = [];
-      if (hrs > 0) parts.push(`${hrs}h`);
-      if (mins > 0 || hrs > 0) parts.push(`${mins}m`);
-      parts.push(`${secs}s`);
-
-      setTimeLeft(`Locked (Unlocks in ${parts.join(" ")})`);
-    };
-
-    calculate();
-    const interval = setInterval(calculate, 1000);
-    return () => clearInterval(interval);
-  }, [unlockAt]);
-
-  return <span className="text-blue-600 dark:text-blue-400 font-medium">{timeLeft}</span>;
-}
-
-interface AccessSummary {
-  summary: string;
-  entries: AccessEntry[];
-}
-
-interface AccessPanelProps {
-  fileId: string;
-  filename: string;
-  onClose: () => void;
-}
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ShieldCheck, X } from 'lucide-react';
+import { API_URL } from '../../utils/api';
+import { formatDate, relativeTime } from '../../utils/format';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
+import { DataState } from '../ui/data-state';
+import { Button } from '../ui/button';
+import { accessKind, accessLabel, accessState, externalReadEntries, isAccessEntries, type AccessEntry } from './trust-copy';
+interface AccessSummary { entries: AccessEntry[] }
+interface AccessPanelProps { fileId: string; filename: string; onClose: () => void }
 
 export function AccessPanel({ fileId, filename, onClose }: AccessPanelProps) {
+  const { t, i18n } = useTranslation('drive');
   const [data, setData] = useState<AccessSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
-  const [error, setError] = useState(false);
-  const [receipt, setReceipt] = useState<string>("");
-
-  const loadAccessSummary = useCallback(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setLoading(false);
-      setError(true);
-      return;
-    }
-
-    setLoading(true);
-    setError(false);
-    fetch(`${API_URL}/v1/files/${fileId}/access-summary`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) {
-          throw new Error("access_unavailable");
-        }
-
-        return r.json();
-      })
-      .then((d: AccessSummary | null) => {
-        if (d) {
-          setData(d);
-          return;
-        }
-
-        throw new Error("access_unavailable");
-      })
-      .catch(() => {
-        setData(null);
-        setError(true);
-      })
-      .finally(() => setLoading(false));
-  }, [fileId]);
-
-  useEffect(() => {
-    loadAccessSummary();
-  }, [loadAccessSummary]);
-
-  const revokeAll = async () => {
-    setRevoking(true);
+  const [operation, setOperation] = useState<'confirmed' | 'confirmed-stale' | 'unknown' | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const generation = useRef(0);
+  useDialogFocus({ open: true, onClose: () => { if (!revoking) onClose(); }, containerRef: panelRef });
+  const loadAccessSummary = useCallback(async () => {
+    const id = ++generation.current;
+    setLoading(true); setError(false);
     try {
-      const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/v1/files/${fileId}/revoke-external`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const r = await fetch(`${API_URL}/v1/files/${fileId}/access-summary`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-       if (r.ok) {
-         setData((await r.json()) as AccessSummary);
-         setReceipt("External access revoked. This file is back under owner-only control.");
-       }
-    } catch {
-      void 0;
-    } finally {
-      setRevoking(false);
-      setConfirmRevoke(false);
-    }
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('session_missing');
+      const response = await fetch(`${API_URL}/v1/files/${fileId}/access-summary`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error('access_unavailable');
+      const payload = await response.json();
+      if (!isAccessEntries(payload?.entries)) throw new Error('access_invalid');
+      if (id === generation.current) setData(payload);
+      return id === generation.current;
+    } catch { if (id === generation.current) setError(true); return false; }
+    finally { if (id === generation.current) setLoading(false); }
+  }, [fileId]);
+  const invalidate = useCallback(() => { generation.current++; }, []);
+  useEffect(() => { setData(null); setOperation(null); void loadAccessSummary(); return invalidate; }, [loadAccessSummary, invalidate]);
+  const revokeAll = async () => {
+    setRevoking(true); setOperation(null);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('session_missing');
+      const response = await fetch(`${API_URL}/v1/files/${fileId}/revoke-external`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error('revoke_unconfirmed');
+      setOperation('confirmed');
+      if (!(await loadAccessSummary())) setOperation('confirmed-stale');
+    } catch { setOperation('unknown'); }
+    finally { setRevoking(false); setConfirmRevoke(false); }
   };
-
-  const iconFor = (kind: string) => {
-    if (kind === "share_link") return <Link2 className="w-3.5 h-3.5" />;
-    if (kind === "group") return <Users className="w-3.5 h-3.5" />;
-    if (kind === "secure_drop") return <Inbox className="w-3.5 h-3.5" />;
-    return <ShieldCheck className="w-3.5 h-3.5" />;
-  };
-
-  const kindLabel = (kind: string) => {
-    if (kind === "share_link") return "Public link";
-    if (kind === "group") return "Group access";
-    if (kind === "secure_drop") return "Secure Drop route";
-    return "Direct access";
-  };
-
-  const kindDescription = (entry: AccessEntry) => {
-    if (entry.kind === "share_link") {
-      return entry.state === "active"
-        ? "Anyone with the link can currently reach this file until you revoke or it expires."
-        : "This public route is no longer granting fresh access.";
-    }
-    if (entry.kind === "group") {
-      return "A team or shared workspace currently carries this file within your control plane.";
-    }
-    if (entry.kind === "secure_drop") {
-      return "This route allows external senders to deliver files into your vault without seeing your private content.";
-    }
-    return "This visibility path is tracked here so you can review and remove it when needed.";
-  };
-
-  const kindTone = (kind: string) => {
-    if (kind === "share_link") return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-200 dark:border-sky-700/40";
-    if (kind === "group") return "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-200 dark:border-violet-700/40";
-    if (kind === "secure_drop") return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700/40";
-    return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-700/40";
-  };
-
-  const stateClasses = (state: string) => {
-    if (state === "expired") return "bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
-    if (state === "revoked") return "bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800";
-    return "bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800";
-  };
-
-  const hasExternal = data && data.entries.length > 0;
-  const activeEntries = data?.entries.filter((entry) => entry.state === "active") ?? [];
-  const inactiveEntries = data?.entries.filter((entry) => entry.state !== "active") ?? [];
-  const orderedEntries = [...(data?.entries ?? [])].sort((left, right) => {
-    const stateOrder = (state: string) => {
-      if (state === "active") return 0;
-      if (state === "expired") return 1;
-      return 2;
-    };
-
-    const byState = stateOrder(left.state) - stateOrder(right.state);
-    if (byState !== 0) return byState;
-    return new Date(right.since).getTime() - new Date(left.since).getTime();
-  });
-  const accessHeadline = data?.summary || (activeEntries.length === 0
-    ? "Only you can reach this file right now."
-    : `${activeEntries.length} external access point${activeEntries.length !== 1 ? "s are" : " is"} active.`);
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border">
-        <div className="flex items-start justify-between px-5 py-4 border-b border-border">
-          <div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-              <h2 className="font-semibold text-sm text-foreground">Access Control</h2>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-64">{filename}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="px-5 py-4 space-y-3">
-          <div className="rounded-2xl border border-border bg-card px-4 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Current visibility</p>
-                <p className="mt-2 text-sm font-medium text-foreground">{accessHeadline}</p>
-              </div>
-              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground shadow-sm">
-                {activeEntries.length === 0 ? "Owner only" : `${activeEntries.length} live route${activeEntries.length !== 1 ? "s" : ""}`}
-              </span>
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              See every link, share, or sender route in one place so you can confirm exactly who can reach this file right now.
-            </p>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border border-border bg-muted px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Active</p>
-              <p className="mt-1 text-lg font-semibold text-foreground">{activeEntries.length}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Routes you may want to review</p>
-            </div>
-            <div className="rounded-xl border border-border bg-muted px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Inactive</p>
-              <p className="mt-1 text-lg font-semibold text-foreground">{inactiveEntries.length}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Expired or already revoked</p>
-            </div>
-            <div className="rounded-xl border border-border bg-muted px-3 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Trust note</p>
-              <p className="mt-1 text-sm font-medium text-foreground">Always reviewable</p>
-              <p className="mt-1 text-xs text-muted-foreground">You can inspect or remove external access at any time.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 rounded-2xl bg-primary/12 dark:bg-primary/15 border border-primary/20 dark:border-primary/30 px-4 py-4 shadow-primary/5">
-            <div className="w-8 h-8 rounded-2xl bg-primary/12 dark:bg-primary/20 flex items-center justify-center shrink-0 text-primary">
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">You (owner)</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Full access, always. This anchor remains constant even if every external path expires, is revoked, or fails closed.
-              </p>
-            </div>
-          </div>
-
-          {receipt && (
-            <div className="brand-receipt-surface rounded-2xl px-4 py-4">
-              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Done, safe, under control.</p>
-              <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">{receipt}</p>
-            </div>
-          )}
-
-          <DataState
-            loading={loading}
-            error={error ? "Access data is temporarily unavailable. The visibility feed just could not be refreshed." : undefined}
-            empty={!data || data.entries.length === 0}
-            emptyConfig={EMPTY.shareLinksEmpty}
-            loadingLabel={LOADING.loadingAccess}
-            onRetry={loadAccessSummary}
-            skeletonRows={2}
-            density="compact"
-          >
-            {orderedEntries.map((entry) => (
-              <div
-                key={`${entry.kind}-${entry.since}`}
-                className="rounded-2xl border border-border bg-muted px-4 py-4 shadow-sm"
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-2xl border flex items-center justify-center shrink-0 mt-0.5 ${kindTone(entry.kind)}`}>
-                    {iconFor(entry.kind)}
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium border ${kindTone(entry.kind)}`}>
-                            {kindLabel(entry.kind)}
-                          </span>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${stateClasses(entry.state)}`}
-                          >
-                            {entry.state === "revoked" && entry.max_downloads === 1 ? "Shredded / Inactive" : entry.state}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-sm font-medium text-foreground">{entry.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{kindDescription(entry)}</p>
-                      </div>
-                      <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground whitespace-nowrap">
-                        {relativeTime(entry.since)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground leading-relaxed">
-                      <span>{new Date(entry.since).toLocaleString()}</span>
-                      {entry.expires_at && entry.state === "active" && (
-                        <>
-                          <span className="text-muted-foreground/60">•</span>
-                          <CountdownLabel expiresAt={entry.expires_at} />
-                        </>
-                      )}
-                      {entry.unlock_at && entry.state === "active" && new Date(entry.unlock_at).getTime() > Date.now() && (
-                        <>
-                          <span className="text-muted-foreground/60">•</span>
-                          <UnlockCountdownLabel unlockAt={entry.unlock_at} />
-                        </>
-                      )}
-                      {entry.max_downloads === 1 && entry.state === "active" && (
-                        <>
-                          <span className="text-muted-foreground/60">•</span>
-                          <span className="text-rose-600 dark:text-rose-400 font-medium">Single-Use (Auto-shreds on download)</span>
-                        </>
-                      )}
-                      {entry.expires_at && entry.state !== "active" && (
-                        <>
-                          <span className="text-muted-foreground/60">•</span>
-                          <span>expires {new Date(entry.expires_at).toLocaleDateString()}</span>
-                        </>
-                      )}
-                      {typeof entry.access_count === "number" && (
-                        <>
-                          <span className="text-muted-foreground/60">•</span>
-                          <span>opened {entry.access_count}×</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </DataState>
-
-          {hasExternal && (
-            confirmRevoke ? (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/40 p-4 space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-rose-900 dark:text-rose-200">{CONFIRM_DESTRUCTIVE.revokeAllExternal.title}</p>
-                  <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
-                    {CONFIRM_DESTRUCTIVE.revokeAllExternal.body}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmRevoke(false)}
-                    disabled={revoking}
-                    className="flex-1 py-2 rounded-lg border border-border text-sm text-foreground bg-background hover:bg-muted font-medium transition-colors"
-                  >
-                    {CONFIRM_DESTRUCTIVE.revokeAllExternal.cancelLabel}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void revokeAll()}
-                    disabled={revoking}
-                    className="flex-1 py-2 rounded-lg bg-destructive text-sm text-destructive-foreground font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-                  >
-                    {revoking ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    {revoking ? LOADING.revokingAllExternal : CONFIRM_DESTRUCTIVE.revokeAllExternal.confirmLabel}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setConfirmRevoke(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-destructive/20 dark:border-destructive/40 text-destructive dark:text-destructive text-sm font-medium hover:bg-destructive/5 dark:hover:bg-destructive/10 transition-colors"
-              >
-                <ShieldOff className="w-4 h-4" />
-                Revoke all external access
-              </button>
-            )
-          )}
-        </div>
+  const entries = externalReadEntries(data?.entries ?? []);
+  const active = entries.filter(entry => entry.state === 'active');
+  const canRevoke = active.some(entry => entry.kind === 'direct' || entry.kind === 'share_link');
+  return <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+    <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="access-panel-title" tabIndex={-1} className="bg-card text-card-foreground rounded-2xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-1.5rem)] overflow-y-auto border border-border p-4 sm:p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0"><h2 id="access-panel-title" className="flex items-center gap-2 font-semibold text-foreground"><ShieldCheck className="w-4 h-4 shrink-0" />{t('coherence.trust.accessTitle', { defaultValue: 'Access Control' })}</h2><p className="mt-1 break-words text-sm text-muted-foreground">{filename}</p></div>
+        <button type="button" disabled={revoking} onClick={onClose} aria-label={t('coherence.trust.close', { defaultValue: 'Close access details' })} className="p-2 rounded-lg hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><X className="w-4 h-4" /></button>
       </div>
+      <p className="text-sm text-muted-foreground">{t('coherence.trust.scopeNote', { defaultValue: 'Review access settings for the listed routes. Closing a route cannot recall downloaded copies.' })}</p>
+      {operation === 'unknown' && <div role="alert" className="rounded-xl p-3 border border-destructive text-foreground bg-destructive/10 space-y-2"><p>{t('coherence.trust.revokeUnknown', { defaultValue: 'Revocation was not confirmed. Refresh access before deciding whether to retry.' })}</p><Button variant="outline" onClick={() => void loadAccessSummary()}>{t('coherence.trust.refresh', { defaultValue: 'Refresh access' })}</Button></div>}
+      {(operation === 'confirmed' || operation === 'confirmed-stale') && <p role="status" className="brand-receipt-surface rounded-xl p-3 text-foreground">{operation === 'confirmed-stale' ? t('coherence.trust.revokeConfirmedStale', { defaultValue: 'Direct shares and file links were closed, but the latest access list could not be refreshed. Previously loaded entries may be out of date.' }) : t('coherence.trust.revokeConfirmed', { defaultValue: 'Direct shares and file links were closed. Folder access and downloaded copies are unaffected. Review remaining permissions below.' })}</p>}
+      {error && data && <p role="alert">{t('coherence.trust.stale', { defaultValue: 'The latest check failed. Previously loaded access is shown below.' })}</p>}
+      <DataState loading={loading} error={error ? t('coherence.trust.unavailable', { defaultValue: 'Access could not be checked. No access conclusion is available.' }) : undefined} onRetry={() => void loadAccessSummary()} empty={!!data && entries.length === 0}
+        emptyConfig={{ title: t('coherence.trust.noRoutes', { defaultValue: 'No external read routes are listed.' }), body: t('coherence.trust.scopeNote', { defaultValue: 'Review access settings for the listed routes. Closing a route cannot recall downloaded copies.' }) }} loadingLabel={t('coherence.trust.loading', { defaultValue: 'Checking recorded access…' })}>
+        <p className="font-medium">{t('coherence.trust.routes', { defaultValue: '{{count}} active external read routes', count: active.length })}</p>
+      </DataState>
+      {!loading && entries.length > 0 && <ul className="space-y-3">{entries.map((entry, index) => <li key={`${entry.kind}-${entry.since}-${index}`} className="rounded-xl border border-border bg-muted p-3 space-y-2">
+        <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-background border border-border px-2 py-1">{accessKind(entry.kind, t)}</span><span className="rounded-full bg-background border border-border px-2 py-1">{accessState(entry.state, t)}</span></div>
+        <p className="font-medium text-sm break-words">{accessLabel(entry, t)}</p>
+        <p className="text-xs text-muted-foreground break-words">{formatDate(entry.since, i18n.language)} · {relativeTime(entry.since, i18n.language)}</p>
+        {entry.expires_at && <p className="text-xs">{t('coherence.trust.expires', { defaultValue: 'Expiry: {{time}}', time: formatDate(entry.expires_at, i18n.language) })}</p>}
+        {entry.unlock_at && <p className="text-xs">{t('coherence.trust.unlocks', { defaultValue: 'Available from: {{time}}', time: formatDate(entry.unlock_at, i18n.language) })}</p>}
+        {entry.max_downloads === 1 && <p className="text-xs">{t('coherence.trust.singleUse', { defaultValue: 'One authorized fetch consumes this link, even if delivery is interrupted.' })}</p>}
+        {typeof entry.access_count === 'number' && <p className="text-xs">{t('coherence.trust.fetchCount', { defaultValue: '{{count}} authorized link fetches; reading is not confirmed', count: entry.access_count })}</p>}
+      </li>)}</ul>}
+      {canRevoke && !loading && !error && (confirmRevoke ? <div className="rounded-xl p-3 border border-destructive bg-destructive/5 space-y-3">
+        <h3 className="font-medium">{t('coherence.trust.revokeTitle', { defaultValue: 'Close direct shares and file links?' })}</h3>
+        <p className="text-sm">{t('coherence.trust.revokeScope', { defaultValue: 'This closes direct recipient grants and public file links. Folder permissions, copies already downloaded and downloads in progress are unaffected.' })}</p>
+        <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={revoking} onClick={() => setConfirmRevoke(false)}>{t('coherence.trust.cancel', { defaultValue: 'Cancel' })}</Button><Button disabled={revoking} onClick={() => void revokeAll()}>{revoking ? t('coherence.trust.revoking', { defaultValue: 'Closing access…' }) : t('coherence.trust.revokeNow', { defaultValue: 'Revoke now' })}</Button></div>
+      </div> : <Button variant="outline" className="w-full h-auto min-h-10 whitespace-normal" onClick={() => setConfirmRevoke(true)}>{t('coherence.trust.revoke', { defaultValue: 'Revoke direct access and file links' })}</Button>)}
     </div>
-  );
+  </div>;
 }

@@ -13,6 +13,8 @@ import {
   RefreshCw,
   Key,
   Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { branding } from "../config/branding";
 import { useTheme } from "../components/theme-provider";
@@ -78,6 +80,8 @@ export default function Recover() {
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statusRequestPendingRef = useRef(false);
@@ -302,11 +306,11 @@ export default function Recover() {
             {phase === "request" && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="recover-username">Username</Label>
+                  <Label htmlFor="recover-username">{t("drive:recovery.username", { defaultValue: "Username" })}</Label>
                   <input
                     id="recover-username"
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder={t("drive:recovery.usernamePlaceholder", { defaultValue: "Enter your username" })}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -341,7 +345,7 @@ export default function Recover() {
                   variant="ghost"
                   className="w-full text-xs text-muted-foreground hover:underline"
                 >
-                  Back to login
+                  {t("drive:recovery.backToLogin", { defaultValue: "Back to login" })}
                 </Button>
               </div>
             )}
@@ -352,7 +356,7 @@ export default function Recover() {
                 <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Custodian Approvals
+                      {t("drive:recovery.custodianApprovals", { defaultValue: "Custodian approvals" })}
                     </span>
                     <button
                       type="button"
@@ -368,8 +372,8 @@ export default function Recover() {
                   {/* Progress Indicators */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-foreground">
-                      <span>Status</span>
-                      <span>{approvedCount} / {threshold} Approved</span>
+                      <span>{t("drive:recovery.status", { defaultValue: "Status" })}</span>
+                      <span>{approvedCount} / {threshold} {t("drive:recovery.approved", { defaultValue: "Approved" })}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div
@@ -477,9 +481,9 @@ export default function Recover() {
 
                 <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Waiting for custodians to decrypt and approve shares...</span>
+                  <span>{t("drive:recovery.waitingForCustodians", { defaultValue: "Waiting for configured custodians to review the request. No response time is guaranteed." })}</span>
                 </div>
-                <Button type="button" variant="outline" onClick={cancelRecovery} className="w-full">Cancel recovery</Button>
+                <Button type="button" variant="outline" onClick={cancelRecovery} className="w-full">{t("drive:recovery.cancel", { defaultValue: "Cancel recovery" })}</Button>
               </div>
             )}
 
@@ -501,29 +505,55 @@ export default function Recover() {
 
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <input
-                      id="new-password"
-                      type="password"
-                      placeholder="Minimum 8 characters"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      disabled={phase === "reconstructing"}
-                      className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <Label htmlFor="new-password">{t("drive:recovery.newPassword", { defaultValue: "New Password" })}</Label>
+                    <div className="relative">
+                      <input
+                        id="new-password"
+                        type={showNewPassword ? "text" : "password"}
+                        placeholder={t("drive:recovery.newPasswordPlaceholder", { defaultValue: "Minimum 8 characters" })}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        disabled={phase === "reconstructing"}
+                        className="w-full px-3 py-2 pr-10 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword((visible) => !visible)}
+                        aria-label={showNewPassword
+                          ? t("auth:credentials.hideNewPassword", { defaultValue: "Hide new password" })
+                          : t("auth:credentials.showNewPassword", { defaultValue: "Show new password" })}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        disabled={phase === "reconstructing"}
+                      >
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Re-enter password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      disabled={phase === "reconstructing"}
-                      className="w-full px-3 py-2 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      onKeyDown={(e) => { if (e.key === "Enter") handleResetPassword(); }}
-                    />
+                    <Label htmlFor="confirm-password">{t("drive:recovery.confirmPassword", { defaultValue: "Confirm Password" })}</Label>
+                    <div className="relative">
+                      <input
+                        id="confirm-password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder={t("drive:recovery.confirmPasswordPlaceholder", { defaultValue: "Re-enter password" })}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={phase === "reconstructing"}
+                        className="w-full px-3 py-2 pr-10 border rounded-md bg-background border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        onKeyDown={(e) => { if (e.key === "Enter") handleResetPassword(); }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((visible) => !visible)}
+                        aria-label={showConfirmPassword
+                          ? t("auth:credentials.hidePasswordConfirmation", { defaultValue: "Hide password confirmation" })
+                          : t("auth:credentials.showPasswordConfirmation", { defaultValue: "Show password confirmation" })}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        disabled={phase === "reconstructing"}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -544,11 +574,11 @@ export default function Recover() {
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      Recover &amp; Reset Account
+                      {t("drive:recovery.resetAccount", { defaultValue: "Recover & Reset Account" })}
                     </>
                   )}
                 </Button>
-                <Button type="button" variant="outline" onClick={cancelRecovery} className="w-full">Cancel recovery</Button>
+                <Button type="button" variant="outline" onClick={cancelRecovery} className="w-full">{t("drive:recovery.cancel", { defaultValue: "Cancel recovery" })}</Button>
               </div>
             )}
 

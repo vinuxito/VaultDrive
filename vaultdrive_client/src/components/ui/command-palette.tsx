@@ -13,36 +13,45 @@ import {
   FileText,
   Image as ImageIcon,
   Film,
-  Archive
+  Archive,
+  Share2,
+  User,
+  HelpCircle,
 } from "lucide-react";
 import { branding } from "../../config/branding";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileSearch } from "../../hooks/useFileSearch";
 import { useLogout } from "../../hooks/useLogout";
+import { useDialogFocus } from "../../hooks/useDialogFocus";
+import { useTranslation } from "react-i18next";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const logout = useLogout();
+  const { t } = useTranslation(["common"]);
   const fileResults = useFileSearch(inputValue);
+  const [authenticated, setAuthenticated] = useState(() => Boolean(localStorage.getItem("token")));
+  const isAdmin = getStoredUserFromLocalStorage()?.is_admin === true;
 
   const closePalette = useCallback(() => {
     setOpen(false);
-    previousFocusRef.current?.focus();
   }, []);
+  useDialogFocus({ open, onClose: closePalette, containerRef: dialogRef, initialFocusRef: inputRef });
 
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
+        if (!authenticated) return;
         if (open) {
           closePalette();
         } else {
-          previousFocusRef.current = document.activeElement as HTMLElement | null;
           setOpen(true);
         }
       }
@@ -50,46 +59,21 @@ export function CommandPalette() {
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [closePalette, open]);
+  }, [authenticated, closePalette, open]);
 
   useEffect(() => {
-    if (!open) return;
-
-    const handleDialogKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closePalette();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const focusable = Array.from(
-        dialogRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      ).filter((element) => element.getAttribute("aria-hidden") !== "true");
-
-      if (focusable.length === 0) {
-        event.preventDefault();
-        dialogRef.current?.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (focusable.length === 1 || (event.shiftKey && document.activeElement === first)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+    const refreshAuthentication = () => {
+      const nextAuthenticated = Boolean(localStorage.getItem("token"));
+      setAuthenticated(nextAuthenticated);
+      if (!nextAuthenticated) setOpen(false);
     };
-
-    document.addEventListener("keydown", handleDialogKeyDown);
-    return () => document.removeEventListener("keydown", handleDialogKeyDown);
-  }, [closePalette, open]);
+    window.addEventListener("auth-change", refreshAuthentication);
+    window.addEventListener("storage", refreshAuthentication);
+    return () => {
+      window.removeEventListener("auth-change", refreshAuthentication);
+      window.removeEventListener("storage", refreshAuthentication);
+    };
+  }, []);
 
   const runCommand = (command: () => void) => {
     setInputValue("");
@@ -100,8 +84,8 @@ export function CommandPalette() {
 
   return (
     <AnimatePresence>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+      {authenticated && open && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-2 pt-[min(15vh,5rem)] sm:p-4 sm:pt-[15vh]">
           {/* Backdrop with framer-motion blur fade */}
           <motion.div
             initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
@@ -119,16 +103,16 @@ export function CommandPalette() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative z-50 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl ring-1 ring-black/5"
+            className="relative z-50 flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl ring-1 ring-black/5 sm:max-h-[70dvh]"
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Search and commands"
+            aria-label={t("common:commandPalette.label")}
             tabIndex={-1}
           >
             <Command
-              label="Search and commands"
-              className="w-full text-foreground"
+              label={t("common:commandPalette.label")}
+              className="flex min-h-0 w-full flex-col text-foreground"
               filter={(value, search) => {
                 if (value.toLowerCase().includes(search.toLowerCase())) return 1;
                 return 0;
@@ -137,22 +121,22 @@ export function CommandPalette() {
               <div className="flex items-center border-b border-border px-4 py-3">
                 <Search className="mr-3 h-5 w-5 text-muted-foreground" />
                 <Command.Input
-                  autoFocus
+                  ref={inputRef}
                   value={inputValue}
                   onValueChange={setInputValue}
-                  placeholder={`Search ${branding.productName} or type a command...`}
+                  placeholder={t("common:commandPalette.placeholder", { product: branding.productName })}
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground"
                 />
                 <span className="ml-2 text-xs text-muted-foreground font-mono">ESC</span>
               </div>
 
-              <Command.List className="max-h-[300px] overflow-y-auto p-2 scrollable-panel">
+              <Command.List className="min-h-0 flex-1 overflow-y-auto p-2 scrollable-panel">
                 <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
-                  No results found.
+                  {t("common:commandPalette.noResults")}
                 </Command.Empty>
 
                 {fileResults.length > 0 && (
-                  <Command.Group heading="Files" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                  <Command.Group heading={t("common:commandPalette.filesGroup")} className="px-2 text-xs font-medium py-2 text-muted-foreground">
                     {fileResults.map((file) => (
                       <Command.Item
                         key={file.id}
@@ -165,7 +149,7 @@ export function CommandPalette() {
                           <span className="font-medium truncate">{file.filename}</span>
                           {file.folder_name && (
                             <span className="text-[10px] text-muted-foreground">
-                              in {file.folder_name}
+                              {t("common:commandPalette.inFolder", { folder: file.folder_name })}
                             </span>
                           )}
                         </div>
@@ -174,45 +158,75 @@ export function CommandPalette() {
                   </Command.Group>
                 )}
 
-                <Command.Group heading="Navigation" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                <Command.Group heading={t("common:commandPalette.navigationGroup")} className="px-2 text-xs font-medium py-2 text-muted-foreground">
                   <Command.Item
                     onSelect={() => runCommand(() => navigate("/dashboard"))}
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
                   >
                     <Home className="mr-3 h-4 w-4 text-primary" />
-                    Dashboard
+                    {t("common:nav.dashboard")}
                   </Command.Item>
                   <Command.Item
                     onSelect={() => runCommand(() => navigate("/files"))}
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
                   >
                     <FolderOpen className="mr-3 h-4 w-4 text-primary" />
-                    My Vault
+                    {t("common:nav.files")}
                   </Command.Item>
                   <Command.Item
                     onSelect={() => runCommand(() => navigate("/groups"))}
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
                   >
                     <Users className="mr-3 h-4 w-4 text-primary" />
-                    Groups & Teams
+                    {t("common:nav.groups")}
+                  </Command.Item>
+                  <Command.Item
+                    onSelect={() => runCommand(() => navigate("/shared"))}
+                    className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                  >
+                    <Share2 className="mr-3 h-4 w-4 text-primary" />
+                    {t("common:nav.shared")}
                   </Command.Item>
                 </Command.Group>
 
-                <Command.Group heading="Account" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                <Command.Group heading={t("common:commandPalette.accountGroup")} className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                  <Command.Item
+                    onSelect={() => runCommand(() => navigate("/profile"))}
+                    className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                  >
+                    <User className="mr-3 h-4 w-4 text-primary" />
+                    {t("common:nav.profile")}
+                  </Command.Item>
                   <Command.Item
                     onSelect={() => runCommand(() => navigate("/settings"))}
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
                   >
                     <Settings className="mr-3 h-4 w-4 text-primary" />
-                    Settings
+                    {t("common:nav.settings")}
                   </Command.Item>
                   <Command.Item
                     onSelect={() => runCommand(() => navigate("/access-center"))}
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
                   >
                     <ShieldCheck className="mr-3 h-4 w-4 text-primary" />
-                    Privacy & Access Center
+                    {t("common:nav.accessCenter")}
                   </Command.Item>
+                  <Command.Item
+                    onSelect={() => runCommand(() => navigate("/help"))}
+                    className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                  >
+                    <HelpCircle className="mr-3 h-4 w-4 text-primary" />
+                    {t("common:nav.help")}
+                  </Command.Item>
+                  {isAdmin && (
+                    <Command.Item
+                      onSelect={() => runCommand(() => navigate("/admin"))}
+                      className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                    >
+                      <ShieldCheck className="mr-3 h-4 w-4 text-primary" />
+                      {t("common:nav.admin")}
+                    </Command.Item>
+                  )}
                   <Command.Item
                     onSelect={() => {
                       runCommand(logout);
@@ -220,7 +234,7 @@ export function CommandPalette() {
                     className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-red-500 hover:bg-red-500/10 aria-selected:bg-red-500/10"
                   >
                     <LogOut className="mr-3 h-4 w-4" />
-                    Sign Out
+                    {t("common:nav.logout")}
                   </Command.Item>
                 </Command.Group>
               </Command.List>

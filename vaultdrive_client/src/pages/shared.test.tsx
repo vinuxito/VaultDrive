@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -17,6 +17,8 @@ const sharedSessionMocks = vi.hoisted(() => ({
 }));
 
 const cryptoMocks = vi.hoisted(() => ({
+  decryptPrivateKeyWithPIN: vi.fn(),
+  importRSAPrivateKey: vi.fn(),
   unwrapKeyWithRSA: vi.fn(),
   decryptFile: vi.fn(),
   base64ToArrayBuffer: vi.fn(),
@@ -47,6 +49,8 @@ vi.mock("../utils/crypto", async () => {
   const actual = await vi.importActual<typeof import("../utils/crypto")>("../utils/crypto");
   return {
     ...actual,
+    decryptPrivateKeyWithPIN: cryptoMocks.decryptPrivateKeyWithPIN,
+    importRSAPrivateKey: cryptoMocks.importRSAPrivateKey,
     unwrapKeyWithRSA: cryptoMocks.unwrapKeyWithRSA,
     decryptFile: cryptoMocks.decryptFile,
     base64ToArrayBuffer: cryptoMocks.base64ToArrayBuffer,
@@ -109,7 +113,7 @@ describe("SharedFiles", () => {
     }) as typeof fetch;
   });
 
-  it("shows the real download error instead of asking for a pin again", async () => {
+  it("shows a safe file-recovery message instead of raw crypto details or another PIN prompt", async () => {
     sessionVaultMocks.getPrivateKey.mockReturnValue({ id: "session-rsa-key" } as unknown as CryptoKey);
     cryptoMocks.unwrapKeyWithRSA.mockRejectedValue(new Error("Failed to download file"));
     sharedSessionMocks.restorePrivateKeyFromSessionPin.mockResolvedValue(null);
@@ -123,9 +127,10 @@ describe("SharedFiles", () => {
     await userEvent.click(await screen.findByRole("button", { name: /download shared.pdf/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to download file")).toBeInTheDocument();
+      expect(screen.getByText(/This file could not be decrypted/i)).toBeInTheDocument();
     });
 
+    expect(screen.queryByText("Failed to download file")).not.toBeInTheDocument();
     expect(screen.queryByText("Decrypt Shared File")).not.toBeInTheDocument();
   });
 
@@ -169,5 +174,50 @@ describe("SharedFiles", () => {
     expect(await screen.findByText("You do not have access to shared files for this account.")).toBeInTheDocument();
     expect(screen.queryByText("No shared files yet")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  it("keeps a failed PIN prompt open with actionable guidance and the entered PIN", async () => {
+    sessionVaultMocks.getPrivateKey.mockReturnValue(null);
+    sessionVaultMocks.getCredential.mockReturnValue(null);
+    sharedSessionMocks.restorePrivateKeyFromSessionPin.mockResolvedValue(null);
+    cryptoMocks.decryptPrivateKeyWithPIN.mockRejectedValue(new DOMException("Operation failed", "OperationError"));
+
+    render(
+      <MemoryRouter>
+        <SharedFiles />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByRole("button", { name: /download shared.pdf/i }));
+    const dialog = await screen.findByRole("dialog", { name: "Decrypt Shared File" });
+    const pin = within(dialog).getByLabelText(/PIN/i);
+    await userEvent.type(pin, "1234");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Decrypt & Download" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(/could not unlock your account key/i);
+    expect(pin).toHaveValue("1234");
+    expect(pin).toBeEnabled();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+  });
+
+  it("never exposes a malformed cached key-envelope error in the PIN dialog", async () => {
+    sessionVaultMocks.getPrivateKey.mockReturnValue(null);
+    sessionVaultMocks.getCredential.mockReturnValue(null);
+    sharedSessionMocks.restorePrivateKeyFromSessionPin.mockResolvedValue(null);
+    cryptoMocks.decryptPrivateKeyWithPIN.mockRejectedValue(new Error("Invalid encrypted private key length"));
+
+    render(
+      <MemoryRouter>
+        <SharedFiles />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByRole("button", { name: /download shared.pdf/i }));
+    const dialog = await screen.findByRole("dialog", { name: "Decrypt Shared File" });
+    await userEvent.type(within(dialog).getByLabelText(/PIN/i), "1234");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Decrypt & Download" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(/could not unlock your account key/i);
+    expect(dialog).not.toHaveTextContent("Invalid encrypted private key length");
   });
 });

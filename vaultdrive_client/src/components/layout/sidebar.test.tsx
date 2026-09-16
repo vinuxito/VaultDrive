@@ -13,6 +13,19 @@ vi.mock("../../hooks", () => ({
 }));
 
 describe("Sidebar", () => {
+  it("marks nested group routes active and exposes role-appropriate destinations", () => {
+    localStorage.setItem("user", JSON.stringify({ username: "ada", is_admin: true }));
+    render(
+      <MemoryRouter initialEntries={["/groups/group-1"]}>
+        <Sidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("button", { name: "Groups" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Profile" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Admin" })).toBeInTheDocument();
+  });
+
   it("uses the shared logout operation", async () => {
     logout.mockClear();
     render(

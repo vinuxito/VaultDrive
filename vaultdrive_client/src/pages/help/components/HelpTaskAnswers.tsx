@@ -34,6 +34,10 @@ const ANSWERS: Partial<Record<HelpSection, TaskAnswer[]>> = {
       key: "help:tasks.senderPassword",
       defaultValue: "A File Request password protects that sender journey. It is not the owner's account password or vault PIN.",
     },
+    {
+      key: "help:tasks.dropRecovery",
+      defaultValue: "Secure Drop keeps server-side recovery material for authorized owner recovery. Senders still never need the owner's account password or vault PIN.",
+    },
   ],
   vault_pin: [
     {

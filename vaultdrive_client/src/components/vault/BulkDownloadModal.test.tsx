@@ -202,6 +202,28 @@ describe("BulkDownloadModal", () => {
     await waitFor(() => expect(onDownloadFile).toHaveBeenCalledWith(legacyFile, "new-secret"));
   });
 
+  it("warns that one batch password may not unlock files encrypted with different passwords", () => {
+    vaultMocks.getCredential.mockReturnValue(null);
+    const passwordFiles: BulkDownloadFile[] = ["one", "two"].map((id) => ({
+      id,
+      filename: `${id}.pdf`,
+      metadata: JSON.stringify({ credential_scheme: "password" }),
+      is_owner: true,
+    }));
+
+    render(
+      <BulkDownloadModal
+        files={passwordFiles}
+        onDownloadFile={vi.fn().mockResolvedValue({ success: true })}
+        onClose={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText(/one file password for all password-protected files/i))
+      .toBeInTheDocument();
+    expect(screen.getByText(/download them individually/i)).toBeInTheDocument();
+  });
+
   it("stops at the first server failure instead of cascading through the batch", async () => {
     const onDownloadFile = vi.fn().mockResolvedValue({
       success: false,

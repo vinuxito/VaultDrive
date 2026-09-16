@@ -9,11 +9,12 @@
  * See: docs/roadmaps/2026-04-26-ui-ux-coherence-upgrade-roadmap.md (Step 3)
  */
 
+import { useTranslation } from "react-i18next";
 import * as React from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 import { Button } from "./button";
-import { ERROR_COPY, type EmptyStateCopy } from "../../constants/copy";
+import { EMPTY, LOADING, ERROR_COPY, type EmptyStateCopy } from "../../constants/copy";
 import { cn } from "../../lib/utils";
 
 export interface DataStateProps {
@@ -74,6 +75,10 @@ export function DataState({
   className,
   children,
 }: DataStateProps) {
+  const { t } = useTranslation("drive");
+  const emptyKey = Object.entries(EMPTY).find(([, value]) => value === emptyConfig)?.[0];
+  const emptyText = (part: string, fallback: string) => emptyKey ? t(`coherence.empty.${emptyKey}.${part}`, { defaultValue: fallback }) : fallback;
+  const loadingKey = Object.entries(LOADING).find(([, value]) => value === loadingLabel)?.[0];
   if (loading) {
     return (
       <div
@@ -89,7 +94,7 @@ export function DataState({
         {loadingLabel ? (
           <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-            <span>{loadingLabel}</span>
+            <span>{loadingKey ? t(`coherence.loading.${loadingKey}`, { defaultValue: loadingLabel }) : loadingLabel}</span>
           </div>
         ) : null}
       </div>
@@ -108,8 +113,8 @@ export function DataState({
       >
         <AlertCircle className="h-5 w-5 text-destructive" aria-hidden="true" />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">{ERROR_COPY.generic.title}</p>
-          <p className="text-sm text-muted-foreground">{errorBody(error)}</p>
+          <p className="text-sm font-medium text-foreground">{t("coherence.data.errorTitle", { defaultValue: ERROR_COPY.generic.title })}</p>
+          <p className="text-sm text-muted-foreground">{typeof error === "string" || error instanceof Error ? errorBody(error) : t("coherence.data.errorBody", { defaultValue: ERROR_COPY.generic.body })}</p>
         </div>
         {onRetry ? (
           <Button
@@ -119,7 +124,7 @@ export function DataState({
             onClick={onRetry}
             data-testid="data-state-retry"
           >
-            {ERROR_COPY.generic.retryLabel}
+            {t("coherence.data.retry", { defaultValue: ERROR_COPY.generic.retryLabel })}
           </Button>
         ) : null}
       </div>
@@ -136,8 +141,8 @@ export function DataState({
         )}
       >
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">{emptyConfig.title}</p>
-          <p className="text-sm text-muted-foreground">{emptyConfig.body}</p>
+          <p className="text-sm font-medium text-foreground">{emptyText("title", emptyConfig.title)}</p>
+          <p className="text-sm text-muted-foreground">{emptyText("body", emptyConfig.body)}</p>
         </div>
         {emptyConfig.primaryAction && onEmptyAction ? (
           <Button
@@ -152,7 +157,7 @@ export function DataState({
               })
             }
           >
-            {emptyConfig.primaryAction.label}
+            {emptyText("action", emptyConfig.primaryAction.label)}
           </Button>
         ) : null}
       </div>

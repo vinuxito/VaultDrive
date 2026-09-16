@@ -17,31 +17,24 @@ export function formatSize(bytes: number): string {
 /**
  * Format date in human-readable format
  */
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string, locale = 'en'): string {
   const date = new Date(dateString);
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  if (!Number.isFinite(date.getTime())) return '—';
+  return date.toLocaleString(locale, {
+    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 }
 
-export function relativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const diffMs = Date.now() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 2) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-
-  return date.toLocaleDateString();
+export function relativeTime(dateString: string, locale = 'en'): string {
+  const timestamp = new Date(dateString).getTime();
+  if (!Number.isFinite(timestamp)) return '—';
+  const seconds = (timestamp - Date.now()) / 1000;
+  if (Math.abs(seconds) >= 7 * 86400) return new Date(timestamp).toLocaleDateString(locale);
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  for (const [unit, size] of [['day', 86400], ['hour', 3600], ['minute', 60]] as const) {
+    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit);
+  }
+  return formatter.format(0, 'second');
 }
 
 /**

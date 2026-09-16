@@ -25,6 +25,7 @@ import { useSessionVault } from "../../context/SessionVaultContext";
 import { ApiCallTrace } from "../control-plane/ApiCallTrace";
 import { branding } from "../../config/branding";
 import { recoverVerifiedOwnerFileKey } from "../../utils/access-link-recovery";
+import { useTranslation } from "react-i18next";
 
 export interface CreateShareLinkModalProps {
   isOpen: boolean;
@@ -78,6 +79,11 @@ export function CreateShareLinkModal({
   onClose,
   file,
 }: CreateShareLinkModalProps) {
+  const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const value = t(key, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
   const isDropFile = !!file.pin_wrapped_key;
   const sessionVault = useSessionVault();
   const { getCredential } = sessionVault;
@@ -337,12 +343,11 @@ export function CreateShareLinkModal({
                     )}
                   >
                     <Shield className={cn("w-3.5 h-3.5", "text-primary")} />
-                    Single-Use Auto-Shredding
+                    {copy("drive:transfers.share.singleUseLabel", "Close link after first authorized fetch")}
                   </label>
                 </div>
                 <p className={cn("text-xs pl-6", "text-muted-foreground")}>
-                  Destroy the key immediately after the first successful
-                  download.
+                  {copy("drive:transfers.share.singleUseDescription", "The authorized fetch consumes this link's allowance. The owner file and copies already saved are unaffected.")}
                 </p>
 
                 <div className="flex items-center gap-2 pt-1">

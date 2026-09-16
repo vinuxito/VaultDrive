@@ -29,4 +29,5 @@ it("offers recovery when reachability fails and keeps metrics out of the primary
   expect(screen.getByText("Service unreachable")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Check again" })).toBeInTheDocument();
   expect(screen.queryByText("Goroutines")).not.toBeInTheDocument();
+  expect(screen.getByText("The service could not be reached. Check your connection and try again.")).toBeInTheDocument();
 });

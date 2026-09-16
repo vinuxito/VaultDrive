@@ -81,11 +81,11 @@ export const CONFIRM_DESTRUCTIVE = {
     irreversible: true,
   },
   revokeAllExternal: {
-    title: "Revoke every external link to this file?",
+    title: "Close direct shares and file links?",
     body:
-      "All public share links and folder shares pointing to this file will be revoked. " +
-      "Group memberships are not affected. This is your kill switch — use it freely.",
-    confirmLabel: "Revoke all external access",
+      "Direct recipient grants and public file links will be closed. " +
+      "Folder permissions, downloaded copies and downloads in progress are unaffected.",
+    confirmLabel: "Revoke direct access and file links",
     cancelLabel: "Cancel",
     irreversible: true,
   },
@@ -110,7 +110,7 @@ export const CONFIRM_DESTRUCTIVE = {
   removeGroupMember: {
     title: "Remove this member from the group?",
     body:
-      "They lose access to every file currently shared with the group. " +
+      "Group membership is removed. Existing direct file grants must be reviewed separately. " +
       "Files they already downloaded remain on their devices.",
     confirmLabel: "Remove member",
     cancelLabel: "Keep member",
@@ -201,7 +201,7 @@ export const EMPTY = {
     title: "No drop links",
     body:
       "Drop links let people send you files without an account. " +
-      "Files arrive encrypted and only you can decrypt them.",
+      "Files arrive encrypted. Secure Drop delivery-key recovery is managed by the service.",
     primaryAction: { label: "Create a drop link", actionKey: "create-drop-link" },
   },
   fileRequestsEmpty: {
@@ -240,7 +240,7 @@ export type EmptyKind = keyof typeof EMPTY;
 export const ERROR_COPY = {
   generic: {
     title: "Something didn't load",
-    body: "The server didn't respond as expected. Try again — your vault is safe.",
+    body: "The server did not respond as expected. Try again to check the current state.",
     retryLabel: "Try again",
   },
   network: {
@@ -250,7 +250,7 @@ export const ERROR_COPY = {
   },
   unauthorized: {
     title: "Your session expired",
-    body: "Sign in again to continue. Nothing was lost.",
+    body: "Sign in again to continue, then check any interrupted action.",
     retryLabel: "Sign in",
   },
 } as const;

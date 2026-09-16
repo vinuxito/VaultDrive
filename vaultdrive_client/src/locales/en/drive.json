@@ -59,6 +59,65 @@
       "conflict": "Sync conflict: file \"{{filename}}\" has a newer version on the server. Action skipped.",
       "queued": "You are offline. Action queued for sync.",
       "pendingSync": "Pending Sync"
+    },
+    "filterAll": "All Files",
+    "filterImages": "Images",
+    "filterDocs": "Documents",
+    "filterAudio": "Audio",
+    "filterVideo": "Video",
+    "filterArchives": "Archives",
+    "clearSearch": "Clear search",
+    "tree": {
+      "navigation": "Vault navigation",
+      "quickAccess": "Quick access",
+      "starred": "Starred",
+      "myFolders": "My folders",
+      "createFolder": "Create folder",
+      "noFolders": "No folders yet",
+      "shared": "Shared with me",
+      "uploadLinks": "Client upload links",
+      "manage": "Manage",
+      "noUploadLinks": "No upload links yet",
+      "sealed": "sealed",
+      "expired": "expired",
+      "expiring": "expiring",
+      "active": "active",
+      "fileRequests": "File requests",
+      "manageRequests": "Manage requests"
+    },
+    "selectView": "Select current view",
+    "clearViewSelection": "Clear current view selection",
+    "selectFile": "Select {{filename}}",
+    "fileActions": "File actions for {{filename}}",
+    "source": {
+      "foldersStale": "Folder navigation may be out of date.",
+      "retryFolders": "Retry folders",
+      "uploadLinksStale": "Upload-link navigation may be out of date.",
+      "retryUploadLinks": "Retry upload links"
+    },
+    "empty": {
+      "search": "No files match “{{query}}”",
+      "sharedView": "No shared files in this view"
+    },
+    "bulk": {
+      "inView": "in this view"
+    },
+    "delete": {
+      "title": "Delete file",
+      "description": "Delete this file permanently? This action cannot be undone.",
+      "warning": "The encrypted file will be permanently deleted from the server and cannot be recovered.",
+      "cancel": "Keep file",
+      "deleting": "Deleting…",
+      "confirm": "Delete file"
+    },
+    "bulkDelete": {
+      "title": "Delete {{count}} selected files",
+      "description": "This permanently deletes the owned files in your selection. Shared files stay untouched.",
+      "more": "…and {{count}} more",
+      "warning": "This action cannot be undone. Files that fail to delete remain selected so you can retry.",
+      "cancel": "Keep files",
+      "deleting": "Deleting…",
+      "confirm": "Delete {{count}}"
     }
   },
   "dashboard": {
@@ -67,11 +126,11 @@
       "afternoon": "Good afternoon, {{name}}.",
       "evening": "Good evening, {{name}}."
     },
-    "secure": "Your vault is secure.",
+    "secure": "Review your files, deliveries and access.",
     "attention": {
       "title": "Attention",
-      "healthy": "Everything looks healthy",
-      "healthyDesc": "No active links expiring soon, no stale shares",
+      "healthy": "No attention items in the latest check",
+      "healthyDesc": "No expiring links or unused old shares were reported. This is not a security audit.",
       "items": "{{count}} items need attention",
       "item": "{{count}} item needs attention",
       "uploadLinkExpires": "Upload link <strong>{{name}}</strong> expires {{time}}",
@@ -116,10 +175,12 @@
     "aboutDesc": "Shared files are decrypted using your 4-digit PIN. No passwords are exchanged between users.",
     "modal": {
       "title": "Decrypt Shared File",
-      "desc": "Enter your 4-digit PIN to decrypt this file",
-      "pinLabel": "Your PIN",
+      "desc": "Enter your current vault PIN. This is your account credential, not a password from the sender.",
+      "pinLabel": "Your vault PIN",
       "placeholder": "4-digit PIN",
-      "button": "Decrypt & Download"
+      "button": "Decrypt & Download",
+      "pinError": "That PIN could not unlock your account key. Re-enter your current vault PIN. If it still fails, recover your account or ask the sender to share the file again.",
+      "decryptError": "This file could not be decrypted. Try again or ask the sender to share it again."
     }
   },
   "publicShare": {
@@ -146,7 +207,10 @@
     "lockedDesc": "This file is secure and will be available to download once the lock duration expires.",
     "shreddedTitle": "This link has been shredded",
     "shreddedDesc": "As a single-use secure link, the decryption key for this file has been permanently deleted from the server after its first download.",
-    "autoShredWarning": "Caution: This file will auto-shred after your download completes."
+    "autoShredWarning": "Caution: This file will auto-shred after your download completes.",
+    "consumedTitle": "This limited-use link has already been used",
+    "consumedDesc": "The link allowance was consumed when an authorized file fetch started. The owner's file and any copies already saved are unaffected.",
+    "consumedRecovery": "Ask the owner for a new link to download the file again."
   },
   "publicFolder": {
     "secureShare": "Secure Folder Share",
@@ -170,7 +234,9 @@
     "backToFolder": "Back to folder",
     "expiredTitle": "This link has expired",
     "expiredDesc": "This folder share link is no longer valid.",
-    "expiredContact": "Contact the folder owner to request a new link."
+    "expiredContact": "Contact the folder owner to request a new link.",
+    "zipBlockedTitle": "ZIP was not created",
+    "zipBlockedDesc": "No ZIP was saved. Fix the blocking file or retry when the service is available."
   },
   "onboarding": {
     "ownerSetup": "Owner setup",
@@ -221,7 +287,13 @@
     "readyCheck2": "Secure Drop and shared-download recovery can reuse the same trusted session",
     "readyCheck3": "You can see, review, and revoke outside access without losing your calm overview",
     "readyCheck4": "You only set this once. {{productName}} now carries that trust through normal owner flows.",
-    "enterVault": "Enter Protected Vault"
+    "enterVault": "Enter Protected Vault",
+    "pinSetupConfirmed": "Vault PIN saved",
+    "folderSetupConfirmed": "First folder created",
+    "chooseFirstTask": "What do you want to do first?",
+    "firstTaskUpload": "Upload a file",
+    "firstTaskShare": "Share access to a file",
+    "firstTaskReceive": "Receive files from someone"
   },
   "admin": {
     "dashboardTitle": "Admin Dashboard",
@@ -372,7 +444,353 @@
     "resetPassword": "Reset Password",
     "resetSuccess": "Password reset successfully. You can now log in.",
     "pendingRequests": "Custodian Approvals",
-    "noRequests": "No pending recovery approvals."
+    "noRequests": "No pending recovery approvals.",
+    "originalFileCredential": "Recovery restores eligible account key material. Files encrypted with an earlier PIN or file password still need that original credential. A new PIN does not re-encrypt existing files. Support cannot recover a lost file credential; ask the sender for another copy or use your own backup.",
+    "checkAgain": "Check again",
+    "lastChecked": "Last checked: {{time}}",
+    "notCheckedYet": "Status has not been checked yet.",
+    "reconstructingNow": "Reconstructing your account key and applying the reset...",
+    "approvalsComplete": "Approvals complete. Choose a new account password to continue.",
+    "pinAfterReset": "After you log in, set a new vault PIN. Then verify that an existing file opens before relying on this device for future work.",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "backToLogin": "Back to login",
+    "custodianApprovals": "Custodian approvals",
+    "status": "Status",
+    "approved": "Approved",
+    "waitingForCustodians": "Waiting for configured custodians to review the request. No response time is guaranteed.",
+    "cancel": "Cancel recovery",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Minimum 8 characters",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter password",
+    "resetAccount": "Recover & Reset Account"
+  },
+  "coherence": {
+    "trust": {
+      "title": "Protection & Access",
+      "loading": "Checking recorded access…",
+      "unavailable": "Access could not be checked. No access conclusion is available.",
+      "retry": "Retry",
+      "routes": "{{count}} active external read routes",
+      "noRoutes": "No external read routes are listed.",
+      "ownerNamed": "Owner: {{name}}",
+      "scopeNote": "Review access settings for the listed routes. Closing a route cannot recall downloaded copies.",
+      "details": "Encryption and delivery details",
+      "encryption": "File contents are encrypted before upload. Filenames, sizes and access metadata remain visible to the service.",
+      "dropException": "Received through Secure Drop. Its delivery-key recovery is managed by the server; this is an exception to browser-only key handling.",
+      "uploaded": "Encrypted file stored in your vault",
+      "history": "Access activity snapshot",
+      "historyLoading": "Loading recorded history…",
+      "historyUnavailable": "History could not be loaded. This does not establish whether access occurred.",
+      "historyEmpty": "No recorded events were returned. Check access settings to review current permissions.",
+      "historyCount": "{{count}} entries reconstructed from current records; past changes may be absent",
+      "accessTitle": "Access Control",
+      "close": "Close access details",
+      "revokeUnknown": "Revocation was not confirmed. Refresh access before deciding whether to retry.",
+      "refresh": "Refresh access",
+      "revokeConfirmed": "Direct shares and file links were closed. Folder access and downloaded copies are unaffected. Review remaining permissions below.",
+      "stale": "The latest check failed. Previously loaded access is shown below.",
+      "expires": "Expiry: {{time}}",
+      "unlocks": "Available from: {{time}}",
+      "singleUse": "One authorized fetch consumes this link, even if delivery is interrupted.",
+      "fetchCount": "{{count}} authorized link fetches; reading is not confirmed",
+      "revokeTitle": "Close direct shares and file links?",
+      "revokeScope": "This closes direct recipient grants and public file links. Folder permissions, copies already downloaded and downloads in progress are unaffected.",
+      "cancel": "Cancel",
+      "revoking": "Closing access…",
+      "revokeNow": "Revoke now",
+      "revoke": "Revoke direct access and file links",
+      "owner": "Owner",
+      "direct": "Direct share",
+      "group": "Group association",
+      "fileLink": "File link",
+      "folderLink": "Folder access",
+      "intake": "Secure Drop delivery source",
+      "other": "Other access",
+      "active": "Active",
+      "expired": "Expired",
+      "closed": "Closed",
+      "unknown": "Unknown",
+      "groupMembers": "{{name}} · {{count}} members",
+      "received": "Received through Secure Drop",
+      "sharedWith": "Shared directly with {{name}}",
+      "groupShared": "Associated with group {{name}}",
+      "linkCreated": "File link created",
+      "linkClosed": "File link closed",
+      "linkExpired": "File link expired",
+      "recordedActivity": "Recorded file activity",
+      "revokeConfirmedStale": "Direct shares and file links were closed, but the latest access list could not be refreshed. Previously loaded entries may be out of date.",
+      "closureTimeUnknown": "Closure time is unavailable in this snapshot."
+    },
+    "preview": {
+      "signPin": "Enter your account PIN to unlock local signing:",
+      "signUnlockError": "Signing is locked. Unlock your account PIN in Settings and try again.",
+      "signError": "Local signing failed. Try again after unlocking your account.",
+      "credentialError": "Decryption failed. Check the original PIN or file password and try again.",
+      "authError": "Your session expired. Sign in again to open this file.",
+      "storageError": "The service is temporarily unavailable. Check your connection and retry.",
+      "openError": "This preview could not be opened. Retry, or ask the owner to check the file and access.",
+      "folderError": "Close this preview and reopen the containing folder to unlock it, then try again.",
+      "pdf": "PDF preview",
+      "unsupported": "Preview not available for this file type",
+      "download": "Download",
+      "close": "Close preview",
+      "protection": "Protection & History",
+      "protectionHint": "See how this file is protected, shared, and controlled.",
+      "protectionSub": "This keeps the trust story visible while you preview the file itself.",
+      "hideDetails": "Hide details",
+      "showDetails": "Show details",
+      "shared": "This file was shared with you.",
+      "sharedLimits": "The owner controls future downloads. Copies already downloaded cannot be recalled.",
+      "filePassword": "Enter the original file password",
+      "enterPin": "Enter your 4-digit PIN",
+      "passwordLabel": "File password",
+      "decrypt": "Decrypt & Preview",
+      "decrypting": "Decrypting…",
+      "retry": "Retry preview",
+      "edit": "Edit credential",
+      "localSignature": "Local file signature",
+      "verified": "VERIFIED",
+      "invalid": "INVALID / ALTERED",
+      "unsigned": "UNSIGNED",
+      "signatureMatch": "These bytes match the signature stored in this browser for your account key. This does not verify the sender’s identity or establish legal non-repudiation.",
+      "signatureMismatch": "These bytes could not be verified against the locally stored signature. Check the original file before relying on it.",
+      "signatureAbsent": "No signature is stored in this browser. A local signature lets this account check whether these bytes changed.",
+      "signing": "Signing...",
+      "sign": "Sign locally",
+      "signature": "Signature",
+      "signUnlockTitle": "Unlock local signing",
+      "signUnlockBody": "Enter your account PIN. It is used only in this browser to unlock your signing key.",
+      "accountPin": "Account PIN",
+      "cancelSigning": "Cancel signing",
+      "unlockAndSign": "Unlock and sign",
+      "signUnlockMissing": "No PIN-protected signing key is available. Unlock signing in Settings and try again.",
+      "signUnlockRejected": "Could not unlock signing. Check your account PIN and try again."
+    },
+    "empty": {
+      "vaultEmpty": {
+        "title": "Your vault is ready",
+        "body": "Your files are encrypted in your browser before they ever reach the server. Upload your first file to see how it works.",
+        "action": "Upload a file"
+      },
+      "accessCenterEmpty": {
+        "title": "No outbound access yet",
+        "body": "Once you create a share link, folder share, or drop route, it will appear here so you can revoke it at any time.",
+        "action": "Go to your files"
+      },
+      "shareLinksEmpty": {
+        "title": "No share links",
+        "body": "Share links you create will be listed here so you can revoke any of them in one click."
+      },
+      "folderSharesEmpty": {
+        "title": "No folder shares",
+        "body": "Folder shares you create will appear here. You can revoke them at any time.",
+        "action": "Create new link"
+      },
+      "dropLinksEmpty": {
+        "title": "No drop links",
+        "body": "Drop links let people send you files without an account. Files arrive encrypted. Secure Drop delivery-key recovery is managed by the service.",
+        "action": "Create a drop link"
+      },
+      "fileRequestsEmpty": {
+        "title": "No file requests",
+        "body": "File requests let you ask a specific person to upload required documents. Each request has its own checklist.",
+        "action": "Create first request"
+      },
+      "groupsEmpty": {
+        "title": "No groups yet",
+        "body": "Groups let you share with the same set of people without re-entering recipients each time.",
+        "action": "Create a group"
+      },
+      "agentKeysEmpty": {
+        "title": "No agent API keys",
+        "body": "Agent keys grant scoped, revocable access for AI agents and external systems. Each key can be limited to specific actions and audited.",
+        "action": "Create an agent key"
+      },
+      "auditLogEmpty": {
+        "title": "No audit entries match",
+        "body": "Try widening the time range or clearing filters to see more activity."
+      }
+    },
+    "loading": {
+      "decryptingPrivateKey": "Decrypting your vault…",
+      "unwrappingFileKey": "Preparing this file for download…",
+      "uploadingFile": "Encrypting and uploading…",
+      "creatingShareLink": "Creating your share link…",
+      "creatingFolderShare": "Creating your folder share…",
+      "creatingDropLink": "Creating your drop link…",
+      "creatingFileRequest": "Creating your file request…",
+      "revokingLink": "Revoking access…",
+      "revokingAllExternal": "Revoking every external link…",
+      "loadingVault": "Loading your vault…",
+      "loadingAccess": "Loading access details…",
+      "loadingAuditEntries": "Loading audit entries…",
+      "deletingFile": "Removing the file from your vault…",
+      "workingDefault": "Working…"
+    },
+    "data": {
+      "errorTitle": "Something didn't load",
+      "errorBody": "The server did not respond as expected. Try again to check the current state.",
+      "retry": "Try again"
+    }
+  },
+  "transfers": {
+    "common": {
+      "close": "Close",
+      "done": "Done",
+      "cancel": "Cancel",
+      "backHome": "Back to Home",
+      "deliveryReceipt": "Delivery receipt",
+      "whatHappened": "What happened",
+      "copied": "Copied!",
+      "copyReceipt": "Copy receipt",
+      "trustReceipt": "Trust receipt",
+      "privateTitle": "What stays private",
+      "uploadArea": "Upload Area",
+      "selectFiles": "Select Files",
+      "selectFolder": "Select Folder",
+      "dropPrompt": "Drag & drop files or folders here",
+      "useButtons": "Or use the buttons above",
+      "uploadProgress": "Upload Progress",
+      "uploading": "Uploading…",
+      "encryptedTitle": "End-to-end encrypted"
+    },
+    "share": {
+      "expiry": "Link Expiry",
+      "custom": "Custom",
+      "singleUseLabel": "Close link after first authorized fetch",
+      "singleUseDescription": "The authorized fetch consumes this link's allowance. The owner file and copies already saved are unaffected."
+    },
+    "folderShare": {
+      "title": "Share Folder",
+      "description": "Share this folder and all its contents through one link. Each file key is wrapped with a folder key carried in the URL fragment; the server does not receive that key.",
+      "pinDescription": "Enter your PIN to unlock file keys for sharing",
+      "generate": "Generate Link",
+      "wrapping": "Wrapping keys…",
+      "preparing": "Preparing folder share…",
+      "emptyTitle": "This folder is empty right now",
+      "emptyDescription": "Folder Share is for files that already exist here. To let someone upload into this folder, create an upload link instead.",
+      "createUploadInstead": "Create Upload Link Instead",
+      "created": "Folder share link created",
+      "urlLabel": "Share URL (folder key embedded after #)",
+      "copyLink": "Copy Link"
+    },
+    "directShare": {
+      "title": "Share File",
+      "userTab": "Share with User",
+      "groupTab": "Share with Group",
+      "searchUsers": "Search users by username",
+      "selectGroup": "Select a group",
+      "userPlaceholder": "Type at least 2 characters…",
+      "groupPlaceholder": "Search groups…",
+      "searching": "Searching…",
+      "cachedCredential": "Credential cached — sharing will proceed automatically.",
+      "credentialTitle": "Your credential to authorize sharing",
+      "pinLabel": "Your PIN",
+      "sharing": "Sharing…",
+      "share": "Share File"
+    },
+    "bulk": {
+      "titleOne": "Download 1 file",
+      "titleMany": "Download {{count}} files",
+      "noneSelected": "No files selected.",
+      "saveStarted": "Browser save requests started for all selected files.",
+      "stopped": "Download stopped at the first failure. Correct the issue, then retry.",
+      "ready": "Ready to download — click Start to decrypt and download.",
+      "credentialsReady": "Credentials ready — click Start to decrypt and download.",
+      "enterCredentials": "Enter credentials, then click Start to decrypt and download.",
+      "pinLabel": "4-digit PIN",
+      "pinHint": "(used across your vault)",
+      "passwordLabel": "File credential",
+      "passwordHint": "(only for older non-PIN files)",
+      "passwordPlaceholder": "Enter password",
+      "downloading": "Downloading…",
+      "retry": "Retry Downloads",
+      "start": "Start Download",
+      "mixedPasswordWarning": "This batch uses one file password for all password-protected files. If these files were encrypted with different passwords, download them individually."
+    },
+    "drop": {
+      "verifying": "Verifying your upload link…",
+      "unavailableTitle": "This upload link is no longer available",
+      "incompleteTitle": "Incomplete upload link",
+      "incompleteDescription": "This link is missing the encryption key needed to secure your files. Ask the sender to resend the full link; the part after # is required.",
+      "deliveredTitle": "Your files have been delivered securely.",
+      "title": "Secure File Delivery",
+      "ownerCanSeeTitle": "What the owner can see",
+      "noOwnerPinTitle": "No owner PIN is required",
+      "noOwnerPinDescription": "You do not need the owner's PIN. The link key protects this upload route."
+    },
+    "fileRequest": {
+      "unavailableTitle": "Link Unavailable",
+      "deliveredTitle": "Files sent securely",
+      "rememberPassword": "Remember your download password",
+      "title": "Secure File Request",
+      "recipientNeedsTitle": "What the recipient needs",
+      "setPasswordTitle": "Set a Download Password",
+      "encryptingUploading": "Encrypting and uploading…",
+      "send": "Send Securely",
+      "passwordDescription": "Use the file password agreed with the recipient. It is separate from any ABRN account PIN; share it out of band, not through this request link.",
+      "passwordLabel": "Download password",
+      "showPassword": "Show download password",
+      "hidePassword": "Hide download password",
+      "encryptionTruth": "Your files are encrypted in your browser before being sent. The server stores protected file bytes and request metadata, and does not receive the file password."
+    },
+    "publicUpload": {
+      "unknownGuidance": "Do not upload files marked “needs confirmation” again yet. Ask the recipient to confirm whether they arrived first."
+    }
+  },
+  "firstTask": {
+    "title": "Your next step",
+    "unknown": "File status is not confirmed yet. Refresh before choosing a file to share.",
+    "stored": "Your file is in the vault. Choose a file to share, or create a link to receive files.",
+    "receiveHint": "Create an upload link for someone to send files to you. They do not need your account password or vault PIN.",
+    "uploadHint": "Upload a file first. After it is confirmed, use its share action to choose who can access it.",
+    "upload": "Upload a file",
+    "share": "Choose a file to share",
+    "receive": "Receive files",
+    "dismiss": "Hide guidance"
+  },
+  "accessCenter": {
+    "empty": {
+      "title": "No access routes yet",
+      "description": "Create a share link or an upload route from Files when you need to give someone access.",
+      "filtered": "No access routes match this filter",
+      "filteredDescription": "Clear the filter to review all share links and upload routes.",
+      "clear": "Clear filter",
+      "openFiles": "Open Files"
+    }
+  },
+  "activity": {
+    "title": "Activity Feed",
+    "close": "Close activity feed",
+    "empty": "No activity received in this session",
+    "events": {
+      "fileShared": "File shared",
+      "dropUpload": "New file received via upload link",
+      "other": "Account activity"
+    },
+    "connection": {
+      "live": "Live connection active. Events received in this session appear below.",
+      "connecting": "Connecting to live updates. Activity may be incomplete.",
+      "reconnecting": "Reconnecting to live updates. New activity is not confirmed yet.",
+      "offline": "You are offline. Live activity is unavailable.",
+      "paused": "Live updates are paused while this tab is hidden.",
+      "signed-out": "Sign in to receive live updates.",
+      "forbidden": "Live updates are not permitted for this session."
+    }
+  },
+  "service": {
+    "title": "Service status",
+    "checking": "Checking service…",
+    "unreachable": "Service unreachable",
+    "degraded": "Service degraded",
+    "available": "Service responding",
+    "unknown": "Service status unknown",
+    "retry": "Check again",
+    "respondingHint": "The API and database responded. Individual file actions may still fail.",
+    "degradedHint": "Some file actions may be unavailable. Your browser reached the service, but its database is unavailable.",
+    "unreachableHint": "The service could not be reached. Check your connection and try again.",
+    "unknownHint": "We could not confirm the service state. Check your connection and try again."
   }
 }
-

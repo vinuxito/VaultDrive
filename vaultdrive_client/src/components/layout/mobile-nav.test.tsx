@@ -34,9 +34,43 @@ describe("MobileNav", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("menuitem", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByRole("menuitem", { name: "Access Center" })).toHaveAttribute("href", "/access-center");
-    expect(screen.getByRole("menuitem", { name: "Help Center" })).toHaveAttribute("href", "/help");
+    expect(screen.getByRole("dialog", { name: "Main navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Access Center" })).toHaveAttribute("href", "/access-center");
+    expect(screen.getByRole("link", { name: "Help Center" })).toHaveAttribute("href", "/help");
+  });
+
+  it("traps focus, closes with Escape, and restores the opener", async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <MemoryRouter initialEntries={["/groups/group-1"]}>
+        <button type="button">Open navigation</button>
+        <MobileNav isOpen={false} onClose={onClose} />
+      </MemoryRouter>,
+    );
+    const opener = screen.getByRole("button", { name: "Open navigation" });
+    opener.focus();
+
+    rerender(
+      <MemoryRouter initialEntries={["/groups/group-1"]}>
+        <button type="button">Open navigation</button>
+        <MobileNav isOpen onClose={onClose} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: "Groups" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Home" })).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledOnce();
+
+    rerender(
+      <MemoryRouter initialEntries={["/groups/group-1"]}>
+        <button type="button">Open navigation</button>
+        <MobileNav isOpen={false} onClose={onClose} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("button", { name: "Open navigation" })).toHaveFocus();
   });
 
   it("uses the shared logout operation and closes the drawer", async () => {

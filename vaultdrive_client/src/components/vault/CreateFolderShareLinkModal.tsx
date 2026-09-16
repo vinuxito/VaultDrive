@@ -30,6 +30,7 @@ import {
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { resolveFolderShareFileKey } from "../../utils/folder-share";
 import { cn } from "../../lib/utils";
+import { useTranslation } from "react-i18next";
 
 export interface CreateFolderShareLinkModalProps {
   isOpen: boolean;
@@ -83,6 +84,11 @@ export function CreateFolderShareLinkModal({
   onCreated,
   onUseUploadLink,
 }: CreateFolderShareLinkModalProps) {
+  const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const value = t(key, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
   const { getCredential } = useSessionVault();
   const cached = getCredential();
   const hasCachedPin = cached && cached.type === "pin";
@@ -326,7 +332,7 @@ export function CreateFolderShareLinkModal({
               className={cn("flex items-center gap-2", "text-foreground")}
             >
               <FolderOpen className={cn("w-5 h-5", "text-primary")} />
-              Share Folder
+              {copy("drive:transfers.folderShare.title", "Share Folder")}
             </CardTitle>
             <button
               type="button"
@@ -335,7 +341,7 @@ export function CreateFolderShareLinkModal({
                 "transition-colors",
                 "text-muted-foreground hover:text-foreground",
               )}
-              aria-label="Close"
+              aria-label={copy("drive:transfers.common.close", "Close")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -349,9 +355,7 @@ export function CreateFolderShareLinkModal({
               "bg-muted border-border text-muted-foreground",
             )}
           >
-            Share this folder and all its contents via a single link. Each
-            file&apos;s key is wrapped with a folder key that travels in the URL
-            fragment — the server never sees it.
+            {copy("drive:transfers.folderShare.description", "Share this folder and all its contents through one link. Each file key is wrapped with a folder key carried in the URL fragment; the server does not receive that key.")}
           </div>
         </CardHeader>
 
@@ -383,7 +387,7 @@ export function CreateFolderShareLinkModal({
                   )}
                 >
                   <Calendar className="w-3.5 h-3.5" />
-                  Link Expiry
+                  {copy("drive:transfers.share.expiry", "Link Expiry")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {EXPIRY_PRESETS.map(({ label, value }) => (
@@ -411,7 +415,7 @@ export function CreateFolderShareLinkModal({
                         : "bg-muted text-muted-foreground hover:bg-muted/85",
                     )}
                   >
-                    Custom
+                    {copy("drive:transfers.share.custom", "Custom")}
                   </button>
                 </div>
                 {expiryDays === "custom" && (
@@ -438,10 +442,10 @@ export function CreateFolderShareLinkModal({
                     )}
                   >
                     <Key className="w-3.5 h-3.5" />
-                    4-digit PIN
+                    {copy("drive:transfers.bulk.pinLabel", "4-digit PIN")}
                   </label>
                   <p className={cn("text-xs", "text-muted-foreground")}>
-                    Enter your PIN to unlock file keys for sharing
+                    {copy("drive:transfers.folderShare.pinDescription", "Enter your PIN to unlock file keys for sharing")}
                   </p>
                   <input
                     id="fsl-pin"
@@ -471,7 +475,7 @@ export function CreateFolderShareLinkModal({
                   onClick={handleClose}
                   className={cn("flex-1", "")}
                 >
-                  Cancel
+                  {copy("drive:transfers.common.cancel", "Cancel")}
                 </Button>
                 <Button
                   onClick={() => void handleGenerate()}
@@ -484,19 +488,19 @@ export function CreateFolderShareLinkModal({
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                   )}
                 >
-                  Generate Link
+                  {copy("drive:transfers.folderShare.generate", "Generate Link")}
                 </Button>
               </div>
             </>
           )}
 
           {step === "generating" && (
-            <div className="flex flex-col items-center gap-3 py-4">
+            <div className="flex flex-col items-center gap-3 py-4" role="status" aria-live="polite" aria-busy="true">
               <Loader2 className={cn("w-8 h-8 animate-spin", "text-primary")} />
               <p className={cn("text-sm", "text-muted-foreground")}>
                 {progress.total > 0
-                  ? `Wrapping keys… ${progress.current}/${progress.total} files`
-                  : "Preparing folder share…"}
+                  ? `${copy("drive:transfers.folderShare.wrapping", "Wrapping keys…")} ${progress.current}/${progress.total}`
+                  : copy("drive:transfers.folderShare.preparing", "Preparing folder share…")}
               </p>
               {progress.total > 0 && (
                 <div className={cn("w-full rounded-full h-1.5", "bg-muted")}>
@@ -520,7 +524,7 @@ export function CreateFolderShareLinkModal({
                 )}
               >
                 <p className="font-semibold text-amber-950 dark:text-amber-100">
-                  This folder is empty right now
+                  {copy("drive:transfers.folderShare.emptyTitle", "This folder is empty right now")}
                 </p>
                 <p
                   className={cn(
@@ -528,9 +532,7 @@ export function CreateFolderShareLinkModal({
                     "text-amber-800 dark:text-amber-200",
                   )}
                 >
-                  Folder Share is for files that already exist in this folder.
-                  If your goal is to let someone upload into{" "}
-                  <strong>{folder.name}</strong>, create an upload link instead.
+                  {copy("drive:transfers.folderShare.emptyDescription", "Folder Share is for files that already exist here. To let someone upload into this folder, create an upload link instead.")}
                 </p>
               </div>
 
@@ -564,7 +566,7 @@ export function CreateFolderShareLinkModal({
                     "border-border text-muted-foreground hover:bg-muted",
                   )}
                 >
-                  Close
+                  {copy("drive:transfers.common.close", "Close")}
                 </Button>
                 <Button
                   onClick={handleUseUploadLink}
@@ -573,7 +575,7 @@ export function CreateFolderShareLinkModal({
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                   )}
                 >
-                  Create Upload Link Instead
+                  {copy("drive:transfers.folderShare.createUploadInstead", "Create Upload Link Instead")}
                 </Button>
               </div>
             </>
@@ -586,7 +588,7 @@ export function CreateFolderShareLinkModal({
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
                     <p className="text-sm font-semibold">
-                      Folder share link created
+                      {copy("drive:transfers.folderShare.created", "Folder share link created")}
                     </p>
                     <p className="text-xs mt-1 text-emerald-700 dark:text-emerald-300">
                       {progress.total} files included. Revocable at any time.
@@ -606,7 +608,7 @@ export function CreateFolderShareLinkModal({
                 />
                 <div className="mt-3 space-y-1.5">
                   <p className={cn("text-sm font-medium", "text-foreground")}>
-                    Trust receipt
+                    {copy("drive:transfers.common.trustReceipt", "Trust receipt")}
                   </p>
                   <p
                     className={cn(
@@ -646,7 +648,7 @@ export function CreateFolderShareLinkModal({
                   htmlFor="fsl-share-url"
                   className={cn("text-xs", "text-muted-foreground")}
                 >
-                  Share URL (folder key embedded after #)
+                  {copy("drive:transfers.folderShare.urlLabel", "Share URL (folder key embedded after #)")}
                 </label>
                 <textarea
                   id="fsl-share-url"
@@ -667,7 +669,7 @@ export function CreateFolderShareLinkModal({
                   onClick={handleClose}
                   className={cn("flex-1", "")}
                 >
-                  Close
+                  {copy("drive:transfers.common.close", "Close")}
                 </Button>
                 <Button
                   onClick={handleCopy}
@@ -679,12 +681,12 @@ export function CreateFolderShareLinkModal({
                   {copied ? (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
-                      Copied!
+                      {copy("drive:transfers.common.copied", "Copied!")}
                     </>
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      Copy Link
+                      {copy("drive:transfers.folderShare.copyLink", "Copy Link")}
                     </>
                   )}
                 </Button>

@@ -30,6 +30,19 @@ describe("CreateShareLinkModal verified key recovery", () => {
     vaultMocks.getFolderKey.mockReturnValue(null);
   });
 
+  it("describes a limited-use route without claiming the file key is destroyed", () => {
+    render(<CreateShareLinkModal isOpen onClose={() => undefined} file={{
+      id: "file-1",
+      filename: "proposal.pdf",
+      metadata: JSON.stringify({ credential_scheme: "pin", iv: "iv", salt: "salt" }),
+      is_owner: true,
+    }} />);
+
+    expect(screen.getByLabelText(/close link after first authorized fetch/i)).toBeInTheDocument();
+    expect(screen.getByText(/owner file and copies already saved are unaffected/i)).toBeInTheDocument();
+    expect(screen.queryByText(/destroy the key|auto-shredding/i)).not.toBeInTheDocument();
+  });
+
   it("does not create a share grant when authenticated decryption rejects the PIN", async () => {
     recoveryMocks.recoverVerifiedOwnerFileKey.mockRejectedValue(new Error("That credential didn't unlock this file. Check it and try again."));
     globalThis.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {

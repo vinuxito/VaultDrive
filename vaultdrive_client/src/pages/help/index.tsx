@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { branding } from "../../config/branding";
 import { HelpSidebar } from "./components/HelpSidebar";
 import { HelpContent } from "./components/HelpContent";
+import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 
 export type HelpSection = 
   | "getting_started" 
@@ -33,8 +34,8 @@ const ADMIN_HELP_SECTIONS: readonly HelpSection[] = [
 export default function HelpCenter() {
   const { t } = useTranslation(["help"]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const allowedSections = storedUser.is_admin === true
+  const storedUser = getStoredUserFromLocalStorage();
+  const allowedSections = storedUser?.is_admin === true
     ? [...USER_HELP_SECTIONS, ...ADMIN_HELP_SECTIONS]
     : USER_HELP_SECTIONS;
   const requestedSection = searchParams.get("section") as HelpSection | null;
@@ -49,7 +50,7 @@ export default function HelpCenter() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex min-h-full flex-col md:h-[calc(100dvh-4rem)]">
         {/* Header */}
         <div className="shrink-0 border-b border-primary/10 bg-background/50 backdrop-blur-md px-6 py-8">
           <div className="max-w-6xl mx-auto w-full">
@@ -63,7 +64,7 @@ export default function HelpCenter() {
         </div>
 
         {/* 2-pane layout */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 md:overflow-hidden" data-testid="help-layout">
           <div className="max-w-6xl mx-auto w-full h-full flex flex-col md:flex-row">
             
             {/* Sidebar Navigation */}
@@ -72,7 +73,7 @@ export default function HelpCenter() {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-background/50">
+            <div className="flex-1 overflow-visible p-6 md:overflow-y-auto md:p-10 bg-background/50" data-testid="help-content">
               <HelpContent activeSection={activeSection} />
             </div>
 

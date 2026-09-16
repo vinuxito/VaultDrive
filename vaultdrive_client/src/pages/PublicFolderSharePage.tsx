@@ -524,9 +524,9 @@ export default function PublicFolderSharePage() {
           <p className="text-muted-foreground text-sm">{t("drive:publicFolder.secureShare", "Secure Folder Share")}</p>
         </div>
 
-        <div className="bg-card rounded-2xl shadow-2xl border border-border p-6 text-foreground">
+        <div className="bg-card rounded-2xl shadow-2xl border border-border p-6 text-foreground" aria-busy={state === "loading" || state === "downloading"}>
           {state === "loading" && (
-            <div className="flex flex-col items-center gap-4 py-4">
+            <div className="flex flex-col items-center gap-4 py-4" role="status" aria-live="polite">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <p className="text-muted-foreground">{t("drive:publicFolder.verifying", "Verifying folder share link…")}</p>
             </div>
@@ -650,7 +650,7 @@ export default function PublicFolderSharePage() {
           )}
 
           {state === "downloading" && (
-            <div className="flex flex-col items-center gap-4 py-4 text-center">
+            <div className="flex flex-col items-center gap-4 py-4 text-center" role="status" aria-live="polite">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <div>
                 <p className="text-foreground font-medium">
@@ -674,7 +674,7 @@ export default function PublicFolderSharePage() {
           )}
 
           {state === "done" && (
-            <div className="flex flex-col items-center gap-4 py-2 text-center">
+            <div className="flex flex-col items-center gap-4 py-2 text-center" role="alert" aria-live="assertive">
               <CheckCircle2 className="w-12 h-12 text-emerald-500" />
               <div>
                 <p className="text-lg font-semibold text-foreground">{copy("drive:publicFolder.saveStartedTitle", "Browser save started")}</p>
@@ -714,8 +714,17 @@ export default function PublicFolderSharePage() {
             <div className="flex flex-col items-center gap-4 py-2 text-center">
               <AlertCircle className="w-12 h-12 text-red-500" />
               <div>
-                <p className="text-lg font-semibold text-foreground">{t("drive:publicShare.errorTitle", "Something went wrong")}</p>
+                <p className="text-lg font-semibold text-foreground">
+                  {errorPhase === "zip"
+                    ? copy("drive:publicFolder.zipBlockedTitle", "ZIP was not created")
+                    : t("drive:publicShare.errorTitle", "Something went wrong")}
+                </p>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-2 break-words">{errorMsg}</p>
+                {errorPhase === "zip" && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {copy("drive:publicFolder.zipBlockedDesc", "No ZIP was saved. Fix the blocking file or retry when the service is available.")}
+                  </p>
+                )}
               </div>
               {errorKind === "missing-key" && (
                 <p className="text-xs text-muted-foreground">

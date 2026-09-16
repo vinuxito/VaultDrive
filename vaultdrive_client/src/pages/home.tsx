@@ -35,8 +35,8 @@ function useInView(threshold = 0.12) {
 const features = [
   {
     icon: Shield,
-    title: "Zero-Knowledge Auth",
-    desc: "Your private key never leaves your browser. We can't read your data — even if we wanted to.",
+    title: "Browser-held account keys",
+    desc: "Your account key is unlocked in your browser. Secure Drop uses a separate, documented recovery path for authorized owners.",
     color: "text-primary", bg: "bg-primary/10",
   },
   {
@@ -69,7 +69,7 @@ export default function Home() {
   const trustLines = [
     "AES-256-GCM · client-side encryption",
     "RSA-2048 · key exchange",
-    "Zero plaintext on server",
+    "Secure Drop · documented recovery path",
     "Auditable · verifiable · open",
   ];
   const [trustIdx, setTrustIdx] = useState(0);
@@ -93,7 +93,7 @@ export default function Home() {
 
             <div className="brand-badge">
               <Shield style={{ width: "0.875rem", height: "0.875rem" }} />
-              Zero-Knowledge · Encrypted · Auditable
+              Browser-encrypted · Controlled · Auditable
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight brand-gradient-text" style={{ lineHeight: 1.15 }}>
@@ -101,9 +101,9 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Your files are encrypted in your browser before they ever touch our server.
-              We can&apos;t read them. Nobody can. Store, share, and collaborate on sensitive data
-              with military-grade encryption — and we&apos;ll prove it.
+              Your files are encrypted in your browser before upload. Access paths are visible,
+              reviewable, and revocable. Secure Drop keeps recovery material for authorized owner
+              recovery, so its trust model is stated separately instead of hidden behind an absolute promise.
             </p>
 
             {/* Encryption trust signal — cycling badge */}
@@ -118,7 +118,7 @@ export default function Home() {
               <Button
                 className="gap-2 brand-btn-ghost"
                 onClick={() =>
-                  window.open("https://github.com/Pranay0205/VaultDrive", "_blank")
+                  window.open("https://github.com/vinuxito/VaultDrive", "_blank")
                 }
               >
                 <Github className="w-4 h-4" />
@@ -142,7 +142,7 @@ export default function Home() {
           className={`max-w-5xl mx-auto scroll-fade-in ${featuresInView ? "in-view" : ""}`}
         >
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 brand-section-heading">
-            Why Zero-Knowledge Matters
+            Understand each access path
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -182,9 +182,9 @@ export default function Home() {
                 { label: "Client-side AES-256-GCM encryption", done: true },
                 { label: "RSA-2048 key exchange for sharing", done: true },
                 { label: "PIN-gated key vault with envelope encryption", done: true },
-                { label: "Server never sees plaintext — zero-knowledge", done: true },
+                { label: "Secure Drop owner recovery is documented separately", done: true },
                 { label: "Scoped, revocable agent API keys", done: true },
-                { label: "Full audit trail on every action", done: true },
+                { label: "Recorded history for supported security actions", done: true },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />

@@ -60,6 +60,7 @@ export function StatusPanel() {
           <p className="text-sm text-muted-foreground">
             {status === "available" ? copy("respondingHint", "The API and database responded. Individual file actions may still fail.")
               : status === "degraded" ? copy("degradedHint", "Some file actions may be unavailable. Your browser reached the service, but its database is unavailable.")
+              : status === "unreachable" ? copy("unreachableHint", "The service could not be reached. Check your connection and try again.")
               : copy("unknownHint", "We could not confirm the service state. Check your connection and try again.")}
           </p>
           {data?.checkedAt && <p className="text-xs text-muted-foreground">{copy("lastChecked", "Last checked")}: {new Date(data.checkedAt).toLocaleTimeString()}{error ? ` · ${copy("stale", "Previous result; may be out of date")}` : ""}</p>}

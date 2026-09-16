@@ -59,6 +59,65 @@
       "conflict": "Conflicto de sincronización: el archivo \"{{filename}}\" tiene una versión más reciente en el servidor. Acción omitida.",
       "queued": "Estás sin conexión. Acción en cola para sincronizar.",
       "pendingSync": "Sincronización pendiente"
+    },
+    "filterAll": "Todos los archivos",
+    "filterImages": "Imágenes",
+    "filterDocs": "Documentos",
+    "filterAudio": "Audio",
+    "filterVideo": "Video",
+    "filterArchives": "Comprimidos",
+    "clearSearch": "Borrar búsqueda",
+    "tree": {
+      "navigation": "Navegación de la bóveda",
+      "quickAccess": "Acceso rápido",
+      "starred": "Destacados",
+      "myFolders": "Mis carpetas",
+      "createFolder": "Crear carpeta",
+      "noFolders": "Aún no hay carpetas",
+      "shared": "Compartidos conmigo",
+      "uploadLinks": "Enlaces de subida para clientes",
+      "manage": "Administrar",
+      "noUploadLinks": "Aún no hay enlaces de subida",
+      "sealed": "sellado",
+      "expired": "vencido",
+      "expiring": "por vencer",
+      "active": "activo",
+      "fileRequests": "Solicitudes de archivos",
+      "manageRequests": "Administrar solicitudes"
+    },
+    "selectView": "Seleccionar la vista actual",
+    "clearViewSelection": "Borrar la selección de la vista actual",
+    "selectFile": "Seleccionar {{filename}}",
+    "fileActions": "Acciones para {{filename}}",
+    "source": {
+      "foldersStale": "La navegación de carpetas puede estar desactualizada.",
+      "retryFolders": "Reintentar carpetas",
+      "uploadLinksStale": "La navegación de enlaces de subida puede estar desactualizada.",
+      "retryUploadLinks": "Reintentar enlaces de subida"
+    },
+    "empty": {
+      "search": "Ningún archivo coincide con “{{query}}”",
+      "sharedView": "No hay archivos compartidos en esta vista"
+    },
+    "bulk": {
+      "inView": "en esta vista"
+    },
+    "delete": {
+      "title": "Eliminar archivo",
+      "description": "¿Eliminar este archivo de forma permanente? Esta acción no se puede deshacer.",
+      "warning": "El archivo cifrado se eliminará del servidor de forma permanente y no se podrá recuperar.",
+      "cancel": "Conservar archivo",
+      "deleting": "Eliminando…",
+      "confirm": "Eliminar archivo"
+    },
+    "bulkDelete": {
+      "title": "Eliminar {{count}} archivos seleccionados",
+      "description": "Esto elimina permanentemente los archivos propios de tu selección. Los archivos compartidos no se modifican.",
+      "more": "…y {{count}} más",
+      "warning": "Esta acción no se puede deshacer. Los archivos que no se eliminen seguirán seleccionados para que puedas reintentarlo.",
+      "cancel": "Conservar archivos",
+      "deleting": "Eliminando…",
+      "confirm": "Eliminar {{count}}"
     }
   },
   "dashboard": {
@@ -67,11 +126,11 @@
       "afternoon": "Buenas tardes, {{name}}.",
       "evening": "Buenas noches, {{name}}."
     },
-    "secure": "Tu bóveda está segura.",
+    "secure": "Revisa tus archivos, entregas y accesos.",
     "attention": {
       "title": "Atención",
-      "healthy": "Todo se ve bien",
-      "healthyDesc": "No hay enlaces activos por expirar ni compartidos inactivos",
+      "healthy": "No hay elementos que requieran atención en la última revisión",
+      "healthyDesc": "No se reportaron enlaces próximos a vencer ni compartidos antiguos sin uso. Esto no es una auditoría de seguridad.",
       "items": "{{count}} elementos necesitan atención",
       "item": "{{count}} elemento necesita atención",
       "uploadLinkExpires": "El enlace de subida <strong>{{name}}</strong> expira {{time}}",
@@ -116,10 +175,12 @@
     "aboutDesc": "Los archivos compartidos se descifran usando tu PIN de 4 dígitos. No se intercambian contraseñas entre usuarios.",
     "modal": {
       "title": "Descifrar Archivo Compartido",
-      "desc": "Ingresa tu PIN de 4 dígitos para descifrar este archivo",
-      "pinLabel": "Tu PIN",
+      "desc": "Ingresa tu PIN actual de bóveda. Es la credencial de tu cuenta, no una contraseña del remitente.",
+      "pinLabel": "Tu PIN de bóveda",
       "placeholder": "PIN de 4 dígitos",
-      "button": "Descifrar y Descargar"
+      "button": "Descifrar y Descargar",
+      "pinError": "Ese PIN no pudo desbloquear la clave de tu cuenta. Vuelve a ingresar tu PIN actual de bóveda. Si sigue fallando, recupera tu cuenta o pide al remitente que comparta el archivo de nuevo.",
+      "decryptError": "No se pudo descifrar este archivo. Inténtalo de nuevo o pide al remitente que vuelva a compartirlo."
     }
   },
   "publicShare": {
@@ -147,7 +208,10 @@
     "lockedDesc": "Este archivo es seguro y estará disponible para descargar una vez que expire el tiempo de bloqueo.",
     "shreddedTitle": "Este enlace ha sido destruido",
     "shreddedDesc": "Como un enlace seguro de un solo uso, la clave de descifrado para este archivo se eliminó permanentemente del servidor después de su primera descarga.",
-    "autoShredWarning": "Precaución: Este archivo se autodestruirá después de completar la descarga."
+    "autoShredWarning": "Precaución: Este archivo se autodestruirá después de completar la descarga.",
+    "consumedTitle": "Este enlace de uso limitado ya fue utilizado",
+    "consumedDesc": "El límite del enlace se consumió cuando comenzó una descarga autorizada. El archivo del propietario y las copias ya guardadas no se modifican.",
+    "consumedRecovery": "Pide al propietario un enlace nuevo para volver a descargar el archivo."
   },
   "publicFolder": {
     "secureShare": "Compartir Carpeta Segura",
@@ -171,7 +235,9 @@
     "backToFolder": "Volver a la carpeta",
     "expiredTitle": "Este enlace ha expirado",
     "expiredDesc": "Este enlace de carpeta compartida ya no es válido.",
-    "expiredContact": "Contacta al propietario de la carpeta para solicitar un nuevo enlace."
+    "expiredContact": "Contacta al propietario de la carpeta para solicitar un nuevo enlace.",
+    "zipBlockedTitle": "No se creó el ZIP",
+    "zipBlockedDesc": "No se guardó ningún ZIP. Corrige el archivo que bloquea el proceso o vuelve a intentarlo cuando el servicio esté disponible."
   },
   "onboarding": {
     "ownerSetup": "Configuración del propietario",
@@ -222,7 +288,13 @@
     "readyCheck2": "Secure Drop y la recuperación de descargas compartidas pueden reutilizar la misma sesión de confianza",
     "readyCheck3": "Puedes ver, revisar y revocar el acceso externo sin perder tu visión general calmada",
     "readyCheck4": "Solo configuras esto una vez. {{productName}} ahora lleva esa confianza a través de los flujos normales del propietario.",
-    "enterVault": "Entrar a la Bóveda Protegida"
+    "enterVault": "Entrar a la Bóveda Protegida",
+    "pinSetupConfirmed": "PIN de bóveda guardado",
+    "folderSetupConfirmed": "Primera carpeta creada",
+    "chooseFirstTask": "¿Qué quieres hacer primero?",
+    "firstTaskUpload": "Subir un archivo",
+    "firstTaskShare": "Compartir acceso a un archivo",
+    "firstTaskReceive": "Recibir archivos de alguien"
   },
   "admin": {
     "dashboardTitle": "Panel de Administración",
@@ -373,7 +445,353 @@
     "resetPassword": "Restablecer contraseña",
     "resetSuccess": "Contraseña restablecida con éxito. Ahora puede iniciar sesión.",
     "pendingRequests": "Aprobaciones de custodio",
-    "noRequests": "No hay aprobaciones de recuperación pendientes."
+    "noRequests": "No hay aprobaciones de recuperación pendientes.",
+    "originalFileCredential": "La recuperación restaura material de clave de cuenta elegible. Los archivos cifrados con un PIN anterior o una contraseña de archivo aún necesitan esa credencial original. Un PIN nuevo no vuelve a cifrar los archivos existentes. Soporte no puede recuperar una credencial de archivo perdida; pide otra copia al remitente o usa tu propio respaldo.",
+    "checkAgain": "Comprobar de nuevo",
+    "lastChecked": "Última comprobación: {{time}}",
+    "notCheckedYet": "El estado aún no se ha comprobado.",
+    "reconstructingNow": "Reconstruyendo tu clave de cuenta y aplicando el restablecimiento...",
+    "approvalsComplete": "Aprobaciones completas. Elige una contraseña de cuenta nueva para continuar.",
+    "pinAfterReset": "Después de iniciar sesión, configura un PIN de bóveda nuevo. Luego comprueba que un archivo existente se abra antes de depender de este dispositivo para trabajos futuros.",
+    "username": "Nombre de usuario",
+    "usernamePlaceholder": "Ingresa tu nombre de usuario",
+    "backToLogin": "Volver al inicio de sesión",
+    "custodianApprovals": "Aprobaciones de custodios",
+    "status": "Estado",
+    "approved": "Aprobadas",
+    "waitingForCustodians": "Esperando que los custodios configurados revisen la solicitud. No se garantiza un tiempo de respuesta.",
+    "cancel": "Cancelar recuperación",
+    "newPassword": "Contraseña nueva",
+    "newPasswordPlaceholder": "Mínimo 8 caracteres",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Vuelve a ingresar la contraseña",
+    "resetAccount": "Recuperar y restablecer la cuenta"
+  },
+  "coherence": {
+    "trust": {
+      "title": "Protección y acceso",
+      "loading": "Consultando el acceso registrado…",
+      "unavailable": "No se pudo consultar el acceso. No hay una conclusión disponible sobre los permisos.",
+      "retry": "Reintentar",
+      "routes": "{{count}} vías de lectura externas activas",
+      "noRoutes": "No se indican vías de lectura externas.",
+      "ownerNamed": "Propietario: {{name}}",
+      "scopeNote": "Revisa los permisos de las vías indicadas. Cerrar una vía no retira las copias ya descargadas.",
+      "details": "Detalles del cifrado y la entrega",
+      "encryption": "El contenido se cifra antes de subirlo. El servicio puede ver nombres, tamaños y metadatos de acceso.",
+      "dropException": "Recibido mediante Secure Drop. El servidor gestiona la recuperación de su clave de entrega; es una excepción al manejo de claves solo en el navegador.",
+      "uploaded": "Archivo cifrado almacenado en tu bóveda",
+      "history": "Resumen de actividad de acceso",
+      "historyLoading": "Cargando el historial registrado…",
+      "historyUnavailable": "No se pudo cargar el historial. Esto no confirma si hubo acceso.",
+      "historyEmpty": "No se devolvieron eventos registrados. Consulta los permisos para revisar el acceso actual.",
+      "historyCount": "{{count}} entradas reconstruidas con registros actuales; pueden faltar cambios anteriores",
+      "accessTitle": "Control de acceso",
+      "close": "Cerrar detalles de acceso",
+      "revokeUnknown": "No se confirmó la revocación. Actualiza el acceso antes de decidir si debes reintentar.",
+      "refresh": "Actualizar acceso",
+      "revokeConfirmed": "Se cerraron los permisos directos y los enlaces de archivo. El acceso por carpeta y las copias descargadas no cambiaron. Revisa los permisos restantes.",
+      "stale": "Falló la última consulta. Se muestra el acceso cargado anteriormente.",
+      "expires": "Vence: {{time}}",
+      "unlocks": "Disponible desde: {{time}}",
+      "singleUse": "Una descarga autorizada consume este enlace, aunque se interrumpa la entrega.",
+      "fetchCount": "{{count}} solicitudes de descarga autorizadas; no se confirma la lectura",
+      "revokeTitle": "¿Cerrar los permisos directos y los enlaces de archivo?",
+      "revokeScope": "Esto cierra los permisos directos a destinatarios y los enlaces públicos de archivo. No cambia los permisos de carpeta, las copias ya descargadas ni las descargas en curso.",
+      "cancel": "Cancelar",
+      "revoking": "Cerrando acceso…",
+      "revokeNow": "Revocar ahora",
+      "revoke": "Revocar acceso directo y enlaces de archivo",
+      "owner": "Propietario",
+      "direct": "Permiso directo",
+      "group": "Asociación de grupo",
+      "fileLink": "Enlace de archivo",
+      "folderLink": "Acceso por carpeta",
+      "intake": "Origen de entrega Secure Drop",
+      "other": "Otro acceso",
+      "active": "Activo",
+      "expired": "Vencido",
+      "closed": "Cerrado",
+      "unknown": "Desconocido",
+      "groupMembers": "{{name}} · {{count}} miembros",
+      "received": "Recibido mediante Secure Drop",
+      "sharedWith": "Compartido directamente con {{name}}",
+      "groupShared": "Asociado al grupo {{name}}",
+      "linkCreated": "Enlace de archivo creado",
+      "linkClosed": "Enlace de archivo cerrado",
+      "linkExpired": "Enlace de archivo vencido",
+      "recordedActivity": "Actividad del archivo registrada",
+      "revokeConfirmedStale": "Se cerraron los permisos directos y los enlaces de archivo, pero no se pudo actualizar la lista de acceso. Los datos anteriores pueden estar desactualizados.",
+      "closureTimeUnknown": "Este resumen no dispone de la hora de cierre."
+    },
+    "preview": {
+      "signPin": "Ingresa el PIN de tu cuenta para habilitar la firma local:",
+      "signUnlockError": "La firma está bloqueada. Desbloquea el PIN de tu cuenta en Configuración e inténtalo de nuevo.",
+      "signError": "No se pudo firmar localmente. Desbloquea tu cuenta e inténtalo de nuevo.",
+      "credentialError": "No se pudo descifrar. Revisa el PIN o la contraseña original del archivo e inténtalo de nuevo.",
+      "authError": "Tu sesión expiró. Inicia sesión de nuevo para abrir este archivo.",
+      "storageError": "El servicio no está disponible temporalmente. Revisa tu conexión y reintenta.",
+      "openError": "No se pudo abrir la vista previa. Reintenta o pide al propietario que revise el archivo y el acceso.",
+      "folderError": "Cierra esta vista previa y vuelve a abrir la carpeta que contiene el archivo para desbloquearla. Después inténtalo de nuevo.",
+      "pdf": "Vista previa del PDF",
+      "unsupported": "La vista previa no está disponible para este tipo de archivo",
+      "download": "Descargar",
+      "close": "Cerrar vista previa",
+      "protection": "Acceso e historial",
+      "protectionHint": "Consultar la protección y el acceso de este archivo.",
+      "protectionSub": "Abre esta sección para consultar los detalles.",
+      "hideDetails": "Ocultar detalles",
+      "showDetails": "Mostrar detalles",
+      "shared": "Este archivo se compartió contigo.",
+      "sharedLimits": "El propietario controla las descargas futuras. Las copias ya descargadas no se pueden retirar.",
+      "filePassword": "Ingresa la contraseña original del archivo",
+      "enterPin": "Ingresa tu PIN de 4 dígitos",
+      "passwordLabel": "Contraseña del archivo",
+      "decrypt": "Descifrar y ver",
+      "decrypting": "Descifrando…",
+      "retry": "Reintentar vista previa",
+      "edit": "Corregir credencial",
+      "localSignature": "Firma local del archivo",
+      "verified": "VERIFICADA",
+      "invalid": "NO VERIFICADA",
+      "unsigned": "SIN FIRMA LOCAL",
+      "signatureMatch": "Estos bytes coinciden con la firma guardada en este navegador para la clave de tu cuenta. Esto no verifica la identidad del remitente ni establece el no repudio legal.",
+      "signatureMismatch": "No se pudieron verificar estos bytes con la firma guardada localmente. Revisa el archivo original antes de confiar en él.",
+      "signatureAbsent": "Este navegador no tiene una firma guardada. Una firma local permite a esta cuenta comprobar si estos bytes cambiaron.",
+      "signing": "Firmando…",
+      "sign": "Firmar localmente",
+      "signature": "Firma",
+      "signUnlockTitle": "Desbloquear firma local",
+      "signUnlockBody": "Ingresa el PIN de tu cuenta. Solo se usa en este navegador para desbloquear tu clave de firma.",
+      "accountPin": "PIN de la cuenta",
+      "cancelSigning": "Cancelar firma",
+      "unlockAndSign": "Desbloquear y firmar",
+      "signUnlockMissing": "No hay una clave de firma protegida con PIN disponible. Desbloquea la firma en Configuración e inténtalo de nuevo.",
+      "signUnlockRejected": "No se pudo desbloquear la firma. Verifica el PIN de tu cuenta e inténtalo de nuevo."
+    },
+    "empty": {
+      "vaultEmpty": {
+        "title": "Tu bóveda está lista",
+        "body": "Los archivos se cifran en tu navegador antes de enviarse al servidor. Sube tu primer archivo para empezar.",
+        "action": "Subir un archivo"
+      },
+      "accessCenterEmpty": {
+        "title": "Aún no hay acceso enviado",
+        "body": "Aquí aparecerán los enlaces y permisos de carpeta que crees, junto con las rutas para recibir archivos.",
+        "action": "Ir a mis archivos"
+      },
+      "shareLinksEmpty": {
+        "title": "Sin enlaces de archivo",
+        "body": "Aquí podrás consultar y revocar los enlaces de archivo que crees."
+      },
+      "folderSharesEmpty": {
+        "title": "Sin enlaces de carpeta",
+        "body": "Aquí aparecerán los enlaces de carpeta que crees. Puedes revocarlos cuando lo necesites.",
+        "action": "Crear enlace"
+      },
+      "dropLinksEmpty": {
+        "title": "Sin enlaces para recibir archivos",
+        "body": "Los enlaces Secure Drop permiten recibir archivos sin una cuenta. Llegan cifrados; el servicio gestiona la recuperación de la clave de entrega.",
+        "action": "Crear enlace para recibir"
+      },
+      "fileRequestsEmpty": {
+        "title": "Sin solicitudes de archivos",
+        "body": "Puedes pedir documentos a una persona mediante una solicitud con su propia lista de requisitos.",
+        "action": "Crear solicitud"
+      },
+      "groupsEmpty": {
+        "title": "Aún no hay grupos",
+        "body": "Los grupos permiten compartir con las mismas personas sin volver a seleccionar cada destinatario.",
+        "action": "Crear grupo"
+      },
+      "agentKeysEmpty": {
+        "title": "Sin claves API de agentes",
+        "body": "Las claves API conceden acceso limitado y revocable a sistemas externos. Puedes limitar sus acciones y consultar su actividad.",
+        "action": "Crear clave API"
+      },
+      "auditLogEmpty": {
+        "title": "No hay eventos que coincidan",
+        "body": "Amplía el periodo o borra los filtros para ver más actividad."
+      }
+    },
+    "loading": {
+      "decryptingPrivateKey": "Descifrando tu bóveda…",
+      "unwrappingFileKey": "Preparando la descarga…",
+      "uploadingFile": "Cifrando y subiendo…",
+      "creatingShareLink": "Creando el enlace de archivo…",
+      "creatingFolderShare": "Creando el enlace de carpeta…",
+      "creatingDropLink": "Creando el enlace para recibir…",
+      "creatingFileRequest": "Creando la solicitud…",
+      "revokingLink": "Revocando acceso…",
+      "revokingAllExternal": "Cerrando permisos directos y enlaces…",
+      "loadingVault": "Cargando tu bóveda…",
+      "loadingAccess": "Consultando el acceso…",
+      "loadingAuditEntries": "Cargando eventos…",
+      "deletingFile": "Eliminando el archivo de tu bóveda…",
+      "workingDefault": "Procesando…"
+    },
+    "data": {
+      "errorTitle": "No se pudo cargar",
+      "errorBody": "El servidor no respondió como se esperaba. Reintenta para consultar el estado actual.",
+      "retry": "Reintentar"
+    }
+  },
+  "transfers": {
+    "common": {
+      "close": "Cerrar",
+      "done": "Listo",
+      "cancel": "Cancelar",
+      "backHome": "Volver al inicio",
+      "deliveryReceipt": "Comprobante de entrega",
+      "whatHappened": "Qué ocurrió",
+      "copied": "¡Copiado!",
+      "copyReceipt": "Copiar comprobante",
+      "trustReceipt": "Comprobante de confianza",
+      "privateTitle": "Qué se mantiene privado",
+      "uploadArea": "Área de carga",
+      "selectFiles": "Seleccionar archivos",
+      "selectFolder": "Seleccionar carpeta",
+      "dropPrompt": "Arrastra y suelta archivos o carpetas aquí",
+      "useButtons": "O usa los botones de arriba",
+      "uploadProgress": "Progreso de carga",
+      "uploading": "Cargando…",
+      "encryptedTitle": "Cifrado de extremo a extremo"
+    },
+    "share": {
+      "expiry": "Vencimiento del enlace",
+      "custom": "Personalizado",
+      "singleUseLabel": "Cerrar el enlace después de la primera descarga autorizada",
+      "singleUseDescription": "La descarga autorizada consume el límite de este enlace. El archivo del propietario y las copias ya guardadas no se modifican."
+    },
+    "folderShare": {
+      "title": "Compartir carpeta",
+      "description": "Comparte esta carpeta y todo su contenido mediante un solo enlace. Cada clave de archivo se envuelve con una clave de carpeta transportada en el fragmento de la URL; el servidor no recibe esa clave.",
+      "pinDescription": "Escribe tu PIN para desbloquear las claves de los archivos que vas a compartir",
+      "generate": "Generar enlace",
+      "wrapping": "Protegiendo claves…",
+      "preparing": "Preparando carpeta compartida…",
+      "emptyTitle": "Esta carpeta está vacía",
+      "emptyDescription": "Compartir carpeta sirve para archivos que ya existen aquí. Para permitir que alguien cargue archivos en esta carpeta, crea un enlace de carga.",
+      "createUploadInstead": "Crear un enlace de carga",
+      "created": "Enlace de carpeta creado",
+      "urlLabel": "URL compartida (clave de carpeta incluida después de #)",
+      "copyLink": "Copiar enlace"
+    },
+    "directShare": {
+      "title": "Compartir archivo",
+      "userTab": "Compartir con usuario",
+      "groupTab": "Compartir con grupo",
+      "searchUsers": "Buscar usuarios por nombre",
+      "selectGroup": "Seleccionar un grupo",
+      "userPlaceholder": "Escribe al menos 2 caracteres…",
+      "groupPlaceholder": "Buscar grupos…",
+      "searching": "Buscando…",
+      "cachedCredential": "La credencial está guardada; el proceso continuará automáticamente.",
+      "credentialTitle": "Tu credencial para autorizar el acceso",
+      "pinLabel": "Tu PIN",
+      "sharing": "Compartiendo…",
+      "share": "Compartir archivo"
+    },
+    "bulk": {
+      "titleOne": "Descargar 1 archivo",
+      "titleMany": "Descargar {{count}} archivos",
+      "noneSelected": "No hay archivos seleccionados.",
+      "saveStarted": "Se iniciaron las solicitudes de guardado del navegador para todos los archivos seleccionados.",
+      "stopped": "La descarga se detuvo en el primer error. Corrige el problema y vuelve a intentarlo.",
+      "ready": "Todo listo para descargar. Pulsa Iniciar para descifrar y descargar.",
+      "credentialsReady": "Credenciales listas. Pulsa Iniciar para descifrar y descargar.",
+      "enterCredentials": "Escribe las credenciales y pulsa Iniciar para descifrar y descargar.",
+      "pinLabel": "PIN de 4 dígitos",
+      "pinHint": "(se usa en tu bóveda)",
+      "passwordLabel": "Credencial del archivo",
+      "passwordHint": "(solo para archivos antiguos sin PIN)",
+      "passwordPlaceholder": "Escribe la contraseña",
+      "downloading": "Descargando…",
+      "retry": "Reintentar descargas",
+      "start": "Iniciar descarga",
+      "mixedPasswordWarning": "Este lote usa una sola contraseña para todos los archivos protegidos con contraseña. Si los archivos se cifraron con contraseñas diferentes, descárgalos de forma individual."
+    },
+    "drop": {
+      "verifying": "Verificando tu enlace de carga…",
+      "unavailableTitle": "Este enlace de carga ya no está disponible",
+      "incompleteTitle": "Enlace de carga incompleto",
+      "incompleteDescription": "A este enlace le falta la clave de cifrado necesaria para proteger tus archivos. Pide al remitente que reenvíe el enlace completo; la parte después de # es obligatoria.",
+      "deliveredTitle": "Tus archivos se entregaron de forma segura.",
+      "title": "Entrega segura de archivos",
+      "ownerCanSeeTitle": "Qué puede ver el propietario",
+      "noOwnerPinTitle": "No necesitas el PIN del propietario",
+      "noOwnerPinDescription": "No necesitas el PIN del propietario. La clave del enlace protege esta ruta de carga."
+    },
+    "fileRequest": {
+      "unavailableTitle": "Enlace no disponible",
+      "deliveredTitle": "Archivos enviados de forma segura",
+      "rememberPassword": "Recuerda tu contraseña de descarga",
+      "title": "Solicitud segura de archivos",
+      "recipientNeedsTitle": "Qué necesita el destinatario",
+      "setPasswordTitle": "Establecer una contraseña de descarga",
+      "encryptingUploading": "Cifrando y cargando…",
+      "send": "Enviar de forma segura",
+      "passwordDescription": "Usa la contraseña de archivo acordada con el destinatario. Es distinta de cualquier PIN de la cuenta de ABRN; compártela por un canal externo, no mediante este enlace de solicitud.",
+      "passwordLabel": "Contraseña de descarga",
+      "showPassword": "Mostrar contraseña de descarga",
+      "hidePassword": "Ocultar contraseña de descarga",
+      "encryptionTruth": "Tus archivos se cifran en el navegador antes de enviarse. El servidor almacena los bytes protegidos y los metadatos de la solicitud, pero no recibe la contraseña del archivo."
+    },
+    "publicUpload": {
+      "unknownGuidance": "No vuelvas a cargar todavía los archivos marcados como “requieren confirmación”. Pide al destinatario que confirme primero si llegaron."
+    }
+  },
+  "firstTask": {
+    "title": "Tu siguiente paso",
+    "unknown": "Aún no se confirma el estado de tus archivos. Actualiza antes de elegir un archivo para compartir.",
+    "stored": "Tu archivo está en la bóveda. Elige uno para compartirlo o crea un enlace para recibir archivos.",
+    "receiveHint": "Crea un enlace de subida para que alguien te envíe archivos. No necesita la contraseña de tu cuenta ni tu PIN de bóveda.",
+    "uploadHint": "Primero sube un archivo. Cuando se confirme, usa su acción de compartir para elegir quién puede acceder.",
+    "upload": "Subir un archivo",
+    "share": "Elegir un archivo para compartir",
+    "receive": "Recibir archivos",
+    "dismiss": "Ocultar guía"
+  },
+  "accessCenter": {
+    "empty": {
+      "title": "Aún no hay rutas de acceso",
+      "description": "Crea un enlace para compartir o una ruta de subida desde Archivos cuando necesites dar acceso a alguien.",
+      "filtered": "Ninguna ruta de acceso coincide con este filtro",
+      "filteredDescription": "Limpia el filtro para revisar todos los enlaces compartidos y rutas de subida.",
+      "clear": "Limpiar filtro",
+      "openFiles": "Abrir Archivos"
+    }
+  },
+  "activity": {
+    "title": "Actividad",
+    "close": "Cerrar actividad",
+    "empty": "No se recibió actividad en esta sesión",
+    "events": {
+      "fileShared": "Archivo compartido",
+      "dropUpload": "Nuevo archivo recibido mediante un enlace de subida",
+      "other": "Actividad de la cuenta"
+    },
+    "connection": {
+      "live": "Conexión en vivo activa. Los eventos recibidos en esta sesión aparecen abajo.",
+      "connecting": "Conectando con las actualizaciones en vivo. La actividad puede estar incompleta.",
+      "reconnecting": "Reconectando con las actualizaciones en vivo. La actividad nueva aún no está confirmada.",
+      "offline": "No tienes conexión. La actividad en vivo no está disponible.",
+      "paused": "Las actualizaciones en vivo están pausadas mientras esta pestaña está oculta.",
+      "signed-out": "Inicia sesión para recibir actualizaciones en vivo.",
+      "forbidden": "Las actualizaciones en vivo no están permitidas para esta sesión."
+    }
+  },
+  "service": {
+    "title": "Estado del servicio",
+    "checking": "Comprobando el servicio…",
+    "unreachable": "Servicio inaccesible",
+    "degraded": "Servicio degradado",
+    "available": "El servicio responde",
+    "unknown": "Estado del servicio desconocido",
+    "retry": "Comprobar de nuevo",
+    "respondingHint": "La API y la base de datos respondieron. Algunas acciones de archivos aún podrían fallar.",
+    "degradedHint": "Algunas acciones de archivos pueden no estar disponibles. El navegador llegó al servicio, pero su base de datos no está disponible.",
+    "unreachableHint": "No se pudo contactar al servicio. Comprueba tu conexión e inténtalo de nuevo.",
+    "unknownHint": "No pudimos confirmar el estado del servicio. Comprueba tu conexión e inténtalo de nuevo."
   }
 }
-

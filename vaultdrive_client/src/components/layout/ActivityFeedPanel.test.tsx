@@ -19,6 +19,7 @@ describe("ActivityFeedPanel", () => {
     const panel = screen.getByRole("dialog", { name: "Activity Feed" });
     expect(panel).toHaveAttribute("aria-modal", "true");
     expect(screen.getByRole("button", { name: "Close activity feed" })).toBeInTheDocument();
+    expect(document.querySelector("[aria-hidden='true']")).not.toHaveClass("md:hidden");
   });
 
   it("contains keyboard focus, closes with Escape, and returns focus to notifications", async () => {

@@ -1,6 +1,18 @@
 {
   "title": "Centro de Ayuda de {{product}}",
   "subtitle": "Manuales completos y documentación de seguridad para {{product}}.",
+  "tasks": {
+    "title": "Preguntas frecuentes de tareas",
+    "fullLink": "Un enlace completo incluye todo lo que aparece después de #. Copia el enlace completo para que el navegador del destinatario tenga la clave de descifrado.",
+    "credentials": "Nunca debes enviar tu PIN de cuenta a un destinatario. La contraseña de enlace, la contraseña del remitente y tu PIN de bóveda son credenciales distintas.",
+    "failedDownload": "Si el enlace está completo y sigue activo, vuelve a intentar la descarga. Un fallo del servidor o de red no significa que falte la clave del enlace.",
+    "revokeLimits": "Revocar un enlace impide accesos futuros. No puede borrar un archivo que el destinatario ya descargó.",
+    "partialUpload": "Si fallan algunos archivos, vuelve a intentar solo los fallidos después de que la página identifique cuáles se confirmaron.",
+    "senderPassword": "La contraseña de una Solicitud de Archivos protege ese flujo del remitente. No es la contraseña de cuenta ni el PIN de bóveda del propietario.",
+    "dropRecovery": "Secure Drop conserva material de recuperación en el servidor para la recuperación autorizada del propietario. El remitente nunca necesita la contraseña de cuenta ni el PIN de bóveda del propietario.",
+    "pinPurpose": "Tu PIN de bóveda desbloquea en el navegador las claves compatibles del propietario y de accesos compartidos con cuenta. Nunca se lo des a otra persona.",
+    "recoveryLimit": "La recuperación de cuenta requiere suficientes custodios configurados. No puede prometer recuperación si faltan las partes de clave necesarias. Los archivos protegidos con un PIN anterior o una contraseña de archivo aún necesitan esa credencial original."
+  },
   "navigation": {
     "user_guide": "Guía del Usuario",
     "admin_guide": "Guía del Administrador",
@@ -18,33 +30,33 @@
     "getting_started": {
       "title": "Comenzando con {{product}}",
       "paragraphs": [
-        "Bienvenido a {{product}}. Esta plataforma está construida bajo los principios de encriptación de conocimiento cero (zero-knowledge), lo que significa que sus archivos confidenciales se aseguran del lado del cliente antes de que salgan de su dispositivo.",
-        "Ya sea que esté compartiendo documentos empresariales confidenciales o colaborando dentro de un equipo restringido, {{product}} garantiza que ni nuestros servidores, ni sus administradores, ni ninguna entidad externa puedan leer su texto cifrado sin una autorización criptográfica explícita.",
+        "Bienvenido a {{product}}. Los archivos se cifran en tu navegador antes de la subida y cada ruta de acceso compatible tiene un contrato explícito de claves y autorización.",
+        "Las claves de la bóveda y de los accesos compartidos se desbloquean en navegadores autorizados. Secure Drop es una ruta de recepción separada con material de recuperación en el servidor para la recuperación autorizada del propietario.",
         "Para comenzar, explore su Panel de Control. Este es su espacio de trabajo principal donde puede gestionar su Bóveda, rastrear sus Portales Drop activos y auditar las interacciones recientes de archivos."
       ],
       "bulletPoints": [],
       "callout": {
         "type": "info",
-        "title": "Arquitectura de Conocimiento Cero",
-        "text": "Cada archivo se encripta en su navegador utilizando AES-256-GCM. El servidor solo almacena el texto cifrado y nunca ve sus datos en texto plano."
+        "title": "Identifica la ruta de acceso",
+        "text": "El contenido se cifra antes de la subida. Usa el historial de acceso y la solicitud de credencial para confirmar si aplica la cuenta, un enlace o Secure Drop."
       }
     },
     "vault_pin": {
-      "title": "Su Bóveda y PIN de Recuperación",
+      "title": "Tu PIN de bóveda y la recuperación de cuenta",
       "paragraphs": [
-        "Su Bóveda es el repositorio seguro para sus archivos personales encriptados. El acceso a su Bóveda está protegido por un PIN de Recuperación secundario establecido durante la incorporación.",
+        "Tu Bóveda es el repositorio seguro para tus archivos personales cifrados. Un PIN de bóveda de 4 dígitos puede desbloquear las claves compatibles del propietario y de accesos compartidos tras la configuración.",
         "Este PIN se utiliza para derivar localmente sus claves maestras de encriptación. Nunca se transmite ni se almacena en nuestros servidores en texto plano.",
         "Cuando inicie sesión desde un nuevo dispositivo o después de que caduque su sesión, se le pedirá que ingrese este PIN para desbloquear su llavero local."
       ],
       "bulletPoints": [
         "Nunca comparta su PIN con nadie, incluidos los administradores.",
         "Almacene su PIN en un administrador de contraseñas seguro.",
-        "Los administradores no pueden restablecer ni recuperar su PIN."
+        "La recuperación de cuenta puede restaurar material de clave elegible después de la aprobación de suficientes custodios configurados, pero no revela tu PIN anterior."
       ],
       "callout": {
         "type": "warning",
-        "title": "Riesgo de Pérdida Irrevocable de Datos",
-        "text": "Dado que {{product}} utiliza una arquitectura de Conocimiento Cero, no podemos recuperar sus archivos si pierde su PIN. Sus claves de encriptación nunca salen de su navegador sin encriptar."
+        "title": "La credencial original todavía puede ser necesaria",
+        "text": "Los archivos cifrados con un PIN anterior o una contraseña de archivo aún requieren esa credencial original. Recuperar la clave de cuenta o crear un PIN nuevo no vuelve a cifrar esos archivos."
       }
     },
     "uploads_shares": {
@@ -69,7 +81,7 @@
       "title": "Portales Drop y Solicitudes de Archivos",
       "paragraphs": [
         "Los Portales Drop le permiten recolectar archivos de forma segura de terceros que no tienen una cuenta de {{product}}. Cuando crea un Portal Drop, genera una página de subida pública con su marca.",
-        "Los remitentes externos suben sus archivos, los cuales se encriptan en su navegador usando una clave pública asociada con su Portal Drop. Solo usted posee la clave privada correspondiente para desencriptar estos archivos.",
+        "Los remitentes externos suben archivos cifrados en su navegador para el propietario previsto. Secure Drop también conserva material de recuperación en el servidor para la recuperación autorizada del propietario; esta excepción es distinta del acceso ordinario a la bóveda de cuenta.",
         "Puede configurar los Portales Drop con listas de verificación de documentos requeridos, fechas de vencimiento e instrucciones personalizadas. Esto es ideal para la recepción segura de documentos, procesos KYC e informes confidenciales."
       ],
       "bulletPoints": [],
@@ -80,7 +92,7 @@
       "paragraphs": [
         "Para la colaboración empresarial interna, {{product}} utiliza Espacios de Trabajo y Grupos. Los grupos le permiten compartir archivos encriptados con múltiples usuarios simultáneamente sin gestionar enlaces para compartir de forma individual.",
         "Cuando comparte un archivo con un Grupo, su navegador encripta la clave simétrica del archivo utilizando las claves públicas RSA de todos los miembros actuales del Grupo.",
-        "Si un miembro es eliminado del Grupo, su acceso se revoca criptográficamente para todos los compartidos futuros, y el servidor le niega el acceso al texto cifrado compartido previamente."
+        "Eliminar a un miembro detiene futuros accesos compartidos del grupo. Revisa por separado las concesiones directas y las descargas anteriores: eliminarlo del grupo no borra una copia del destinatario ni revoca silenciosamente una concesión directa independiente."
       ],
       "bulletPoints": [],
       "callout": {}
@@ -89,7 +101,7 @@
       "title": "Gestión de Usuarios (Admin)",
       "paragraphs": [
         "Como administrador del sistema, tiene la autoridad para gestionar el acceso organizacional a través del panel de Configuración. Esto incluye aprovisionar nuevos usuarios, gestionar asignaciones de roles y revocar accesos.",
-        "Es crítico tener en cuenta que revocar el acceso de un usuario le quita inmediatamente su capacidad de autenticarse, bloqueándolo efectivamente de la plataforma y cortando su acceso a todas las claves de grupo compartidas previamente.",
+        "Desactivar a un usuario detiene futuras autenticaciones. Revisa por separado la membresía de grupos, las concesiones directas, los enlaces activos y las descargas anteriores; desactivar la cuenta no borra una copia ya descargada.",
         "Los administradores también pueden gestionar las cuotas de almacenamiento predeterminadas y las restricciones organizacionales."
       ],
       "bulletPoints": [
@@ -119,8 +131,8 @@
     "audit_logs": {
       "title": "Auditoría y Cumplimiento (Admin)",
       "paragraphs": [
-        "El Registro de Auditoría completo es la piedra angular del marco de cumplimiento de {{product}}. Proporciona un registro inmutable y ordenado cronológicamente de cada evento significativo dentro de la organización.",
-        "Los eventos rastreados incluyen autenticaciones de usuarios, subidas de archivos, creaciones de enlaces para compartir e invocaciones de Claves API de Agentes. Esto asegura total transparencia y responsabilidad.",
+        "El Registro de Auditoría presenta un historial cronológico de eventos administrativos y de seguridad compatibles. Un resultado vacío o no disponible no demuestra que no hubo actividad.",
+        "Los eventos registrados pueden incluir autenticaciones, subidas, creación de enlaces y uso de Claves API de Agentes. Comprueba el tipo de evento y la vigencia mostrada antes de depender de él.",
         "Los administradores pueden filtrar el registro de auditoría por fecha, actor, tipo de recurso y acción, y exportar los datos como CSV o JSON para integración con herramientas SIEM externas."
       ],
       "bulletPoints": [],
@@ -130,7 +142,7 @@
       "title": "Configuración del Sistema (Admin)",
       "paragraphs": [
         "La configuración global dicta la postura de seguridad del despliegue de {{product}}. Los administradores pueden ajustar políticas de retención, forzar tiempos de expiración de sesiones y configurar reglas de caducidad automática de enlaces obsoletos.",
-        "Todas las modificaciones de la configuración del sistema se registran en el Registro de Auditoría. Asegúrese de que cualquier cambio se alinee con el gobierno de datos interno y los mandatos de cumplimiento de su organización."
+        "Usa el Registro de Auditoría para confirmar si se registró un cambio de configuración compatible. Asegúrate de que cada cambio se alinee con el gobierno de datos y las obligaciones de tu organización."
       ],
       "bulletPoints": [],
       "callout": {}

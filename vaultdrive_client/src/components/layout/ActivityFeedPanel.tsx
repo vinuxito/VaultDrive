@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { X, Share2, Upload } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ActivityEvent } from "../../hooks";
 import type { ActivityConnectionStatus } from "../../hooks/useSSE";
 
@@ -20,14 +21,14 @@ function EventIcon({ eventType }: { eventType: string }) {
   return <Upload className="w-4 h-4 text-muted-foreground shrink-0" />;
 }
 
-function eventLabel(eventType: string): string {
-  if (eventType === "file_shared") return "File shared";
-  if (eventType === "drop_upload") return "New file received via drop link";
-  return eventType;
-}
-
 export function ActivityFeedPanel({ isOpen, onClose, events, connectionStatus = "connecting" }: ActivityFeedPanelProps) {
+  const { t, i18n } = useTranslation(["drive"]);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const eventLabel = (eventType: string): string => {
+    if (eventType === "file_shared") return t("drive:activity.events.fileShared", { defaultValue: "File shared" });
+    if (eventType === "drop_upload") return t("drive:activity.events.dropUpload", { defaultValue: "New file received via upload link" });
+    return t("drive:activity.events.other", { defaultValue: "Account activity" });
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -73,7 +74,7 @@ export function ActivityFeedPanel({ isOpen, onClose, events, connectionStatus = 
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/30 z-40 md:hidden"
+        className="fixed inset-0 bg-black/30 z-40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -87,25 +88,25 @@ export function ActivityFeedPanel({ isOpen, onClose, events, connectionStatus = 
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
           <span id="activity-feed-title" className="font-semibold text-foreground text-sm tracking-wide">
-            Activity Feed
+            {t("drive:activity.title", { defaultValue: "Activity Feed" })}
           </span>
           <button
             ref={closeButtonRef}
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            aria-label="Close activity feed"
+            aria-label={t("drive:activity.close", { defaultValue: "Close activity feed" })}
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <p role="status" className="border-b border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-          {{ live: "Live connection active. Events received in this session appear below.", connecting: "Connecting to live updates. Activity may be incomplete.", reconnecting: "Reconnecting to live updates. New activity is not confirmed yet.", offline: "You are offline. Live activity is unavailable.", paused: "Live updates are paused while this tab is hidden.", "signed-out": "Sign in to receive live updates.", forbidden: "Live updates are not permitted for this session." }[connectionStatus]}
+          {t(`drive:activity.connection.${connectionStatus}`, { defaultValue: ({ live: "Live connection active. Events received in this session appear below.", connecting: "Connecting to live updates. Activity may be incomplete.", reconnecting: "Reconnecting to live updates. New activity is not confirmed yet.", offline: "You are offline. Live activity is unavailable.", paused: "Live updates are paused while this tab is hidden.", "signed-out": "Sign in to receive live updates.", forbidden: "Live updates are not permitted for this session." }[connectionStatus]) })}
         </p>
         <div className="flex-1 overflow-y-auto">
           {events.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              No activity received in this session
+              {t("drive:activity.empty", { defaultValue: "No activity received in this session" })}
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -119,7 +120,7 @@ export function ActivityFeedPanel({ isOpen, onClose, events, connectionStatus = 
                       {eventLabel(event.event_type)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(event.created_at).toLocaleString()}
+                      {new Date(event.created_at).toLocaleString(i18n.resolvedLanguage || i18n.language)}
                     </p>
                   </div>
                 </li>

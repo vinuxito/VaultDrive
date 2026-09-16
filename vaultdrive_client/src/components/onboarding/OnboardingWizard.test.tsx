@@ -58,12 +58,38 @@ describe("OnboardingWizard first-task handoff", () => {
     expect(screen.queryByText("Ready checklist")).not.toBeInTheDocument();
     expect(screen.queryByText(/You can see, review, and revoke/i)).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "drive:onboarding.firstTaskUpload" }));
+    await user.click(screen.getByRole("button", { name: "Upload a file" }));
 
     expect(onComplete).toHaveBeenCalledOnce();
     await waitFor(() => {
       expect(screen.getByTestId("location")).toHaveTextContent('"pathname":"/files"');
       expect(screen.getByTestId("location")).toHaveTextContent('"onboardingTask":"upload"');
     });
+  });
+
+  it("provides named reveal controls for every setup credential", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <OnboardingWizard onComplete={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Continue/i }));
+
+    const pin = screen.getByLabelText("4-Digit PIN");
+    const confirmPin = screen.getByLabelText("Confirm PIN");
+    const password = screen.getByLabelText("Account Password");
+    expect(pin).toHaveAttribute("type", "password");
+    expect(confirmPin).toHaveAttribute("type", "password");
+    expect(password).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: /^show pin$/i }));
+    await user.click(screen.getByRole("button", { name: /^show pin confirmation$/i }));
+    await user.click(screen.getByRole("button", { name: /show account password/i }));
+
+    expect(pin).toHaveAttribute("type", "text");
+    expect(confirmPin).toHaveAttribute("type", "text");
+    expect(password).toHaveAttribute("type", "text");
   });
 });

@@ -1,4 +1,5 @@
 import type { OfflineAction } from "../../utils/offline-db";
+import { useTranslation } from "react-i18next";
 
 interface OfflineQueueReviewProps {
   items: OfflineAction[];
@@ -15,12 +16,13 @@ export function OfflineQueueReview({
   onDiscard,
   onReconcileRename,
 }: OfflineQueueReviewProps) {
+  const { t } = useTranslation(["common"]);
   return (
-    <section className="border-b border-border bg-card px-4 py-3" aria-label="Offline changes">
+    <section className="border-b border-border bg-card px-4 py-3" aria-label={t("common:offline.label")}>
       <div className="mx-auto max-w-5xl space-y-3">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Offline changes</h2>
-          <p className="text-xs text-muted-foreground">Pending work stays here until the server confirms it or you resolve it.</p>
+          <h2 className="text-sm font-semibold text-foreground">{t("common:offline.title")}</h2>
+          <p className="text-xs text-muted-foreground">{t("common:offline.description")}</p>
         </div>
         <ul className="space-y-2">
           {items.map((item, index) => {
@@ -33,33 +35,33 @@ export function OfflineQueueReview({
               <li key={key} className="rounded-lg border border-border bg-background/60 p-3 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-medium text-foreground">{item.type === "delete" ? "Delete" : "Rename"}: {label}</p>
+                    <p className="font-medium text-foreground">{item.type === "delete" ? t("common:offline.delete") : t("common:offline.rename")}: {label}</p>
                     {legacy ? (
-                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">Older queued action — it has no owner proof and will not be sent.</p>
+                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t("common:offline.older")}</p>
                     ) : differentOwner ? (
-                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">Queued for a different account — sign in as that owner to review it.</p>
+                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t("common:offline.differentOwner")}</p>
                     ) : item.status === "unknown" && item.type === "delete" ? (
-                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">The server did not confirm whether it deleted {label}. Choose Retry only if the file is still present.</p>
+                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t("common:offline.unknownDeleteBefore")} {label}. {t("common:offline.unknownDeleteAfter")}</p>
                     ) : needsReview ? (
-                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{item.last_error || "This action needs review before it can be sent again."}</p>
+                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{item.last_error || t("common:offline.needsReview")}</p>
                     ) : (
-                      <p className="mt-1 text-xs text-muted-foreground">Waiting to sync for this account.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t("common:offline.waiting")}</p>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {!legacy && !differentOwner && needsReview && (
-                      <button type="button" className="text-xs font-semibold text-primary hover:underline" onClick={() => onRetry(item)} aria-label={`Retry ${item.type} for ${label}`}>
-                        Retry
+                      <button type="button" className="text-xs font-semibold text-primary hover:underline" onClick={() => onRetry(item)} aria-label={`${t("common:offline.retry")} ${item.type} ${t("common:offline.for")} ${label}`}>
+                        {t("common:offline.retry")}
                       </button>
                     )}
                     {!legacy && !differentOwner && item.type === "rename" && needsReview && (
                       <button type="button" className="text-xs font-semibold text-primary hover:underline" onClick={() => onReconcileRename(item)}>
-                        Check server
+                        {t("common:offline.checkServer")}
                       </button>
                     )}
                     {!differentOwner && (
                       <button type="button" className="text-xs font-semibold text-destructive hover:underline" onClick={() => onDiscard(item)}>
-                        {item.type === "delete" && item.status === "unknown" ? "I resolved this" : "Discard"}
+                        {item.type === "delete" && item.status === "unknown" ? t("common:offline.resolved") : t("common:offline.discard")}
                       </button>
                     )}
                   </div>

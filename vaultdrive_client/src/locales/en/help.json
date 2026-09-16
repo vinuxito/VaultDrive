@@ -1,6 +1,18 @@
 {
   "title": "{{product}} Help Center",
   "subtitle": "Comprehensive manuals and security documentation for {{product}}.",
+  "tasks": {
+    "title": "Common task questions",
+    "fullLink": "A full link includes everything after the #. Copy the complete link so the recipient's browser has the decryption key.",
+    "credentials": "Your account PIN is never something to send to a recipient. A link password, sender password, and your vault PIN are different credentials.",
+    "failedDownload": "If the link is complete and still active, retry the download. A server or network failure does not mean the link key is missing.",
+    "revokeLimits": "Revoking a link stops future access. It cannot erase a file a recipient already downloaded.",
+    "partialUpload": "If some files fail, retry only the failed files after the page identifies which uploads were confirmed.",
+    "senderPassword": "A File Request password protects that sender journey. It is not the owner's account password or vault PIN.",
+    "dropRecovery": "Secure Drop keeps server-side recovery material for authorized owner recovery. Senders still never need the owner's account password or vault PIN.",
+    "pinPurpose": "Your vault PIN unlocks supported owner and account-sharing keys in your browser. Never give it to another person.",
+    "recoveryLimit": "Account recovery requires enough configured custodians. It cannot promise recovery when the required key shares are unavailable. Files protected by an earlier PIN or file password still need that original credential."
+  },
   "navigation": {
     "user_guide": "User Guide",
     "admin_guide": "Admin Guide",
@@ -18,33 +30,33 @@
     "getting_started": {
       "title": "Getting Started with {{product}}",
       "paragraphs": [
-        "Welcome to {{product}}. This platform is built on zero-knowledge encryption principles, meaning your sensitive files are secured client-side before they ever leave your device.",
-        "Whether you are sharing confidential enterprise documents or collaborating within a restricted team, {{product}} ensures that neither our servers, your administrators, nor any external entity can read your ciphertext without explicit cryptographic authorization.",
+        "Welcome to {{product}}. Files are encrypted in your browser before upload, and each supported access path has an explicit key and authorization contract.",
+        "Account vault and sharing keys are unlocked in authorized browsers. Secure Drop is a separate intake path with server-side recovery material for authorized owner recovery.",
         "To begin, explore your Dashboard. This is your primary workspace where you can manage your Vault, track your active Drop Portals, and audit recent file interactions."
       ],
       "bulletPoints": [],
       "callout": {
         "type": "info",
-        "title": "Zero-Knowledge Architecture",
-        "text": "Every file is encrypted in your browser using AES-256-GCM. The server only stores the encrypted ciphertext and never sees your plaintext data."
+        "title": "Know the access path",
+        "text": "File contents are encrypted before upload. Use the access history and credential prompt to confirm which account, link, or Secure Drop path applies."
       }
     },
     "vault_pin": {
-      "title": "Your Vault & Recovery PIN",
+      "title": "Your Vault PIN and account recovery",
       "paragraphs": [
-        "Your Vault is the secure repository for your personal encrypted files. Access to your Vault is protected by a secondary Recovery PIN established during onboarding.",
+        "Your Vault is the secure repository for your personal encrypted files. A 4-digit vault PIN can unlock supported owner and account-sharing keys after onboarding.",
         "This PIN is used to locally derive your master encryption keys. It is never transmitted to or stored on our servers in plaintext.",
         "When you log in from a new device or after your session expires, you will be prompted to enter this PIN to unlock your local keychain."
       ],
       "bulletPoints": [
         "Never share your PIN with anyone, including administrators.",
         "Store your PIN in a secure password manager.",
-        "Administrators cannot reset or recover your PIN."
+        "Account recovery can restore eligible account key material after enough configured custodians approve it, but it does not reveal your old PIN."
       ],
       "callout": {
         "type": "warning",
-        "title": "Irrevocable Data Loss Risk",
-        "text": "Because {{product}} uses Zero-Knowledge architecture, we cannot recover your files if you lose your PIN. Your encryption keys never leave your browser unencrypted."
+        "title": "Original credentials can still be required",
+        "text": "Files encrypted with an earlier PIN or file password still require that original credential. A recovered account key or new PIN does not re-encrypt those files."
       }
     },
     "uploads_shares": {
@@ -69,7 +81,7 @@
       "title": "Drop Portals & File Requests",
       "paragraphs": [
         "Drop Portals allow you to securely collect files from external parties who do not have a {{product}} account. When you create a Drop Portal, you generate a public, branded upload page.",
-        "External senders upload their files, which are encrypted in their browser using a public key associated with your Drop Portal. Only you hold the corresponding private key to decrypt these files.",
+        "External senders upload files encrypted in their browser for the intended owner. Secure Drop also keeps server-side recovery material for authorized owner recovery; this exception is separate from ordinary account vault access.",
         "You can configure Drop Portals with required-document checklists, expiration dates, and custom instructions. This is ideal for secure document intake, KYC processes, and confidential reporting."
       ],
       "bulletPoints": [],
@@ -80,7 +92,7 @@
       "paragraphs": [
         "For internal enterprise collaboration, {{product}} utilizes Workspaces and Groups. Groups allow you to share encrypted files with multiple users simultaneously without managing individual share links.",
         "When you share a file with a Group, your browser encrypts the file's symmetric key using the public RSA keys of all current Group members.",
-        "If a member is removed from the Group, their access is cryptographically revoked for all future shares, and the server denies them access to previously shared ciphertext."
+        "Removing a member stops future group sharing. Review direct file grants and earlier downloads separately because group removal cannot erase a recipient copy or silently revoke an independent direct grant."
       ],
       "bulletPoints": [],
       "callout": {}
@@ -89,7 +101,7 @@
       "title": "User Management (Admin)",
       "paragraphs": [
         "As a system administrator, you have the authority to manage organizational access via the Settings dashboard. This includes provisioning new users, managing role assignments, and revoking access.",
-        "It is critical to note that revoking a user's access immediately strips their ability to authenticate, effectively locking them out of the platform and severing their access to all previously shared group keys.",
+        "Deactivating a user stops future authentication. Review group membership, direct file grants, active links, and prior downloads separately; account deactivation cannot erase a copy already downloaded.",
         "Administrators can also manage default storage quotas and organizational constraints."
       ],
       "bulletPoints": [
@@ -119,8 +131,8 @@
     "audit_logs": {
       "title": "Audit Logs & Compliance (Admin)",
       "paragraphs": [
-        "The comprehensive Audit Log is the cornerstone of {{product}}'s compliance framework. It provides an immutable, chronologically ordered record of every significant event within the organization.",
-        "Tracked events include user authentications, file uploads, share link creations, and Agent API Key invocations. This ensures total transparency and accountability.",
+        "The Audit Log provides a chronological record for supported security and administrative events. An empty or unavailable result is not proof that no activity occurred.",
+        "Recorded events can include user authentication, file uploads, share-link creation, and Agent API Key use. Confirm the event type and freshness shown before relying on it.",
         "Administrators can filter the audit log by date, actor, resource type, and action, and export the data as CSV or JSON for integration with external SIEM tools."
       ],
       "bulletPoints": [],
@@ -130,7 +142,7 @@
       "title": "System Settings (Admin)",
       "paragraphs": [
         "Global configuration settings dictate the security posture of the {{product}} deployment. Administrators can adjust retention policies, enforce session timeouts, and configure stale-link auto-expiry rules.",
-        "All system setting modifications are logged in the Audit Log. Ensure any changes align with your organization's internal data governance and compliance mandates."
+        "Use the Audit Log to confirm whether a supported setting change was recorded. Ensure any changes align with your organization's internal data governance and compliance mandates."
       ],
       "bulletPoints": [],
       "callout": {}

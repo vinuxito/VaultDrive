@@ -1965,8 +1965,8 @@ export default function Files() {
               />
             ) : (
             <>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-background shrink-0">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col items-stretch gap-3 px-3 py-4 border-b border-border/60 bg-background shrink-0 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex min-w-0 items-start gap-1.5 sm:items-center sm:gap-2">
                 <button
                   type="button"
                   onClick={() => setSidebarOpen(true)}
@@ -1974,10 +1974,10 @@ export default function Files() {
                 >
                   <Menu className="w-4 h-4" />
                 </button>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="text-muted-foreground">{t("drive:vault.title")}</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                  <span className="font-medium text-foreground">{panelTitle}</span>
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-muted-foreground sm:gap-2">
+                  <span className="break-words text-muted-foreground">{t("drive:vault.title")}</span>
+                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                  <span className="min-w-0 break-words font-medium text-foreground">{panelTitle}</span>
 
                   <span className="ml-1 text-xs text-muted-foreground">
                     ({visibleFiles.length})
@@ -1985,8 +1985,8 @@ export default function Files() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-1">
                   {(["name", "date", "size"] as const).map((field) => (
                     <button
                       type="button"
@@ -2008,7 +2008,7 @@ export default function Files() {
                   <>
                     <label
                       htmlFor="file-input"
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                      className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       {t("drive:vault.upload")}
@@ -2022,7 +2022,7 @@ export default function Files() {
                     />
                     <label
                       htmlFor="folder-input"
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
+                      className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
                     >
                       <FolderOpen className="w-3.5 h-3.5" />
                       {t("drive:vault.folder")}
@@ -2090,14 +2090,14 @@ export default function Files() {
               <div className="mx-6 mt-4 space-y-2" role="status">
                 {foldersError && (
                   <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-                    <span>Folder navigation may be out of date. {foldersError}</span>
-                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => void fetchFolders()}>Retry folders</button>
+                    <span>{t("drive:vault.source.foldersStale", { defaultValue: "Folder navigation may be out of date." })} {foldersError}</span>
+                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => void fetchFolders()}>{t("drive:vault.source.retryFolders", { defaultValue: "Retry folders" })}</button>
                   </div>
                 )}
                 {dropTokensError && (
                   <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-                    <span>Upload-link navigation may be out of date. {dropTokensError}</span>
-                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => void fetchDropTokens()}>Retry upload links</button>
+                    <span>{t("drive:vault.source.uploadLinksStale", { defaultValue: "Upload-link navigation may be out of date." })} {dropTokensError}</span>
+                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => void fetchDropTokens()}>{t("drive:vault.source.retryUploadLinks", { defaultValue: "Retry upload links" })}</button>
                   </div>
                 )}
               </div>
@@ -2157,9 +2157,9 @@ export default function Files() {
                     <Lock className="w-6 h-6 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    {searchQuery ? `No files match “${searchQuery}”` :
+                    {searchQuery ? t("drive:vault.empty.search", { defaultValue: "No files match “{{query}}”", query: searchQuery }) :
                      selectedNode.type === "starred" ? t("drive:vault.noStarred") :
-                     selectedNode.type === "shared" ? (sharedFolders.length > 0 ? "No shared files in this view" : t("drive:vault.noShared")) :
+                     selectedNode.type === "shared" ? (sharedFolders.length > 0 ? t("drive:vault.empty.sharedView", { defaultValue: "No shared files in this view" }) : t("drive:vault.noShared")) :
                      t("drive:vault.noFiles")}
                   </p>
 
@@ -2189,7 +2189,10 @@ export default function Files() {
                   onManageSharesClick={(file) => handleManageSharesClick(file.id, file.filename)}
                   onMoveClick={(file) => { void handleMoveClick(file); }}
                   onDeleteClick={(file) => handleDeleteClick(file.id, file.filename)}
-                  onPreviewClick={setPreviewFile}
+                  onPreviewClick={(file) => setPreviewFile({
+                    ...file,
+                    folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+                  })}
                   onContextMenu={(event, file) => {
                     if (file.is_owner === false) return;
                     event.preventDefault();
@@ -2267,7 +2270,7 @@ export default function Files() {
       {bulkDownloadFiles === null && <BulkActionBar
         selectedCount={selectedVisibleFiles.length}
         deletableCount={deletableSelectedCount}
-        scopeLabel="in this view"
+        scopeLabel={t("drive:vault.bulk.inView", { defaultValue: "in this view" })}
         onDownload={() => {
           if (selectedBulkFiles.length > 0) setBulkDownloadFiles(selectedBulkFiles);
         }}
@@ -2385,7 +2388,7 @@ export default function Files() {
                   }}
                   className="flex-1"
                 >
-                  Cancel
+                  {t("drive:vault.passwordModal.cancel", { defaultValue: "Cancel" })}
                 </Button>
                 <Button
                   type="submit"
@@ -2521,24 +2524,24 @@ export default function Files() {
 
       {showDeleteModal && fileToDelete && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <Card className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
-            <CardHeader className="border-b border-primary-foreground/20">
-              <CardTitle className="flex items-center gap-2 text-primary-foreground">
+          <Card className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto bg-card border-border text-card-foreground">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <Trash2 className="w-5 h-5 text-destructive" />
-                Delete File
+                {t("drive:vault.delete.title", { defaultValue: "Delete file" })}
               </CardTitle>
-              <CardDescription className="text-primary-foreground/80">
-                Are you sure you want to delete this file? This action cannot be undone.
+              <CardDescription className="text-muted-foreground">
+                {t("drive:vault.delete.description", { defaultValue: "Delete this file permanently? This action cannot be undone." })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-3 bg-primary-foreground/15 border border-primary-foreground/25 rounded-md">
-                <p className="text-sm font-medium truncate text-primary-foreground">{fileToDelete.filename}</p>
+              <div className="p-3 bg-muted border border-border rounded-md">
+                <p className="text-sm font-medium truncate text-foreground">{fileToDelete.filename}</p>
               </div>
-              <div className="p-3 bg-primary/20 border border-primary/30 rounded-md">
-                <p className="text-xs text-primary-foreground flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-primary/60" />
-                  <span>The encrypted file will be permanently deleted from the server. You will not be able to recover it.</span>
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+                <p className="text-xs text-foreground flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-destructive" />
+                  <span>{t("drive:vault.delete.warning", { defaultValue: "The encrypted file will be permanently deleted from the server and cannot be recovered." })}</span>
                 </p>
               </div>
               <div className="flex gap-2">
@@ -2548,7 +2551,7 @@ export default function Files() {
                   disabled={deleting}
                   className="flex-1"
                 >
-                  Cancel
+                  {t("drive:vault.delete.cancel", { defaultValue: "Keep file" })}
                 </Button>
                 <Button
                   variant="destructive"
@@ -2556,7 +2559,7 @@ export default function Files() {
                   disabled={deleting}
                   className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-destructive-foreground border-0"
                 >
-                  {deleting ? "Deleting…" : "Delete File"}
+                  {deleting ? t("drive:vault.delete.deleting", { defaultValue: "Deleting…" }) : t("drive:vault.delete.confirm", { defaultValue: "Delete file" })}
                 </Button>
               </div>
             </CardContent>
@@ -2566,33 +2569,33 @@ export default function Files() {
 
       {showBulkDeleteModal && bulkDeleteCandidates.length > 0 && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <Card className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto bg-gradient-to-br from-primary to-primary/90 border-primary-foreground/20 text-primary-foreground">
-            <CardHeader className="border-b border-primary-foreground/20">
-              <CardTitle className="flex items-center gap-2 text-primary-foreground">
+          <Card className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto bg-card border-border text-card-foreground">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <Trash2 className="w-5 h-5 text-destructive" />
-                Delete {bulkDeleteCandidates.length} File{bulkDeleteCandidates.length !== 1 ? "s" : ""}
+                {t("drive:vault.bulkDelete.title", { defaultValue: "Delete {{count}} file", count: bulkDeleteCandidates.length })}
               </CardTitle>
-              <CardDescription className="text-primary-foreground/80">
-                This deletes the owned files in your current selection. Shared files stay untouched.
+              <CardDescription className="text-muted-foreground">
+                {t("drive:vault.bulkDelete.description", { defaultValue: "This permanently deletes the owned files in your selection. Shared files stay untouched." })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
                 {bulkDeleteCandidates.slice(0, 6).map((file) => (
-                  <div key={file.id} className="p-3 bg-primary-foreground/15 border border-primary-foreground/25 rounded-md">
-                    <p className="text-sm font-medium truncate text-primary-foreground">{file.filename}</p>
+                  <div key={file.id} className="p-3 bg-muted border border-border rounded-md">
+                    <p className="text-sm font-medium truncate text-foreground">{file.filename}</p>
                   </div>
                 ))}
                 {bulkDeleteCandidates.length > 6 && (
-                  <p className="text-xs text-primary-foreground/80 px-1">
-                    ...and {bulkDeleteCandidates.length - 6} more file{bulkDeleteCandidates.length - 6 !== 1 ? "s" : ""}
+                  <p className="text-xs text-muted-foreground px-1">
+                    {t("drive:vault.bulkDelete.more", { defaultValue: "…and {{count}} more", count: bulkDeleteCandidates.length - 6 })}
                   </p>
                 )}
               </div>
-              <div className="p-3 bg-primary/20 border border-primary/30 rounded-md">
-                <p className="text-xs text-primary-foreground flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-primary/60" />
-                  <span>This action cannot be undone. Files that fail to delete will remain selected so you can retry.</span>
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+                <p className="text-xs text-foreground flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-destructive" />
+                  <span>{t("drive:vault.bulkDelete.warning", { defaultValue: "This action cannot be undone. Files that fail to delete remain selected so you can retry." })}</span>
                 </p>
               </div>
               <div className="flex gap-2">
@@ -2602,7 +2605,7 @@ export default function Files() {
                   disabled={bulkDeleting}
                   className="flex-1"
                 >
-                  Cancel
+                  {t("drive:vault.bulkDelete.cancel", { defaultValue: "Keep files" })}
                 </Button>
                 <Button
                   variant="destructive"
@@ -2610,7 +2613,9 @@ export default function Files() {
                   disabled={bulkDeleting}
                   className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-destructive-foreground border-0"
                 >
-                  {bulkDeleting ? "Deleting..." : `Delete ${bulkDeleteCandidates.length}`}
+                  {bulkDeleting
+                    ? t("drive:vault.bulkDelete.deleting", { defaultValue: "Deleting…" })
+                    : t("drive:vault.bulkDelete.confirm", { defaultValue: "Delete {{count}}", count: bulkDeleteCandidates.length })}
                 </Button>
               </div>
             </CardContent>

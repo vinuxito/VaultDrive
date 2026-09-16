@@ -117,7 +117,9 @@ export const FileGrid: React.FC<FileGridProps> = ({
             checked={allVisibleSelected}
             onChange={toggleSelectAllVisible}
             className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
-            aria-label={allVisibleSelected ? "Clear current view selection" : "Select current view"}
+            aria-label={allVisibleSelected
+              ? t("drive:vault.clearViewSelection", "Clear current view selection")
+              : t("drive:vault.selectView", "Select current view")}
           />
         </div>
         <div className="flex-1">{t("drive:vault.columns.name")}</div>
@@ -151,6 +153,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
               checked={isSelected}
               disabled={isPending}
               onChange={() => toggleFileSelection(file.id)}
+              aria-label={t("drive:vault.selectFile", { filename: file.filename, defaultValue: "Select {{filename}}" })}
               className="w-4 h-4 rounded border-border accent-primary shrink-0 cursor-pointer disabled:cursor-not-allowed"
             />
 
@@ -204,7 +207,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                     type="button"
                     onClick={() => onDownload(file)}
                     className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/60 transition-colors"
-                    title="Download"
+                    title={t("drive:vault.actions.download")}
                   >
                     <Download className="w-3.5 h-3.5" />
                   </button>
@@ -214,7 +217,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                       type="button"
                       onClick={() => onCreateShareLink(file)}
                       className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                      title="Create share link"
+                      title={t("drive:vault.actions.createShareLink")}
                     >
                       <Link2 className="w-3.5 h-3.5" />
                     </button>
@@ -229,7 +232,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                           ? "text-amber-400 hover:text-amber-500"
                           : "text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10"
                       }`}
-                      title={file.starred ? "Unstar" : "Star"}
+                      title={file.starred ? t("drive:vault.actions.unstar") : t("drive:vault.actions.star")}
                     >
                       {file.starred ? (
                         <Star className="w-3.5 h-3.5 fill-current" />
@@ -244,7 +247,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                       type="button"
                       onClick={() => onAccessPanel({ id: file.id, filename: file.filename })}
                       className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/40 transition-colors"
-                      title="Who can access this file?"
+                      title={t("drive:vault.actions.accessControl")}
                     >
                       <Shield className="w-3.5 h-3.5" />
                     </button>
@@ -269,7 +272,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                         type="button"
                         onClick={() => onShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                        title="Share with user"
+                        title={t("drive:vault.actions.share")}
                       >
                         <Share2 className="w-3.5 h-3.5" />
                       </button>
@@ -280,7 +283,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                         type="button"
                         onClick={() => onQuickShare(file.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
-                        title="Quick Share (choose settings and unlock)"
+                        title={t("drive:vault.actions.quickShare")}
                       >
                         <Zap className="w-3.5 h-3.5" />
                       </button>
@@ -291,7 +294,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                         type="button"
                         onClick={() => onManageSharesClick({ id: file.id, filename: file.filename })}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
-                        title="Manage file shares"
+                        title={t("drive:vault.actions.manageShares")}
                       >
                         <Users className="w-3.5 h-3.5" />
                       </button>
@@ -302,7 +305,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                         type="button"
                         onClick={() => onMoveClick(file)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-500/10 transition-colors"
-                        title="Move to folder"
+                        title={t("drive:vault.actions.moveToFolder")}
                       >
                         <FolderOpen className="w-3.5 h-3.5" />
                       </button>
@@ -313,7 +316,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                         type="button"
                         onClick={() => onDeleteClick({ id: file.id, filename: file.filename })}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        title="Delete file"
+                        title={t("drive:vault.actions.delete")}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -421,7 +424,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                   ]}
                   label={file.filename}
                   density="compact"
-                  triggerAriaLabel="File actions"
+                  triggerAriaLabel={t("drive:vault.fileActions", { filename: file.filename, defaultValue: "File actions for {{filename}}" })}
                   triggerTestId={`file-actions-${file.id}`}
                 />
               )}

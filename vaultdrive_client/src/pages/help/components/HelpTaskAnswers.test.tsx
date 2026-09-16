@@ -18,4 +18,11 @@ describe("HelpTaskAnswers", () => {
     expect(screen.getByText(/revoking a link stops future access/i)).toBeInTheDocument();
     expect(screen.getByText(/account PIN is never something to send to a recipient/i)).toBeInTheDocument();
   });
+
+  it("states the bounded Secure Drop recovery exception instead of making an absolute zero-knowledge promise", () => {
+    render(<HelpTaskAnswers activeSection="drop_portals" />);
+
+    expect(screen.getByText(/server-side recovery material/i)).toBeInTheDocument();
+    expect(screen.getByText(/authorized owner recovery/i)).toBeInTheDocument();
+  });
 });

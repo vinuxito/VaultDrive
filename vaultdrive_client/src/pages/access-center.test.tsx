@@ -163,6 +163,24 @@ describe("AccessCenter truthful source states", () => {
     expect(screen.queryByTestId("unexpected-dashboard-layout")).not.toBeInTheDocument();
   });
 
+  it("distinguishes an unused access center from a filter with no matches", async () => {
+    globalThis.fetch = vi.fn(async () => jsonResponse([])) as typeof fetch;
+
+    render(
+      <MemoryRouter>
+        <AccessCenter />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("No access routes yet")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Files" })).toHaveAttribute("href", "/files");
+
+    await userEvent.click(screen.getByRole("button", { name: "Active" }));
+    expect(await screen.findByText("No access routes match this filter")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Clear filter" }));
+    expect(screen.getByText("No access routes yet")).toBeInTheDocument();
+  });
+
   it("describes an inactive drop route as closed rather than inventing revocation", async () => {
     globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -436,7 +454,7 @@ describe("AccessCenter truthful source states", () => {
     }) as typeof fetch;
 
     render(<MemoryRouter><AccessCenter /></MemoryRouter>);
-    await screen.findByText("No access grants match this filter.");
+    await screen.findByText("No access routes yet");
     expect(screen.getAllByText(/Last updated:/i)).toHaveLength(2);
     await userEvent.click(screen.getByRole("button", { name: "Refresh share links" }));
 

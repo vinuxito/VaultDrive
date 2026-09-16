@@ -1,4 +1,12 @@
 {
+  "auth": {
+    "login": {
+      "welcomeDesc": "Open your ABRN vault, verify the requested credential, and continue the task you started"
+    }
+  },
+  "help": {
+    "subtitle": "Task guidance, credential explanations, and recovery limits for ABRN Drive."
+  },
   "drive": {
     "vault": {
       "title": "ABRN Vault",

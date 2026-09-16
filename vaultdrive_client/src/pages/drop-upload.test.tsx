@@ -103,6 +103,13 @@ describe("DropUpload batch recovery", () => {
     vi.unstubAllGlobals();
   });
 
+  it("tells a public sender that the owner's PIN is never required", async () => {
+    render(<DropUpload />);
+
+    expect(await screen.findByText(/you do not need the owner's pin/i)).toBeInTheDocument();
+    expect(screen.getByText(/link key protects this upload route/i)).toBeInTheDocument();
+  });
+
   it("keeps a successful row while retrying only a confirmed failed row", async () => {
     xhrScenarios = [
       { status: 429, responseText: JSON.stringify({ error: "Wait before retrying" }) },

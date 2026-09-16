@@ -15,6 +15,7 @@ import {
   getNormalizedErrorMessage,
   getStoredUserFromLocalStorage,
 } from "../utils/browser-storage";
+import { useTranslation } from "react-i18next";
 
 interface UserResult {
   id: string;
@@ -68,6 +69,11 @@ export default function ShareModal({
   folderId,
   onShareComplete,
 }: ShareModalProps) {
+  const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const value = t(key, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
   const [tab, setTab] = useState<"users" | "groups">("users");
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<UserResult[]>([]);
@@ -333,16 +339,21 @@ export default function ShareModal({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           className="border rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-y-auto bg-card border-border text-foreground"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="share-file-title"
+          aria-busy={sharing}
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-foreground">Share File</h2>
+              <h2 id="share-file-title" className="text-xl font-semibold text-foreground">{copy("drive:transfers.directShare.title", "Share File")}</h2>
               <p className="text-sm text-muted-foreground">{fileName}</p>
             </div>
             <button
               type="button"
               onClick={handleClose}
               className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={copy("drive:transfers.common.close", "Close")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -353,7 +364,7 @@ export default function ShareModal({
               className="mb-4 p-3 rounded-lg border flex items-start gap-2 text-sm bg-destructive/10 border-destructive/20 text-destructive"
             >
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-destructive" />
-              <span>{error}</span>
+              <span role="alert" aria-live="assertive">{error}</span>
             </div>
           )}
 
@@ -378,7 +389,9 @@ export default function ShareModal({
                 )}
               >
                 {t === "users" ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                {t === "users" ? "Share with User" : "Share with Group"}
+                {t === "users"
+                  ? copy("drive:transfers.directShare.userTab", "Share with User")
+                  : copy("drive:transfers.directShare.groupTab", "Share with Group")}
               </button>
             ))}
           </div>
@@ -390,11 +403,15 @@ export default function ShareModal({
                   htmlFor="share-search"
                   className="block text-sm font-medium mb-2 text-foreground"
                 >
-                  {tab === "users" ? "Search users by username" : "Select a group"}
+                  {tab === "users"
+                    ? copy("drive:transfers.directShare.searchUsers", "Search users by username")
+                    : copy("drive:transfers.directShare.selectGroup", "Select a group")}
                 </label>
                 <Input
                   id="share-search"
-                  placeholder={tab === "users" ? "Type at least 2 characters..." : "Search groups..."}
+                  placeholder={tab === "users"
+                    ? copy("drive:transfers.directShare.userPlaceholder", "Type at least 2 characters…")
+                    : copy("drive:transfers.directShare.groupPlaceholder", "Search groups…")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background"
@@ -402,7 +419,7 @@ export default function ShareModal({
               </div>
             )}
 
-            {loading && <p className="text-sm text-muted-foreground">Searching...</p>}
+            {loading && <p className="text-sm text-muted-foreground" role="status" aria-live="polite">{copy("drive:transfers.directShare.searching", "Searching…")}</p>}
             {searchMessage && <p className="text-sm text-muted-foreground" role="status">{searchMessage}</p>}
 
             {!recipient && tab === "users" && searchResults.length > 0 && (
@@ -492,13 +509,13 @@ export default function ShareModal({
                 {hasCachedCred ? (
                   <div className="p-3 rounded-lg flex items-center gap-2 text-sm bg-muted text-muted-foreground">
                     <Lock className="w-4 h-4 text-green-700 dark:text-green-300 shrink-0" />
-                    <span>Credential cached — sharing will proceed automatically.</span>
+                    <span>{copy("drive:transfers.directShare.cachedCredential", "Credential cached — sharing will proceed automatically.")}</span>
                   </div>
                 ) : (
                   <div className="p-4 rounded-lg space-y-3 bg-muted border border-border">
                     <p className="text-sm font-medium flex items-center gap-2 text-foreground">
                       <Lock className="w-4 h-4" />
-                      Your credential to authorize sharing
+                      {copy("drive:transfers.directShare.credentialTitle", "Your credential to authorize sharing")}
                     </p>
 
                     {credentialMode === "pin" ? (
@@ -507,7 +524,7 @@ export default function ShareModal({
                           htmlFor="share-pin"
                           className="block text-xs mb-1 text-muted-foreground"
                         >
-                          Your PIN
+                          {copy("drive:transfers.directShare.pinLabel", "Your PIN")}
                         </label>
                         <Input
                           id="share-pin"
@@ -529,7 +546,7 @@ export default function ShareModal({
                           htmlFor="share-credential"
                           className="block text-xs mb-1 text-muted-foreground"
                         >
-                          File credential
+                          {copy("drive:transfers.bulk.passwordLabel", "File credential")}
                         </label>
                         <Input
                           id="share-credential"
@@ -555,7 +572,7 @@ export default function ShareModal({
                 variant="modal-cancel"
                 onClick={handleClose}
               >
-                Cancel
+                {copy("drive:transfers.common.cancel", "Cancel")}
               </Button>
               <Button
                 onClick={handleShare}
@@ -569,10 +586,10 @@ export default function ShareModal({
                 {sharing ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Sharing...
+                    {copy("drive:transfers.directShare.sharing", "Sharing…")}
                   </span>
                 ) : (
-                  "Share File"
+                  copy("drive:transfers.directShare.share", "Share File")
                 )}
               </Button>
             </div>

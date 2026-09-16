@@ -112,6 +112,15 @@ describe("FileRequestPage upload recovery", () => {
     vi.unstubAllGlobals();
   });
 
+  it("distinguishes the file password from any ABRN account PIN", async () => {
+    render(<FileRequestPage />);
+
+    await screen.findByText("Secure File Request");
+    expect(screen.getByText(/separate from any ABRN account PIN/i)).toBeInTheDocument();
+    expect(screen.getByText(/share it out of band/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/download password/i, { selector: "input" })).toBeEnabled();
+  });
+
   it("continues a mixed batch, preserves the accepted row, and retries only the confirmed failure", async () => {
     xhrScenarios = [
       { event: "load", status: 429, responseText: JSON.stringify({ error: "Wait before retrying" }) },
@@ -141,7 +150,7 @@ describe("FileRequestPage upload recovery", () => {
     await selectFilesAndSend([new File(["one"], "one.txt", { type: "text/plain" })]);
 
     expect(await screen.findByText("0 accepted · 0 failed · 1 need confirmation")).toBeInTheDocument();
-    expect(screen.getByText(/do not resend files marked/i)).toBeInTheDocument();
+    expect(screen.getByText(/do not upload files marked.*again yet/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /retry confirmed failures/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Files sent securely" })).not.toBeInTheDocument();
   });

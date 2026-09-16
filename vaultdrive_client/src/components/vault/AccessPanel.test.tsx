@@ -88,11 +88,11 @@ describe("AccessPanel", () => {
     render(<AccessPanel fileId="file-1" filename="hello.txt" onClose={() => undefined} />);
 
     await screen.findByText(/https:\/\/example.test\/share\/abc/i);
-    await userEvent.click(screen.getByRole("button", { name: /Revoke all external access/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Revoke direct access and file links/i }));
 
-    expect(await screen.findByText(/Revoke every external link to this file\?/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Close direct shares and file links\?/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/All public share links and folder shares pointing to this file/i),
+      screen.getByText(/Folder permissions, copies already downloaded/i),
     ).toBeInTheDocument();
   });
 });

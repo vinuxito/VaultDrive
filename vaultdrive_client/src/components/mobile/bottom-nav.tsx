@@ -3,6 +3,7 @@ import { Files, Share2, User } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useTranslation } from "react-i18next";
 import { useTransitionNavigate } from "../../hooks";
+import { isRouteActive } from "../layout/navigation";
 
 export function BottomNav() {
   const location = useLocation();
@@ -27,9 +28,9 @@ export function BottomNav() {
       aria-label={t("common:nav.bottomNavigation", "Bottom navigation")}
       className="fixed bottom-0 left-0 right-0 z-30 lux-navbar border-t border-primary/15 md:hidden safe-area-bottom"
     >
-      <div className="flex items-center justify-around h-16">
+      <div className="flex min-h-16 items-stretch justify-around py-1">
         {navItems.map(({ path, icon: Icon, label }) => {
-          const isActive = location.pathname === path;
+          const isActive = isRouteActive(location.pathname, path);
           return (
             <Link
               key={path}
@@ -39,14 +40,14 @@ export function BottomNav() {
                 navigate(path);
               }}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full transition-colors duration-200",
+                "flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-1 transition-colors duration-200",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className={cn("w-5 h-5 mb-1", isActive && "fill-current")} />
-              <span className="text-xs font-medium">{label}</span>
+              <span className="line-clamp-2 text-center text-[11px] font-medium leading-tight">{label}</span>
             </Link>
           );
         })}

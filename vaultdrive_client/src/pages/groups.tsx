@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -7,6 +7,8 @@ import { Search, Plus, Settings, Trash2, X, UserPlus, Users } from "lucide-react
 import { API_URL } from "../utils/api";
 import { FileWidget } from "../components/files";
 import { DataState } from "../components/ui/data-state";
+import { ElegantModal } from "../components/elegant";
+import { useTranslation } from "react-i18next";
 
 interface Group {
   id: string;
@@ -61,6 +63,8 @@ interface UserForSelection extends SearchResult {
 export default function Groups() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(["common"]);
+  const translateRef = useRef(t);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -72,15 +76,7 @@ export default function Groups() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  useEffect(() => {
-    fetchGroups();
-  }, []);
-
-  useEffect(() => {
-    setSelectedGroup(id || null);
-  }, [id]);
-
-  async function fetchGroups() {
+  const fetchGroups = useCallback(async () => {
     setSourceError("");
     try {
       const token = localStorage.getItem("token");
@@ -89,18 +85,30 @@ export default function Groups() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.status === 403) throw new Error("You do not have access to groups for this account.");
-      if (!response.ok) throw new Error("Groups are unavailable. Your existing vault data is unchanged.");
+      if (response.status === 403) throw new Error(translateRef.current("common:groups.errors.forbidden"));
+      if (!response.ok) throw new Error(translateRef.current("common:groups.errors.unavailable"));
       const data = await response.json();
-      if (!Array.isArray(data)) throw new Error("Groups returned an unexpected response. Try again.");
+      if (!Array.isArray(data)) throw new Error(translateRef.current("common:groups.errors.unexpected"));
       setGroups(data);
     } catch (error) {
       console.error("Error fetching groups:", error);
-      setSourceError(error instanceof Error ? error.message : "Groups are unavailable. Try again.");
+      setSourceError(error instanceof Error ? error.message : translateRef.current("common:groups.errors.retry"));
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    translateRef.current = t;
+  }, [t]);
+
+  useEffect(() => {
+    void fetchGroups();
+  }, [fetchGroups]);
+
+  useEffect(() => {
+    setSelectedGroup(id || null);
+  }, [id]);
 
   async function handleCreateGroup(e: React.FormEvent) {
     e.preventDefault();
@@ -121,16 +129,16 @@ export default function Groups() {
         setShowCreateModal(false);
         fetchGroups();
       } else {
-        throw new Error("Could not create the group. Check the details and try again.");
+        throw new Error(t("common:groups.errors.create"));
       }
     } catch (error) {
       console.error("Error creating group:", error);
-      setActionError(error instanceof Error ? error.message : "Could not create the group.");
+      setActionError(error instanceof Error ? error.message : t("common:groups.errors.createShort"));
     }
   }
 
   async function handleDeleteGroup(groupId: string) {
-    if (!confirm("Are you sure you want to delete this group?")) return;
+    if (!confirm(t("common:groups.confirmDelete"))) return;
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/groups/${groupId}`, {
@@ -139,11 +147,11 @@ export default function Groups() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!response.ok) throw new Error("Could not delete the group. It remains available.");
+      if (!response.ok) throw new Error(t("common:groups.errors.delete"));
       setGroups(groups.filter(g => g.id !== groupId));
     } catch (error) {
       console.error("Error deleting group:", error);
-      setActionError(error instanceof Error ? error.message : "Could not delete the group.");
+      setActionError(error instanceof Error ? error.message : t("common:groups.errors.deleteShort"));
     }
   }
 
@@ -187,9 +195,9 @@ export default function Groups() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Groups</h1>
+            <h1 className="text-3xl font-bold">{t("common:groups.title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Groups let you share files with multiple people at once.
+              {t("common:groups.description")}
             </p>
           </div>
 
@@ -203,7 +211,7 @@ export default function Groups() {
               >
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search groups..."
+                  placeholder={t("common:groups.search")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 rounded-lg w-64"
@@ -215,13 +223,14 @@ export default function Groups() {
               variant="default"
               size="icon"
               onClick={() => setShowSearch(!showSearch)}
+              aria-label={t("common:groups.searchAction")}
             >
               <Search className="w-5 h-5" />
             </Button>
             <Button
               onClick={() => setShowCreateModal(true)}
               size="icon"
-              aria-label="Create group"
+              aria-label={t("common:groups.createAction")}
             >
               <Plus className="w-5 h-5" />
             </Button>
@@ -232,7 +241,7 @@ export default function Groups() {
 
         {sourceError && groups.length > 0 && (
           <p role="status" className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-            Showing the last loaded groups. {sourceError}
+            {t("common:groups.showingCached")} {sourceError}
           </p>
         )}
 
@@ -249,10 +258,10 @@ export default function Groups() {
                     <Users className="w-8 h-8 text-primary" />
                   </div>
                   <p className="text-foreground text-lg font-medium">
-                    {searchQuery ? "No groups found" : "No groups yet"}
+                    {searchQuery ? t("common:groups.noSearchResults") : t("common:groups.empty")}
                   </p>
                   <p className="text-muted-foreground text-sm mt-2 max-w-xs mx-auto">
-                    {searchQuery ? "Try a different search term." : "Create your first group to share files with multiple people at once."}
+                    {searchQuery ? t("common:groups.tryAnotherSearch") : t("common:groups.emptyDescription")}
                   </p>
                 </div>
               ) : (
@@ -273,14 +282,14 @@ export default function Groups() {
                         <div>
                           <h3 className="font-semibold text-lg">{group.name}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {group.member_count || 0} members • {group.file_count || 0} files
+                            {t("common:groups.memberCount", { count: group.member_count || 0 })} • {t("common:groups.fileCount", { count: group.file_count || 0 })}
                           </p>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                      <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
+                      <span>{t("common:groups.created")} {new Date(group.created_at).toLocaleDateString(i18n.language)}</span>
                     </div>
 
                     <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
@@ -293,7 +302,7 @@ export default function Groups() {
                         }}
                       >
                         <Settings className="w-4 h-4 mr-1" />
-                        Manage
+                        {t("common:groups.manage")}
                       </Button>
                       <Button
                         variant="ghost"
@@ -305,7 +314,7 @@ export default function Groups() {
                         className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
+                        {t("common:groups.delete")}
                       </Button>
                     </div>
                   </motion.div>
@@ -329,33 +338,20 @@ export default function Groups() {
 
       <AnimatePresence>
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-card border border-border rounded-2xl p-6 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto text-foreground"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-foreground">Create Group</h2>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="text-muted-foreground hover:text-foreground"
-                  aria-label="Close create group dialog"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
+          <ElegantModal
+            isOpen
+            onClose={() => setShowCreateModal(false)}
+            title={t("common:groups.createTitle")}
+          >
               <form onSubmit={handleCreateGroup}>
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                      Group Name *
+                      {t("common:groups.nameLabel")}
                     </label>
                     <Input
                       id="name"
-                      placeholder="e.g. Marketing Team"
+                      placeholder={t("common:groups.namePlaceholder")}
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -365,11 +361,11 @@ export default function Groups() {
 
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-foreground mb-2">
-                      Description
+                      {t("common:groups.descriptionLabel")}
                     </label>
                     <Input
                       id="description"
-                      placeholder="What is this group for?"
+                      placeholder={t("common:groups.descriptionPlaceholder")}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-background"
@@ -382,16 +378,15 @@ export default function Groups() {
                       variant="modal-cancel"
                       onClick={() => setShowCreateModal(false)}
                     >
-                      Cancel
+                      {t("common:groups.cancel")}
                     </Button>
                     <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Create Group
+                      {t("common:groups.createTitle")}
                     </Button>
                   </div>
                 </div>
               </form>
-            </motion.div>
-          </div>
+          </ElegantModal>
         )}
       </AnimatePresence>
     </div>
@@ -408,6 +403,8 @@ interface GroupDetailProps {
 
 function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberRemoved }: GroupDetailProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation(["common"]);
+  const translateRef = useRef(t);
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [files, setFiles] = useState<FileShare[]>([]);
@@ -420,6 +417,13 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
+
+  const closeMemberModal = () => {
+    setShowAddMemberModal(false);
+    setMemberSearch("");
+    setSelectedUserIds(new Set());
+    setCurrentPage(1);
+  };
 
   const loadAvailableUsers = useCallback(async (query: string) => {
     setSearching(true);
@@ -460,14 +464,14 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
     await Promise.all(sources.map(async (result, index) => {
       const key = keys[index];
       if (result.status === "rejected") {
-        nextErrors[key] = `${key === "group" ? "Group details" : key === "members" ? "Members" : "Group files"} are unavailable.`;
+        nextErrors[key] = translateRef.current(`common:groups.errors.${key}Unavailable`);
         return;
       }
       const response = result.value;
       if (!response.ok) {
         nextErrors[key] = response.status === 403
-          ? `You do not have access to this group's ${key === "group" ? "details" : key}.`
-          : `${key === "group" ? "Group details" : key === "members" ? "Members" : "Group files"} are unavailable.`;
+          ? translateRef.current(`common:groups.errors.${key}Forbidden`)
+          : translateRef.current(`common:groups.errors.${key}Unavailable`);
         return;
       }
       try {
@@ -481,12 +485,16 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
           setFiles(data);
         }
       } catch {
-        nextErrors[key] = `${key === "group" ? "Group details" : key === "members" ? "Members" : "Group files"} returned an unexpected response.`;
+        nextErrors[key] = translateRef.current(`common:groups.errors.${key}Unexpected`);
       }
     }));
     setDetailErrors(nextErrors);
     setLoading(false);
   }, [groupId]);
+
+  useEffect(() => {
+    translateRef.current = t;
+  }, [t]);
 
   useEffect(() => {
     void fetchData();
@@ -527,10 +535,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         });
       }
 
-      setShowAddMemberModal(false);
-      setSelectedUserIds(new Set());
-      setMemberSearch("");
-      setCurrentPage(1);
+      closeMemberModal();
       onMemberAdded();
       fetchMembers();
     } catch (error) {
@@ -575,7 +580,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   }
 
   async function handleRemoveMember(userId: string) {
-    if (!confirm("Remove this member from the group?")) return;
+    if (!confirm(t("common:groups.confirmRemoveMember"))) return;
     try {
       const token = localStorage.getItem("token");
       await fetch(`${API_URL}/groups/${groupId}/members/${userId}`, {
@@ -590,12 +595,12 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   }
 
   async function handleDeleteGroup() {
-    if (!confirm("Are you sure you want to delete this group? All members will be removed and shared files will be unshared.")) return;
+    if (!confirm(t("common:groups.confirmDeleteDetailed"))) return;
     onGroupDeleted(groupId);
   }
 
   async function handleRemoveFile(fileId: string, filename: string) {
-    if (!confirm(`Remove "${filename}" from the group?`)) return;
+    if (!confirm(t("common:groups.confirmRemoveFile", { filename }))) return;
     
     try {
       const token = localStorage.getItem("token");
@@ -635,7 +640,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
   if (!group) {
     return (
-      <DataState error={detailErrors.group || "Group details are unavailable."} onRetry={() => void fetchData()}>
+      <DataState error={detailErrors.group || t("common:groups.errors.groupUnavailable")} onRetry={() => void fetchData()}>
         {null}
       </DataState>
     );
@@ -648,7 +653,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         onClick={onBack}
         className="mb-6"
       >
-        Back to Groups
+        {t("common:groups.back")}
       </Button>
 
       <div className="brand-glass-card p-6 mb-6">
@@ -657,7 +662,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
             <h2 className="text-2xl font-bold brand-gradient-text">{group.name}</h2>
             <p className="text-muted-foreground mt-1">{group.description}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {members.length} members • {files.length} files
+              {t("common:groups.memberCount", { count: members.length })} • {t("common:groups.fileCount", { count: files.length })}
             </p>
           </div>
           <Button
@@ -667,26 +672,26 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
             className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
           >
             <Trash2 className="w-4 h-4 mr-1" />
-            Delete
+            {t("common:groups.delete")}
           </Button>
         </div>
       </div>
 
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Members</h3>
+          <h3 className="text-lg font-semibold">{t("common:groups.members")}</h3>
           <Button
             onClick={() => setShowAddMemberModal(true)}
             size="sm"
           >
             <UserPlus className="w-4 h-4 mr-1" />
-            Add Member
+            {t("common:groups.addMember")}
           </Button>
         </div>
         {detailErrors.members ? (
           <DataState error={detailErrors.members} onRetry={() => void fetchData()} density="compact">{null}</DataState>
         ) : members.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No members yet. Add users to this group.</p>
+          <p className="text-muted-foreground text-sm">{t("common:groups.noMembers")}</p>
         ) : (
           <div className="grid gap-3">
             {members.map((member) => (
@@ -708,6 +713,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveMember(member.user_id)}
+                  aria-label={t("common:groups.removeMember", { name: member.username })}
                   className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -719,11 +725,11 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-4">Files Shared to Group</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("common:groups.sharedFiles")}</h3>
         {detailErrors.files ? (
           <DataState error={detailErrors.files} onRetry={() => void fetchData()} density="compact">{null}</DataState>
         ) : files.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No files shared to this group yet.</p>
+          <p className="text-muted-foreground text-sm">{t("common:groups.noFiles")}</p>
         ) : (
           <div className="space-y-2">
             {files.map((file) => (
@@ -750,44 +756,27 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
       <AnimatePresence>
         {showAddMemberModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-br from-primary to-primary/90 border border-primary-foreground/20 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto lg:overflow-hidden flex flex-col text-primary-foreground"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-primary-foreground">Add Members to Group</h2>
-                  <p className="text-sm text-primary-foreground/80 mt-1">
-                    {selectedUserIds.size} user{selectedUserIds.size !== 1 ? 's' : ''} selected
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowAddMemberModal(false);
-                    setMemberSearch("");
-                    setSelectedUserIds(new Set());
-                    setCurrentPage(1);
-                  }}
-                  className="text-primary-foreground/80 hover:text-primary-foreground"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+          <ElegantModal
+            isOpen
+            onClose={closeMemberModal}
+            title={t("common:groups.addMembersTitle")}
+            size="2xl"
+            className="flex flex-col"
+          >
+              <p className="mb-6 text-sm text-muted-foreground">
+                {t("common:groups.selectedCount", { count: selectedUserIds.size })}
+              </p>
 
               {/* Search Bar */}
               <div className="mb-4">
                 <Input
-                  placeholder="Search by username, email, or name..."
+                  placeholder={t("common:groups.searchUsers")}
                   value={memberSearch}
                   onChange={(e) => {
                     setMemberSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="bg-primary-foreground/15 border-primary-foreground/25 text-primary-foreground placeholder:text-primary-foreground/60"
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
@@ -796,8 +785,8 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                 {/* Left: Available Users Table */}
                 <div className="lg:col-span-2 flex flex-col overflow-hidden">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-primary-foreground">
-                      Available Users ({availableUsers.filter(u => !u.is_member).length})
+                    <h3 className="text-sm font-medium text-foreground">
+                      {t("common:groups.availableUsers", { count: availableUsers.filter(u => !u.is_member).length })}
                     </h3>
                     {availableUsers.filter(u => !u.is_member).length > 0 && (
                       <Button
@@ -806,18 +795,18 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                         onClick={toggleSelectAll}
                       >
                         {availableUsers.filter(u => !u.is_member).every(u => selectedUserIds.has(u.id))
-                          ? 'Deselect All'
-                          : 'Select All'}
+                          ? t("common:groups.deselectAll")
+                          : t("common:groups.selectAll")}
                       </Button>
                     )}
                   </div>
 
                   {searching ? (
                     <div className="flex items-center justify-center py-12">
-                      <div className="text-primary-foreground/80">Loading users...</div>
+                      <div className="text-muted-foreground">{t("common:groups.loadingUsers")}</div>
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-primary-foreground/20 overflow-hidden flex-1 bg-primary-foreground/15">
+                    <div className="flex-1 overflow-hidden rounded-lg border border-border bg-muted/40">
                       <div className="overflow-y-auto max-h-[400px]">
                         {(() => {
                           const startIdx = (currentPage - 1) * usersPerPage;
@@ -827,7 +816,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                           if (paginatedUsers.length === 0) {
                             return (
                               <div className="text-center py-12">
-                                <p className="text-primary-foreground/80">No users found</p>
+                                <p className="text-muted-foreground">{t("common:groups.noUsers")}</p>
                               </div>
                             );
                           }
@@ -837,7 +826,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                               key={user.id}
                               onClick={() => toggleUserSelection(user.id, user.is_member)}
                               disabled={user.is_member}
-                              className={`w-full flex items-center gap-3 p-3 border-b border-primary-foreground/15 hover:bg-primary-foreground/10 transition-colors ${
+                              className={`w-full flex items-center gap-3 p-3 border-b border-border hover:bg-muted transition-colors ${
                                 user.is_member ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                               } ${selectedUserIds.has(user.id) ? 'bg-primary/10' : ''}`}
                             >
@@ -846,9 +835,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                 checked={selectedUserIds.has(user.id)}
                                 disabled={user.is_member}
                                 onChange={() => {}}
-                                className="w-4 h-4 rounded border-primary-foreground/25"
+                                className="h-4 w-4 rounded border-border"
                               />
-                              <div className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center text-primary-foreground font-semibold">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 font-semibold text-foreground">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 text-left">
@@ -857,11 +846,11 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                     ? `${user.first_name} ${user.last_name}`
                                     : user.username}
                                 </p>
-                                <p className="text-xs text-primary-foreground/80">{user.email}</p>
+                                <p className="text-xs text-muted-foreground">{user.email}</p>
                               </div>
                               {user.is_member && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-primary-foreground/15 text-primary-foreground">
-                                  Already Member
+                                <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                                  {t("common:groups.alreadyMember")}
                                 </span>
                               )}
                             </button>
@@ -871,17 +860,17 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
                       {/* Pagination */}
                       {availableUsers.length > usersPerPage && (
-                        <div className="flex items-center justify-center gap-2 p-3 border-t border-primary-foreground/20">
+                        <div className="flex items-center justify-center gap-2 border-t border-border p-3">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
                           >
-                            Previous
+                            {t("common:groups.previous")}
                           </Button>
-                          <span className="text-sm text-primary-foreground/80">
-                            Page {currentPage} of {Math.ceil(availableUsers.length / usersPerPage)}
+                          <span className="text-sm text-muted-foreground">
+                            {t("common:groups.page", { current: currentPage, total: Math.ceil(availableUsers.length / usersPerPage) })}
                           </span>
                           <Button
                             variant="ghost"
@@ -893,7 +882,7 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                             }
                             disabled={currentPage >= Math.ceil(availableUsers.length / usersPerPage)}
                           >
-                            Next
+                            {t("common:groups.next")}
                           </Button>
                         </div>
                       )}
@@ -903,14 +892,14 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
 
                 {/* Right: Selected Users Preview */}
                 <div className="flex flex-col overflow-hidden">
-                  <h3 className="text-sm font-medium text-primary-foreground mb-3">
-                    Selected ({selectedUserIds.size})
+                  <h3 className="mb-3 text-sm font-medium text-foreground">
+                    {t("common:groups.selected", { count: selectedUserIds.size })}
                   </h3>
-                  <div className="rounded-lg border border-primary-foreground/20 flex-1 overflow-y-auto p-3 bg-primary-foreground/15">
+                  <div className="flex-1 overflow-y-auto rounded-lg border border-border bg-muted/40 p-3">
                     {selectedUserIds.size === 0 ? (
                       <div className="text-center py-8">
-                        <UserPlus className="w-12 h-12 text-primary-foreground/80 mx-auto mb-2" />
-                        <p className="text-sm text-primary-foreground/80">No users selected</p>
+                        <UserPlus className="mx-auto mb-2 h-12 w-12 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">{t("common:groups.noUsersSelected")}</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -920,9 +909,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                           return (
                             <div
                               key={userId}
-                              className="flex items-center gap-2 p-2 bg-primary-foreground/20 rounded-lg border border-primary-foreground/15"
+                              className="flex items-center gap-2 rounded-lg border border-border bg-background p-2"
                             >
-                              <div className="w-8 h-8 rounded-full bg-primary-foreground/15 flex items-center justify-center text-primary-foreground text-sm font-semibold">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-foreground">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -931,11 +920,12 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                                     ? `${user.first_name} ${user.last_name}`
                                     : user.username}
                                 </p>
-                                <p className="text-xs text-primary-foreground/80 truncate">{user.email}</p>
+                                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                               </div>
                               <button
                                 onClick={() => toggleUserSelection(userId, false)}
-                                className="text-primary-foreground/80 hover:text-primary-foreground"
+                                className="text-muted-foreground hover:text-foreground"
+                                aria-label={t("common:groups.removeSelected", { name: user.username })}
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -949,30 +939,24 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
               </div>
 
               {/* Footer */}
-              <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-primary-foreground/20">
+              <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => {
-                    setShowAddMemberModal(false);
-                    setMemberSearch("");
-                    setSelectedUserIds(new Set());
-                    setCurrentPage(1);
-                  }}
+                  onClick={closeMemberModal}
                 >
-                  Cancel
+                  {t("common:groups.cancel")}
                 </Button>
                 <Button
                   type="button"
                   onClick={handleAddMembers}
                   disabled={selectedUserIds.size === 0}
-                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Add {selectedUserIds.size} Member{selectedUserIds.size !== 1 ? 's' : ''}
+                  {t("common:groups.addSelected", { count: selectedUserIds.size })}
                 </Button>
               </div>
-            </motion.div>
-          </div>
+          </ElegantModal>
         )}
       </AnimatePresence>
     </div>

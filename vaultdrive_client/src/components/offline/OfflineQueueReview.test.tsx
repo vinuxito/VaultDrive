@@ -22,6 +22,7 @@ describe("OfflineQueueReview", () => {
     );
 
     expect(screen.getByText(/Older queued action.*will not be sent/i)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Offline changes" })).toBeInTheDocument();
     expect(screen.getByText(/server did not confirm whether.*secret.pdf/i)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Retry delete for secret.pdf/i }));
     expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ action_id: "delete-2" }));

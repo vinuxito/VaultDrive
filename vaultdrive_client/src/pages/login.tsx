@@ -29,13 +29,13 @@ import {
 } from "../hooks/useWebAuthn";
 import { getSafeLoginIntent } from "../utils/auth-session";
 
-function passkeyFallbackMessage(error: unknown): string {
+function passkeyFallbackMessage(error: unknown, t: (key: string) => string): string {
   if (error instanceof DOMException && ["NotAllowedError", "AbortError"].includes(error.name)) {
-    return "The passkey prompt was canceled. Enter your PIN to continue.";
+    return t("auth:login.passkeyCanceled");
   }
   return error instanceof Error
-    ? `${error.message}. Enter your PIN to continue.`
-    : "Passkey unlock failed. Enter your PIN to continue.";
+    ? `${error.message}. ${t("auth:login.passkeyFallback")}`
+    : t("auth:login.passkeyFailed");
 }
 
 export default function Login() {
@@ -49,6 +49,7 @@ export default function Login() {
     localStorage.getItem(`${branding.productSlug}_pin_hint`) === "1" ? "pin" : "password"
   );
   const [showPassword, setShowPassword] = useState(false);
+  const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
@@ -194,7 +195,7 @@ export default function Login() {
     setBiometricError(null);
     const email = loginData.email || getWebAuthnEmail();
     if (!email) {
-      setBiometricError("Please enter your email first to use biometrics.");
+      setBiometricError(t("auth:login.passkeyNeedsEmail"));
       return;
     }
     try {
@@ -202,9 +203,9 @@ export default function Login() {
       setPinValue(pin);
       await performLogin(email, pin, "pin");
     } catch (e) {
-      setBiometricError(passkeyFallbackMessage(e));
+      setBiometricError(passkeyFallbackMessage(e, t));
     }
-  }, [loginData.email, performLogin]);
+  }, [loginData.email, performLogin, t]);
 
   const handleAutomaticBiometricUnlock = useEffectEvent(async (email: string) => {
     setBiometricError(null);
@@ -213,7 +214,7 @@ export default function Login() {
       setPinValue(pin);
       await performLogin(email, pin, "pin");
     } catch (e) {
-      setBiometricError(passkeyFallbackMessage(e));
+      setBiometricError(passkeyFallbackMessage(e, t));
     }
   });
 
@@ -423,6 +424,7 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? t("auth:credentials.hidePassword") : t("auth:credentials.showPassword")}
                       className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                       disabled={lockoutSeconds > 0}
                     >
@@ -441,20 +443,31 @@ export default function Login() {
                     {t("auth:login.pin")}
                   </label>
 
-                  <input
-                    id="login-pin"
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder="••••"
-                    value={pinValue}
-                    onChange={(e) =>
-                      setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))
-                    }
-                    className="w-full px-4 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all text-center tracking-widest text-xl"
-                    required
-                    disabled={lockoutSeconds > 0}
-                  />
+                  <div className="relative">
+                    <input
+                      id="login-pin"
+                      type={showPin ? "text" : "password"}
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={pinValue}
+                      onChange={(e) =>
+                        setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))
+                      }
+                      className="w-full px-10 py-2 bg-background/50 border-2 border-border rounded-[var(--radius)] focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:shadow-[var(--shadow-glow-primary)] transition-all text-center tracking-widest text-xl"
+                      required
+                      disabled={lockoutSeconds > 0}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPin(!showPin)}
+                      aria-label={showPin ? t("auth:credentials.hidePin") : t("auth:credentials.showPin")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      disabled={lockoutSeconds > 0}
+                    >
+                      {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   <p className="text-xs text-muted-foreground text-center">
                     {t("auth:login.noPin")}{" "}
                     <button
@@ -477,7 +490,7 @@ export default function Login() {
                         className="w-full border-primary/40 bg-background text-primary hover:bg-muted flex items-center justify-center gap-2"
                       >
                         <Fingerprint className="h-4 w-4" />
-                        Unlock with Biometrics
+                        {t("auth:login.unlockWithPasskey")}
                       </Button>
                       {biometricError && (
                         <p className="text-xs text-red-600 dark:text-red-400 mt-1 text-center">{biometricError}</p>
@@ -486,7 +499,7 @@ export default function Login() {
                   )}
                   {hasRegisteredPasskey() && !passkeyAvailable && (
                     <p className="text-xs text-muted-foreground text-center">
-                      Passkeys are unavailable in this browser. Enter your PIN to continue.
+                      {t("auth:login.passkeyUnavailable")}
                     </p>
                   )}
                 </div>
@@ -625,6 +638,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? t("auth:credentials.hidePassword") : t("auth:credentials.showPassword")}
                     className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                     disabled={lockoutSeconds > 0}
                   >
@@ -673,7 +687,7 @@ export default function Login() {
                     onClick={() => navigate("/recover")}
                     className="text-primary font-medium hover:underline text-xs"
                   >
-                    Recover Lost Account
+                    {t("auth:login.recoverAccount")}
                   </button>
                 </p>
               </>

@@ -1,4 +1,12 @@
 {
+  "auth": {
+    "login": {
+      "welcomeDesc": "Abre tu bóveda ABRN, comprueba la credencial solicitada y continúa la tarea que iniciaste"
+    }
+  },
+  "help": {
+    "subtitle": "Guía de tareas, explicación de credenciales y límites de recuperación para ABRN Drive."
+  },
   "drive": {
     "vault": {
       "title": "Bóveda ABRN",

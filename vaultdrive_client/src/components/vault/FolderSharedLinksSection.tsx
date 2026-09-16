@@ -29,6 +29,11 @@ interface FolderSharedLinksSectionProps {
   refreshKey?: number;
 }
 
+interface FolderLinkResult {
+  message: string;
+  tone: "success" | "error";
+}
+
 function CountdownLabel({ expiresAt }: { expiresAt: string }) {
   const [timeLeft, setTimeLeft] = useState("");
 
@@ -98,7 +103,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
   const [errorMsg, setErrorMsg] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [legacyUrls, setLegacyUrls] = useState<Record<string, string>>({});
-  const [results, setResults] = useState<Record<string, string>>({});
+  const [results, setResults] = useState<Record<string, FolderLinkResult>>({});
   const [ownerCredentialInput, setOwnerCredentialInput] = useState("");
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
 
@@ -184,13 +189,13 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
           ? "Upgraded this shared link for future automatic updates."
           : "This shared link was already up to date.";
 
-      setResults((prev) => ({ ...prev, [link.id]: message }));
+      setResults((prev) => ({ ...prev, [link.id]: { message, tone: "success" } }));
       sessionVault.setCredential(credential.value, credential.type);
       onStatusMessage?.(message);
       await fetchLinksForFolder(folder.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update this shared link.";
-      setResults((prev) => ({ ...prev, [link.id]: message }));
+      setResults((prev) => ({ ...prev, [link.id]: { message, tone: "error" } }));
     } finally {
       setBusyId(null);
     }
@@ -217,7 +222,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       await fetchLinksForFolder(folder.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to revoke this shared link.";
-      setResults((prev) => ({ ...prev, [link.id]: message }));
+      setResults((prev) => ({ ...prev, [link.id]: { message, tone: "error" } }));
     } finally {
       setBusyId(null);
       setConfirmRevokeId(null);
@@ -427,9 +432,13 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
                     )}
 
                     {result && (
-                      <div className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${result.includes("Failed") || result.includes("Paste") || result.includes("different") || result.includes("not wired yet") ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                      <div
+                        className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${result.tone === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}
+                        role={result.tone === "error" ? "alert" : "status"}
+                        aria-live="polite"
+                      >
                         <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                        <span>{result}</span>
+                        <span>{result.message}</span>
                       </div>
                     )}
                   </CardContent>

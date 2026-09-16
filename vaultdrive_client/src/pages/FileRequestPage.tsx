@@ -38,6 +38,7 @@ import BrandLogo from "../components/branding/brand-logo";
 import { API_URL } from "../utils/api";
 import { buildFileRequestUploadFormData } from "../utils/file-request-upload";
 import { branding } from "../config/branding";
+import { useTranslation } from "react-i18next";
 import {
   classifyPublicUploadOutcome,
   getRetryableUploadIds,
@@ -61,6 +62,11 @@ interface UploadQueueItem {
 }
 
 export default function FileRequestPage() {
+  const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const value = t(key, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
   const { token } = useParams<{ token: string }>();
 
   const [info, setInfo] = useState<RequestInfo | null>(null);
@@ -378,7 +384,7 @@ export default function FileRequestPage() {
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-            <CardTitle>Link Unavailable</CardTitle>
+            <CardTitle>{copy("drive:transfers.fileRequest.unavailableTitle", "Link Unavailable")}</CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardFooter>
@@ -427,7 +433,7 @@ export default function FileRequestPage() {
 
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-foreground">
-              Files sent securely
+              {copy("drive:transfers.fileRequest.deliveredTitle", "Files sent securely")}
             </h1>
             <p className="text-muted-foreground">
               {completedCount} file{completedCount > 1 ? "s" : ""} encrypted
@@ -437,7 +443,7 @@ export default function FileRequestPage() {
           </div>
 
           <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
-            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">Delivery receipt</p>
+            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">{copy("drive:transfers.common.deliveryReceipt", "Delivery receipt")}</p>
             <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-400">
               Your encrypted files are now in the request route. The recipient can review the delivery, but they still need the separate password you chose to open the files.
             </p>
@@ -465,7 +471,7 @@ export default function FileRequestPage() {
           </div>
 
           <div className="text-left bg-card/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
-            <p className="font-medium text-foreground">What happened</p>
+            <p className="font-medium text-foreground">{copy("drive:transfers.common.whatHappened", "What happened")}</p>
             <p className="text-muted-foreground leading-relaxed">
               {`Your files were encrypted in this browser using the password you chose. ${branding.productName} stored only the protected files and request metadata.`}
             </p>
@@ -476,7 +482,7 @@ export default function FileRequestPage() {
 
           <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800">
             <p className="text-amber-700 dark:text-amber-400 text-sm font-medium">
-              Remember your download password
+              {copy("drive:transfers.fileRequest.rememberPassword", "Remember your download password")}
             </p>
             <p className="text-amber-600 dark:text-amber-500 text-xs mt-1">
               Share your download password with{" "}
@@ -499,7 +505,7 @@ export default function FileRequestPage() {
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
-            {receiptCopied ? "Copied!" : "Copy receipt"}
+            {receiptCopied ? copy("drive:transfers.common.copied", "Copied!") : copy("drive:transfers.common.copyReceipt", "Copy receipt")}
           </button>
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
@@ -542,7 +548,7 @@ export default function FileRequestPage() {
 
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary">
-            Secure File Request
+            {copy("drive:transfers.fileRequest.title", "Secure File Request")}
           </h1>
           <p className="text-muted-foreground">
             Your files will be encrypted in your browser before upload
@@ -551,13 +557,13 @@ export default function FileRequestPage() {
 
         <div className="grid gap-3 md:grid-cols-2">
           <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 px-4 py-4 text-sm text-emerald-800 dark:text-emerald-300">
-            <p className="font-medium text-emerald-900 dark:text-emerald-200">What stays private</p>
+            <p className="font-medium text-emerald-900 dark:text-emerald-200">{copy("drive:transfers.common.privateTitle", "What stays private")}</p>
             <p className="mt-1.5 leading-relaxed">
               {`Your files are encrypted in this browser with the password you choose. ${branding.productName} stores only the protected upload and request metadata.`}
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-card/75 px-4 py-4 text-sm text-muted-foreground shadow-[0_12px_28px_rgba(0,0,0,0.06)]">
-            <p className="font-medium text-foreground">What the recipient needs</p>
+            <p className="font-medium text-foreground">{copy("drive:transfers.fileRequest.recipientNeedsTitle", "What the recipient needs")}</p>
             <p className="mt-1.5 leading-relaxed">
               They can see the upload arrived, but they still need the separate password you share with them to decrypt and open the files.
             </p>
@@ -584,16 +590,19 @@ export default function FileRequestPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Key className="w-5 h-5" />
-              Set a Download Password
+              {copy("drive:transfers.fileRequest.setPasswordTitle", "Set a Download Password")}
             </CardTitle>
             <CardDescription>
-              The recipient will need this password to open your files. Share it
-              separately — not via this link.
+              {copy("drive:transfers.fileRequest.passwordDescription", "Use the file password agreed with the recipient. It is separate from any ABRN account PIN; share it out of band, not through this request link.")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="relative">
+              <label htmlFor="file-request-password" className="sr-only">
+                {copy("drive:transfers.fileRequest.passwordLabel", "Download password")}
+              </label>
               <input
+                id="file-request-password"
                 type={showPassphrase ? "text" : "password"}
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
@@ -605,6 +614,7 @@ export default function FileRequestPage() {
                 type="button"
                 onClick={() => setShowPassphrase((v) => !v)}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                aria-label={showPassphrase ? copy("drive:transfers.fileRequest.hidePassword", "Hide download password") : copy("drive:transfers.fileRequest.showPassword", "Show download password")}
               >
                 {showPassphrase ? (
                   <EyeOff className="w-4 h-4" />
@@ -625,7 +635,7 @@ export default function FileRequestPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="w-5 h-5" />
-              Select Files
+              {copy("drive:transfers.common.selectFiles", "Select Files")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -654,7 +664,7 @@ export default function FileRequestPage() {
                     <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
                       <FileIcon className="w-7 h-7 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                        Select Files
+                        {copy("drive:transfers.common.selectFiles", "Select Files")}
                       </span>
                     </div>
                   </label>
@@ -662,7 +672,7 @@ export default function FileRequestPage() {
                     <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card/75 backdrop-blur-sm p-5 transition-all duration-300 group-hover:border-primary group-hover:shadow-lg group-hover:bg-gradient-to-br group-hover:from-primary/10 group-hover:to-primary/10 text-center">
                       <FolderOpen className="w-7 h-7 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                        Select Folder
+                        {copy("drive:transfers.common.selectFolder", "Select Folder")}
                       </span>
                     </div>
                   </label>
@@ -684,10 +694,10 @@ export default function FileRequestPage() {
                 >
                   <Upload className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                   <p className="text-base font-medium text-foreground">
-                    Drag &amp; drop files or folders here
+                    {copy("drive:transfers.common.dropPrompt", "Drag & drop files or folders here")}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    or use the buttons above
+                    {copy("drive:transfers.common.useButtons", "Or use the buttons above")}
                   </p>
                 </button>
 
@@ -730,15 +740,15 @@ export default function FileRequestPage() {
             {uploading && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center py-4">
                 <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                Encrypting and uploading…
+                {copy("drive:transfers.fileRequest.encryptingUploading", "Encrypting and uploading…")}
               </div>
             )}
 
             {/* Progress list */}
             {uploadProgress.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3" aria-live="polite" aria-busy={uploading}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Upload Progress</h3>
+                  <h3 className="text-sm font-medium">{copy("drive:transfers.common.uploadProgress", "Upload Progress")}</h3>
                   <span className="text-xs text-muted-foreground">
                     {completedCount}/{totalCount} completed
                   </span>
@@ -785,13 +795,13 @@ export default function FileRequestPage() {
             )}
 
             {!uploading && uploadProgress.length > 0 && !delivered && (
-              <div className="space-y-2" role="status">
+              <div className="space-y-2" role="status" aria-live="polite">
                 <p className="text-sm text-muted-foreground">
                   {completedCount} accepted · {uploadProgress.length - completedCount - unknownCount} failed · {unknownCount} need confirmation
                 </p>
                 {unknownCount > 0 && (
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Do not resend files marked “needs confirmation.” Ask the recipient to check their vault first.
+                    {copy("drive:transfers.publicUpload.unknownGuidance", "Do not upload files marked “needs confirmation” again yet. Ask the recipient to confirm whether they arrived first.")}
                   </p>
                 )}
                 {retryableIds.length > 0 && (
@@ -823,12 +833,12 @@ export default function FileRequestPage() {
               {uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Uploading…
+                  {copy("drive:transfers.common.uploading", "Uploading…")}
                 </>
               ) : (
                 <>
                   <Lock className="w-4 h-4 mr-2" />
-                  Send Securely
+                  {copy("drive:transfers.fileRequest.send", "Send Securely")}
                 </>
               )}
             </Button>
@@ -841,10 +851,9 @@ export default function FileRequestPage() {
             <div className="flex gap-3">
               <Lock className="w-5 h-5 text-primary dark:text-primary flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
-                <p className="font-medium">End-to-end encrypted</p>
+                <p className="font-medium">{copy("drive:transfers.common.encryptedTitle", "End-to-end encrypted")}</p>
                 <p className="text-muted-foreground">
-                  Your files are encrypted in your browser before being sent.
-                  The server never sees your files or your password.
+                  {copy("drive:transfers.fileRequest.encryptionTruth", "Your files are encrypted in your browser before being sent. The server stores protected file bytes and request metadata, and does not receive the file password.")}
                 </p>
               </div>
             </div>

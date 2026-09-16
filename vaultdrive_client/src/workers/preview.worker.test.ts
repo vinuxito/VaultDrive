@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createPrivateKey } from "node:crypto";
-import { arrayBufferToBase64, deriveKeyFromPassword } from "../utils/crypto";
+import { arrayBufferToBase64, deriveKeyFromPassword, wrapKeyWithAES } from "../utils/crypto";
 
 import { isEncryptionMetadata } from "./preview.worker";
 
@@ -113,7 +113,7 @@ describe("preview worker encryption metadata", () => {
     expect(Array.from(new Uint8Array(message.decryptedBuffer))).toEqual(Array.from(fixture.plaintext));
   });
 
-  it("previews a direct RSA share using the backend PKCS#1 RSA-OAEP SHA-256 private key", async () => {
+  it("preserves RSA unwrap for a directly shared folder file when no folder key is available", async () => {
     const keyPair = await crypto.subtle.generateKey(
       { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
       true,
@@ -131,7 +131,7 @@ describe("preview worker encryption metadata", () => {
     const fileIv = new Uint8Array(12).fill(29);
     const plaintext = new TextEncoder().encode("exact direct share preview bytes");
     const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv: fileIv }, fileKey, plaintext);
-    const metadata = JSON.stringify({ iv: arrayBufferToBase64(fileIv), algorithm: "AES-256-GCM" });
+    const metadata = JSON.stringify({ iv: arrayBufferToBase64(fileIv), algorithm: "AES-256-GCM", credential_scheme: "folder" });
     const pkcs8 = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
     const pkcs1Buffer = createPrivateKey({
       key: Buffer.from(pkcs8),
@@ -159,6 +159,48 @@ describe("preview worker encryption metadata", () => {
 
     const message = post.mock.calls.at(-1)?.[0] as { success: boolean; decryptedBuffer: ArrayBuffer; error?: string };
     expect(message).toEqual(expect.objectContaining({ success: true }));
+    expect(Array.from(new Uint8Array(message.decryptedBuffer))).toEqual(Array.from(plaintext));
+  });
+
+  it("previews a folder-wrapped file with the unlocked folder key instead of a PIN", async () => {
+    const folderKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    const fileKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    const wrapped = await wrapKeyWithAES(folderKey, fileKey);
+    const iv = new Uint8Array(12).fill(3);
+    const plaintext = new TextEncoder().encode("folder preview bytes");
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, fileKey, plaintext);
+    const metadata = JSON.stringify({ iv: arrayBufferToBase64(iv), credential_scheme: "folder" });
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(ciphertext, { headers: { "X-File-Metadata": metadata, "X-Wrapped-Key": wrapped } })));
+    const post = vi.spyOn(self, "postMessage").mockImplementation(() => {});
+    await self.onmessage?.call(self, new MessageEvent("message", { data: {
+      file: { id: "folder-file", metadata, is_owner: true }, folderKey, credential: "", API_URL: "/api", authToken: "fixture",
+    } }));
+    const message = post.mock.calls.at(-1)?.[0] as { success: boolean; decryptedBuffer: ArrayBuffer };
+    expect(message.success).toBe(true);
+    expect(Array.from(new Uint8Array(message.decryptedBuffer))).toEqual(Array.from(plaintext));
+  });
+
+  it("previews a collaborator folder file with the unlocked folder key instead of RSA", async () => {
+    const folderKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    const fileKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    const wrapped = await wrapKeyWithAES(folderKey, fileKey);
+    const iv = new Uint8Array(12).fill(31);
+    const plaintext = new TextEncoder().encode("shared folder exact preview bytes");
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, fileKey, plaintext);
+    const metadata = JSON.stringify({ iv: arrayBufferToBase64(iv), credential_scheme: "folder" });
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(ciphertext, { headers: { "X-File-Metadata": metadata, "X-Wrapped-Key": wrapped } })));
+    const post = vi.spyOn(self, "postMessage").mockImplementation(() => {});
+
+    await self.onmessage?.call(self, new MessageEvent("message", { data: {
+      file: { id: "shared-folder-file", metadata, is_owner: false },
+      folderKey,
+      credential: "",
+      API_URL: "/api",
+      authToken: "fixture",
+    } }));
+
+    const message = post.mock.calls.at(-1)?.[0] as { success: boolean; decryptedBuffer: ArrayBuffer };
+    expect(message.success).toBe(true);
     expect(Array.from(new Uint8Array(message.decryptedBuffer))).toEqual(Array.from(plaintext));
   });
 

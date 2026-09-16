@@ -465,40 +465,24 @@ export default function PublicSharePage() {
           )}
 
           {state === "shredded" && (
-            branding.productSlug.includes("quantix") ? (
-              <div className="flex flex-col items-center gap-4 py-6 text-center animate-pulse">
-                <div className="relative">
-                  <Shield className="w-16 h-16 text-red-500 opacity-80" />
-                  <span className="absolute inset-0 flex items-center justify-center text-red-500 font-bold text-lg select-none">
-                    [X]
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-xl font-extrabold text-red-500 dark:text-red-400 tracking-wider font-mono uppercase">
-                    ⚠ KEY_SHREDDED ⚠
-                  </h2>
-                  <p className="text-sm text-red-600 dark:text-red-300 font-mono">
-                    {t("drive:publicShare.shreddedDesc", "As a single-use secure link, the decryption key for this file has been permanently deleted from the server after its first download.")}
-                  </p>
-                </div>
+            <div className="flex flex-col items-center gap-4 py-6 text-center" role="status" aria-live="polite">
+              <Shield className="w-12 h-12 text-muted-foreground" />
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-foreground">
+                  {copy("drive:publicShare.consumedTitle", "This limited-use link has already been used")}
+                </h2>
+                <p className="text-sm max-w-sm leading-relaxed text-muted-foreground">
+                  {copy("drive:publicShare.consumedDesc", "The link allowance was consumed when an authorized file fetch started. The owner's file and any copies already saved are unaffected.")}
+                </p>
+                <p className="text-sm max-w-sm leading-relaxed text-muted-foreground">
+                  {copy("drive:publicShare.consumedRecovery", "Ask the owner for a new link to download the file again.")}
+                </p>
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4 py-6 text-center">
-                <Shield className="w-12 h-12 text-muted-foreground" />
-                <div className="space-y-2">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    {t("drive:publicShare.shreddedTitle", "This link has been shredded")}
-                  </h2>
-                  <p className="text-sm max-w-sm leading-relaxed text-muted-foreground">
-                    {t("drive:publicShare.shreddedDesc", "As a single-use secure link, the decryption key for this file has been permanently deleted from the server after its first download.")}
-                  </p>
-                </div>
-              </div>
-            )
+            </div>
           )}
 
           {state === "downloading" && (
-            <div className="flex flex-col items-center gap-4 py-4 text-center">
+            <div className="flex flex-col items-center gap-4 py-4 text-center" role="status" aria-live="polite" aria-busy="true">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <div>
                 <p className="text-foreground font-medium">{t("drive:publicShare.decrypting", "Decrypting…")}</p>

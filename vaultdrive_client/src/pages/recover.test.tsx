@@ -146,4 +146,24 @@ describe("account recovery guidance", () => {
     expect(screen.queryByLabelText("New Password")).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("keeps both reset credentials editable with named visibility controls", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(response({ message: "started" }))
+      .mockResolvedValueOnce(response(readyStatus)));
+
+    render(<MemoryRouter><Recover /></MemoryRouter>);
+    await user.type(screen.getByLabelText("Username"), "ada");
+    await user.click(screen.getByRole("button", { name: /Request Account Recovery/i }));
+    await screen.findByText(/Approvals complete/i);
+
+    const password = screen.getByLabelText("New Password");
+    const confirmation = screen.getByLabelText("Confirm Password");
+    await user.click(screen.getByRole("button", { name: /show new password/i }));
+    await user.click(screen.getByRole("button", { name: /show password confirmation/i }));
+
+    expect(password).toHaveAttribute("type", "text");
+    expect(confirmation).toHaveAttribute("type", "text");
+  });
 });

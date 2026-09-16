@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { Folder as FolderType } from "../files/FolderBreadcrumb";
 import { FolderTree } from "../folders/FolderTree";
+import { useTranslation } from "react-i18next";
 
 export type TreeNode =
   | { type: "all" }
@@ -104,6 +105,7 @@ function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: Tre
         }
         ${depth > 0 ? "pl-7" : ""}
       `}
+      aria-current={active ? "page" : undefined}
     >
       <span className={`shrink-0 ${active ? "text-foreground" : "text-muted-foreground"}`}>{icon}</span>
       <span className="flex-1 text-sm truncate">{label}</span>
@@ -131,7 +133,7 @@ interface SectionHeaderProps {
 function SectionHeader({ label, open, onToggle, action }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 group">
-      <button type="button" onClick={onToggle} className="flex-1 flex items-center gap-1.5 text-left">
+      <button type="button" onClick={onToggle} aria-expanded={open} className="flex-1 flex items-center gap-1.5 text-left">
         <span className="text-muted-foreground group-hover:text-foreground transition-colors">
           {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </span>
@@ -162,6 +164,7 @@ export function VaultTree({
   onManageShareFolder,
   onCollaborateFolder,
 }: VaultTreeProps) {
+  const { t } = useTranslation(["drive"]);
   const [foldersOpen, setFoldersOpen] = useState(true);
   const [linksOpen, setLinksOpen] = useState(true);
 
@@ -179,14 +182,14 @@ export function VaultTree({
   }, [dropTokens]);
 
   return (
-    <nav className="h-full flex flex-col gap-0.5 py-3 px-2 overflow-y-auto">
+    <nav aria-label={t("drive:vault.tree.navigation", "Vault navigation")} className="h-full flex flex-col gap-0.5 py-3 px-2 overflow-y-auto">
       <div className="px-3 pb-2 mb-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Access</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("drive:vault.tree.quickAccess", "Quick access")}</p>
       </div>
 
       <TreeItem
         icon={<Files className="w-4 h-4" />}
-        label="All Files"
+        label={t("drive:vault.filterAll", "All Files")}
         count={allFilesCount}
         active={isSameNode(selected, { type: "all" })}
         onClick={() => onSelect({ type: "all" })}
@@ -194,7 +197,7 @@ export function VaultTree({
 
       <TreeItem
         icon={<Star className="w-4 h-4" />}
-        label="Starred"
+        label={t("drive:vault.tree.starred", "Starred")}
         count={starredCount}
         active={isSameNode(selected, { type: "starred" })}
         onClick={() => onSelect({ type: "starred" })}
@@ -203,7 +206,7 @@ export function VaultTree({
       <div className="my-2 mx-3 border-t border-border" />
 
       <SectionHeader
-        label="My Folders"
+        label={t("drive:vault.tree.myFolders", "My folders")}
         open={foldersOpen}
         onToggle={() => setFoldersOpen((open) => !open)}
         action={
@@ -215,8 +218,8 @@ export function VaultTree({
                 onCreateFolder();
               }}
               className="h-6 w-6 rounded-md inline-flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/8 transition-colors"
-              aria-label="Create folder"
-              title="Create folder"
+              aria-label={t("drive:vault.tree.createFolder", "Create folder")}
+              title={t("drive:vault.tree.createFolder", "Create folder")}
             >
               <FolderPlus className="w-3.5 h-3.5" />
             </button>
@@ -224,7 +227,7 @@ export function VaultTree({
         }
       />
 
-      {foldersOpen && folders.length === 0 && <p className="text-xs text-muted-foreground px-7 py-1">No folders yet</p>}
+      {foldersOpen && folders.length === 0 && <p className="text-xs text-muted-foreground px-7 py-1">{t("drive:vault.tree.noFolders", "No folders yet")}</p>}
 
       {foldersOpen && folders.length > 0 && onCreateSubfolder && onRenameFolder && onDeleteFolder && (
         <div className="px-1">
@@ -254,7 +257,7 @@ export function VaultTree({
 
       <TreeItem
         icon={<Users className="w-4 h-4" />}
-        label="Shared with Me"
+        label={t("drive:vault.tree.shared", "Shared with me")}
         count={sharedCount}
         active={isSameNode(selected, { type: "shared" })}
         onClick={() => onSelect({ type: "shared" })}
@@ -263,7 +266,7 @@ export function VaultTree({
       <div className="my-2 mx-3 border-t border-border" />
 
       <SectionHeader
-        label="Client Upload Links"
+        label={t("drive:vault.tree.uploadLinks", "Client upload links")}
         open={linksOpen}
         onToggle={() => setLinksOpen((open) => !open)}
         action={
@@ -276,12 +279,12 @@ export function VaultTree({
                 : "text-muted-foreground hover:text-foreground hover:bg-primary/8"
             }`}
           >
-            Manage
+            {t("drive:vault.tree.manage", "Manage")}
           </button>
         }
       />
 
-      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-muted-foreground px-7 py-1">No upload links yet</p>}
+      {linksOpen && sortedDropTokens.length === 0 && <p className="text-xs text-muted-foreground px-7 py-1">{t("drive:vault.tree.noUploadLinks", "No upload links yet")}</p>}
 
       {linksOpen &&
         sortedDropTokens.map((token) => {
@@ -293,15 +296,15 @@ export function VaultTree({
 
           const badge = inactive ? (
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
-              {used ? "sealed" : "expired"}
+              {used ? t("drive:vault.tree.sealed", "sealed") : t("drive:vault.tree.expired", "expired")}
             </span>
           ) : expiringSoon ? (
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
-              expiring
+              {t("drive:vault.tree.expiring", "expiring")}
             </span>
           ) : (
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0">
-              active
+              {t("drive:vault.tree.active", "active")}
             </span>
           );
 
@@ -333,7 +336,7 @@ export function VaultTree({
       <div className="my-2 mx-3 border-t border-border" />
 
       <SectionHeader
-        label="File Requests"
+        label={t("drive:vault.tree.fileRequests", "File requests")}
         open={true}
         onToggle={() => undefined}
         action={
@@ -346,13 +349,13 @@ export function VaultTree({
                 : "text-muted-foreground hover:text-foreground hover:bg-primary/8"
             }`}
           >
-            Manage
+            {t("drive:vault.tree.manage", "Manage")}
           </button>
         }
       />
       <TreeItem
         icon={<Inbox className="w-4 h-4" />}
-        label="Manage Requests"
+        label={t("drive:vault.tree.manageRequests", "Manage requests")}
         active={isSameNode(selected, { type: "manage-requests" })}
         onClick={() => onSelect({ type: "manage-requests" })}
         depth={1}

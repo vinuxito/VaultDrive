@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import { getFileCredentialScheme } from "../../utils/file-credential";
+import { useTranslation } from "react-i18next";
 
 export interface BulkDownloadFile {
   id: string;
@@ -49,6 +50,11 @@ export function BulkDownloadModal({
   onDownloadFile,
   onClose,
 }: BulkDownloadModalProps) {
+  const { t } = useTranslation(["drive"]);
+  const copy = (key: string, fallback: string) => {
+    const value = t(key, { defaultValue: fallback });
+    return value === key ? fallback : value;
+  };
   const needsPin = files.some((file) => {
     const scheme = getFileCredentialScheme(file);
     return scheme === "drop-pin" || scheme === "pin";
@@ -56,6 +62,9 @@ export function BulkDownloadModal({
   const needsPassword = files.some(
     (file) => getFileCredentialScheme(file) === "password",
   );
+  const passwordFileCount = files.filter(
+    (file) => getFileCredentialScheme(file) === "password",
+  ).length;
 
   const { getCredential, clearCredential } = useSessionVault();
 
@@ -151,6 +160,7 @@ export function BulkDownloadModal({
       aria-modal="true"
       aria-labelledby="bulk-download-title"
       aria-describedby="bulk-download-description"
+      aria-busy={running}
     >
       <Card className="w-full max-w-lg mx-4 max-h-[85vh] flex flex-col border bg-card border-border text-foreground">
         <CardHeader className="border-b border-border shrink-0">
@@ -160,31 +170,33 @@ export function BulkDownloadModal({
               className="flex items-center gap-2 text-foreground"
             >
               <Download className="w-5 h-5 text-primary" />
-              Download {files.length} file{files.length !== 1 ? "s" : ""}
+              {files.length === 1
+                ? copy("drive:transfers.bulk.titleOne", "Download 1 file")
+                : copy("drive:transfers.bulk.titleMany", `Download ${files.length} files`).replace("{{count}}", String(files.length))}
             </CardTitle>
             {!running && (
               <button
                 type="button"
                 onClick={onClose}
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Close"
+                aria-label={copy("drive:transfers.common.close", "Close")}
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <CardDescription id="bulk-download-description" className="text-muted-foreground">
+          <CardDescription id="bulk-download-description" className="text-muted-foreground" aria-live="polite">
             {files.length === 0
-              ? "No files selected."
+              ? copy("drive:transfers.bulk.noneSelected", "No files selected.")
               : done
-              ? "Browser save requests started for all selected files."
+              ? copy("drive:transfers.bulk.saveStarted", "Browser save requests started for all selected files.")
               : stopped
-              ? "Download stopped at the first failure. Correct the issue, then retry."
+              ? copy("drive:transfers.bulk.stopped", "Download stopped at the first failure. Correct the issue, then retry.")
               : credentialsReady && !needsPin && !needsPassword
-              ? "Ready to download — click Start to decrypt and download."
+              ? copy("drive:transfers.bulk.ready", "Ready to download — click Start to decrypt and download.")
               : credentialsReady
-              ? "Credentials ready — click Start to decrypt and download."
-              : "Enter credentials, then click Start to decrypt and download."}
+              ? copy("drive:transfers.bulk.credentialsReady", "Credentials ready — click Start to decrypt and download.")
+              : copy("drive:transfers.bulk.enterCredentials", "Enter credentials, then click Start to decrypt and download.")}
           </CardDescription>
         </CardHeader>
 
@@ -206,9 +218,9 @@ export function BulkDownloadModal({
                     className="text-sm font-medium flex items-center gap-1.5 text-foreground"
                   >
                     <Key className="w-3.5 h-3.5" />
-                    4-digit PIN
+                    {copy("drive:transfers.bulk.pinLabel", "4-digit PIN")}
                     <span className="text-xs text-muted-foreground">
-                      (used across your vault)
+                      {copy("drive:transfers.bulk.pinHint", "(used across your vault)")}
                     </span>
                   </label>
                   <input
@@ -234,9 +246,9 @@ export function BulkDownloadModal({
                     className="text-sm font-medium flex items-center gap-1.5 text-foreground"
                   >
                     <Key className="w-3.5 h-3.5" />
-                    File credential
+                    {copy("drive:transfers.bulk.passwordLabel", "File credential")}
                     <span className="text-xs text-muted-foreground">
-                      (only for older non-PIN files)
+                      {copy("drive:transfers.bulk.passwordHint", "(only for older non-PIN files)")}
                     </span>
                   </label>
                   <input
@@ -247,9 +259,14 @@ export function BulkDownloadModal({
                     autoFocus={!needsPin && needsPassword}
                     value={passwordCredential}
                     onChange={(e) => setPasswordCredential(e.target.value)}
-                    placeholder="Enter password"
+                    placeholder={copy("drive:transfers.bulk.passwordPlaceholder", "Enter password")}
                     className="w-full px-3 py-2 border rounded-md focus:outline-none bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
+                  {passwordFileCount > 1 && (
+                    <p className="rounded-lg border border-amber-300/60 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:text-amber-200" role="note">
+                      {copy("drive:transfers.bulk.mixedPasswordWarning", "This batch uses one file password for all password-protected files. If these files were encrypted with different passwords, download them individually.")}
+                    </p>
+                  )}
                 </div>
               )}
               </div>
@@ -281,7 +298,7 @@ export function BulkDownloadModal({
                       {file.filename}
                     </p>
                     {status === "error" && fileErrors[file.id] && (
-                      <p className="text-xs truncate mt-0.5 text-destructive">
+                      <p className="text-xs break-words mt-0.5 text-destructive" role="alert">
                         {fileErrors[file.id]}
                       </p>
                     )}
@@ -302,7 +319,7 @@ export function BulkDownloadModal({
                 onClick={onClose}
                 className="w-full font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Done
+                {copy("drive:transfers.common.done", "Done")}
               </Button>
             ) : (
               <>
@@ -312,7 +329,7 @@ export function BulkDownloadModal({
                   onClick={onClose}
                   disabled={running}
                 >
-                  Cancel
+                  {copy("drive:transfers.common.cancel", "Cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -322,12 +339,14 @@ export function BulkDownloadModal({
                   {running ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Downloading...
+                      {copy("drive:transfers.bulk.downloading", "Downloading…")}
                     </>
                   ) : (
                     <>
                       <Download className="w-4 h-4" />
-                      {stopped ? "Retry Downloads" : "Start Download"}
+                      {stopped
+                        ? copy("drive:transfers.bulk.retry", "Retry Downloads")
+                        : copy("drive:transfers.bulk.start", "Start Download")}
                     </>
                   )}
                 </Button>

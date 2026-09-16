@@ -508,7 +508,7 @@ export default function AccessCenter() {
             {/* ALL TAB */}
             {tab === "all" && (
               filteredAllItems.length === 0 && !relevantLoading && !relevantError ? (
-                <EmptyState />
+                <EmptyState filtered={statusFilter !== "all"} onClear={() => setStatusFilter("all")} />
               ) : (
                 <div className="space-y-2">
                   {filteredAllItems.map((item, idx) =>
@@ -524,7 +524,7 @@ export default function AccessCenter() {
 
             {/* SHARES TAB */}
             {tab === "shares" && (
-              filteredShares.length === 0 && !relevantLoading && !relevantError ? <EmptyState /> : (
+              filteredShares.length === 0 && !relevantLoading && !relevantError ? <EmptyState filtered={statusFilter !== "all"} onClear={() => setStatusFilter("all")} /> : (
                 <div className="space-y-2">
                   {filteredShares.map((s) => (
                     <ShareCard key={s.id} item={s} copiedId={copiedId} actionsDisabled={shareSource.stale} onRecover={beginRecovery} onRevoke={setConfirmRevoke} />
@@ -535,7 +535,7 @@ export default function AccessCenter() {
 
             {/* DROP TAB */}
             {tab === "drop" && (
-              filteredDrops.length === 0 && !relevantLoading && !relevantError ? <EmptyState /> : (
+              filteredDrops.length === 0 && !relevantLoading && !relevantError ? <EmptyState filtered={statusFilter !== "all"} onClear={() => setStatusFilter("all")} /> : (
                 <div className="space-y-2">
                   {filteredDrops.map((d) => (
                     <DropCard key={d.id} item={d} status={dropStatus(d)} />
@@ -629,11 +629,30 @@ function SourceStatus<T>({
   );
 }
 
-function EmptyState() {
+function EmptyState({ filtered, onClear }: { filtered: boolean; onClear: () => void }) {
+  const { t } = useTranslation(["drive"]);
   return (
     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
       <FileQuestion className="w-8 h-8 opacity-30" />
-      <p className="text-sm">No access grants match this filter.</p>
+      <p className="text-sm font-medium text-foreground">
+        {filtered
+          ? t("drive:accessCenter.empty.filtered", { defaultValue: "No access routes match this filter" })
+          : t("drive:accessCenter.empty.title", { defaultValue: "No access routes yet" })}
+      </p>
+      <p className="max-w-sm text-center text-xs">
+        {filtered
+          ? t("drive:accessCenter.empty.filteredDescription", { defaultValue: "Clear the filter to review all share links and upload routes." })
+          : t("drive:accessCenter.empty.description", { defaultValue: "Create a share link or an upload route from Files when you need to give someone access." })}
+      </p>
+      {filtered ? (
+        <Button type="button" variant="outline" size="sm" onClick={onClear}>
+          {t("drive:accessCenter.empty.clear", { defaultValue: "Clear filter" })}
+        </Button>
+      ) : (
+        <Button asChild variant="outline" size="sm">
+          <Link to="/files">{t("drive:accessCenter.empty.openFiles", { defaultValue: "Open Files" })}</Link>
+        </Button>
+      )}
     </div>
   );
 }

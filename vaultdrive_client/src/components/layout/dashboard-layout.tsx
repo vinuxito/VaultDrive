@@ -356,8 +356,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
         sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
         )}>
-        <header className="sticky top-0 z-30 lux-navbar px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm shadow-primary/5">
-          <div className="flex items-center gap-2">
+        <header className="sticky top-0 z-30 lux-navbar px-2 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-1 sm:gap-3 shadow-sm shadow-primary/5">
+          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -389,7 +389,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1 sm:gap-3">
             {branding.logoVariant === "abrn" && !isOnline && (
               <div 
                 data-testid="offline-badge-abrn"

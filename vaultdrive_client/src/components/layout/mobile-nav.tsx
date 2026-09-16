@@ -2,11 +2,13 @@ import { CircleHelp, Files, LayoutDashboard, LogOut, Settings, Share2, ShieldChe
 import { Link, useLocation } from "react-router-dom";
 import { useLogout, useTransitionNavigate } from "../../hooks";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { BrandLogo, PoweredByBadge } from "../branding";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
+import { useDialogFocus } from "../../hooks/useDialogFocus";
+import { isRouteActive } from "./navigation";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -27,6 +29,8 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const location = useLocation();
   const { t } = useTranslation(["common"]);
   const user = getStoredUserFromLocalStorage() ?? {};
+  const drawerRef = useRef<HTMLDivElement>(null);
+  useDialogFocus({ open: isOpen, onClose, containerRef: drawerRef });
 
   const [, setRefresh] = useState(0);
 
@@ -60,6 +64,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
     { to: "/profile", icon: <User />, label: t("common:nav.profile", "Profile") },
     { to: "/settings", icon: <Settings />, label: t("common:nav.settings", "Settings") },
     { to: "/help", icon: <CircleHelp />, label: t("common:nav.help", "Help Center") },
+    ...(user.is_admin === true
+      ? [{ to: "/admin", icon: <ShieldCheck />, label: t("common:nav.admin", "Admin") }]
+      : []),
   ];
 
   return (
@@ -67,16 +74,24 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
       <div
         className="fixed inset-0 bg-black/60 z-40 animate-fade-in md:hidden"
         onClick={onClose}
+        aria-hidden="true"
       />
-      <div className="fixed inset-y-0 left-0 w-[280px] elegant-overlay z-50 animate-slide-right flex flex-col md:hidden">
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("common:nav.mainNavigation")}
+        tabIndex={-1}
+        className="fixed inset-y-0 left-0 w-[min(280px,calc(100vw-1rem))] elegant-overlay z-50 animate-slide-right flex flex-col md:hidden"
+      >
         <div className="flex items-center justify-between p-4 border-b border-primary/15">
-          <Link to="/" onClick={onClose} className="flex items-center gap-2">
+          <Link to="/" onClick={onClose} className="flex items-center gap-2" aria-label={t("common:nav.home")}>
             <BrandLogo className="h-8" />
           </Link>
           <button
             onClick={onClose}
             className="p-2 hover:bg-primary/10 rounded-full transition-colors"
-            aria-label="Close menu"
+            aria-label={t("common:nav.closeMenu")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -91,9 +106,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                   {getInitials(user.first_name) || "?"}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <p className="font-medium text-foreground">{user.first_name} {user.last_name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">{user.first_name} {user.last_name}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
               </div>
             </Link>
           </div>
@@ -108,7 +123,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 icon={item.icon}
                 label={item.label}
                 onClick={onClose}
-                isActive={location.pathname === item.to}
+                isActive={isRouteActive(location.pathname, item.to)}
               />
             ))}
         </nav>
@@ -121,7 +136,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 onClose();
               }}
               className="w-full flex items-center gap-3 p-3 rounded-lg text-red-700 dark:text-red-300 hover:bg-red-500/10 hover:text-red-800 dark:hover:text-red-200 transition-colors"
-              aria-label="Logout"
+              aria-label={t("common:nav.logout")}
             >
               <LogOut className="w-5 h-5" />
               <span className="font-medium text-sm">{t("common:nav.logout", "Logout")}</span>
@@ -157,7 +172,7 @@ function NavLink({ to, icon, label, onClick, isActive, handler }: NavLinkProps) 
         "flex items-center gap-3 p-3 rounded-lg transition-colors text-foreground/80",
         isActive ? "bg-primary/15 text-foreground font-semibold" : "hover:bg-primary/10 hover:text-foreground"
       )}
-      role="menuitem"
+      aria-current={isActive ? "page" : undefined}
     >
       <span className="w-5 h-5">{icon}</span>
       <span className="font-medium text-sm">{label}</span>

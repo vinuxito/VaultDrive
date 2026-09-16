@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { relativeTime } from "../utils/format";
 import { useTranslation, Trans } from "react-i18next";
 import { API_URL } from "../utils/api";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
@@ -78,19 +79,6 @@ function getActivityIcon(eventType: string): React.ElementType {
   return Activity;
 }
 
-function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
-}
-
 function SkeletonCard() {
   return (
     <div className="rounded-2xl border border-primary/10 bg-card/60 p-5 animate-pulse flex flex-col h-full">
@@ -105,7 +93,8 @@ function SkeletonCard() {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { t } = useTranslation(["drive", "common"]);
+  const { t, i18n } = useTranslation(["drive", "common"]);
+  const formatRelativeTime = (date: string) => relativeTime(date, i18n.language);
   const copy = (key: string, fallback: string) => {
     const translated = t(key, { defaultValue: fallback });
     return translated === key ? fallback : translated;
@@ -236,21 +225,21 @@ export default function Dashboard() {
       description: t("drive:dashboard.start.uploadDesc", "Add encrypted files to your vault"),
       icon: Upload,
       color: "bg-primary hover:bg-primary/90 text-primary-foreground",
-      onClick: () => navigate("/files"),
+      onClick: () => navigate("/files", { state: { onboardingTask: "upload" } }),
     },
     {
       label: t("drive:dashboard.start.createLink", "Create Client Upload Link"),
       description: t("drive:dashboard.start.createLinkDesc", "Create a secure link for client file delivery"),
       icon: FolderPlus,
       color: "bg-violet-700 hover:bg-violet-800 text-white",
-      onClick: () => navigate("/files"),
+      onClick: () => navigate("/files", { state: { onboardingTask: "receive" } }),
     },
     {
       label: t("drive:dashboard.start.share", "Share a File"),
       description: t("drive:dashboard.start.shareDesc", "Securely share with a user"),
       icon: Share2,
       color: "bg-emerald-700 hover:bg-emerald-800 text-white",
-      onClick: () => navigate("/files"),
+      onClick: () => navigate("/files", { state: { onboardingTask: "share" } }),
     },
     {
       label: t("drive:dashboard.start.createRoom", "Create ZK Room"),
@@ -269,7 +258,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            {t("drive:dashboard.secure", "Your vault is secure.")}
+            {t("drive:dashboard.secure", "Review your files, deliveries and access.")}
           </p>
         </div>
 
@@ -283,8 +272,8 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">{t("drive:dashboard.attention.healthy", "Everything looks healthy")}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t("drive:dashboard.attention.healthyDesc", "No active links expiring soon, no stale shares")}</p>
+                    <p className="text-sm font-medium text-foreground">{t("drive:dashboard.attention.healthy", "No attention items in the latest check")}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("drive:dashboard.attention.healthyDesc", "No expiring links or unused old shares were reported. This is not a security audit.")}</p>
                   </div>
                 </div>
               ) : (

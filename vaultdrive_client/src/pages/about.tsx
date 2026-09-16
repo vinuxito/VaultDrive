@@ -1,6 +1,7 @@
 import { Shield, Users, Target, Github } from "lucide-react";
 import { Button } from "../components/ui/button";
 import VaultIcon from "../components/ui/vault-icon";
+import { branding } from "../config/branding";
 
 export default function About() {
   return (
@@ -12,11 +13,11 @@ export default function About() {
             <VaultIcon className="w-20 h-20 drop-shadow-xl" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 brand-gradient-text">
-            About VaultDrive
+            About {branding.productName}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A secure file storage solution built as a college project
-            demonstrating modern web development practices
+            Browser-encrypted file storage with visible access controls,
+            recoverable workflows, and an auditable history.
           </p>
         </div>
 
@@ -36,10 +37,8 @@ export default function About() {
               that individuals can trust with their sensitive information.
             </p>
             <p>
-              VaultDrive was created to address these concerns by implementing
-              industry-standard security practices in a practical, real-world
-              application. Our goal was to build a system that not only stores
-              files securely but also demonstrates best practices in:
+              {branding.productName} was created to make encrypted file storage
+              understandable in day-to-day work. The product combines:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>Secure authentication using JWT tokens and bcrypt password hashing</li>
@@ -49,52 +48,52 @@ export default function About() {
               <li>Responsive UI design with Tailwind CSS and shadcn/ui components</li>
             </ul>
             <p>
-              This project serves as a comprehensive learning experience,
-              covering the full stack of web development—from database design
-              and backend API development to frontend user interface and user
-              experience design.
+              Security claims are tied to the actual access path. Secure Drop,
+              account sharing, link sharing, and recovery can have different
+              credentials and limits; the interface and Help Center explain
+              those differences where the user acts.
             </p>
           </div>
         </div>
 
-        {/* Team Section */}
+        {/* Product principles */}
         <div className="brand-glass-card p-8 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Users className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="text-xl font-semibold">Development Team</h2>
+            <h2 className="text-xl font-semibold">Product principles</h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-6">Computer Science Students · 2025</p>
+          <p className="text-sm text-muted-foreground mb-6">Clarity, control, and evidence at every step</p>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="brand-glass-card p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary">PG</span>
+                  <span className="text-2xl font-bold text-primary">01</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Pranay Ghuge</h3>
-                  <p className="text-sm text-muted-foreground">Full Stack Developer</p>
+                  <h3 className="text-lg font-semibold">Understand the prompt</h3>
+                  <p className="text-sm text-muted-foreground">Credentials stay specific to the task</p>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Full Stack Development, System Architecture, Security Implementation, and UI/UX Design
+                Account passwords, vault PINs, sender passwords, and link credentials are labeled by purpose.
               </p>
             </div>
 
             <div className="brand-glass-card p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary">AD</span>
+                  <span className="text-2xl font-bold text-primary">02</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Arundhati Das</h3>
-                  <p className="text-sm text-muted-foreground">Full Stack Developer</p>
+                  <h3 className="text-lg font-semibold">Trust the result</h3>
+                  <p className="text-sm text-muted-foreground">Confirmed outcomes remain visible</p>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Full Stack Development, System Architecture, Security Implementation, and UI/UX Design
+                Access, expiry, recovery limits, and operation status are stated without unsupported guarantees.
               </p>
             </div>
           </div>
@@ -169,7 +168,7 @@ export default function About() {
           <Button
             size="lg"
             className="gap-2 brand-btn-primary"
-            onClick={() => window.open("https://github.com/Pranay0205/VaultDrive", "_blank")}
+            onClick={() => window.open("https://github.com/vinuxito/VaultDrive", "_blank")}
           >
             <Github className="w-5 h-5" />
             View Source Code
