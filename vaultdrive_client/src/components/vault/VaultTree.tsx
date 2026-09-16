@@ -97,7 +97,7 @@ function TreeItem({ icon, label, count, depth = 0, active, onClick, badge }: Tre
       type="button"
       onClick={onClick}
       className={`
-        w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors
+        w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors cursor-pointer select-none active:scale-[0.99]
         ${
           active
             ? "bg-primary/10 text-foreground font-medium"
@@ -133,7 +133,7 @@ interface SectionHeaderProps {
 function SectionHeader({ label, open, onToggle, action }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 group">
-      <button type="button" onClick={onToggle} aria-expanded={open} className="flex-1 flex items-center gap-1.5 text-left">
+      <button type="button" onClick={onToggle} aria-expanded={open} className="flex-1 flex items-center gap-1.5 text-left cursor-pointer select-none">
         <span className="text-muted-foreground group-hover:text-foreground transition-colors">
           {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </span>
@@ -217,7 +217,7 @@ export function VaultTree({
                 event.stopPropagation();
                 onCreateFolder();
               }}
-              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/8 transition-colors"
+              className="h-6 w-6 rounded-md inline-flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/8 transition-colors cursor-pointer select-none"
               aria-label={t("drive:vault.tree.createFolder", "Create folder")}
               title={t("drive:vault.tree.createFolder", "Create folder")}
             >
@@ -273,7 +273,7 @@ export function VaultTree({
           <button
             type="button"
             onClick={() => onSelect({ type: "manage-drops" })}
-            className={`text-xs px-1.5 py-0.5 rounded-md transition-colors ${
+            className={`text-xs px-1.5 py-0.5 rounded-md transition-colors cursor-pointer select-none ${
               isSameNode(selected, { type: "manage-drops" })
                 ? "bg-primary/15 text-foreground font-medium"
                 : "text-muted-foreground hover:text-foreground hover:bg-primary/8"

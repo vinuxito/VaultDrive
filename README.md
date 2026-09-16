@@ -1,163 +1,52 @@
-# QuantiX Drive
+# ABRN Drive
 
-> Zero-knowledge encrypted cloud drive. Browser-side encryption, scoped agent access, and full auditability — deploy under your own brand and domain.
+ABRN Drive is the ABRN-branded deployment of the QuantiX Drive codebase: a browser-encrypted file vault with controlled sharing, Secure Drop intake, recovery, audit history and scoped automation.
 
-QuantiX Drive is a self-hostable file control plane where every file is encrypted in the browser before it ever reaches the server. The server stores ciphertext only. Owners share time-limited links, collect files from partners without accounts, and delegate scoped access to AI agents or external systems — all without compromising the zero-knowledge boundary.
+The trust boundary is specific. Supported browser flows encrypt file contents before upload and the service stores ciphertext, while filenames, sizes and access metadata remain visible to the service. Secure Drop includes server-managed delivery-key recovery, and account recovery uses server-coordinated custodian state. Those exceptions are documented behavior; this repository does not claim universal zero knowledge.
 
-QuantiX Drive is designed as a reusable **upstream product**. Deployments brand and configure it through environment variables; downstream overlays (e.g. an internal enterprise fork) only need to override configuration, assets, and optionally a handful of branding components.
+## Current release status (2026-09-16)
 
----
+The UI/UX coherence implementation is prepared and verified in the environments recorded by the project, but it is **not declared production-ready or deployed by this documentation update**. The coordinated release couples the reviewed backend, ABRN frontend and schema migration 50. Schema 49→50 must use the private staged release bundle; do not build in the shared application tree, run ad hoc migrations, or restart the service separately.
 
-## UI/UX coherence roadmap (2026-09-14)
+- [Coordinated ABRN release procedure](docs/runbooks/abrn-coherence-release.md)
+- [Canonical release installer](deploy/release/README.md)
+- [Trust-copy contract](docs/trust-copy-contract.md)
+- [Final coherence verification report](docs/reports/2026-09-16-ui-ux-coherence-verification.md) — release owner supplies final counts, build identity and verdict
+- [Seven-step coherence roadmap](docs/roadmaps/2026-09-14-ui-ux-coherence-upgrade-roadmap/index.md)
 
-[Current assessment and seven-step roadmap](docs/roadmaps/2026-09-14-ui-ux-coherence-upgrade-roadmap/index.md)
-for this ABRN deployment: source evidence, live/browser observations, prioritized
-journey repairs and testable acceptance criteria. Proposed work; no app changes
-are included in the roadmap commit.
+The following human gates remain outstanding unless the final report records otherwise: five-person unassisted journeys; native 200% zoom/reflow and assistive-technology review; physical phone/tablet coverage; real passkey behavior; actual browser/OS save-and-open behavior; reboot survival; and a coherent database/binary/frontend restore drill.
 
-## Frontend lint repair (2026-09-14)
+## Historical verification snapshots
 
-**Lint: 0 errors, 0 warnings**, using the unchanged rules. **265 unit tests
-passed, 1 skipped**; TypeScript and production build passed. **30 staged browser
-tests and 6 published smoke tests passed**, retaining all six templates and the
-PIN/download fixes. No dependencies added; no sudo or service restart required.
-See the [verification report](docs/reports/2026-09-14-frontend-lint-verification.md),
-[HTML report](docs/reports/2026-09-14-frontend-lint-verification.html), and
-[session record](docs/memories/session-2026-09-14-frontend-lint.md).
+These figures describe earlier dated checkpoints. They are retained for traceability and are not current release acceptance:
 
-## Six-template contrast repair (2026-09-14)
+- **2026-09-16 v11 Sovereign Vault UI/UX checkpoint:** 100 test files passed (484/484 tests, 0 failed); strict TypeScript compiler clean (0 errors); production bundle published; Golden SHA-256 seal, cipher specs, and live route HUD verified live. [Report](docs/reports/2026-09-16-v11-sovereign-vault-ux-verification.md) | [Executive Dashboard](docs/reports/2026-09-16-v11-sovereign-vault-ux-verification.html) | [Roadmap Index](docs/plans/v11-sovereign-vault-ux-index.md).
+- **2026-09-14 frontend lint checkpoint:** 265 unit tests passed, 1 skipped; 30 staged browser tests and 6 published smoke tests. [Report](docs/reports/2026-09-14-frontend-lint-verification.md).
+- **2026-09-14 six-template contrast checkpoint:** 246 unit tests passed, 1 skipped; 30 public browser tests; 426 recorded visual states. [Report](docs/reports/2026-09-14-theme-contrast-verification.md).
+- **2026-09-14 download/PIN checkpoint:** 162 frontend tests passed, 1 skipped; four local and four then-public browser regressions passed. [Report](docs/reports/2026-09-14-download-pin-verification.md).
+- **2026-09-14 service recovery checkpoint:** the then-installed service was active/enabled and readiness saw 439 stored files. Reboot and authenticated journeys were not exercised. [Report](docs/reports/2026-09-14-service-recovery-verification.md).
+- Older reports and counts elsewhere in this README are historical source records; use the 2026-09-16 final report for the release decision.
 
-All six existing templates retain their palette and layout while fixing unreadable
-panels, controls and dialogs. Verification: **246 unit tests passed, 1 skipped**;
-**30 public browser tests passed**, including download/PIN regressions;
-**426 recorded visual states** across all 21 route patterns, desktop and phone
-viewports. No recorded contrast failures or horizontal overflows. The 75 pre-existing lint errors and 29 warnings recorded at that checkpoint
-were subsequently resolved by the frontend lint repair above.
-See the [verification report](docs/reports/2026-09-14-theme-contrast-verification.md),
-[HTML gallery](docs/reports/2026-09-14-theme-contrast-verification.html), and
-[session record](docs/memories/session-2026-09-14-theme-contrast.md).
+## Build and deployment boundary
 
-## Download/PIN repair (2026-09-14)
-
-The download dialog preserves its selection during autofill and displays the
-correct PIN/credential prompt. Wrong-PIN retries remain editable and only
-successfully verified decryption keys are cached. Frontend unit tests: **162
-passed, 1 skipped**; local browser download regressions: **4 passed**.
-The production frontend is deployed; all **4 browser regressions also passed
-against the public deployed assets**, using encrypted test files.
-See the [verification report](docs/reports/2026-09-14-download-pin-verification.md)
-and [HTML report](docs/reports/2026-09-14-download-pin-verification.html).
-
-## Service recovery (2026-09-14)
-
-The ABRN backend service is installed, **active and enabled** after recovery
-from a public 503. Public health, readiness and the landing page return **HTTP 200**;
-readiness verifies **439/439 stored files**. The live login page renders without
-console errors. Reboot and authenticated workflows were not exercised.
-See the [verification report](docs/reports/2026-09-14-service-recovery-verification.md),
-[HTML report](docs/reports/2026-09-14-service-recovery-verification.html), and
-[service installation instructions](deploy/systemd/README.md).
-
-## Current Status (2026-07-10 — v10 ZK Shared Folders & Key Exchange)
-
-**Production-ready.** Zero-Knowledge Multi-User Shared Folders & Client-Side Key Exchange has been fully implemented, type-checked, and compiled with zero errors.
-
-| Check | Result |
-|-------|--------|
-| TypeScript typecheck | ✅ 0 errors |
-| Frontend production build | ✅ pass (built in 36s) |
-| Backend unit tests | ✅ pass |
-| Go metrics `/metrics` route | ✅ HTTP 200 |
-| Go health `/healthz` route | ✅ HTTP 200 |
-
-**Latest Session Memory:**
-- v10 ZK Shared Folders & Key Exchange (2026-07-10): [docs/memories/SESSION_MEMORY_2026-07-10-zk-shared-folders.md](docs/memories/SESSION_MEMORY_2026-07-10-zk-shared-folders.md)
-- v9 Go Live in 24 Hours (2026-07-10): [docs/memories/v9_go_live.md](docs/memories/v9_go_live.md)
-
-**Latest Verification Reports:**
-- Production Verification Report: [docs/verification_report.html](docs/verification_report.html)
-- HTML QA Feature Coverage Report (Necio Certified): [docs/reports/2026-06-24-qa-feature-coverage-report.html](docs/reports/2026-06-24-qa-feature-coverage-report.html)
-
-**Dual overall verdict (2026-07-10):**
-* **Functional:** PASS
-* **Necio Usability:** CERTIFIED ("está fácil")
-
-
-
-
----
-
-## Deploy / Build Runbook
-
-> Single source of truth: `Makefile`, `START_HERE.txt`, `/etc/systemd/system/quantixdrive.service`. Every code change must end with a redeploy or it never reaches the live URL.
-
-**One-shot deploy (preferred):**
-
-```bash
-cd /lamp/www/QuantiX-Drive
-make deploy            # frontend build + backend build + systemd restart + live smoke
-```
-
-`make deploy` chains `build-frontend`, `build-backend` (`build-prod`), `deploy-restart`
-(requires sudo), and `deploy-smoke` (probes `/api/healthz`, `POST /api/register {}` for 400,
-and `/quantix/`). Any non-2xx (or non-400 for the register probe) fails the target —
-so a broken deploy stops the pipeline instead of going silently live.
-
-**Manual fallback (if you need to run the steps individually):**
-
-```bash
-# Frontend (regenerates vaultdrive_client/dist/)
-cd /lamp/www/QuantiX-Drive/vaultdrive_client
-npm run build         # ~12 s; emits dist/index.html + assets/*
-
-# Backend (regenerates ./quantix-drive binary)
-cd /lamp/www/QuantiX-Drive
-go build -o quantix-drive
-
-# Restart prod service
-sudo systemctl restart quantixdrive
-systemctl is-active quantixdrive   # expect: active
-
-# Smoke
-curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/quantix/
-curl -s -o /dev/null -w '%{http_code}\n' https://quantixdrive.filemonprime.net/api/healthz
-```
-
-Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/etc/quantix/quantixdrive.env`. Logs: `journalctl -u quantixdrive -f`.
-
-**What's new since the last verification:**
-- **Step 4, 5 & 6: Onboarding, Visual Feedback & Liveness Checklists (2026-06-08):**
-  - **Onboarding Folder Seeding:** Automatically seeds "My Vault" and "External Drops" folders upon user signup to eliminate blank dashboards.
-  - **Session Credential Caching:** Caches private keys and derived credentials in `sessionStorage` (encrypted via an ephemeral page-load AES-GCM key) to prevent repetitive PIN entry prompts.
-  - **Visual Copy confirmation (Arturo Test compliant):** Updates copy fields to highlight borders and overlay badges ("Copied!") using product-specific palettes (neon cyan for QuantiX, burgundy for ABRN).
-  - **Non-blocking Row loaders:** Displays inline `Loader2` spinners inside file lists during downloads and deletions, keeping the interface fluid and responsive.
-  - **Live Countdown labels:** Implements ticking timers directly inside share link lists indicating expiration (e.g. `Expires in 2h 14m`).
-  - **Liveness & Readiness Probes:** Wires `/health` and `/ready` endpoints on the Go backend (monitoring database socket, goose migrations, directory permissions, and secrets with context timeouts).
-- **Step 3: Multi-Custodian Shamir Recovery (2026-06-08):**
-- Previous: Phase V Steps 1-4 (Theme Coherence, Language Switcher, Toast System, i18n Completion).
-
-**Latest verification (Filemón Coder loop, 2026-06-08):**
-- Session memory: [docs/memories/session-2026-06-08-shamir-recovery.md](docs/memories/session-2026-06-08-shamir-recovery.md)
-- MD report: [docs/reports/2026-06-08-shamir-recovery-verification.md](docs/reports/2026-06-08-shamir-recovery-verification.md)
-- HTML report: [docs/reports/2026-06-08-shamir-recovery-verification.html](docs/reports/2026-06-08-shamir-recovery-verification.html)
-
----
+Local development commands below are for isolated development environments. ABRN production release uses `deploy/release/` from a clean isolated checkout and a private user-owned stage. It preserves `/etc/abrndrive/runtime.env` and existing systemd configuration, backs up the database/binary/frontend together, runs bundled Goose v3.28.0, stops only `abrndrive.service`, and fails closed after the schema-50 boundary. No ordinary repository command implies authorization to deploy or restart a service.
 
 ## What It Does
 
 - **Store** — AES-256-GCM encrypted file vault. PIN-based access, session key cache, inline preview, vault-wide search via pg_trgm.
 - **Share** — Time-limited public links with the AES key in the URL fragment (never reaches the server). Expiry, access tracking, instant revoke.
 - **Collect** — Public drop portals with required-document checklists, reusable collection templates, and intake analytics. File Requests for per-recipient secure intake.
-- **Collaborate** — Share files and folders with users and groups via zero-knowledge RSA key exchange. Group management with member-level access control.
+- **Collaborate** — Share files and folders with users and groups via browser-side RSA key wrapping. Group management with member-level access control.
 - **Access Center** — Unified owner surface for all outbound access: file share links, folder share links, and drop routes, filtered by status.
 - **Skin** — Six built-in interface skins (QuantiX, Light, Dark, Cyberpunk, Elegant, Business) selectable per user. Default is the dark neon QuantiX aesthetic. All UI elements (buttons, borders, panels, dropdowns, shadows) are fully theme-aware via CSS custom properties — no hardcoded hex anywhere. Preference persisted in `localStorage`.
 - **Delegate** — Per-user Agent API Keys with granular scopes (`files:list`, `files:read_metadata`, `activity:read`, etc.), last-used tracking, and full revocability for AI agents and external systems.
 - **Audit** — Filterable audit log with CSV/JSON export; governance settings for retention, stale-link auto-expiry, and failed-access alerting.
 - **Control** — Stable `/api/v1/` surface, short-lived JWTs with refresh flow, per-route rate limiting, and one-time SSE tickets.
-- **Trust UX** — Every action the server takes is surfaced to the owner. Receipts show exact API calls, timestamps, and key events. No hidden operations.
+- **Trust UX** — Recorded access routes, mutation outcomes and supported audit events are surfaced without turning missing history into a safety claim. See the trust-copy contract for legacy and recovery limits.
 - **Help** — In-app Help Center (`/help`) with User Guide and Admin Guide. Fully localized (EN/ES). Admin sections hidden from non-admin users.
 - **Mobile** — Responsive layout with bottom navigation, safe-area insets for notched devices, and WCAG-compliant 44px touch targets.
 - **Accessible** — Skip-to-content link, visible focus rings, ARIA landmarks, semantic HTML, and `prefers-reduced-motion` support.
+- **Sovereign Vault UX (v11)** — Luxury spatial desktop interaction: universal pointer cursors across all interactive elements, smooth auto-scroll reset to top on folder navigation, return-scroll modal anchoring, Vim-style traversal (`J`/`K`/`Enter`/`Space`/`Backspace`/`X`), "The Lens" optical focus aperture animation, instant PIN tumbler auto-submit with procedural Web Audio micro-haptics, slide-out Cryptographic Passport drawer with Golden SHA-256 seal copy and live route HUD, full-window illuminated drag aura, Executive Staging Dock with verifiable cryptographic transfer slips, and frosted obsidian Privacy Shutter with 3-minute inactivity auto-lock.
 
 ---
 
@@ -178,9 +67,9 @@ Service is owned by `daemon`, working dir `/lamp/www/QuantiX-Drive`, env file `/
 ```
 
 - **Backend** — Go 1.24 HTTP server in a single binary. JWT auth, per-user RSA key envelopes, pg_trgm search, per-route rate limiting, SSE ticketing. `DB_URL` and `JWT_SECRET` validated at startup with explicit fatal errors.
-- **Frontend** — React 18 + TypeScript + Vite SPA. All crypto in-browser via Web Crypto API; backend never sees plaintext keys or file content. Styled with Tailwind CSS v4 + shadcn/ui, fully themed via CSS custom properties (`[data-theme]` on `<html>`).
-- **Database** — PostgreSQL 16, schema managed by [goose](https://github.com/pressly/goose) migrations in `sql/schema/` (44 migrations as of 2026-04-12).
-- **Deployment** — Multi-stage Dockerfile produces a single static binary with embedded frontend assets. CI publishes OCI images to GHCR.
+- **Frontend** — React + TypeScript + Vite SPA. Supported file-content flows use browser Web Crypto. The service stores ciphertext but can see operational metadata; Secure Drop delivery recovery and account recovery have documented server-coordinated exceptions. Styled with Tailwind CSS v4 + shadcn/ui, fully themed via CSS custom properties (`[data-theme]` on `<html>`).
+- **Database** — PostgreSQL 16, schema managed by pinned [goose](https://github.com/pressly/goose) migrations in `sql/schema/`. The coherence release requires the coordinated schema 49→50 procedure.
+- **Deployment** — The native ABRN service runs the installed Go binary and serves `vaultdrive_client/dist` from its configured working directory. Release artifacts are installed together through the private staged procedure.
 
 ---
 
@@ -333,10 +222,10 @@ Run `goose -dir sql/schema postgres "$DB_URL" up` once against your Postgres ins
 ### Backend
 
 ```bash
-cd /lamp/www/QuantiX-Drive
+# Run from an isolated development checkout, never the live shared tree.
 go test -race ./...
 go vet ./...
-go build -o quantix-drive
+go build ./...
 ```
 
 ### Frontend unit tests
@@ -349,7 +238,7 @@ npx tsc --noEmit  # type-check src/ (tsconfig.app.json)
 
 ### End-to-End (Playwright)
 
-The E2E suite covers 41 user flows across 11 spec files. It self-boots a local Go server, migrates an isolated Playwright database, and writes encrypted test uploads into a dedicated temporary upload directory. **41/41 pass as of 2026-05-22.**
+The local E2E harness self-boots a Go server, migrates an isolated Playwright database, and writes encrypted test uploads into a dedicated temporary directory. The earlier **41/41 result dated 2026-05-22 is historical**; current release acceptance comes from the linked 2026-09-16 report.
 
 ```bash
 # Self-bootstrapped local harness (recommended)
@@ -364,10 +253,18 @@ npx playwright test agent-key-lifecycle
 # Run with UI (headed)
 npx playwright test --headed
 
-# Override if you want a custom database or target URL
+# Override an isolated local database/upload directory
 E2E_DB_NAME=vaultdrive_playwright_alt \
 E2E_UPLOAD_DIR=/tmp/quantix-e2e-alt-uploads \
 npx playwright test
+```
+
+External execution requires the dedicated runner and both explicit environment targets; it never silently reuses the local harness:
+
+```bash
+E2E_BASE_URL='https://reviewed-host.example/abrn/' \
+E2E_API_BASE_URL='https://reviewed-host.example/api' \
+npm run test:e2e:external -- <reviewed-spec-list>
 ```
 
 E2E spec files live in `vaultdrive_client/e2e/`. Helper functions (account creation, login, onboarding) are in `vaultdrive_client/e2e/helpers/trust.ts`.
@@ -505,8 +402,8 @@ Downstream overlays should:
 
 ## Security
 
-- All file content is AES-256-GCM encrypted in the browser before upload. The server stores ciphertext only.
-- Per-user RSA key envelopes protect symmetric keys; the server never sees plaintext keys.
+- Supported file-content flows encrypt with AES-256-GCM in the browser before upload; the service stores ciphertext while retaining operational metadata such as filenames, sizes and access records.
+- Normal owner, user and group sharing uses client-side key wrapping. Secure Drop delivery-key recovery and account recovery are explicit server-coordinated exceptions documented in the trust contract.
 - Short-lived JWTs (30 min) with refresh token rotation. SSE connections use one-time tickets.
 - Per-route rate limiting: login 10/min, PIN 5/min, global 100/min. Loopback IPs exempt from login/PIN limits (dev/CI only).
 - All error responses from API handlers return JSON — no plain-text error leakage.
@@ -519,6 +416,8 @@ Report security issues privately to the repository owner.
 ## Docs
 
 Detailed session logs and feature documentation live in `docs/`:
+
+The pass counts and completion language in the dated documents below describe their historical checkpoints. They do not replace the current release report or the outstanding manual gates listed above.
 
 | Doc | Contents |
 |-----|---------|

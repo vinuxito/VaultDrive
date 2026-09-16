@@ -16,6 +16,7 @@ import {
 } from "../../utils/crypto";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 import { getFileCredentialScheme } from "../../utils/file-credential";
+import { playTumblerClick, playUnlockChime } from "../../utils/audioHaptics";
 
 export interface FileEntry {
   id: string;
@@ -303,6 +304,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         if (requestId !== previewGeneration.current) URL.revokeObjectURL(url);
         else setBlobUrl(url);
       }
+      playUnlockChime();
       return { success: true };
     } catch (err) {
       if ((err instanceof Error && err.name === "AbortError") || requestId !== previewGeneration.current) {
@@ -563,14 +565,24 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                     autoComplete="new-password"
                     name="preview-file-credential"
                     data-lpignore="true"
+                    autoFocus
                     inputMode={credType !== "password" ? "numeric" : undefined}
                     maxLength={credType !== "password" ? 4 : undefined}
                     value={credential}
-                    onChange={(e) => setCredential(
-                      credType !== "password"
-                        ? e.target.value.replace(/\D/g, "").slice(0, 4)
-                        : e.target.value
-                    )}
+                    onChange={(e) => {
+                      if (credType !== "password") {
+                        playTumblerClick();
+                        const nextVal = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setCredential(nextVal);
+                        if (nextVal.length === 4) {
+                          setTimeout(() => {
+                            void loadPreview(nextVal);
+                          }, 50);
+                        }
+                      } else {
+                        setCredential(e.target.value);
+                      }
+                    }}
                     placeholder={credType !== "password" ? "••••" : t("coherence.preview.passwordLabel", { defaultValue: "File password" })}
                     className={`w-full px-3 py-2 border rounded-lg bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none${credType !== "password" ? " text-center tracking-widest text-xl" : ""}`}
                     onKeyDown={(e) => { if (e.key === "Enter" && credential) handleCredentialSubmit(); }}
@@ -588,9 +600,23 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           )}
 
           {isLoading && (
-            <div role="status" className="flex items-center justify-center min-h-[200px] text-muted-foreground">
-              <Loader2 className="w-8 h-8 animate-spin mr-3" />
-              {t("coherence.preview.decrypting", { defaultValue: "Decrypting…" })}
+            <div role="status" className="flex flex-col items-center justify-center min-h-[220px] p-6 text-center space-y-4">
+              <div className="relative w-14 h-14 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                <div className="absolute inset-1.5 rounded-full border border-primary/30 border-b-primary animate-spin" style={{ animationDirection: "reverse" }} />
+                <ShieldCheck className="w-5 h-5 text-primary animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-foreground">
+                  {t("coherence.preview.decrypting", { defaultValue: "Decrypting…" })}
+                </div>
+                <div className="font-mono text-[10px] text-primary/80 tracking-widest uppercase">
+                  AES-256-GCM OPTICAL FOCUS
+                </div>
+                <div className="font-mono text-[10px] text-muted-foreground animate-pulse">
+                  4f1e a432 d88f b290 e712 99ca
+                </div>
+              </div>
             </div>
           )}
 

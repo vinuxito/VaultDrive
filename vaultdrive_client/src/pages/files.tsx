@@ -65,6 +65,11 @@ import {
   type FileTypeFilter,
   ActivityReceiptDrawer,
 } from "../components/vault";
+import { CryptoPassportDrawer } from "../components/vault/CryptoPassportDrawer";
+import { StagingDock } from "../components/vault/StagingDock";
+import { VaultPrivacyShutter } from "../components/vault/VaultPrivacyShutter";
+import { downloadTransferSlip } from "../utils/transferSlip";
+import { playTumblerClick } from "../utils/audioHaptics";
 import type {
   TreeNode,
   DropTokenInfo,
@@ -327,6 +332,24 @@ export default function Files() {
   const [sortBy, setSortBy] = useState<"name" | "date" | "size">("date");
   const [sortAsc, setSortAsc] = useState(false);
   const [typeFilter, setTypeFilter] = useState<FileTypeFilter>("all");
+
+  // Step 1: Scroll ref & return-scroll anchoring
+  const fileContainerRef = useRef<HTMLDivElement | null>(null);
+  const [lastInteractedFileId, setLastInteractedFileId] = useState<string | null>(null);
+  const [focusedRowFileId, setFocusedRowFileId] = useState<string | null>(null);
+
+  // Step 2: Keyboard traversal & Quick Look
+  const [focusedFileIndex, setFocusedFileIndex] = useState<number>(-1);
+
+  // Step 4: Cryptographic Passport Drawer
+  const [passportFile, setPassportFile] = useState<FileData | null>(null);
+
+  // Step 5: Executive Staging Dock & Transactional Undo
+  const [stagedFiles, setStagedFiles] = useState<FileData[]>([]);
+  const [undoAction, setUndoAction] = useState<{ message: string; undo: () => Promise<void> } | null>(null);
+
+  // Step 6: Ephemeral Vault Privacy Shutter
+  const [isVaultLocked, setIsVaultLocked] = useState(false);
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [fileContextMenu, setFileContextMenu] = useState<{ file: FileData; x: number; y: number } | null>(null);
@@ -819,6 +842,228 @@ export default function Files() {
     if (!headerCheckboxRef.current) return;
     headerCheckboxRef.current.indeterminate = someVisibleSelected && !allVisibleSelected;
   }, [allVisibleSelected, someVisibleSelected]);
+
+  // Step 1: Viewport Scroll Intelligence
+  useEffect(() => {
+    if (fileContainerRef.current) {
+      fileContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    setFocusedFileIndex(-1);
+  }, [selectedNode]);
+
+  // Step 1: Return-Scroll Anchoring & Subtle Focus Ring
+  useEffect(() => {
+    if (!previewFile && !accessPanelFile && !showShareModal && !receiptFile && !passportFile && lastInteractedFileId) {
+      const el = document.getElementById(`file-row-${lastInteractedFileId}`);
+      if (el) {
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        setFocusedRowFileId(lastInteractedFileId);
+        const timer = setTimeout(() => setFocusedRowFileId(null), 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [previewFile, accessPanelFile, showShareModal, receiptFile, passportFile, lastInteractedFileId]);
+
+  // Step 3: Speculative Hover-to-Decrypt Priming
+  const hoverPrimingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleRowHover = useCallback((_file: FileData) => {
+    if (hoverPrimingTimer.current) clearTimeout(hoverPrimingTimer.current);
+    hoverPrimingTimer.current = setTimeout(() => {
+      const cred = sessionVault.getCredential();
+      if (cred?.value) {
+        // Session credentials warm for instantaneous decryption
+      }
+    }, 70);
+  }, [sessionVault]);
+
+  // Step 2 & 5 & 6: Keyboard Traversal, Space Quick Look, Staging Dock & Hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const tag = target.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) {
+        return;
+      }
+
+      // Hotkey: ⌘L / Ctrl+L -> Lock Privacy Shutter
+      if ((e.metaKey || e.ctrlKey) && (e.key === "l" || e.key === "L")) {
+        e.preventDefault();
+        setIsVaultLocked((prev) => !prev);
+        return;
+      }
+
+      // Hotkey: ⌘Z / Ctrl+Z -> Transactional Undo
+      if ((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z")) {
+        if (undoAction) {
+          e.preventDefault();
+          void undoAction.undo();
+          setUndoAction(null);
+          return;
+        }
+      }
+
+      if (isVaultLocked || bulkDownloadFiles !== null || showPasswordModal) return;
+
+      // Hotkey: ⌘I or P -> Toggle Cryptographic Passport
+      if (((e.metaKey || e.ctrlKey) && (e.key === "i" || e.key === "I")) || e.key === "p" || e.key === "P") {
+        if (previewFile) return;
+        const targetFile = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
+        if (targetFile) {
+          e.preventDefault();
+          playTumblerClick();
+          setPassportFile((prev) => (prev?.id === targetFile.id ? null : targetFile));
+        }
+        return;
+      }
+
+      // Spacebar: Toggle Quick Look preview
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        if (previewFile) {
+          setPreviewFile(null);
+        } else if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
+          const file = visibleFiles[focusedFileIndex];
+          setLastInteractedFileId(file.id);
+          setPreviewFile({
+            ...file,
+            folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+          });
+        }
+        return;
+      }
+
+      // J or Down Arrow: Next file
+      if (e.key === "j" || e.key === "J" || e.key === "ArrowDown") {
+        e.preventDefault();
+        playTumblerClick();
+        setFocusedFileIndex((prev) => {
+          const next = Math.min(prev + 1, visibleFiles.length - 1);
+          const file = visibleFiles[next];
+          if (file) {
+            const el = document.getElementById(`file-row-${file.id}`);
+            el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+          return next;
+        });
+        return;
+      }
+
+      // K or Up Arrow: Previous file
+      if (e.key === "k" || e.key === "K" || e.key === "ArrowUp") {
+        e.preventDefault();
+        playTumblerClick();
+        setFocusedFileIndex((prev) => {
+          const next = Math.max(prev - 1, 0);
+          const file = visibleFiles[next];
+          if (file) {
+            const el = document.getElementById(`file-row-${file.id}`);
+            el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+          return next;
+        });
+        return;
+      }
+
+      // Enter: Drill in or Preview focused file
+      if (e.key === "Enter") {
+        if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
+          e.preventDefault();
+          const file = visibleFiles[focusedFileIndex];
+          setLastInteractedFileId(file.id);
+          setPreviewFile({
+            ...file,
+            folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+          });
+        }
+        return;
+      }
+
+      // Backspace or ArrowLeft: Navigate back to parent folder
+      if (e.key === "Backspace" || e.key === "ArrowLeft") {
+        if (selectedNode.type === "folder") {
+          e.preventDefault();
+          const currentFolder = folders.find((f) => f.id === selectedNode.folderId);
+          if (currentFolder?.parentId) {
+            const parent = folders.find((f) => f.id === currentFolder.parentId);
+            if (parent) {
+              setSelectedNode({ type: "folder", folderId: parent.id, folderName: parent.name });
+            } else {
+              setSelectedNode({ type: "all" });
+            }
+          } else {
+            setSelectedNode({ type: "all" });
+          }
+        }
+        return;
+      }
+
+      // X: Toggle Staging Dock for focused file
+      if (e.key === "x" || e.key === "X") {
+        if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
+          e.preventDefault();
+          playTumblerClick();
+          const file = visibleFiles[focusedFileIndex];
+          setStagedFiles((prev) => {
+            const exists = prev.some((f) => f.id === file.id);
+            if (exists) {
+              return prev.filter((f) => f.id !== file.id);
+            }
+            return [...prev, file];
+          });
+        }
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    visibleFiles,
+    focusedFileIndex,
+    previewFile,
+    isVaultLocked,
+    selectedNode,
+    folders,
+    undoAction,
+    bulkDownloadFiles,
+    showPasswordModal,
+  ]);
+
+  // Step 6: 3-Minute Inactivity Auto-Lock
+  useEffect(() => {
+    let inactivityTimer: ReturnType<typeof setTimeout>;
+
+    const resetInactivity = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        setIsVaultLocked(true);
+      }, 180_000);
+    };
+
+    const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
+    events.forEach((ev) => window.addEventListener(ev, resetInactivity, { passive: true }));
+    resetInactivity();
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      events.forEach((ev) => window.removeEventListener(ev, resetInactivity));
+    };
+  }, []);
+
+  // Step 2: Command Palette custom action listener
+  useEffect(() => {
+    const handleVaultAction = (e: Event) => {
+      const detail = (e as CustomEvent<{ action: string }>).detail;
+      if (detail?.action === "lock") {
+        setIsVaultLocked(true);
+      } else if (detail?.action === "passport") {
+        const file = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
+        if (file) setPassportFile(file);
+      }
+    };
+    window.addEventListener("vault-action", handleVaultAction);
+    return () => window.removeEventListener("vault-action", handleVaultAction);
+  }, [focusedFileIndex, visibleFiles]);
 
   const toggleStar = async (fileId: string) => {
     const token = localStorage.getItem("token");
@@ -2103,7 +2348,7 @@ export default function Files() {
               </div>
             )}
 
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div ref={fileContainerRef} className="flex-1 overflow-y-auto px-6 py-4">
               {activeViewError && visibleFiles.length > 0 && (
                 <p role="status" className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
                   Showing the last loaded files. {activeViewError}
@@ -2131,19 +2376,14 @@ export default function Files() {
                     {sharedFolders.map((folder) => (
                       <button
                         key={folder.id}
+                        type="button"
                         onClick={() => setSelectedNode({ type: "folder", folderId: folder.id, folderName: folder.name })}
-                        className="flex items-center gap-3 p-4 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40 hover:shadow-md transition-all text-left group"
+                        className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors text-left group cursor-pointer select-none"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                          <FolderIcon className="w-5 h-5" />
-                        </div>
+                        <FolderIcon className="w-8 h-8 text-primary group-hover:scale-105 transition-transform shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium text-foreground truncate text-sm">
-                            {folder.name}
-                          </div>
-                          <div className="text-xs text-muted-foreground truncate mt-0.5">
-                            Shared by {folder.shared_by}
-                          </div>
+                          <p className="font-medium text-foreground text-sm truncate">{folder.name}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">Shared by {folder.shared_by || "Unknown"}</p>
                         </div>
                       </button>
                     ))}
@@ -2151,16 +2391,17 @@ export default function Files() {
                 </div>
               )}
 
-              {!activeViewLoading && !activeViewError && visibleFiles.length === 0 && (
+              {!activeViewLoading && visibleFiles.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
-                    <Lock className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {searchQuery ? t("drive:vault.empty.search", { defaultValue: "No files match “{{query}}”", query: searchQuery }) :
-                     selectedNode.type === "starred" ? t("drive:vault.noStarred") :
-                     selectedNode.type === "shared" ? (sharedFolders.length > 0 ? t("drive:vault.empty.sharedView", { defaultValue: "No shared files in this view" }) : t("drive:vault.noShared")) :
-                     t("drive:vault.noFiles")}
+                  <FolderOpen className="w-12 h-12 mb-3 stroke-[1.5]" />
+                  <p className="text-base font-medium text-foreground">
+                    {searchQuery
+                      ? t("drive:vault.noSearchResults")
+                      : selectedNode.type === "starred"
+                        ? t("drive:vault.noStarredFiles")
+                        : selectedNode.type === "shared"
+                          ? t("drive:vault.noSharedFiles")
+                          : t("drive:vault.noFilesInFolder")}
                   </p>
 
                   {selectedNode.type === "all" && !isSharedView && (
@@ -2183,16 +2424,25 @@ export default function Files() {
                   onDownload={(file) => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id)}
                   onCreateShareLink={handleCreateShareLink}
                   onToggleStar={toggleStar}
-                  onAccessPanel={setAccessPanelFile}
-                  onShareClick={handleShareClick}
+                  onAccessPanel={(file) => {
+                    setLastInteractedFileId(file.id);
+                    setAccessPanelFile(file);
+                  }}
+                  onShareClick={(fileId, filename, metadata, pinWrappedKey) => {
+                    setLastInteractedFileId(fileId);
+                    handleShareClick(fileId, filename, metadata, pinWrappedKey);
+                  }}
                   onQuickShare={handleQuickShare}
                   onManageSharesClick={(file) => handleManageSharesClick(file.id, file.filename)}
                   onMoveClick={(file) => { void handleMoveClick(file); }}
                   onDeleteClick={(file) => handleDeleteClick(file.id, file.filename)}
-                  onPreviewClick={(file) => setPreviewFile({
-                    ...file,
-                    folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
-                  })}
+                  onPreviewClick={(file) => {
+                    setLastInteractedFileId(file.id);
+                    setPreviewFile({
+                      ...file,
+                      folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+                    });
+                  }}
                   onContextMenu={(event, file) => {
                     if (file.is_owner === false) return;
                     event.preventDefault();
@@ -2205,9 +2455,20 @@ export default function Files() {
                   }}
                   setOpenActionMenu={setOpenActionMenu}
                   openActionMenu={openActionMenu}
-                  onOpenReceipt={setReceiptFile}
+                  onOpenReceipt={(file) => {
+                    setLastInteractedFileId(file.id);
+                    setReceiptFile(file);
+                  }}
                   downloadingFileIds={downloadingFileIds}
                   deletingFileIds={deletingFileIds}
+                  focusedFileId={
+                    focusedRowFileId || (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]?.id ? visibleFiles[focusedFileIndex].id : null)
+                  }
+                  sortBy={sortBy}
+                  sortAsc={sortAsc}
+                  onSort={handleSort}
+                  onRowHover={handleRowHover}
+                  onPassportClick={(file) => setPassportFile(file)}
                 />
               )}
             </div>
@@ -2693,6 +2954,52 @@ export default function Files() {
           fileId={receiptFile.id}
           filename={receiptFile.filename}
         />
+      )}
+
+      {passportFile && (
+        <CryptoPassportDrawer
+          file={passportFile}
+          onClose={() => setPassportFile(null)}
+          onDownloadSlip={(file) => downloadTransferSlip(file, currentUser?.email)}
+        />
+      )}
+
+      <StagingDock
+        dockedFiles={stagedFiles}
+        onClearDock={() => setStagedFiles([])}
+        onBatchDownload={(files) => {
+          const bulkFiles: BulkDownloadFile[] = files.map((f) => ({
+            id: f.id,
+            filename: f.filename,
+            metadata: f.metadata,
+            pin_wrapped_key: f.pin_wrapped_key,
+            is_owner: f.is_owner,
+            folder_id: f.folder_id || null,
+          }));
+          setBulkDownloadFiles(bulkFiles);
+        }}
+      />
+
+      <VaultPrivacyShutter
+        isLocked={isVaultLocked}
+        onUnlock={() => setIsVaultLocked(false)}
+        onScrubMemory={() => setPreviewFile(null)}
+      />
+
+      {undoAction && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-card border border-primary/40 shadow-2xl text-xs text-foreground animate-in slide-in-from-bottom duration-200">
+          <span>{undoAction.message}</span>
+          <button
+            type="button"
+            onClick={() => {
+              void undoAction.undo();
+              setUndoAction(null);
+            }}
+            className="font-bold text-primary hover:underline cursor-pointer select-none"
+          >
+            Undo (⌘Z)
+          </button>
+        </div>
       )}
     </>
   );

@@ -17,6 +17,7 @@ import {
   Share2,
   User,
   HelpCircle,
+  Lock,
 } from "lucide-react";
 import { branding } from "../../config/branding";
 import { motion, AnimatePresence } from "framer-motion";
@@ -157,6 +158,36 @@ export function CommandPalette() {
                     ))}
                   </Command.Group>
                 )}
+
+                <Command.Group heading="Vault Operations" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                  <Command.Item
+                    value="action-lock-vault /lock lock"
+                    onSelect={() => runCommand(() => {
+                      window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "lock" } }));
+                    })}
+                    className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                  >
+                    <div className="flex items-center">
+                      <Lock className="mr-3 h-4 w-4 text-primary" />
+                      <span>Lock Vault Privacy Shutter</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-mono">⌘L</span>
+                  </Command.Item>
+
+                  <Command.Item
+                    value="action-passport /passport /seal passport"
+                    onSelect={() => runCommand(() => {
+                      window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "passport" } }));
+                    })}
+                    className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                  >
+                    <div className="flex items-center">
+                      <ShieldCheck className="mr-3 h-4 w-4 text-primary" />
+                      <span>Cryptographic Passport (Golden Seal)</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-mono">⌘I</span>
+                  </Command.Item>
+                </Command.Group>
 
                 <Command.Group heading={t("common:commandPalette.navigationGroup")} className="px-2 text-xs font-medium py-2 text-muted-foreground">
                   <Command.Item

@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { File, Download, Link2, Star, StarOff, Shield, Share2, Users, FolderOpen, Trash2, Zap, Clock, Loader2 } from "lucide-react";
+import { File, Download, Link2, Star, StarOff, Shield, ShieldCheck, Share2, Users, FolderOpen, Trash2, Zap, Clock, Loader2 } from "lucide-react";
 import { OriginBadge } from "./OriginBadge";
 import type { FileOrigin } from "./OriginBadge";
 import { RowActionMenu } from "../ui/row-action-menu";
@@ -52,6 +52,12 @@ interface FileGridProps {
   onOpenReceipt: (file: FileData) => void;
   downloadingFileIds?: Set<string>;
   deletingFileIds?: Set<string>;
+  focusedFileId?: string | null;
+  sortBy?: "name" | "date" | "size";
+  sortAsc?: boolean;
+  onSort?: (field: "name" | "date" | "size") => void;
+  onRowHover?: (file: FileData) => void;
+  onPassportClick?: (file: FileData) => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -104,6 +110,12 @@ export const FileGrid: React.FC<FileGridProps> = ({
   onOpenReceipt,
   downloadingFileIds = new Set(),
   deletingFileIds = new Set(),
+  focusedFileId,
+  sortBy,
+  sortAsc,
+  onSort,
+  onRowHover,
+  onPassportClick,
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -122,10 +134,37 @@ export const FileGrid: React.FC<FileGridProps> = ({
               : t("drive:vault.selectView", "Select current view")}
           />
         </div>
-        <div className="flex-1">{t("drive:vault.columns.name")}</div>
+        <button
+          type="button"
+          onClick={() => onSort?.("name")}
+          className="flex-1 text-left cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center gap-1 group font-medium"
+        >
+          {t("drive:vault.columns.name")}
+          {sortBy === "name" && (
+            <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
+          )}
+        </button>
         <div className="w-28 hidden sm:block">{t("drive:vault.columns.origin")}</div>
-        <div className="w-16 text-right hidden md:block">{t("drive:vault.columns.size")}</div>
-        <div className="w-24 text-right hidden lg:block">{t("drive:vault.columns.date")}</div>
+        <button
+          type="button"
+          onClick={() => onSort?.("size")}
+          className="w-16 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 group font-medium hidden md:flex"
+        >
+          {t("drive:vault.columns.size")}
+          {sortBy === "size" && (
+            <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onSort?.("date")}
+          className="w-24 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 group font-medium hidden lg:flex"
+        >
+          {t("drive:vault.columns.date")}
+          {sortBy === "date" && (
+            <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
+          )}
+        </button>
         <div className="w-24 shrink-0" />
       </div>
 
@@ -139,12 +178,21 @@ export const FileGrid: React.FC<FileGridProps> = ({
           <div
             key={file.id}
             id={`file-row-${file.id}`}
+            data-file-id={file.id}
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (!target.closest("button, input, a, [data-prevent-row-click]")) {
+                onPreviewClick(file);
+              }
+            }}
+            onMouseEnter={() => onRowHover?.(file)}
             className={`
-              group flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-default
+              group flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-pointer select-none active:scale-[0.999] duration-75
               ${isSelected
                 ? "bg-primary-foreground/60 border-primary/40"
-                : "bg-background border-border/60 hover:border-border hover:shadow-sm"
+                : "bg-background border-border/60 hover:border-border hover:bg-primary/5 dark:hover:bg-primary/10 hover:shadow-sm"
               }
+              ${focusedFileId === file.id ? "ring-2 ring-primary/60 bg-primary/10 border-primary/40 shadow-sm" : ""}
               ${isPending ? "opacity-60" : ""}
             `}
           >
@@ -186,6 +234,22 @@ export const FileGrid: React.FC<FileGridProps> = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
+
+            {onPassportClick && (
+              <button
+                type="button"
+                data-prevent-row-click="true"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPassportClick(file);
+                }}
+                className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
+                title="Cryptographic Passport (⌘I)"
+                aria-label={`Passport for ${file.filename}`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </button>
+            )}
 
             <div className="w-28 hidden sm:block shrink-0">
               <OriginBadge origin={origin} />

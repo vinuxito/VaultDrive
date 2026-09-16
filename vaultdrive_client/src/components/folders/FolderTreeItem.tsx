@@ -57,7 +57,13 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
 
   return (
     <div
-      className={`group flex items-center gap-2 rounded-lg transition-colors relative ${
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest("button, input, [data-prevent-folder-click]")) {
+          onNavigate();
+        }
+      }}
+      className={`group flex items-center gap-2 rounded-lg transition-colors relative cursor-pointer select-none active:scale-[0.99] ${
         active
           ? "bg-primary/10 text-foreground"
           : isSidebar
@@ -70,7 +76,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-primary/10"
+          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-primary/10 cursor-pointer select-none"
           aria-label={folder.isExpanded ? "Collapse folder" : "Expand folder"}
         >
           {folder.isExpanded ? (
@@ -86,7 +92,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       <button
         type="button"
         onClick={onNavigate}
-        className="flex-shrink-0"
+        className="flex-shrink-0 cursor-pointer select-none"
         aria-label={`Navigate to ${folder.name}`}
       >
         {folder.isExpanded ? (
@@ -99,7 +105,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       <button
         type="button"
         onClick={onNavigate}
-        className={`flex-1 text-left truncate transition-colors ${isSidebar ? "text-sm" : "text-sm"} ${
+        className={`flex-1 text-left truncate transition-colors cursor-pointer select-none ${isSidebar ? "text-sm" : "text-sm"} ${
           active ? "font-medium text-foreground" : ""
         }`}
       >
