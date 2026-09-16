@@ -25,5 +25,8 @@ describe("OfflineQueueReview", () => {
     expect(screen.getByText(/server did not confirm whether.*secret.pdf/i)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Retry delete for secret.pdf/i }));
     expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ action_id: "delete-2" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "I resolved this" }));
+    expect(onDiscard).toHaveBeenCalledWith(expect.objectContaining({ action_id: "delete-2", status: "unknown" }));
   });
 });

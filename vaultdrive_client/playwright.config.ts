@@ -45,13 +45,14 @@ export function createPlaywrightConfig(env: NodeJS.ProcessEnv = process.env) {
 
   return defineConfig({
     testDir: "./e2e",
+    outputDir: env.E2E_OUTPUT_DIR ?? "test-results",
     fullyParallel: false,
     forbidOnly: !!env.CI,
     retries: env.CI ? 2 : 0,
     workers: env.CI ? 1 : undefined,
     reporter: env.CI
-      ? [["github"], ["html", { open: "never" }]]
-      : [["list"], ["html", { open: "never" }]],
+      ? [["github"], ["html", { open: "never", outputFolder: env.E2E_REPORT_DIR ?? "playwright-report" }]]
+      : [["list"], ["html", { open: "never", outputFolder: env.E2E_REPORT_DIR ?? "playwright-report" }]],
     projects: [
       {
         name: "Desktop Chrome",

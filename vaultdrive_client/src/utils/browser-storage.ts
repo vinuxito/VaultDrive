@@ -13,6 +13,7 @@ export interface StoredUserCache {
   force_password_change?: boolean;
   private_key_encrypted?: string | null;
   private_key_pin_encrypted?: string | null;
+  kek_envelope_version?: number;
   public_key?: string | null;
   [key: string]: unknown;
 }

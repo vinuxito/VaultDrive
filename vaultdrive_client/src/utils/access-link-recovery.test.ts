@@ -27,6 +27,22 @@ async function encryptedFixture(password: string) {
 }
 
 describe("access link recovery", () => {
+  it("recovers an older File Request using the sender password and rejects the account PIN", async () => {
+    const fixture = await encryptedFixture("sender-file-password");
+    const metadata = JSON.parse(fixture.metadata) as { iv: string; salt: string };
+    const options = {
+      file: { id: "request-file", metadata: JSON.stringify({ iv: metadata.iv, algorithm: "AES-256-GCM" }) },
+      encryptedData: fixture.ciphertext,
+      wrappedKey: metadata.salt,
+    };
+    await expect(recoverVerifiedOwnerFileKey({ ...options, credential: "1111" })).rejects.toThrow("didn't unlock");
+    const recovered = await recoverVerifiedOwnerFileKey({ ...options, credential: "sender-file-password" });
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: new Uint8Array(12).fill(9) }, recovered.key, fixture.ciphertext,
+    );
+    expect(new TextDecoder().decode(plaintext)).toBe("verified fixture bytes");
+  });
+
   it("exports a file key only after the credential decrypts the stored ciphertext", async () => {
     const fixture = await encryptedFixture("1111");
 

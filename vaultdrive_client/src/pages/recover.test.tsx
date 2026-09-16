@@ -58,6 +58,12 @@ describe("account recovery guidance", () => {
     encryptDeferred.resolve = null;
   });
 
+  it("explains the original file credential limitation before starting recovery", () => {
+    render(<MemoryRouter><Recover /></MemoryRouter>);
+    expect(screen.getByText(/files encrypted with an earlier PIN or file password still need that original credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/support cannot recover a lost file credential/i)).toBeInTheDocument();
+  });
+
   it("shows the last successful check and offers a manual retry while waiting", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn()
@@ -97,6 +103,7 @@ describe("account recovery guidance", () => {
     encryptDeferred.resolve?.("encrypted-key");
 
     await waitFor(() => expect(screen.getByText(/set a new vault PIN/i)).toBeInTheDocument());
+    expect(screen.getByText(/files encrypted with an earlier PIN or file password still need that original credential/i)).toBeInTheDocument();
   });
 
   it("rejects malformed approval status without inventing progress or a successful check time", async () => {

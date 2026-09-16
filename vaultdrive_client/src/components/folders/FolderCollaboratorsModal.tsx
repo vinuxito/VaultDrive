@@ -75,6 +75,7 @@ export function FolderCollaboratorsModal({
           pin_set?: boolean;
           private_key_encrypted?: string | null;
           private_key_pin_encrypted?: string | null;
+          kek_envelope_version?: number;
           public_key?: string | null;
         })
       : null;
@@ -131,7 +132,8 @@ export function FolderCollaboratorsModal({
         }
         const privateKeyPem = await decryptPrivateKeyWithPIN(
           providedPin,
-          currentUser.private_key_pin_encrypted
+          currentUser.private_key_pin_encrypted,
+          currentUser.kek_envelope_version,
         );
         privateKey = await importRSAPrivateKey(privateKeyPem);
         sessionVault.setPrivateKey(privateKey);

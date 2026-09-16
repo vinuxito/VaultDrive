@@ -294,6 +294,9 @@ export default function Recover() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="rounded-xl border border-border bg-muted p-3 text-sm text-foreground" data-testid="recovery-file-limit">
+              {t("drive:recovery.originalFileCredential", { defaultValue: "Recovery restores your account key. Files encrypted with an earlier PIN or file password still need that original credential. A new PIN does not re-encrypt existing files. Support cannot recover a lost file credential; ask the sender for another copy or use your own backup." })}
+            </p>
             
             {/* Phase 1: Request Recovery */}
             {phase === "request" && (

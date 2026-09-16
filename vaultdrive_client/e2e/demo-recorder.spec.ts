@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 import {
   buildOwnerAccount,
   loginWithPassword,
@@ -12,8 +13,9 @@ test.use({
   viewport: { width: 1920, height: 1080 },
 });
 
-test("Hackathon 60-second Golden Path", async ({ page }) => {
+test("recorded owner upload, verified share and recipient download journey", async ({ page }) => {
   const account = buildOwnerAccount();
+  const fileBytes = Buffer.from(`Hello World, this is a secure upload demonstration for ${productName}.`);
 
   // -----------------------------------------------------
   // Beat 1: The Hook (Landing page & Register)
@@ -60,7 +62,7 @@ test("Hackathon 60-second Golden Path", async ({ page }) => {
   const createFolderBtn = page.getByTestId("onboarding-create-folder");
   await createFolderBtn.click();
   
-  const enterVaultBtn = page.getByRole("button", { name: /Enter Protected Vault/i });
+  const enterVaultBtn = page.getByRole("button", { name: "Upload a file", exact: true });
   await enterVaultBtn.waitFor({ state: 'visible', timeout: 10000 });
   await page.waitForTimeout(500);
   await enterVaultBtn.click();
@@ -72,7 +74,7 @@ test("Hackathon 60-second Golden Path", async ({ page }) => {
   await uploadFileAsOwner(page, account, {
     name: "demo-file.txt",
     mimeType: "text/plain",
-    buffer: Buffer.from(`Hello World, this is a secure upload demonstration for ${productName}.`),
+    buffer: fileBytes,
   });
   
   // Wait for the upload to complete and file row to appear
@@ -87,12 +89,16 @@ test("Hackathon 60-second Golden Path", async ({ page }) => {
   await page.waitForTimeout(1000); // Look at the dialog
   
   // Generate the link
+  if (await page.locator("#csl-credential").isVisible()) {
+    await page.locator("#csl-credential").fill(account.pin);
+  }
   await page.getByRole("button", { name: "Generate Link" }).click();
   await page.waitForTimeout(1000); // Wait for the network request and animation
   
   // Copy link
   await page.getByRole("button", { name: "Copy Link" }).click();
   const clipboardText = await page.locator('#csl-share-url').inputValue();
+  expect(new URL(clipboardText).hash.length).toBeGreaterThan(1);
   await page.waitForTimeout(500);
   await page.getByRole("button", { name: "Close", exact: true }).last().click();
   
@@ -102,8 +108,11 @@ test("Hackathon 60-second Golden Path", async ({ page }) => {
   await incognitoPage.goto(clipboardText as string);
   await expect(incognitoPage.getByText("demo-file.txt")).toBeVisible();
   // Download it to prove decryption
-  await incognitoPage.getByRole("button", { name: "Download" }).click();
-  await incognitoPage.waitForTimeout(1500);
+  const downloadEvent = incognitoPage.waitForEvent("download");
+  await incognitoPage.getByRole("button", { name: "Download File", exact: true }).click();
+  const download = await downloadEvent;
+  expect(download.suggestedFilename()).toBe("demo-file.txt");
+  expect(await readFile((await download.path())!)).toEqual(fileBytes);
   await incognitoContext.close();
 
   // -----------------------------------------------------
@@ -137,8 +146,6 @@ test("Hackathon 60-second Golden Path", async ({ page }) => {
   // Change language to Spanish
   await page.locator('select').selectOption('es');
   await page.waitForTimeout(2000); // Admire Spanish UI
-
-  // End of Demo
 
   // End of Demo
 });

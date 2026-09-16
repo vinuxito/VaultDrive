@@ -11,8 +11,12 @@ assert.equal(externalConfig.use?.launchOptions, undefined);
 const installedBrowserConfig = createPlaywrightConfig({
   E2E_BASE_URL: "http://127.0.0.1:4173/abrn",
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: "/opt/google/chrome/chrome",
+  E2E_OUTPUT_DIR: "/tmp/coherence-test-results",
+  E2E_REPORT_DIR: "/tmp/coherence-test-report",
 });
 assert.equal(installedBrowserConfig.use?.launchOptions?.executablePath, "/opt/google/chrome/chrome");
+assert.equal(installedBrowserConfig.outputDir, "/tmp/coherence-test-results");
+assert.deepEqual(installedBrowserConfig.reporter, [["list"], ["html", { open: "never", outputFolder: "/tmp/coherence-test-report" }]]);
 
 const selfHostedConfig = createPlaywrightConfig({
   VITE_BASE_PATH: "/quantix",

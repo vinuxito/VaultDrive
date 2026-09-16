@@ -8,6 +8,7 @@ import {
 interface StoredOwnerKeyState {
   private_key_encrypted?: string | null;
   private_key_pin_encrypted?: string | null;
+  kek_envelope_version?: number;
 }
 
 export async function resolveOwnerPrivateKeyFromSession(
@@ -24,12 +25,12 @@ export async function resolveOwnerPrivateKeyFromSession(
   }
 
   if (credential.type === "pin" && user.private_key_pin_encrypted) {
-    const pem = await decryptPrivateKeyWithPIN(credential.value, user.private_key_pin_encrypted);
+    const pem = await decryptPrivateKeyWithPIN(credential.value, user.private_key_pin_encrypted, user.kek_envelope_version);
     return importRSAPrivateKey(pem);
   }
 
   if (credential.type === "password" && user.private_key_encrypted) {
-    const pem = await decryptPrivateKeyWithPassword(credential.value, user.private_key_encrypted);
+    const pem = await decryptPrivateKeyWithPassword(credential.value, user.private_key_encrypted, user.kek_envelope_version);
     return importRSAPrivateKey(pem);
   }
 

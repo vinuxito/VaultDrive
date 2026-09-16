@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
+import { legacyFileRequestSalt } from "../utils/file-request-credential";
 import { AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import {
@@ -287,7 +288,7 @@ export default function Files() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
-  const [fileToShare, setFileToShare] = useState<{ id: string; filename: string; metadata?: string; pin_wrapped_key?: string } | null>(null);
+  const [fileToShare, setFileToShare] = useState<{ id: string; filename: string; metadata?: string; pin_wrapped_key?: string; folder_id?: string | null } | null>(null);
 
   const [accessPanelFile, setAccessPanelFile] = useState<{ id: string; filename: string } | null>(null);
   const [receiptFile, setReceiptFile] = useState<FileData | null>(null);
@@ -1168,8 +1169,9 @@ export default function Files() {
       if (!metadataObj.iv) throw new Error("Missing encryption IV");
 
       const iv = new Uint8Array(base64ToArrayBuffer(metadataObj.iv));
-      const isDropUpload = !metadataObj.salt || metadataObj.salt === "";
       const wrappedKeyB64 = response.headers.get("X-Wrapped-Key");
+      metadataObj.salt ||= legacyFileRequestSalt(metadataObj, wrappedKeyB64);
+      const isDropUpload = !metadataObj.salt;
       let encryptionKey: CryptoKey;
       let finalDecryptVerifiesCredential = false;
 
@@ -1188,7 +1190,7 @@ export default function Files() {
           throw new Error("Folder key not found. Please re-open the folder to unlock it.");
         }
         encryptionKey = await unwrapKeyWithAES(folderKey, wrappedKeyB64);
-      } else if (isDropUpload && (file.pin_wrapped_key || wrappedKeyB64)) {
+      } else if (isDropUpload && file.is_owner !== false && (file.pin_wrapped_key || wrappedKeyB64)) {
         failureKind = "credential";
         const pinWrapped = file.pin_wrapped_key || wrappedKeyB64 || "";
         const rawKey = await unwrapKey(credential, pinWrapped);
@@ -1213,7 +1215,7 @@ export default function Files() {
             throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings.");
           }
           failureKind = "credential";
-          const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted);
+          const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted, userObj?.kek_envelope_version);
           rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
           sessionVault.setPrivateKey(rsaPrivateKey);
         }
@@ -1611,7 +1613,7 @@ export default function Files() {
   };
 
   const handleShareClick = (fileId: string, filename: string, metadata?: string, pin_wrapped_key?: string) => {
-    setFileToShare({ id: fileId, filename, metadata, pin_wrapped_key });
+    setFileToShare({ id: fileId, filename, metadata, pin_wrapped_key, folder_id: myFiles.find((file) => file.id === fileId)?.folder_id });
     setShowShareModal(true);
   };
 
@@ -1822,7 +1824,8 @@ export default function Files() {
         try {
           const privateKeyPem = await decryptPrivateKeyWithPIN(
             password,
-            currentUser.private_key_pin_encrypted
+            currentUser.private_key_pin_encrypted,
+            currentUser.kek_envelope_version,
           );
           const privateKey = await importRSAPrivateKey(privateKeyPem);
           sessionVault.setPrivateKey(privateKey);
@@ -2228,9 +2231,10 @@ export default function Files() {
       </AnimatePresence>
 
       {cryptoEvent && (
-        <div className="fixed bottom-6 left-6 z-50 w-80">
+        <details className="mx-4 my-3 max-w-xl rounded-xl border border-border bg-card p-3">
+          <summary className="cursor-pointer text-sm font-medium text-foreground">{t("drive:vault.encryptionDetails", { defaultValue: "Encryption details" })}</summary>
           <EncryptionProof event={cryptoEvent} />
-        </div>
+        </details>
       )}
 
       {uploadTray.length > 0 && (
@@ -2319,6 +2323,11 @@ export default function Files() {
                   ? t("drive:vault.passwordModal.pinDownloadDesc")
                   : t("drive:vault.passwordModal.passwordDownloadDesc")}
               </CardDescription>
+              {!isUpload && pendingDownload?.is_owner !== false && (credScheme === "pin" || credScheme === "password" || credScheme === "drop-pin") && (
+                <p className="text-sm text-primary-foreground" id="original-file-credential-help">
+                  {t("drive:vault.passwordModal.originalCredential", { defaultValue: "Use the PIN or file password that encrypted this file. If you reset your account or changed your PIN, an older file may still need its original credential. If it is lost, ask the sender for another copy or use your backup." })}
+                </p>
+              )}
 
             </CardHeader>
             <form autoComplete="off" onSubmit={(event) => {
@@ -2342,6 +2351,7 @@ export default function Files() {
 
                 <input
                   id="vault-credential"
+                  aria-describedby={!isUpload && pendingDownload?.is_owner !== false && (credScheme === "pin" || credScheme === "password" || credScheme === "drop-pin") ? "original-file-credential-help" : undefined}
                   name="vault-decryption-credential"
                   type="password"
                   disabled={uploading || downloading}
@@ -2409,6 +2419,7 @@ export default function Files() {
         fileName={fileToShare?.filename || ""}
         fileMetadata={fileToShare?.metadata}
         pinWrappedKey={fileToShare?.pin_wrapped_key}
+        folderId={fileToShare?.folder_id}
         onShareComplete={fetchFiles}
       />
 

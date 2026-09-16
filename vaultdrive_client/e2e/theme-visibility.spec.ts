@@ -325,7 +325,7 @@ for (const skin of ["light", "business", "dark", "quantix", "cyberpunk", "elegan
     await page.getByRole("button", { name: "Skip for now", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Vault is ready", exact: true })).toBeVisible();
     await capture("onboarding-ready");
-    await page.getByRole("button", { name: "Enter Protected Vault", exact: true }).click();
+    await page.getByRole("button", { name: "Upload a file", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Vault is ready", exact: true })).toHaveCount(0);
     await writeFile(`${out}/${skin}-extra.json`, JSON.stringify({ report }, null, 2));
     if (!process.env.THEME_AUDIT_BASELINE) for (const [name, result] of Object.entries(report)) {

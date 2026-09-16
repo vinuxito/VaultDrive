@@ -47,6 +47,8 @@ export async function registerAccount(page: Page, account: OwnerAccount) {
 }
 
 export async function loginWithPassword(page: Page, account: OwnerAccount) {
+  const passwordMode = page.getByRole("button", { name: "Password", exact: true });
+  await passwordMode.click();
   await page.locator("#login-email").fill(account.email);
   await page.locator("#login-password").fill(account.password);
   await page.getByRole("button", { name: `Open ${productName}` }).click({ force: true });

@@ -73,6 +73,13 @@ jobs:
         working-directory: vaultdrive_client
         run: npm test
 
+      - name: Check frontend and browser test contracts
+        working-directory: vaultdrive_client
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run test:e2e:config
+
       - name: Run backend tests
         run: go test ./...
 

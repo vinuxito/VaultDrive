@@ -7,6 +7,7 @@ import {
   unwrapKey,
   unwrapKeyWithAES,
 } from "./crypto";
+import { legacyFileRequestSalt } from "./file-request-credential";
 
 export interface RecoverableOwnerFile {
   id: string;
@@ -47,6 +48,7 @@ export async function recoverVerifiedOwnerFileKey({
   if (!metadata.iv) {
     throw new Error("This file is missing its encryption IV. Manage or recreate the link from Files.");
   }
+  metadata.salt ||= legacyFileRequestSalt(metadata, wrappedKey);
 
   // A credential prompt must validate the credential for PIN/password files.
   // Cached keys are only a recovery path for folder-managed files, whose file

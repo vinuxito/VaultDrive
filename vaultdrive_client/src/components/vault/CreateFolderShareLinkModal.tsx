@@ -122,6 +122,7 @@ export function CreateFolderShareLinkModal({
         privateKeyPem = await decryptPrivateKeyWithPIN(
           userPin,
           user.private_key_pin_encrypted,
+          user.kek_envelope_version,
         );
       } catch (err) {
         if (usingCachedPin) {
@@ -259,9 +260,9 @@ export function CreateFolderShareLinkModal({
       onCreated?.();
     } catch (err) {
       setErrorMsg(
-        err instanceof Error
+        err instanceof Error && err.message.trim()
           ? err.message
-          : "Failed to generate folder share link",
+          : "Could not unlock this folder for sharing. Check your PIN and try again.",
       );
       setStep("error");
     }

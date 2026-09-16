@@ -5,6 +5,7 @@ import {
   unwrapKey,
   unwrapKeyWithRSA,
 } from "./crypto";
+import { legacyFileRequestSalt } from "./file-request-credential";
 
 export interface ResolveFolderShareFileKeyParams {
   wrappedKey: string;
@@ -44,6 +45,12 @@ export async function resolveFolderShareFileKey({
   credentialType,
   rsaPrivateKey,
 }: ResolveFolderShareFileKeyParams): Promise<CryptoKey> {
+  const metadata = parseFolderShareMetadata(encryptedMetadata);
+  const requestSalt = legacyFileRequestSalt(metadata, wrappedKey);
+  if (requestSalt) {
+    if (credentialType !== "password") throw new Error("This file needs the sender's file password. Your account PIN cannot unlock it.");
+    return deriveKeyFromPassword(credential, new Uint8Array(base64ToArrayBuffer(requestSalt)), 100000);
+  }
   if (/^[0-9a-f]+$/i.test(wrappedKey)) {
     if (credentialType !== "pin") {
       throw new Error("This folder contains files encrypted with your PIN. Open sharing from a trusted PIN session first.");
@@ -64,7 +71,6 @@ export async function resolveFolderShareFileKey({
     return unwrapKeyWithRSA(rsaPrivateKey, wrappedKey);
   }
 
-  const metadata = parseFolderShareMetadata(encryptedMetadata);
   const requiredCredentialType = metadata.credential_scheme === "pin" ? "pin" : "password";
 
   if (requiredCredentialType !== credentialType) {

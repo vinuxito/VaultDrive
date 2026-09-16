@@ -83,6 +83,18 @@ describe("FilePreviewModal cached credential recovery", () => {
     expect(screen.getByLabelText(/^pin$/i)).toHaveClass("bg-background", "text-foreground");
   });
 
+  it("asks for the original file password even when the owner has an account PIN", () => {
+    vaultMocks.getCredential.mockReturnValue(null);
+    render(<FilePreviewModal
+      file={{ id: "request-file", filename: "delivery.zip", metadata: JSON.stringify({ iv: "AA==" }), is_owner: true }}
+      onClose={() => undefined} onDownload={() => undefined}
+    />);
+    const input = screen.getByLabelText("Credential");
+    expect(input).not.toHaveAttribute("maxLength", "4");
+    expect(input).not.toHaveAttribute("inputMode", "numeric");
+    expect(screen.queryByText("Enter your 4-digit PIN")).not.toBeInTheDocument();
+  });
+
   it("offers a retry for a transport failure without clearing the cached PIN", async () => {
     cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("private-key");
 

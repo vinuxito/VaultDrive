@@ -80,7 +80,11 @@ jobs:
 
       - name: Type-check frontend
         working-directory: vaultdrive_client
-        run: npx tsc --noEmit
+        run: npm run typecheck
+
+      - name: Verify browser test configuration
+        working-directory: vaultdrive_client
+        run: npm run test:e2e:config
 
       - name: Build frontend
         working-directory: vaultdrive_client

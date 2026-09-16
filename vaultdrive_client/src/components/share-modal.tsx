@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSessionVault } from "../context/SessionVaultContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
@@ -9,11 +9,8 @@ import { API_URL, getUserPublicKey } from "../utils/api";
 import {
   importRSAPublicKey,
   wrapKeyWithRSA,
-  importKey,
-  unwrapKey,
-  deriveKeyFromPassword,
-  base64ToArrayBuffer,
 } from "../utils/crypto";
+import { recoverVerifiedOwnerFileKey } from "../utils/access-link-recovery";
 import {
   getNormalizedErrorMessage,
   getStoredUserFromLocalStorage,
@@ -41,9 +38,13 @@ interface GroupMember {
   last_name: string;
 }
 
-interface FileMetadata {
-  iv: string;
-  salt?: string;
+class ShareOutcomeUnconfirmedError extends Error {}
+
+function isCompleteUserResult(value: unknown): value is UserResult {
+  if (!value || typeof value !== "object") return false;
+  const user = value as Partial<UserResult>;
+  return [user.id, user.username, user.email, user.first_name, user.last_name]
+    .every((field) => typeof field === "string");
 }
 
 interface ShareModalProps {
@@ -53,6 +54,7 @@ interface ShareModalProps {
   fileName: string;
   fileMetadata?: string;
   pinWrappedKey?: string;
+  folderId?: string | null;
   onShareComplete: () => void;
 }
 
@@ -63,6 +65,7 @@ export default function ShareModal({
   fileName,
   fileMetadata,
   pinWrappedKey,
+  folderId,
   onShareComplete,
 }: ShareModalProps) {
   const [tab, setTab] = useState<"users" | "groups">("users");
@@ -73,6 +76,9 @@ export default function ShareModal({
   const [recipient, setRecipient] = useState<UserResult | Group | null>(null);
   const [sharing, setSharing] = useState(false);
   const [error, setError] = useState("");
+  const [searchMessage, setSearchMessage] = useState("");
+  const [ignoreCachedCredential, setIgnoreCachedCredential] = useState(false);
+  const searchGeneration = useRef(0);
 
   const [pinInput, setPinInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
@@ -85,9 +91,10 @@ export default function ShareModal({
     return "password";
   })();
 
-  const { getCredential } = useSessionVault();
+  const sessionVault = useSessionVault();
+  const { getCredential } = sessionVault;
   const cachedCred = getCredential();
-  const hasCachedCred = cachedCred !== null && cachedCred.type === credentialMode;
+  const hasCachedCred = !ignoreCachedCredential && cachedCred !== null && cachedCred.type === credentialMode;
 
   const fetchGroups = useCallback(async () => {
     try {
@@ -95,10 +102,12 @@ export default function ShareModal({
       const response = await fetch(`${API_URL}/groups`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) throw new Error("Groups are unavailable. Try again.");
       const data = await response.json();
-      setGroups(data || []);
+      if (!Array.isArray(data)) throw new Error("Groups returned an unexpected response.");
+      setGroups(data);
     } catch {
-      setError("Failed to load groups");
+      setError("Groups are unavailable. Try again.");
     }
   }, []);
 
@@ -106,43 +115,57 @@ export default function ShareModal({
     if (isOpen && tab === "groups") void fetchGroups();
   }, [fetchGroups, isOpen, tab]);
 
-  const searchUsers = useCallback(async () => {
+  const searchUsers = useCallback(async (query: string, generation: number) => {
     setLoading(true);
+    setSearchMessage("");
+    setError("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${API_URL}/user-by-username?username=${encodeURIComponent(search)}`,
+        `${API_URL}/user-by-username?username=${encodeURIComponent(query)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      if (generation !== searchGeneration.current) return;
+      if (response.status === 404) {
+        setSearchResults([]);
+        setSearchMessage(`No user found for “${query}”.`);
+        return;
+      }
+      if (!response.ok) throw new Error("User lookup is unavailable. Try again.");
       const data = await response.json();
-      setSearchResults(Array.isArray(data) ? data : []);
-    } catch {
+      if (generation !== searchGeneration.current) return;
+      const results = Array.isArray(data) ? data : data && typeof data === "object" ? [data] : [];
+      const normalizedResults = results.filter(isCompleteUserResult);
+      setSearchResults(normalizedResults);
+      if (normalizedResults.length === 0) {
+        if (results.length > 0) setError("User lookup returned incomplete recipient details. Try again.");
+        else setSearchMessage(`No user found for “${query}”.`);
+      }
+    } catch (cause) {
+      if (generation !== searchGeneration.current) return;
       setSearchResults([]);
+      setError(getNormalizedErrorMessage(cause, "User lookup is unavailable. Try again."));
     } finally {
-      setLoading(false);
+      if (generation === searchGeneration.current) setLoading(false);
     }
-  }, [search]);
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (search.length >= 2 && tab === "users") {
-        searchUsers();
+        const generation = ++searchGeneration.current;
+        void searchUsers(search, generation);
+      } else {
+        searchGeneration.current += 1;
+        setLoading(false);
+        setSearchMessage("");
       }
     }, 300);
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      searchGeneration.current += 1;
+    };
   }, [search, searchUsers, tab]);
-
-  async function resolveFileAESKey(credential: string): Promise<CryptoKey> {
-    if (pinWrappedKey) {
-      const rawHex = await unwrapKey(credential, pinWrappedKey);
-      return importKey(rawHex);
-    }
-
-    const meta: FileMetadata = JSON.parse(fileMetadata || "{}");
-    if (!meta.salt) throw new Error("File has no salt — cannot derive key. This may be a drop file.");
-    const salt = new Uint8Array(base64ToArrayBuffer(meta.salt));
-    return deriveKeyFromPassword(credential, salt, 100000);
-  }
 
   async function fetchGroupMembers(groupId: string): Promise<GroupMember[]> {
     const token = localStorage.getItem("token");
@@ -150,7 +173,29 @@ export default function ShareModal({
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error("Failed to fetch group members");
-    return response.json();
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error("Group members returned an unexpected response.");
+    return data;
+  }
+
+  async function postRecipientGrant(token: string, userId: string, wrappedKey: string) {
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}/files/${fileId}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ user_id: userId, wrapped_key: wrappedKey }),
+      });
+    } catch {
+      throw new ShareOutcomeUnconfirmedError("The share outcome was not confirmed. Review file access before retrying.");
+    }
+    if (response.status >= 500) {
+      throw new ShareOutcomeUnconfirmedError("The share outcome was not confirmed. Review file access before retrying.");
+    }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(err.error || "Failed to share file");
+    }
   }
 
   async function handleShare() {
@@ -161,7 +206,8 @@ export default function ShareModal({
     try {
       const token = localStorage.getItem("token") || "";
       const cached = getCredential();
-      const credential = (cached && cached.type === credentialMode)
+      const usingCachedCredential = !ignoreCachedCredential && cached?.type === credentialMode;
+      const credential = usingCachedCredential
         ? cached.value
         : (credentialMode === "pin" ? pinInput : passwordInput);
       if (!credential) {
@@ -170,7 +216,36 @@ export default function ShareModal({
         return;
       }
 
-      const aesKey = await resolveFileAESKey(credential);
+      const downloadResponse = await fetch(`${API_URL}/files/${fileId}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!downloadResponse.ok) {
+        throw new Error("Could not verify this file's encryption key. Try again.");
+      }
+      let recovered;
+      try {
+        recovered = await recoverVerifiedOwnerFileKey({
+          file: {
+            id: fileId,
+            metadata: fileMetadata || "{}",
+            pin_wrapped_key: pinWrappedKey,
+            folder_id: folderId,
+          },
+          credential,
+          encryptedData: await downloadResponse.arrayBuffer(),
+          wrappedKey: downloadResponse.headers.get("X-Wrapped-Key"),
+          cachedFileKey: sessionVault.getFileKey(fileId),
+          folderKey: folderId ? sessionVault.getFolderKey(folderId) : null,
+        });
+      } catch (cause) {
+        if (usingCachedCredential) {
+          sessionVault.clearCredential();
+          setIgnoreCachedCredential(true);
+        }
+        throw cause;
+      }
+      sessionVault.setFileKey(fileId, recovered.key);
+      const aesKey = recovered.key;
 
       if (tab === "users") {
         const user = recipient as UserResult;
@@ -178,50 +253,50 @@ export default function ShareModal({
         const recipientPubKey = await importRSAPublicKey(recipientPublicKeyPem);
         const wrappedKey = await wrapKeyWithRSA(recipientPubKey, aesKey);
 
-        const response = await fetch(`${API_URL}/files/${fileId}/share`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ user_id: user.id, wrapped_key: wrappedKey }),
-        });
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.error || "Failed to share file");
-        }
+        await postRecipientGrant(token, user.id, wrappedKey);
       } else {
         const group = recipient as Group;
         const members = await fetchGroupMembers(group.id);
 
-        for (const member of members) {
-          const { public_key: memberPublicKeyPem } = await getUserPublicKey(member.user_id, token);
-          const memberPubKey = await importRSAPublicKey(memberPublicKeyPem);
-          const wrappedKey = await wrapKeyWithRSA(memberPubKey, aesKey);
+        let confirmedMemberGrants = 0;
+        try {
+          for (const member of members) {
+            const { public_key: memberPublicKeyPem } = await getUserPublicKey(member.user_id, token);
+            const memberPubKey = await importRSAPublicKey(memberPublicKeyPem);
+            const wrappedKey = await wrapKeyWithRSA(memberPubKey, aesKey);
 
-          const memberShareResp = await fetch(`${API_URL}/files/${fileId}/share`, {
+            await postRecipientGrant(token, member.user_id, wrappedKey);
+            confirmedMemberGrants += 1;
+          }
+        } catch (cause) {
+          if (confirmedMemberGrants > 0) {
+            throw new Error(`Shared with ${confirmedMemberGrants} of ${members.length} group members. Review file access before retrying. ${getNormalizedErrorMessage(cause, "The remaining grants failed.")}`);
+          }
+          if (cause instanceof ShareOutcomeUnconfirmedError) {
+            throw new Error("The first group member grant outcome is unconfirmed. Review file access before retrying.");
+          }
+          throw cause;
+        }
+
+        try {
+          const userObj = getStoredUserFromLocalStorage();
+          if (!userObj?.public_key) {
+            throw new Error("Your public key is missing. Please log out and log in again before sharing to a group.");
+          }
+          const ownerPubKey = await importRSAPublicKey(userObj.public_key);
+          const ownerWrappedKey = await wrapKeyWithRSA(ownerPubKey, aesKey);
+
+          const groupShareResp = await fetch(`${API_URL}/groups/${group.id}/files`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ user_id: member.user_id, wrapped_key: wrappedKey }),
+            body: JSON.stringify({ file_id: fileId, wrapped_key: ownerWrappedKey }),
           });
-          if (!memberShareResp.ok) {
-            const errData = await memberShareResp.json().catch(() => ({}));
-            throw new Error(errData.error || `Failed to share with member ${member.user_id}`);
+          if (!groupShareResp.ok) {
+            const errData = await groupShareResp.json().catch(() => ({}));
+            throw new Error(errData.error || "Failed to register file with group.");
           }
-        }
-
-        const userObj = getStoredUserFromLocalStorage();
-        if (!userObj?.public_key) {
-          throw new Error("Your public key is missing. Please log out and log in again before sharing to a group.");
-        }
-        const ownerPubKey = await importRSAPublicKey(userObj.public_key);
-        const ownerWrappedKey = await wrapKeyWithRSA(ownerPubKey, aesKey);
-
-        const groupShareResp = await fetch(`${API_URL}/groups/${group.id}/files`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ file_id: fileId, wrapped_key: ownerWrappedKey }),
-        });
-        if (!groupShareResp.ok) {
-          const errData = await groupShareResp.json().catch(() => ({}));
-          throw new Error(errData.error || "Failed to register file with group");
+        } catch (cause) {
+          throw new Error(`Shared with ${members.length} of ${members.length} group members, but the group registration was not confirmed. Review file access before retrying. ${getNormalizedErrorMessage(cause, "Failed to register file with group.")}`);
         }
       }
 
@@ -241,6 +316,8 @@ export default function ShareModal({
     setPinInput("");
     setPasswordInput("");
     setError("");
+    setSearchMessage("");
+    setIgnoreCachedCredential(false);
     onClose();
   }
 
@@ -290,6 +367,8 @@ export default function ShareModal({
                   setSearch("");
                   setSearchResults([]);
                   setRecipient(null);
+                  setSearchMessage("");
+                  setError("");
                 }}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
@@ -324,6 +403,7 @@ export default function ShareModal({
             )}
 
             {loading && <p className="text-sm text-muted-foreground">Searching...</p>}
+            {searchMessage && <p className="text-sm text-muted-foreground" role="status">{searchMessage}</p>}
 
             {!recipient && tab === "users" && searchResults.length > 0 && (
               <div className="space-y-2 max-h-48 overflow-y-auto">

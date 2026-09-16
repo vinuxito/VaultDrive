@@ -23,15 +23,14 @@ test.describe("Group CRUD operations", () => {
     await expect(page.getByText("No groups yet")).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("Create your first group")).toBeVisible();
 
-    // Click the "+" button to open create modal
-    await page.locator("button").filter({ has: page.locator("svg.lucide-plus") }).click();
+    await page.getByRole("button", { name: "Create group", exact: true }).click();
 
     // Fill group creation form
     await page.locator("#name").fill("QA Engineering Team");
     await page.locator("#description").fill("Automated test group for E2E verification");
 
     // Submit
-    await page.getByRole("button", { name: /^Create Group$/i }).click();
+    await page.locator("form").getByRole("button", { name: /^Create Group$/i }).click();
 
     // Verify group appears in the list
     await expect(page.getByText("QA Engineering Team")).toBeVisible({ timeout: 5000 });

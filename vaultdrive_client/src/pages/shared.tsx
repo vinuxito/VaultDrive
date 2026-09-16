@@ -122,6 +122,7 @@ export default function SharedFiles() {
     const restoredKey = await restorePrivateKeyFromSessionPin({
       credential: getCredential(),
       privateKeyPinEncrypted: userObj?.private_key_pin_encrypted ?? null,
+      kekEnvelopeVersion: userObj?.kek_envelope_version,
     });
     if (restoredKey) {
       setPrivateKey(restoredKey);
@@ -207,7 +208,7 @@ export default function SharedFiles() {
         throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings to enable PIN-based decryption.");
       }
 
-      const privateKeyPem = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted);
+      const privateKeyPem = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted, userObj?.kek_envelope_version);
       const rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
       setPrivateKey(rsaPrivateKey, privateKeyPem);
       setCredential(pin, "pin");

@@ -36,6 +36,7 @@ describe("CreateFolderShareLinkModal", () => {
       JSON.stringify({
         private_key_pin_encrypted: "wrapped-private-key",
         public_key: "public-key",
+        kek_envelope_version: 2,
       }),
     );
     sessionVaultMocks.getCredential.mockReturnValue({ type: "pin", value: "1111" });
@@ -52,6 +53,7 @@ describe("CreateFolderShareLinkModal", () => {
     );
 
     await userEvent.click(screen.getByRole("button", { name: /generate link/i }));
+    expect(cryptoMocks.decryptPrivateKeyWithPIN).toHaveBeenCalledWith("1111", "wrapped-private-key", 2);
 
     await waitFor(() => {
       expect(

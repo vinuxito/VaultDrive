@@ -48,6 +48,7 @@ describe("FolderSharedLinksSection", () => {
       JSON.stringify({
         pin_set: true,
         private_key_pin_encrypted: "wrapped-private-key",
+        kek_envelope_version: 2,
       }),
     );
 
@@ -132,5 +133,18 @@ describe("FolderSharedLinksSection", () => {
         "http://localhost:3000/quantix/folder-share/folder-token-1#folder-share-secret",
       );
     });
+    expect(cryptoMocks.decryptPrivateKeyWithPIN).toHaveBeenCalledWith("1111", "wrapped-private-key", 2);
+  });
+
+  it("keeps the PIN prompt actionable after an empty WebCrypto failure and never copies", async () => {
+    cryptoMocks.decryptPrivateKeyWithPIN.mockRejectedValue(new DOMException("", "OperationError"));
+    render(<FolderSharedLinksSection folder={{ id: "folder-1", name: "Docs" }} onCreateLink={() => {}} />);
+    await screen.findByDisplayValue(/#••••••••/i);
+    fireEvent.click(screen.getByRole("button", { name: /copy full folder share link/i }));
+    fireEvent.change(await screen.findByLabelText("4-digit PIN"), { target: { value: "0000" } });
+    fireEvent.click(screen.getByRole("button", { name: /verify/i }));
+    await screen.findByText(/That PIN did not unlock your account key/);
+    expect(screen.getByLabelText("4-digit PIN")).toBeInTheDocument();
+    expect(clipboardWriteText).not.toHaveBeenCalled();
   });
 });

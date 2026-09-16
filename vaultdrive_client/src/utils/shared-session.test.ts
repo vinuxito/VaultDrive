@@ -26,10 +26,11 @@ describe("restorePrivateKeyFromSessionPin", () => {
       restorePrivateKeyFromSessionPin({
         credential: { type: "pin", value: "1234" },
         privateKeyPinEncrypted: "pin-wrapped-private-key",
+        kekEnvelopeVersion: 2,
       }),
     ).resolves.toBe(cryptoKey);
 
-    expect(cryptoMocks.decryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "pin-wrapped-private-key");
+    expect(cryptoMocks.decryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "pin-wrapped-private-key", 2);
     expect(cryptoMocks.importRSAPrivateKey).toHaveBeenCalledWith("PRIVATE KEY PEM");
   });
 

@@ -38,12 +38,13 @@ test.describe("Trust and safety UX flows", () => {
     await page.locator("#onboarding-folder-name").fill("Trust Verified Inbox");
     await page.getByTestId("onboarding-create-folder").click();
 
-    // Final step — "Enter Protected Vault" button shows security confidence
-    await expect(page.getByRole("button", { name: /Enter Protected Vault/i })).toBeVisible();
-    await page.getByRole("button", { name: /Enter Protected Vault/i }).click();
+    // Setup leads into a real first task; choosing it is not upload completion.
+    await expect(page.getByRole("button", { name: "Upload a file", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Upload a file", exact: true }).click();
 
     // User is now in the vault
     await expect(page.getByText("No files here yet")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Your next step" })).toBeVisible();
 
     await page.screenshot({
       path: test.info().outputPath("pin-setup-complete.png"),

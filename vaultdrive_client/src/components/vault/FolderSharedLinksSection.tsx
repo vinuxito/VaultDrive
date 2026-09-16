@@ -108,6 +108,7 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       pin_set?: boolean;
       private_key_encrypted?: string | null;
       private_key_pin_encrypted?: string | null;
+      kek_envelope_version?: number;
       public_key?: string | null;
     } : null;
   }, []);
@@ -236,7 +237,12 @@ export function FolderSharedLinksSection({ folder, onCreateLink, onStatusMessage
       throw new Error("Repair this older shared link before copying it again.");
     }
 
-    const privateKeyPem = await decryptPrivateKeyWithPIN(pin, currentUser.private_key_pin_encrypted);
+    let privateKeyPem: string;
+    try {
+      privateKeyPem = await decryptPrivateKeyWithPIN(pin, currentUser.private_key_pin_encrypted, currentUser.kek_envelope_version);
+    } catch {
+      throw new Error("That PIN did not unlock your account key. Check your PIN and try again.");
+    }
     const privateKey = await importRSAPrivateKey(privateKeyPem);
 
     const folderShareKey = await unwrapKeyWithRSA(privateKey, link.owner_wrapped_folder_key);

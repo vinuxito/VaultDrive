@@ -14,6 +14,7 @@ import {
   verifyWithRSAPSS,
 } from "../../utils/crypto";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
+import { getFileCredentialScheme } from "../../utils/file-credential";
 
 export interface FileEntry {
   id: string;
@@ -32,11 +33,8 @@ interface FilePreviewModalProps {
 
 
 function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
-  const currentUser = getStoredUserFromLocalStorage() ?? {};
-  if (file.pin_wrapped_key) return "drop-pin";
-  if (file.is_owner === false) return "pin";
-  if (currentUser.pin_set) return "pin";
-  return "password";
+  const scheme = getFileCredentialScheme(file);
+  return scheme === "folder" ? "pin" : scheme;
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
@@ -96,7 +94,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         if (pinEncrypted) {
           const cred = prompt("Please enter your PIN/Password to authorize digital signing:");
           if (cred) {
-            pem = await decryptPrivateKeyWithPIN(cred, pinEncrypted);
+            pem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
           }
         }
       }
@@ -131,7 +129,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
           if (pinEncrypted && cred) {
             localFailureKind = "credential";
-            rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted);
+            rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
           }
         }
       }
