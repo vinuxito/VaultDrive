@@ -1,4 +1,5 @@
 import {
+  decryptPrivateKeyWithPIN,
   decryptPrivateKeyWithPassword,
   encryptPrivateKeyWithPIN,
   encryptPrivateKeyWithPassword,
@@ -57,7 +58,6 @@ export async function createPinProtectedPrivateKey({
   let kekEnvelopeVersion = 1;
   try {
     const userJson = localStorage.getItem("user");
-    console.log("pin-enrollment userJson:", userJson);
     if (userJson) {
       const userObj = JSON.parse(userJson);
       if (userObj && userObj.kek_envelope_version) {
@@ -67,17 +67,13 @@ export async function createPinProtectedPrivateKey({
   } catch {
     // Keep the legacy envelope version when stored user data is unavailable.
   }
-  console.log("pin-enrollment using kekEnvelopeVersion:", kekEnvelopeVersion);
-
   try {
     privateKeyPem = await decryptPrivateKeyWithPassword(
       password,
       privateKeyEncrypted,
       kekEnvelopeVersion
     );
-    console.log("pin-enrollment decryption SUCCESS");
   } catch (error: unknown) {
-    console.log("pin-enrollment decryption FAILED with password", error);
     if (previousPassword) {
       try {
         privateKeyPem = await decryptPrivateKeyWithPassword(
@@ -95,10 +91,26 @@ export async function createPinProtectedPrivateKey({
   }
 
   const privateKeyPinEncrypted = await encryptPrivateKeyWithPIN(pin, privateKeyPem, kekEnvelopeVersion);
+  const verifiedPINPrivateKey = await decryptPrivateKeyWithPIN(pin, privateKeyPinEncrypted, kekEnvelopeVersion);
+  if (verifiedPINPrivateKey !== privateKeyPem) {
+    throw new Error("The new PIN key wrapper could not be verified. Your PIN was not changed.");
+  }
   const result: PinEnrollmentResult = { privateKeyPinEncrypted };
 
   if (usedRecovery) {
-    result.reEncryptedPrivateKey = await encryptPrivateKeyWithPassword(password, privateKeyPem);
+    result.reEncryptedPrivateKey = await encryptPrivateKeyWithPassword(
+      password,
+      privateKeyPem,
+      kekEnvelopeVersion,
+    );
+    const verifiedPasswordPrivateKey = await decryptPrivateKeyWithPassword(
+      password,
+      result.reEncryptedPrivateKey,
+      kekEnvelopeVersion,
+    );
+    if (verifiedPasswordPrivateKey !== privateKeyPem) {
+      throw new Error("The repaired password key wrapper could not be verified. Your PIN was not changed.");
+    }
   }
 
   return result;

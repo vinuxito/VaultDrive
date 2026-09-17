@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ShieldCheck,
   X,
@@ -12,6 +13,7 @@ import {
 import { API_URL } from "../../utils/api";
 import { formatBytes, formatDate } from "../../utils/format";
 import { playDeadboltThud, playTumblerClick } from "../../utils/audioHaptics";
+import { downloadTransferSlip } from "../../utils/transferSlip";
 import type { FileData } from "./FileGrid";
 
 interface CryptoPassportDrawerProps {
@@ -21,12 +23,16 @@ interface CryptoPassportDrawerProps {
 }
 
 interface AccessEntry {
-  id: string;
-  type: string;
+  id?: string;
+  kind?: string;
+  type?: string;
+  label?: string;
   name?: string;
-  created_at: string;
+  created_at?: string;
+  since?: string;
   expires_at?: string | null;
-  status: "active" | "expired" | "revoked";
+  state?: "active" | "expired" | "revoked";
+  status?: "active" | "expired" | "revoked";
 }
 
 export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
@@ -34,6 +40,7 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
   onClose,
   onDownloadSlip,
 }) => {
+  const { t } = useTranslation(["drive"]);
   const [copiedHash, setCopiedHash] = useState(false);
   const [activeRoutes, setActiveRoutes] = useState<AccessEntry[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(false);
@@ -71,7 +78,11 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
       if (res.ok) {
         const json = await res.json();
         if (json && Array.isArray(json.entries)) {
-          setActiveRoutes(json.entries.filter((e: AccessEntry) => e.status === "active"));
+          setActiveRoutes(
+            json.entries.filter(
+              (e: AccessEntry) => e.state === "active" || e.status === "active"
+            )
+          );
         }
       }
     } catch {
@@ -112,15 +123,19 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
 
     try {
       const token = localStorage.getItem("token");
-      // Call access revoke API
-      await fetch(`${API_URL}/v1/files/${file.id}/shares/revoke-all`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
-
-      setActiveRoutes([]);
-      setSeverSuccess(true);
-      setTimeout(() => setSeverSuccess(false), 3000);
+      if (token) {
+        const res = await fetch(`${API_URL}/v1/files/${file.id}/revoke-external`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          setActiveRoutes([]);
+          setSeverSuccess(true);
+          setTimeout(() => setSeverSuccess(false), 3000);
+        }
+      }
+    } catch {
+      // Network failure, leave active routes intact
     } finally {
       setSevering(false);
     }
@@ -140,7 +155,7 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-bold text-foreground truncate">
-                Cryptographic Passport
+                {t("drive:vault.passport.title", "Cryptographic Passport")}
               </h2>
               <p className="text-xs text-muted-foreground truncate">{file.filename}</p>
             </div>
@@ -149,7 +164,7 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer select-none"
-            aria-label="Close passport"
+            aria-label={t("drive:vault.passport.close", "Close passport")}
           >
             <X className="w-4 h-4" />
           </button>
@@ -161,7 +176,7 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                Golden SHA-256 Seal
+                {t("drive:vault.passport.goldenSeal", "Golden SHA-256 Seal")}
               </span>
               <button
                 type="button"
@@ -171,12 +186,12 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
                 {copiedHash ? (
                   <>
                     <Check className="w-3 h-3 text-emerald-500" />
-                    <span className="text-emerald-500">Copied</span>
+                    <span className="text-emerald-500">{t("drive:vault.passport.copied", "Copied")}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3 h-3" />
-                    <span>Copy Hash</span>
+                    <span>{t("drive:vault.passport.copyHash", "Copy Hash")}</span>
                   </>
                 )}
               </button>
@@ -185,31 +200,31 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
               {sha256Seal}
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Mathematical fingerprint anchored to immutable ciphertext. Byte-identical proof of non-tampering.
+              {t("drive:vault.passport.sealDescription", "Mathematical fingerprint anchored to immutable ciphertext. Byte-identical proof of non-tampering.")}
             </p>
           </div>
 
           {/* Cipher Engine Specs */}
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Cipher Engine Architecture
+              {t("drive:vault.passport.cipherEngine", "Cipher Engine Architecture")}
             </h3>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="space-y-1">
-                <span className="text-muted-foreground">Algorithm</span>
+                <span className="text-muted-foreground">{t("drive:vault.passport.algorithm", "Algorithm")}</span>
                 <p className="font-mono font-medium text-foreground">AES-256-GCM</p>
               </div>
               <div className="space-y-1">
-                <span className="text-muted-foreground">Key Envelope</span>
+                <span className="text-muted-foreground">{t("drive:vault.passport.keyEnvelope", "Key Envelope")}</span>
                 <p className="font-mono font-medium text-foreground">v2 Sovereign</p>
               </div>
               <div className="space-y-1">
-                <span className="text-muted-foreground">Key Derivation</span>
+                <span className="text-muted-foreground">{t("drive:vault.passport.keyDerivation", "Key Derivation")}</span>
                 <p className="font-mono font-medium text-foreground">PBKDF2-100k</p>
               </div>
               <div className="space-y-1">
-                <span className="text-muted-foreground">Zero Knowledge</span>
-                <p className="font-mono font-medium text-emerald-600 dark:text-emerald-400">Strict Client-Side</p>
+                <span className="text-muted-foreground">{t("drive:vault.passport.zeroKnowledge", "Zero Knowledge")}</span>
+                <p className="font-mono font-medium text-emerald-600 dark:text-emerald-400">{t("drive:vault.passport.strictClientSide", "Strict Client-Side")}</p>
               </div>
             </div>
           </div>
@@ -218,7 +233,7 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                External Route Exposure HUD
+                {t("drive:vault.passport.routeHud", "External Route Exposure HUD")}
               </h3>
               {loadingRoutes && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
             </div>
@@ -231,17 +246,17 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
                   <span className="font-medium font-mono">
-                    {activeRoutes.length} Active External Route{activeRoutes.length > 1 ? "s" : ""}
+                    {activeRoutes.length} {t("drive:vault.passport.activeRoutes", "Active External Routes")}
                   </span>
                 </div>
 
                 <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                  {activeRoutes.map((route) => (
+                  {activeRoutes.map((route, idx) => (
                     <div
-                      key={route.id}
+                      key={route.id || `route-${idx}`}
                       className="flex items-center justify-between p-2 rounded-lg bg-muted/60 text-[11px] font-mono"
                     >
-                      <span className="truncate">{route.name || route.id.slice(0, 12)}</span>
+                      <span className="truncate">{route.label || route.name || route.id?.slice(0, 12) || "External Route"}</span>
                       <span className="text-emerald-600 dark:text-emerald-400">LIVE</span>
                     </div>
                   ))}
@@ -259,19 +274,19 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
                   ) : (
                     <AlertOctagon className="w-3.5 h-3.5" />
                   )}
-                  <span>Sever All External Access</span>
+                  <span>{t("drive:vault.passport.severAccess", "Sever All External Access")}</span>
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 border border-border text-muted-foreground text-xs">
                 <Lock className="w-4 h-4" />
-                <span>Zero external exposure. File is secluded within your private vault.</span>
+                <span>{t("drive:vault.passport.zeroExposure", "Zero external exposure. File is secluded within your private vault.")}</span>
               </div>
             )}
 
             {severSuccess && (
               <p className="text-xs text-emerald-600 dark:text-emerald-400 text-center font-medium">
-                ✓ All external routes severed immediately.
+                ✓ {t("drive:vault.passport.severSuccess", "All external routes severed immediately.")}
               </p>
             )}
           </div>
@@ -279,18 +294,18 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
           {/* Chain of Custody */}
           <div className="rounded-xl border border-border bg-card p-4 space-y-2.5 text-xs">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Chain of Custody
+              {t("drive:vault.passport.chainOfCustody", "Chain of Custody")}
             </h3>
             <div className="flex items-center justify-between py-1 border-b border-border/40">
-              <span className="text-muted-foreground">Created</span>
+              <span className="text-muted-foreground">{t("drive:vault.passport.created", "Created")}</span>
               <span className="text-foreground">{formatDate(file.created_at)}</span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-border/40">
-              <span className="text-muted-foreground">Payload Size</span>
+              <span className="text-muted-foreground">{t("drive:vault.passport.payloadSize", "Payload Size")}</span>
               <span className="font-mono text-foreground">{formatBytes(file.file_size)}</span>
             </div>
             <div className="flex items-center justify-between py-1">
-              <span className="text-muted-foreground">Intake Channel</span>
+              <span className="text-muted-foreground">{t("drive:vault.passport.intakeChannel", "Intake Channel")}</span>
               <span className="font-medium text-foreground">
                 {file.drop_token ? "Secure Drop Intake" : file.shared_by ? "Shared Folder Collab" : "Direct Owner Upload"}
               </span>
@@ -302,11 +317,18 @@ export const CryptoPassportDrawer: React.FC<CryptoPassportDrawerProps> = ({
         <div className="p-4 border-t border-border bg-muted/20">
           <button
             type="button"
-            onClick={() => onDownloadSlip ? onDownloadSlip(file) : alert("Cryptographic transfer slip verified.")}
+            onClick={() => {
+              playTumblerClick();
+              if (onDownloadSlip) {
+                onDownloadSlip(file);
+              } else {
+                downloadTransferSlip(file);
+              }
+            }}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-medium transition-colors cursor-pointer select-none"
           >
             <Download className="w-3.5 h-3.5 text-primary" />
-            <span>Export Verifiable Transfer Slip</span>
+            <span>{t("drive:vault.passport.exportTransferSlip", "Export Verifiable Transfer Slip")}</span>
           </button>
         </div>
       </div>

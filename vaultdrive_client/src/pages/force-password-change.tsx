@@ -12,6 +12,7 @@ import {
   importRSAPrivateKey,
 } from "../utils/crypto";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import { useTranslation } from "react-i18next";
 
 /**
  * Full-screen password change gate.
@@ -22,12 +23,15 @@ import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
  */
 export default function ForcePasswordChange() {
   const navigate = useNavigate();
+  const { t } = useTranslation("auth");
   const { setPrivateKey, setCredential } = useSessionVault();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [previousEnvelopePassword, setPreviousEnvelopePassword] = useState("");
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [showPrevious, setShowPrevious] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,17 +51,22 @@ export default function ForcePasswordChange() {
     setError("");
 
     if (newPassword.length < 8) {
-      setError("New password must be at least 8 characters");
+      setError(t("forcePassword.tooShort", { defaultValue: "New password must be at least 8 characters" }));
+      return;
+    }
+
+    if (new TextEncoder().encode(newPassword).length > 72) {
+      setError(t("forcePassword.tooLong", { defaultValue: "New password must be 72 bytes or fewer" }));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("forcePassword.mismatch", { defaultValue: "Passwords do not match" }));
       return;
     }
 
     if (oldPassword === newPassword) {
-      setError("New password must be different from current password");
+      setError(t("forcePassword.mustDiffer", { defaultValue: "New password must be different from current password" }));
       return;
     }
 
@@ -68,26 +77,41 @@ export default function ForcePasswordChange() {
 
       // Re-encrypt private key with new password so file decryption continues to work
       let reEncryptedKey = "";
+      let verifiedPrivateKey: CryptoKey | null = null;
+      let verifiedPrivateKeyPem = "";
       if (storedUser.private_key_encrypted) {
         try {
+          const envelopeVersion = typeof storedUser.kek_envelope_version === "number"
+            ? storedUser.kek_envelope_version
+            : 1;
+          const envelopePassword = previousEnvelopePassword || oldPassword;
           const pem = await decryptPrivateKeyWithPassword(
-            oldPassword,
+            envelopePassword,
             storedUser.private_key_encrypted,
+            envelopeVersion,
           );
-          reEncryptedKey = await encryptPrivateKeyWithPassword(newPassword, pem);
+          reEncryptedKey = await encryptPrivateKeyWithPassword(newPassword, pem, envelopeVersion);
+          verifiedPrivateKeyPem = await decryptPrivateKeyWithPassword(newPassword, reEncryptedKey, envelopeVersion);
+          if (verifiedPrivateKeyPem !== pem) {
+            throw new Error("new wrapper did not preserve the account key");
+          }
+          verifiedPrivateKey = await importRSAPrivateKey(verifiedPrivateKeyPem);
         } catch {
-          // If decryption fails (e.g. admin reset the password server-side
-          // with a different encryption path), proceed without re-encryption.
-          // The user may need to re-enroll their keys separately.
+          throw new Error(
+            t("forcePassword.keyUnlockFailed", { defaultValue: "We could not unlock your account key with the current password. Your password was not changed. Sign out and try again, or start account recovery." }),
+          );
         }
       }
 
-      const requestBody: Record<string, string> = {
+      const requestBody: Record<string, string | number> = {
         old_password: oldPassword,
         new_password: newPassword,
       };
       if (reEncryptedKey) {
         requestBody.private_key_encrypted = reEncryptedKey;
+        requestBody.kek_envelope_version = typeof storedUser.kek_envelope_version === "number"
+          ? storedUser.kek_envelope_version
+          : 1;
       }
 
       const response = await fetch(`${API_URL}/users/change-password`, {
@@ -102,7 +126,7 @@ export default function ForcePasswordChange() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to change password");
+        throw new Error(data.error || t("forcePassword.changeFailed", { defaultValue: "Failed to change password" }));
       }
 
       // Update localStorage: clear force flag + update encrypted key if re-encrypted
@@ -113,25 +137,16 @@ export default function ForcePasswordChange() {
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // Initialize SessionVault with the private key so file decryption works
-      // after landing on dashboard (mirrors the login.tsx vault init flow)
-      try {
-        const keyToDecrypt = reEncryptedKey || storedUser.private_key_encrypted;
-        if (keyToDecrypt) {
-          const pem = await decryptPrivateKeyWithPassword(newPassword, keyToDecrypt);
-          const cryptoKey = await importRSAPrivateKey(pem);
-          setPrivateKey(cryptoKey, pem);
-          setCredential(newPassword, "password");
-        }
-      } catch {
-        // Non-fatal: user can still access dashboard, but encrypted files
-        // won't decrypt until next full login. Acceptable degradation.
+      // The wrapper and imported key were verified before the server mutation.
+      if (verifiedPrivateKey && verifiedPrivateKeyPem) {
+        setPrivateKey(verifiedPrivateKey, verifiedPrivateKeyPem);
+        setCredential(newPassword, "password");
       }
 
       // Redirect to dashboard
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to change password");
+      setError(err instanceof Error ? err.message : t("forcePassword.changeFailed", { defaultValue: "Failed to change password" }));
     } finally {
       setLoading(false);
     }
@@ -157,15 +172,15 @@ export default function ForcePasswordChange() {
               <ShieldAlert className="w-6 h-6 text-amber-600" />
             </div>
           </div>
-          <CardTitle className="text-xl">Password Change Required</CardTitle>
+          <CardTitle className="text-xl">{t("forcePassword.title", { defaultValue: "Password Change Required" })}</CardTitle>
           <CardDescription>
-            Your administrator has required you to set a new password before you can continue.
+            {t("forcePassword.description", { defaultValue: "Your administrator has required you to set a new password before you can continue." })}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800">
+            <div role="alert" className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800">
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
@@ -173,14 +188,14 @@ export default function ForcePasswordChange() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="old-password" className="text-sm font-medium">
-                Current Password
+                {t("forcePassword.current", { defaultValue: "Current Password" })}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <input
                   id="old-password"
                   type={showOld ? "text" : "password"}
-                  placeholder="Enter current password"
+                  placeholder={t("forcePassword.currentPlaceholder", { defaultValue: "Enter current password" })}
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -189,6 +204,7 @@ export default function ForcePasswordChange() {
                 />
                 <button
                   type="button"
+                  aria-label={showOld ? t("credentials.hidePassword") : t("credentials.showPassword")}
                   onClick={() => setShowOld(!showOld)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
@@ -198,23 +214,54 @@ export default function ForcePasswordChange() {
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="previous-envelope-password" className="text-sm font-medium">
+                {t("forcePassword.previousEnvelope", { defaultValue: "Previous password (only if an administrator reset your login)" })}
+              </label>
+              <p className="text-xs text-muted-foreground">
+                {t("forcePassword.previousEnvelopeHelp", { defaultValue: "This stays in your browser and is used only to unlock your existing account key." })}
+              </p>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <input
+                  id="previous-envelope-password"
+                  type={showPrevious ? "text" : "password"}
+                  placeholder={t("forcePassword.previousEnvelopePlaceholder", { defaultValue: "Optional previous password" })}
+                  value={previousEnvelopePassword}
+                  onChange={(e) => setPreviousEnvelopePassword(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  aria-label={showPrevious ? t("credentials.hidePreviousPassword") : t("credentials.showPreviousPassword")}
+                  onClick={() => setShowPrevious(!showPrevious)}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                >
+                  {showPrevious ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="new-password" className="text-sm font-medium">
-                New Password
+                {t("forcePassword.new", { defaultValue: "New Password" })}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <input
                   id="new-password"
                   type={showNew ? "text" : "password"}
-                  placeholder="Min. 8 characters"
+                  placeholder={t("forcePassword.newPlaceholder", { defaultValue: "8–72 bytes" })}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                   minLength={8}
+                  maxLength={72}
                 />
                 <button
                   type="button"
+                  aria-label={showNew ? t("credentials.hideNewPassword") : t("credentials.showNewPassword")}
                   onClick={() => setShowNew(!showNew)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
@@ -225,22 +272,23 @@ export default function ForcePasswordChange() {
 
             <div className="space-y-2">
               <label htmlFor="confirm-password" className="text-sm font-medium">
-                Confirm New Password
+                {t("forcePassword.confirm", { defaultValue: "Confirm New Password" })}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <input
                   id="confirm-password"
                   type="password"
-                  placeholder="Re-enter new password"
+                  placeholder={t("forcePassword.confirmPlaceholder", { defaultValue: "Re-enter new password" })}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
+                  maxLength={72}
                 />
               </div>
               {confirmPassword && newPassword !== confirmPassword && (
-                <p className="text-xs text-red-500">Passwords do not match</p>
+                <p className="text-xs text-red-500">{t("forcePassword.mismatch", { defaultValue: "Passwords do not match" })}</p>
               )}
             </div>
 
@@ -249,7 +297,9 @@ export default function ForcePasswordChange() {
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
               disabled={loading || newPassword.length < 8 || newPassword !== confirmPassword}
             >
-              {loading ? "Changing password..." : "Set New Password"}
+              {loading
+                ? t("forcePassword.changing", { defaultValue: "Changing password..." })
+                : t("forcePassword.submit", { defaultValue: "Set New Password" })}
             </Button>
           </form>
 
@@ -259,7 +309,7 @@ export default function ForcePasswordChange() {
               onClick={handleLogout}
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Sign out instead
+              {t("forcePassword.signOut", { defaultValue: "Sign out instead" })}
             </button>
           </div>
         </CardContent>

@@ -29,12 +29,19 @@ type ApiConfig struct {
 
 func (cfg *ApiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s - User-Agent: %s", r.Method, r.URL.String(), r.UserAgent())
+		started := time.Now()
+		requestID := ensureRequestID(w, r)
+		r = r.WithContext(context.WithValue(r.Context(), requestIDContextKey{}, requestID))
 		cfg.apiHits.Add(1)
 		atomic.AddInt64(&totalRequests, 1)
 
 		sr := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(sr, r)
+		route := r.Pattern
+		if route == "" {
+			route = "unmatched"
+		}
+		log.Printf("event=request route=%q status=%d request_id=%s duration_ms=%d", route, sr.statusCode, requestID, time.Since(started).Milliseconds())
 
 		if sr.statusCode >= 500 {
 			atomic.AddInt64(&totalErrors, 1)
@@ -63,7 +70,7 @@ func middlewareCORS(origins []string) func(http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name, Retry-After")
+			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name, Retry-After, X-Request-Id")
 
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
@@ -84,12 +91,6 @@ func main() {
 		log.Fatal("DB_URL environment variable is required")
 	}
 
-	preview := dbURL
-	if len(preview) > 12 {
-		preview = preview[:12]
-	}
-	fmt.Printf("Database URL: %s...\n", preview)
-
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is required")
@@ -102,7 +103,7 @@ func main() {
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		fmt.Printf("Error connecting to the database: %v\n", err)
+		fmt.Printf("Database initialization failed: %s\n", operationalErrorClass(err))
 		return
 	}
 	defer db.Close()
@@ -336,25 +337,8 @@ func main() {
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerGetBatchAccessKeys)))
 
-	// Recovery endpoints
-	mux.Handle("POST /api/v1/recovery/shares",
-		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerSaveRecoveryShares)))
-	mux.Handle("POST /api/v1/recovery/request",
-		apiConfig.middlewareMetricsInc(
-			http.HandlerFunc(apiConfig.handlerStartRecoveryRequest)))
-	mux.Handle("GET /api/v1/recovery/requests",
-		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerGetRecoveryRequests)))
-	mux.Handle("POST /api/v1/recovery/approve",
-		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerApproveRecoveryShare)))
-	mux.Handle("GET /api/v1/recovery/status",
-		apiConfig.middlewareMetricsInc(
-			http.HandlerFunc(apiConfig.handlerGetRecoveryStatus)))
-	mux.Handle("POST /api/v1/recovery/reset",
-		apiConfig.middlewareMetricsInc(
-			http.HandlerFunc(apiConfig.handlerResetRecoveryPassword)))
+	// Request-bound recovery capabilities and authenticated custodian routes.
+	apiConfig.registerRecoveryRoutes(mux)
 
 	// Folder share (public, no auth)
 	mux.HandleFunc("GET /api/folder-share/{token}/info", apiConfig.handlerGetFolderShareInfo)
@@ -616,15 +600,32 @@ var globalApiConfig *ApiConfig
 
 type statusRecorder struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode  int
+	wroteHeader bool
 }
 
 func (rec *statusRecorder) WriteHeader(code int) {
+	if rec.wroteHeader {
+		return
+	}
+	rec.wroteHeader = true
 	rec.statusCode = code
 	rec.ResponseWriter.WriteHeader(code)
 }
 
+func (rec *statusRecorder) Write(data []byte) (int, error) {
+	if !rec.wroteHeader {
+		rec.WriteHeader(http.StatusOK)
+	}
+	return rec.ResponseWriter.Write(data)
+}
+
+func (rec *statusRecorder) Unwrap() http.ResponseWriter { return rec.ResponseWriter }
+
 func (rec *statusRecorder) Flush() {
+	if !rec.wroteHeader {
+		rec.WriteHeader(http.StatusOK)
+	}
 	if flusher, ok := rec.ResponseWriter.(http.Flusher); ok {
 		flusher.Flush()
 	}

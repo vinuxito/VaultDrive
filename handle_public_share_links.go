@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -113,7 +111,14 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 	}
 	token := hex.EncodeToString(tokenBytes)
 
-	link, err := cfg.dbQueries.CreatePublicShareLink(r.Context(), database.CreatePublicShareLinkParams{
+	tx, err := cfg.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Could not start share link creation", err)
+		return
+	}
+	defer tx.Rollback()
+	queries := cfg.dbQueries.WithTx(tx)
+	link, err := queries.CreatePublicShareLink(r.Context(), database.CreatePublicShareLinkParams{
 		FileID:       fileID,
 		OwnerID:      user.ID,
 		Token:        token,
@@ -125,16 +130,27 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusInternalServerError, "Could not create share link", err)
 		return
 	}
-	cfg.insertActivity(r.Context(), user.ID, "public_share_link_created", map[string]interface{}{
+	activityMetadata := map[string]interface{}{
 		"file_id":       fileID.String(),
 		"filename":      dbFile.Filename,
 		"share_link_id": link.ID.String(),
 		"expires_at":    expiresAt,
-	})
-	cfg.insertAudit(r.Context(), user.ID, "public_share_link.created", "public_share_link", &link.ID, map[string]interface{}{
+	}
+	if err := queries.InsertActivity(r.Context(), database.InsertActivityParams{UserID: user.ID, EventType: "public_share_link_created", Payload: marshalJSONB(activityMetadata)}); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not record share link creation", err)
+		return
+	}
+	if _, err := queries.CreateAuditLog(r.Context(), database.CreateAuditLogParams{UserID: nullUUID(user.ID), Action: "public_share_link.created", ResourceType: "public_share_link", ResourceID: nullUUID(link.ID), Metadata: marshalJSONB(map[string]interface{}{
 		"file_id":  fileID.String(),
 		"filename": dbFile.Filename,
-	}, r)
+	}), IpAddress: requestInet(r), CreatedAt: time.Now().UTC()}); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not record share link creation", err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not commit share link creation", err)
+		return
+	}
 
 	respondWithJSON(w, http.StatusCreated, dbShareLinkToResponse(link))
 }
@@ -309,28 +325,10 @@ func (cfg *ApiConfig) handlerGetPublicShareLinkFile(w http.ResponseWriter, r *ht
 		w.Header().Set("X-File-Metadata", dbFile.EncryptedMetadata.String)
 	}
 
-	written, streamErr := io.Copy(w, file)
-	action := "file.downloaded"
-	if streamErr != nil || written != info.Size() {
-		action = "file.download_interrupted"
-		// Do not append a JSON error after ciphertext has started streaming.
-		log.Printf("event=public_transfer_interrupted resource_id=%s bytes=%d expected=%d", dbFile.ID, written, info.Size())
-	}
-
-	// Server streaming is observable; saving or reading on the recipient's
-	// device is not. Keep the audit even when a client cancels its request.
-	actorDetails := map[string]interface{}{
-		"actor_type":     "anonymous_link",
-		"link_id":        link.ID.String(),
-		"filename":       dbFile.Filename,
-		"file_size":      dbFile.FileSize,
-		"bytes_streamed": written,
-		"expected_bytes": info.Size(),
-		"delivery_scope": "server_stream",
-	}
-	auditCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 2*time.Second)
-	defer cancel()
-	cfg.insertAudit(auditCtx, link.OwnerID, action, "file", &dbFile.ID, actorDetails, r)
+	cfg.streamDownload(w, r, file, link.OwnerID, dbFile.ID, map[string]interface{}{
+		"actor_type": "anonymous_link", "link_id": link.ID.String(),
+		"filename": dbFile.Filename, "file_size": dbFile.FileSize,
+	})
 }
 
 func (cfg *ApiConfig) handlerListPublicShareLinks(w http.ResponseWriter, r *http.Request, user database.User) {

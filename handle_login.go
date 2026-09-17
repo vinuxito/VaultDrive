@@ -17,20 +17,20 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type response struct {
-		ID                         string `json:"id"`
-		Username                   string `json:"username"`
-		Email                      string `json:"email"`
-		FirstName                  string `json:"first_name"`
-		LastName                   string `json:"last_name"`
-		Token                      string `json:"token"`
-		RefreshToken               string `json:"refresh_token"`
-		PublicKey                  string `json:"public_key"`
-		PrivateKeyEncrypted        string `json:"private_key_encrypted"`
-		PrivateKeyPinEncrypted     string `json:"private_key_pin_encrypted,omitempty"`
-		KekEnvelopeVersion         int32  `json:"kek_envelope_version"`
-		IsAdmin                    bool   `json:"is_admin"`
-		PinSet                     bool   `json:"pin_set"`
-		ForcePasswordChange        bool   `json:"force_password_change"`
+		ID                     string `json:"id"`
+		Username               string `json:"username"`
+		Email                  string `json:"email"`
+		FirstName              string `json:"first_name"`
+		LastName               string `json:"last_name"`
+		Token                  string `json:"token"`
+		RefreshToken           string `json:"refresh_token"`
+		PublicKey              string `json:"public_key"`
+		PrivateKeyEncrypted    string `json:"private_key_encrypted"`
+		PrivateKeyPinEncrypted string `json:"private_key_pin_encrypted,omitempty"`
+		KekEnvelopeVersion     int32  `json:"kek_envelope_version"`
+		IsAdmin                bool   `json:"is_admin"`
+		PinSet                 bool   `json:"pin_set"`
+		ForcePasswordChange    bool   `json:"force_password_change"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -46,7 +46,6 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithErrorCtx(r, w, http.StatusUnauthorized, "ErrInvalidCredentials", err)
 		return
 	}
-
 
 	if params.Pin != "" {
 		if !user.PinHash.Valid || user.PinHash.String == "" {
@@ -66,22 +65,24 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		// KDF Migration: V1 (SHA-256) -> V2 (Argon2id)
 		if user.KekEnvelopeVersion == 1 && cfg.Product.EnableArgon2id {
 			plainPrivKey, err := decryptPrivateKey(user.PrivateKeyEncrypted, params.Password)
-			if err == nil {
-				rewrapped, err := encryptPrivateKeyV2(plainPrivKey, params.Password)
-				if err == nil {
-					errUpdate := cfg.dbQueries.UpdateUserKEK(r.Context(), database.UpdateUserKEKParams{
-						ID:                  user.ID,
-						PrivateKeyEncrypted: rewrapped,
-						KekEnvelopeVersion:  2,
-						UpdatedAt:           time.Now(),
-					})
-					if errUpdate == nil {
-						// Update local user object so the response gets the new key and version
-						user.PrivateKeyEncrypted = rewrapped
-						user.KekEnvelopeVersion = 2
-					}
-				}
+			if err != nil {
+				respondWithError(w, http.StatusInternalServerError, "Unable to migrate encrypted account key", err)
+				return
 			}
+			rewrapped, err := encryptPrivateKeyV2(plainPrivKey, params.Password)
+			if err != nil {
+				respondWithError(w, http.StatusInternalServerError, "Unable to migrate encrypted account key", err)
+				return
+			}
+			migration, err := cfg.migrateLoginEnvelopeAtomically(r.Context(), user.ID, params.Password, rewrapped, r)
+			if err != nil {
+				respondWithError(w, http.StatusConflict, "Account credentials changed. Please sign in again.", err)
+				return
+			}
+			user.PrivateKeyEncrypted = migration.PrivateKeyEncrypted
+			user.KekEnvelopeVersion = migration.KekEnvelopeVersion
+			user.PrivateKeyPinEncrypted = migration.PrivateKeyPinEncrypted
+			user.PinHash = migration.PinHash
 		}
 	}
 
@@ -120,19 +121,19 @@ func (cfg *ApiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, response{
-		ID:                         user.ID.String(),
-		Username:                   user.Username,
-		Email:                      user.Email,
-		FirstName:                  user.FirstName,
-		LastName:                   user.LastName,
-		Token:                      accessToken,
-		RefreshToken:               refreshToken,
-		PublicKey:                  user.PublicKey,
-		PrivateKeyEncrypted:        user.PrivateKeyEncrypted,
-		PrivateKeyPinEncrypted:     privateKeyPinEncrypted,
-		KekEnvelopeVersion:         user.KekEnvelopeVersion,
-		IsAdmin:                    isAdmin,
-		PinSet:                     pinSet,
-		ForcePasswordChange:        user.ForcePasswordChange,
+		ID:                     user.ID.String(),
+		Username:               user.Username,
+		Email:                  user.Email,
+		FirstName:              user.FirstName,
+		LastName:               user.LastName,
+		Token:                  accessToken,
+		RefreshToken:           refreshToken,
+		PublicKey:              user.PublicKey,
+		PrivateKeyEncrypted:    user.PrivateKeyEncrypted,
+		PrivateKeyPinEncrypted: privateKeyPinEncrypted,
+		KekEnvelopeVersion:     user.KekEnvelopeVersion,
+		IsAdmin:                isAdmin,
+		PinSet:                 pinSet,
+		ForcePasswordChange:    user.ForcePasswordChange,
 	})
 }

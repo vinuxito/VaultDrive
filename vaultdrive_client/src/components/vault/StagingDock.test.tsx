@@ -49,4 +49,24 @@ describe("StagingDock", () => {
     await userEvent.click(screen.getByRole("button", { name: /batch download/i }));
     expect(onBatchDownload).toHaveBeenCalledWith(dummyFiles);
   });
+
+  it("triggers onBatchSever and onDownloadBatchSlip when provided", async () => {
+    const onBatchSever = vi.fn();
+    const onDownloadBatchSlip = vi.fn();
+    render(
+      <StagingDock
+        dockedFiles={dummyFiles}
+        onClearDock={vi.fn()}
+        onBatchDownload={vi.fn()}
+        onBatchSever={onBatchSever}
+        onDownloadBatchSlip={onDownloadBatchSlip}
+      />
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /transfer slip/i }));
+    expect(onDownloadBatchSlip).toHaveBeenCalledWith(dummyFiles);
+
+    await userEvent.click(screen.getByRole("button", { name: /batch sever/i }));
+    expect(onBatchSever).toHaveBeenCalledWith(dummyFiles);
+  });
 });

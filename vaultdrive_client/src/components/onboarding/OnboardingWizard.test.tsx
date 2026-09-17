@@ -5,15 +5,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OnboardingWizard } from "./OnboardingWizard";
 
+const pinEnrollmentMocks = vi.hoisted(() => ({
+  createPinProtectedPrivateKey: vi.fn(),
+}));
+
 vi.mock("../../context/SessionVaultContext", () => ({
   useSessionVault: () => ({ setCredential: vi.fn() }),
 }));
 
 vi.mock("../../utils/pin-enrollment", () => ({
-  createPinProtectedPrivateKey: vi.fn().mockResolvedValue({
-    privateKeyPinEncrypted: "pin-wrapped-key",
-    reEncryptedPrivateKey: null,
-  }),
+  createPinProtectedPrivateKey: pinEnrollmentMocks.createPinProtectedPrivateKey,
   getPinEnrollmentErrorMessage: (error: unknown) => String(error),
 }));
 
@@ -24,12 +25,16 @@ function LocationProbe() {
 
 describe("OnboardingWizard first-task handoff", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem("token", "test-token");
     localStorage.setItem(
       "user",
-      JSON.stringify({ username: "ada", pin_set: false, private_key_encrypted: "wrapped-key" }),
+      JSON.stringify({ username: "ada", pin_set: false, private_key_encrypted: "wrapped-key", kek_envelope_version: 2 }),
     );
+    pinEnrollmentMocks.createPinProtectedPrivateKey.mockResolvedValue({
+      privateKeyPinEncrypted: "pin-wrapped-key",
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }),
@@ -53,6 +58,14 @@ describe("OnboardingWizard first-task handoff", () => {
     await user.type(screen.getByLabelText("Account Password"), "correct-password");
     await user.click(screen.getByRole("button", { name: /Set PIN/i }));
     await screen.findByRole("heading", { name: "Create a client folder" });
+
+    const request = vi.mocked(fetch).mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toEqual({
+      pin: "1234",
+      private_key_pin_encrypted: "pin-wrapped-key",
+      kek_envelope_version: 2,
+    });
+
     await user.click(screen.getByRole("button", { name: "Skip for now" }));
 
     expect(screen.queryByText("Ready checklist")).not.toBeInTheDocument();
@@ -91,5 +104,34 @@ describe("OnboardingWizard first-task handoff", () => {
     expect(pin).toHaveAttribute("type", "text");
     expect(confirmPin).toHaveAttribute("type", "text");
     expect(password).toHaveAttribute("type", "text");
+  });
+
+  it("persists a repaired password envelope with its version in the atomic PIN request", async () => {
+    const user = userEvent.setup();
+    pinEnrollmentMocks.createPinProtectedPrivateKey.mockResolvedValue({
+      privateKeyPinEncrypted: "pin-wrapped-key-v2",
+      reEncryptedPrivateKey: "repaired-password-wrapper-v2",
+    });
+    const fetchMock = vi.mocked(fetch);
+
+    render(
+      <MemoryRouter>
+        <OnboardingWizard onComplete={vi.fn()} />
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: /Continue/i }));
+    await user.type(screen.getByLabelText("4-Digit PIN"), "1234");
+    await user.type(screen.getByLabelText("Confirm PIN"), "1234");
+    await user.type(screen.getByLabelText("Account Password"), "new-account-password");
+    await user.click(screen.getByRole("button", { name: /Set PIN/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const request = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toEqual({
+      pin: "1234",
+      private_key_pin_encrypted: "pin-wrapped-key-v2",
+      private_key_encrypted: "repaired-password-wrapper-v2",
+      kek_envelope_version: 2,
+    });
   });
 });

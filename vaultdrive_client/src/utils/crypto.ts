@@ -404,20 +404,10 @@ export async function decryptPrivateKeyWithPassword(
   const normalizedPassword = password.normalize("NFC");
 
   try {
-    const result = await decryptWithPasswordBytes(normalizedPassword);
-    console.log("decryptPrivateKeyWithPassword SUCCESS with normalizedPassword");
-    return result;
+    return await decryptWithPasswordBytes(normalizedPassword);
   } catch (normalizedError: unknown) {
-    console.log("decryptPrivateKeyWithPassword failed with normalizedPassword:", normalizedError);
     if (normalizedPassword !== password) {
-      try {
-        const result = await decryptWithPasswordBytes(password);
-        console.log("decryptPrivateKeyWithPassword SUCCESS with unnormalized password");
-        return result;
-      } catch (unnormalizedError) {
-        console.log("decryptPrivateKeyWithPassword failed with unnormalized password:", unnormalizedError);
-        throw unnormalizedError;
-      }
+      return await decryptWithPasswordBytes(password);
     }
     throw normalizedError;
   }
@@ -429,19 +419,31 @@ export async function decryptPrivateKeyWithPassword(
 export async function encryptPrivateKeyWithPassword(
   password: string,
   privateKeyPem: string,
+  kekEnvelopeVersion: number = 1,
 ): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
 
-  const passwordBytes = new TextEncoder().encode(password.normalize("NFC"));
-  const combined = new Uint8Array(salt.length + passwordBytes.length);
-  combined.set(salt, 0);
-  combined.set(passwordBytes, salt.length);
-
-  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+  let keyBytes: BufferSource;
+  if (kekEnvelopeVersion === 2) {
+    keyBytes = await runArgon2({
+      password: password.normalize("NFC"),
+      salt,
+      parallelism: 4,
+      iterations: 3,
+      memorySize: 64 * 1024,
+      hashLength: 32,
+    }) as BufferSource;
+  } else {
+    const passwordBytes = new TextEncoder().encode(password.normalize("NFC"));
+    const combined = new Uint8Array(salt.length + passwordBytes.length);
+    combined.set(salt, 0);
+    combined.set(passwordBytes, salt.length);
+    keyBytes = await crypto.subtle.digest("SHA-256", combined);
+  }
   const aesKey = await crypto.subtle.importKey(
     "raw",
-    hashBuffer,
+    keyBytes,
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt"],

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Lock, Unlock, KeyRound } from "lucide-react";
 import { playDeadboltThud, playUnlockChime, playTumblerClick } from "../../utils/audioHaptics";
 
@@ -13,6 +14,7 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
   onUnlock,
   onScrubMemory,
 }) => {
+  const { t } = useTranslation(["drive"]);
   const [pin, setPin] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -66,10 +68,12 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
 
         <div className="space-y-1.5">
           <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Vault Locked for Privacy
+            {t("drive:vault.privacyShutter.title", { defaultValue: "Vault Locked for Privacy" })}
           </h1>
           <p className="text-xs text-muted-foreground">
-            All decrypted memory buffers scrubbed. Enter your session PIN or press Unlock to restore your workspace.
+            {t("drive:vault.privacyShutter.description", {
+              defaultValue: "All decrypted memory buffers scrubbed. Enter your session PIN or press Unlock to restore your workspace.",
+            })}
           </p>
         </div>
 
@@ -89,7 +93,7 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
             />
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground font-mono">
               <KeyRound className="w-3 h-3" />
-              <span>4-DIGIT SOVEREIGN PIN</span>
+              <span>{t("drive:vault.privacyShutter.pinLabel", { defaultValue: "4-DIGIT SOVEREIGN PIN" })}</span>
             </div>
           </div>
 
@@ -98,12 +102,12 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold shadow-lg transition-all active:scale-[0.99] cursor-pointer"
           >
             <Unlock className="w-4 h-4" />
-            <span>Resume Sovereign Session</span>
+            <span>{t("drive:vault.privacyShutter.resumeSession", { defaultValue: "Resume Sovereign Session" })}</span>
           </button>
         </form>
 
         <p className="text-[10px] text-muted-foreground font-mono">
-          HOTKEY: ⌘L TO TOGGLE PRIVACY SHUTTER
+          {t("drive:vault.privacyShutter.hotkey", { defaultValue: "HOTKEY: ⌘L TO TOGGLE PRIVACY SHUTTER" })}
         </p>
       </div>
     </div>

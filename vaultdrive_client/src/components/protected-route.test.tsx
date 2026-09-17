@@ -55,12 +55,21 @@ describe("ProtectedRoute", () => {
     expect(sessionStorage.getItem("vault_cached_credential")).toBeNull();
   });
 
-  it("keeps opaque fixture sessions server-authoritative", async () => {
+  it("rejects opaque tokens even with a valid cached user", async () => {
     localStorage.setItem("token", "visual-fixture-token");
     localStorage.setItem("user", JSON.stringify({ id: "owner" }));
 
     renderRoute("/files");
 
+    expect(await screen.findByText(/login:/)).toBeInTheDocument();
+    await waitFor(() => expect(localStorage.getItem("token")).toBeNull());
+  });
+
+  it("allows a future JWT while leaving signature authorization to the server", async () => {
+    const payload = btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }));
+    localStorage.setItem("token", `header.${payload}.signature`);
+    localStorage.setItem("user", JSON.stringify({ id: "owner" }));
+    renderRoute("/files");
     expect(await screen.findByText("private files")).toBeInTheDocument();
     expect(vaultMocks.clearVault).not.toHaveBeenCalled();
   });

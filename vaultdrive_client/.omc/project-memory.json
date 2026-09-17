@@ -192,6 +192,19 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "e2e/helpers/trust.ts",
+      "accessCount": 1,
+      "lastAccessed": 1782341322248,
+      "type": "file"
+    },
+    {
+      "path": "src/components/theme-provider.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1782342576456,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }

@@ -32,12 +32,11 @@ function readAuthState() {
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) user = parsed as Record<string, unknown>;
   } catch { user = null; }
 
-  const tokenLooksLikeJWT = token?.includes(".") ?? false;
-  const payload = tokenLooksLikeJWT && token ? decodeJWTPayload(token) : null;
-  const validToken = Boolean(token) && (!tokenLooksLikeJWT || (
+  const payload = token ? decodeJWTPayload(token) : null;
+  const validToken = Boolean(token) && (
     typeof payload?.exp === "number" && Number.isFinite(payload.exp)
     && payload.exp * 1000 > Date.now() + 10_000
-  ));
+  );
   const authenticated = validToken && user !== null;
   return {
     authenticated,

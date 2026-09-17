@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { StatusPanel } from "./StatusPanel";
 
@@ -30,4 +30,13 @@ it("offers recovery when reachability fails and keeps metrics out of the primary
   expect(screen.getByRole("button", { name: "Check again" })).toBeInTheDocument();
   expect(screen.queryByText("Goroutines")).not.toBeInTheDocument();
   expect(screen.getByText("The service could not be reached. Check your connection and try again.")).toBeInTheDocument();
+});
+
+it("previews safe support context without serializing raw service payloads", () => {
+  health.data = { status: "degraded", db_ping_ms: -1, version: "secret@example.test", filename: "secret-document.pdf", requestId: "secret-key" };
+  render(<StatusPanel />);
+  fireEvent.click(screen.getByRole("button", { name: "Show support details" }));
+  const preview = screen.getByRole("textbox", { name: "Support details preview" }) as HTMLTextAreaElement;
+  expect(preview.value).toContain("Operation: service_status");
+  expect(preview.value).not.toContain("secret");
 });

@@ -82,6 +82,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         pin,
         previousPassword: showRecovery ? previousPassword : undefined,
       });
+      const envelopeVersion = user?.kek_envelope_version === 2 ? 2 : 1;
 
       const res = await fetch(`${API_URL}/users/pin`, {
         method: "POST",
@@ -92,6 +93,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         body: JSON.stringify({
           pin,
           private_key_pin_encrypted: privateKeyPinEncrypted,
+          kek_envelope_version: envelopeVersion,
+          ...(reEncryptedPrivateKey ? {
+            private_key_encrypted: reEncryptedPrivateKey,
+          } : {}),
         }),
       });
       if (!res.ok) {

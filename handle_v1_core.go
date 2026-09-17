@@ -48,9 +48,9 @@ func (cfg *ApiConfig) handlerV1ListFiles(w http.ResponseWriter, r *http.Request,
 }
 
 func (cfg *ApiConfig) handlerV1GetFileMetadata(w http.ResponseWriter, r *http.Request, user database.User) {
-	fileID, dbFile, ok := cfg.getOwnedFileForAccess(r, user)
-	if !ok {
-		respondWithV1Error(w, r, http.StatusForbidden, "You do not own this file")
+	fileID, dbFile, err := cfg.getOwnedFileForAccessResult(r.Context(), r.PathValue("id"), user)
+	if err != nil {
+		respondAccessLookupError(w, r, err, true)
 		return
 	}
 	entry := map[string]interface{}{
@@ -226,9 +226,7 @@ func (cfg *ApiConfig) handlerV1DownloadFile(w http.ResponseWriter, r *http.Reque
 	if wrappedKey != "" {
 		w.Header().Set("X-Wrapped-Key", wrappedKey)
 	}
-	_, _ = io.Copy(w, file)
-
-	// Log download audit event
+	// Record the actual stream outcome with the authenticated actor scope.
 	var actorType = "owner"
 	var actorDetails = map[string]interface{}{}
 	if actor, ok := actorFromContext(r.Context()); ok {
@@ -251,7 +249,7 @@ func (cfg *ApiConfig) handlerV1DownloadFile(w http.ResponseWriter, r *http.Reque
 	actorDetails["filename"] = dbFile.Filename
 	actorDetails["file_size"] = dbFile.FileSize
 
-	cfg.insertAudit(r.Context(), dbFile.OwnerID.UUID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
+	cfg.streamDownload(w, r, file, dbFile.OwnerID.UUID, dbFile.ID, actorDetails)
 }
 
 func (cfg *ApiConfig) handlerV1ListFolders(w http.ResponseWriter, r *http.Request, user database.User) {

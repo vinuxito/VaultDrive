@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cryptoMocks = vi.hoisted(() => ({
+  decryptPrivateKeyWithPIN: vi.fn(),
   decryptPrivateKeyWithPassword: vi.fn(),
   encryptPrivateKeyWithPIN: vi.fn(),
   encryptPrivateKeyWithPassword: vi.fn(),
 }));
 
 vi.mock("./crypto", () => ({
+  decryptPrivateKeyWithPIN: cryptoMocks.decryptPrivateKeyWithPIN,
   decryptPrivateKeyWithPassword: cryptoMocks.decryptPrivateKeyWithPassword,
   encryptPrivateKeyWithPIN: cryptoMocks.encryptPrivateKeyWithPIN,
   encryptPrivateKeyWithPassword: cryptoMocks.encryptPrivateKeyWithPassword,
@@ -20,6 +22,8 @@ import {
 describe("createPinProtectedPrivateKey", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("PRIVATE KEY PEM");
   });
 
   it("re-encrypts the stored private key with the chosen pin", async () => {
@@ -42,6 +46,7 @@ describe("createPinProtectedPrivateKey", () => {
       1
     );
     expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM", 1);
+    expect(cryptoMocks.decryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "pin-wrapped-private-key", 1);
   });
 
   it("fails loudly when the encrypted private key is missing", async () => {
@@ -74,8 +79,10 @@ describe("createPinProtectedPrivateKey", () => {
   });
 
   it("supports recovery using a previous password", async () => {
-    cryptoMocks.decryptPrivateKeyWithPassword.mockRejectedValueOnce(new Error("decryption failed"));
-    cryptoMocks.decryptPrivateKeyWithPassword.mockResolvedValueOnce("PRIVATE KEY PEM");
+    localStorage.setItem("user", JSON.stringify({ kek_envelope_version: 2 }));
+    cryptoMocks.decryptPrivateKeyWithPassword
+      .mockRejectedValueOnce(new Error("decryption failed"))
+      .mockResolvedValue("PRIVATE KEY PEM");
     cryptoMocks.encryptPrivateKeyWithPIN.mockResolvedValue("pin-wrapped-private-key");
     cryptoMocks.encryptPrivateKeyWithPassword.mockResolvedValue("new-password-wrapped-private-key");
 
@@ -90,21 +97,27 @@ describe("createPinProtectedPrivateKey", () => {
       privateKeyPinEncrypted: "pin-wrapped-private-key",
       reEncryptedPrivateKey: "new-password-wrapped-private-key",
     });
-    expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenCalledTimes(2);
+    expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenCalledTimes(3);
     expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenNthCalledWith(
       1,
       "new-password",
       "old-password-wrapped-private-key",
-      1
+      2
     );
     expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenNthCalledWith(
       2,
       "old-password",
       "old-password-wrapped-private-key",
-      1
+      2
     );
-    expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM", 1);
-    expect(cryptoMocks.encryptPrivateKeyWithPassword).toHaveBeenCalledWith("new-password", "PRIVATE KEY PEM");
+    expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenNthCalledWith(
+      3,
+      "new-password",
+      "new-password-wrapped-private-key",
+      2
+    );
+    expect(cryptoMocks.encryptPrivateKeyWithPIN).toHaveBeenCalledWith("1234", "PRIVATE KEY PEM", 2);
+    expect(cryptoMocks.encryptPrivateKeyWithPassword).toHaveBeenCalledWith("new-password", "PRIVATE KEY PEM", 2);
   });
 
   it("fails if both current and previous passwords are wrong", async () => {
@@ -121,6 +134,18 @@ describe("createPinProtectedPrivateKey", () => {
 
     expect(cryptoMocks.decryptPrivateKeyWithPassword).toHaveBeenCalledTimes(2);
     expect(cryptoMocks.encryptPrivateKeyWithPIN).not.toHaveBeenCalled();
+  });
+
+  it("fails before persistence data is returned when the PIN wrapper does not preserve the key", async () => {
+    cryptoMocks.decryptPrivateKeyWithPassword.mockResolvedValue("PRIVATE KEY PEM");
+    cryptoMocks.encryptPrivateKeyWithPIN.mockResolvedValue("pin-wrapped-private-key");
+    cryptoMocks.decryptPrivateKeyWithPIN.mockResolvedValue("DIFFERENT KEY");
+
+    await expect(createPinProtectedPrivateKey({
+      privateKeyEncrypted: "password-wrapped-private-key",
+      password: "account-password",
+      pin: "1234",
+    })).rejects.toThrow(/PIN key wrapper could not be verified/i);
   });
 });
 

@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
@@ -86,28 +87,43 @@ func (cfg *ApiConfig) handlerShareFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Insert access key for recipient
-	_, err = cfg.dbQueries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
+	// The grant and its durable history commit together. A history outage must
+	// not leave an unrecorded read route behind.
+	tx, err := cfg.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		respondWithError(w, http.StatusServiceUnavailable, "Could not start file sharing", err)
+		return
+	}
+	defer tx.Rollback()
+	queries := cfg.dbQueries.WithTx(tx)
+	_, err = queries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
 		FileID:     uuid.NullUUID{UUID: fileID, Valid: true},
 		UserID:     uuid.NullUUID{UUID: recipient.ID, Valid: true},
 		WrappedKey: params.WrappedKey,
 	})
-
 	if err != nil {
 		// Check if it's a unique constraint violation (already shared)
 		// For now, just return generic error or we could check err string
 		respondWithError(w, http.StatusInternalServerError, "Could not share file (already shared?)", err)
 		return
 	}
-	cfg.insertActivity(r.Context(), userID, "file_shared", map[string]interface{}{
+	metadata := map[string]interface{}{
 		"file_id":      fileID.String(),
 		"filename":     dbFile.Filename,
 		"recipient_id": recipient.ID.String(),
-	})
-	cfg.insertAudit(r.Context(), userID, "file.shared", "file", &fileID, map[string]interface{}{
-		"filename":     dbFile.Filename,
-		"recipient_id": recipient.ID.String(),
-	}, r)
+	}
+	if err := queries.InsertActivity(r.Context(), database.InsertActivityParams{UserID: userID, EventType: "file_shared", Payload: marshalJSONB(metadata)}); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not record file sharing", err)
+		return
+	}
+	if _, err := queries.CreateAuditLog(r.Context(), database.CreateAuditLogParams{UserID: nullUUID(userID), Action: "file.shared", ResourceType: "file", ResourceID: nullUUID(fileID), Metadata: marshalJSONB(metadata), IpAddress: requestInet(r), CreatedAt: time.Now().UTC()}); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not record file sharing", err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not commit file sharing", err)
+		return
+	}
 
 	broadcastToUser(recipient.ID, "file_shared", map[string]interface{}{
 		"file_id":   fileID.String(),

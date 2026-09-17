@@ -24,9 +24,15 @@ vaultdrive_client/test-results/
 
 # Session state from local agent tooling
 .omc/
+.omx/
 .sisyphus/
 .claude/
 .gnhf/
+.agents/
+.codegraph/
+*.bak*
+__pycache__/
+*.pyc
 
 # Node
 node_modules/

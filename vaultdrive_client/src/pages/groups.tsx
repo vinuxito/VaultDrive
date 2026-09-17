@@ -9,9 +9,19 @@ import { FileWidget } from "../components/files";
 import { DataState } from "../components/ui/data-state";
 import { ElegantModal } from "../components/elegant";
 import { useTranslation } from "react-i18next";
+import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 
 interface Group {
   id: string;
+  user_id: string;
   name: string;
   description: string;
   member_count: number;
@@ -75,6 +85,7 @@ export default function Groups() {
   const [actionError, setActionError] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const currentUser = getStoredUserFromLocalStorage();
 
   const fetchGroups = useCallback(async () => {
     setSourceError("");
@@ -304,18 +315,20 @@ export default function Groups() {
                         <Settings className="w-4 h-4 mr-1" />
                         {t("common:groups.manage")}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteGroup(group.id);
-                        }}
-                        className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        {t("common:groups.delete")}
-                      </Button>
+                      {currentUser?.id === group.user_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group.id);
+                          }}
+                          className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          {t("common:groups.delete")}
+                        </Button>
+                      )}
                     </div>
                   </motion.div>
                 ))
@@ -416,7 +429,17 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   const [searching, setSearching] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [pendingRemoval, setPendingRemoval] = useState<
+    | { kind: "member"; userId: string; name: string }
+    | { kind: "file"; fileId: string; filename: string }
+    | null
+  >(null);
+  const [mutationBusy, setMutationBusy] = useState(false);
+  const [mutationReceipt, setMutationReceipt] = useState("");
+  const [detailActionError, setDetailActionError] = useState("");
   const usersPerPage = 10;
+  const currentUser = getStoredUserFromLocalStorage();
+  const canManageGroup = Boolean(group && currentUser?.id === group.user_id);
 
   const closeMemberModal = () => {
     setShowAddMemberModal(false);
@@ -520,12 +543,13 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   async function handleAddMembers() {
     if (selectedUserIds.size === 0) return;
 
+    setDetailActionError("");
     try {
       const token = localStorage.getItem("token");
 
-      // Add members one by one
+      let confirmed = 0;
       for (const userId of selectedUserIds) {
-        await fetch(`${API_URL}/groups/${groupId}/members`, {
+        const response = await fetch(`${API_URL}/groups/${groupId}/members`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -533,13 +557,20 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
           },
           body: JSON.stringify({ user_id: userId, role: "member" }),
         });
+        if (!response.ok) {
+          throw new Error(confirmed > 0
+            ? t("common:groups.errors.addMembersPartial", { count: confirmed, defaultValue: `Added ${confirmed} members before the server stopped confirming changes. Refresh the group before retrying.` })
+            : t("common:groups.errors.addMembers", { defaultValue: "No members were confirmed as added. Try again." }));
+        }
+        confirmed += 1;
       }
 
       closeMemberModal();
       onMemberAdded();
-      fetchMembers();
+      await fetchMembers();
     } catch (error) {
       console.error("Error adding members:", error);
+      setDetailActionError(error instanceof Error ? error.message : t("common:groups.errors.addMembers", { defaultValue: "No members were confirmed as added. Try again." }));
     }
   }
 
@@ -572,7 +603,9 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
       const response = await fetch(`${API_URL}/groups/${groupId}/members`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) throw new Error(t("common:groups.errors.membersUnavailable"));
       const data = await response.json();
+      if (!Array.isArray(data)) throw new Error(t("common:groups.errors.membersUnexpected"));
       setMembers(data || []);
     } catch (error) {
       console.error("Error fetching members:", error);
@@ -580,28 +613,48 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
   }
 
   async function handleRemoveMember(userId: string) {
-    if (!confirm(t("common:groups.confirmRemoveMember"))) return;
+    setMutationBusy(true);
+    setDetailActionError("");
+    setMutationReceipt("");
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/groups/${groupId}/members/${userId}`, {
+      const response = await fetch(`${API_URL}/groups/${groupId}/members/${userId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) throw new Error(t("common:groups.errors.removeMember", { defaultValue: "Member removal was not confirmed. Refresh the group before retrying." }));
       onMemberRemoved();
-      fetchMembers();
+      await fetchMembers();
+      setMutationReceipt(t("common:groups.memberRemovedReceipt", { defaultValue: "Member removed from this group. Existing direct file grants were not changed." }));
     } catch (error) {
       console.error("Error removing member:", error);
+      setDetailActionError(error instanceof Error ? error.message : t("common:groups.errors.removeMember", { defaultValue: "Member removal was not confirmed. Refresh the group before retrying." }));
+    } finally {
+      setMutationBusy(false);
+      setPendingRemoval(null);
     }
   }
 
   async function handleDeleteGroup() {
     if (!confirm(t("common:groups.confirmDeleteDetailed"))) return;
-    onGroupDeleted(groupId);
+    setDetailActionError("");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/groups/${groupId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error(t("common:groups.errors.delete"));
+      onGroupDeleted(groupId);
+    } catch (error) {
+      setDetailActionError(error instanceof Error ? error.message : t("common:groups.errors.deleteShort"));
+    }
   }
 
   async function handleRemoveFile(fileId: string, filename: string) {
-    if (!confirm(t("common:groups.confirmRemoveFile", { filename }))) return;
-    
+    setMutationBusy(true);
+    setDetailActionError("");
+    setMutationReceipt("");
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/groups/${groupId}/files/${fileId}`, {
@@ -609,11 +662,15 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (response.ok) {
-        setFiles(files.filter(f => f.file_id !== fileId));
-      }
+      if (!response.ok) throw new Error(t("common:groups.errors.removeFile", { defaultValue: "Group file removal was not confirmed. Refresh the group before retrying." }));
+      setFiles(current => current.filter(file => file.file_id !== fileId));
+      setMutationReceipt(t("common:groups.fileRemovedReceipt", { filename, defaultValue: `“${filename}” was removed from this group. Existing direct grants and links were not changed.` }));
     } catch (error) {
       console.error("Error removing file:", error);
+      setDetailActionError(error instanceof Error ? error.message : t("common:groups.errors.removeFile", { defaultValue: "Group file removal was not confirmed. Refresh the group before retrying." }));
+    } finally {
+      setMutationBusy(false);
+      setPendingRemoval(null);
     }
   }
 
@@ -656,6 +713,20 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         {t("common:groups.back")}
       </Button>
 
+      {detailActionError && (
+        <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {detailActionError}
+        </p>
+      )}
+      {mutationReceipt && (
+        <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-foreground">
+          <span>{mutationReceipt}</span>
+          <Button type="button" variant="outline" size="sm" onClick={() => navigate("/files")}>
+            {t("common:groups.reviewFileAccess", { defaultValue: "Review file access" })}
+          </Button>
+        </div>
+      )}
+
       <div className="brand-glass-card p-6 mb-6">
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -665,28 +736,32 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
               {t("common:groups.memberCount", { count: members.length })} • {t("common:groups.fileCount", { count: files.length })}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDeleteGroup}
-            className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
-          >
-            <Trash2 className="w-4 h-4 mr-1" />
-            {t("common:groups.delete")}
-          </Button>
+          {canManageGroup && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDeleteGroup}
+              className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              {t("common:groups.delete")}
+            </Button>
+          )}
         </div>
       </div>
 
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">{t("common:groups.members")}</h3>
-          <Button
-            onClick={() => setShowAddMemberModal(true)}
-            size="sm"
-          >
-            <UserPlus className="w-4 h-4 mr-1" />
-            {t("common:groups.addMember")}
-          </Button>
+          {canManageGroup && (
+            <Button
+              onClick={() => setShowAddMemberModal(true)}
+              size="sm"
+            >
+              <UserPlus className="w-4 h-4 mr-1" />
+              {t("common:groups.addMember")}
+            </Button>
+          )}
         </div>
         {detailErrors.members ? (
           <DataState error={detailErrors.members} onRetry={() => void fetchData()} density="compact">{null}</DataState>
@@ -709,15 +784,17 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
                     <p className="text-xs text-muted-foreground">{member.email}</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveMember(member.user_id)}
-                  aria-label={t("common:groups.removeMember", { name: member.username })}
-                  className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {canManageGroup && member.user_id !== group.user_id && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPendingRemoval({ kind: "member", userId: member.user_id, name: member.username })}
+                    aria-label={t("common:groups.removeMember", { name: member.username })}
+                    className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
@@ -733,29 +810,43 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
         ) : (
           <div className="space-y-2">
             {files.map((file) => (
-              <FileWidget
-                key={file.id}
-                file={{
-                  ...file,
-                  is_owner: false,
-                  group_name: group?.name || "",
-                  group_id: groupId,
-                }}
-                context="group-files"
-                onDownload={handleDownload}
-                onShare={handleShare}
-                onDelete={handleRemoveFile}
-                showActions={true}
-                showDetails={true}
-                enableExpand={true}
-              />
+              <div key={file.id} className="space-y-2">
+                <FileWidget
+                  file={{
+                    ...file,
+                    is_owner: file.is_owner,
+                    group_name: group?.name || "",
+                    group_id: groupId,
+                  }}
+                  context="group-files"
+                  onDownload={handleDownload}
+                  onShare={handleShare}
+                  showActions={true}
+                  showDetails={true}
+                  enableExpand={true}
+                />
+                {(canManageGroup || file.is_owner) && (
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPendingRemoval({ kind: "file", fileId: file.file_id, filename: file.filename })}
+                      aria-label={t("common:groups.removeFileAction", { filename: file.filename, defaultValue: `Remove ${file.filename} from group` })}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {t("common:groups.removeFromGroup", { defaultValue: "Remove from group" })}
+                    </Button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}
       </div>
 
       <AnimatePresence>
-        {showAddMemberModal && (
+        {showAddMemberModal && canManageGroup && (
           <ElegantModal
             isOpen
             onClose={closeMemberModal}
@@ -959,6 +1050,49 @@ function GroupDetail({ groupId, onBack, onGroupDeleted, onMemberAdded, onMemberR
           </ElegantModal>
         )}
       </AnimatePresence>
+
+      <Dialog
+        open={pendingRemoval !== null}
+        onOpenChange={(open) => {
+          if (!open && !mutationBusy) setPendingRemoval(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {pendingRemoval?.kind === "member"
+                ? t("common:groups.removeMemberTitle", { defaultValue: "Remove this member from the group?" })
+                : t("common:groups.removeFileTitle", { defaultValue: "Remove this file from the group?" })}
+            </DialogTitle>
+            <DialogDescription>
+              {pendingRemoval?.kind === "member"
+                ? t("common:groups.removeMemberBody", { defaultValue: "This removes group membership only. Existing direct file grants and downloaded copies are unchanged. Review file access separately." })
+                : t("common:groups.removeFileBody", { filename: pendingRemoval?.kind === "file" ? pendingRemoval.filename : "", defaultValue: "This removes the file from this group only. Existing direct grants, public links, folder links, and downloaded copies are unchanged. Review file access separately." })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="modal-cancel" disabled={mutationBusy} onClick={() => setPendingRemoval(null)}>
+                {t("common:groups.cancel")}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={mutationBusy || pendingRemoval === null}
+                aria-busy={mutationBusy}
+                onClick={() => {
+                  if (pendingRemoval?.kind === "member") void handleRemoveMember(pendingRemoval.userId);
+                  if (pendingRemoval?.kind === "file") void handleRemoveFile(pendingRemoval.fileId, pendingRemoval.filename);
+                }}
+              >
+                {pendingRemoval?.kind === "member"
+                  ? t("common:groups.removeMemberConfirm", { defaultValue: "Remove member" })
+                  : t("common:groups.removeFileConfirm", { defaultValue: "Remove from group" })}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

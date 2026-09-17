@@ -4,7 +4,7 @@ test.use({ serviceWorkers: "block", launchOptions: { executablePath: process.env
 
 test("quick share opens the verified credential flow without creating a fragmentless grant", async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem("token", "coherence-fixture");
+    localStorage.setItem("token", `header.${btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }))}.fixture`);
     localStorage.setItem("user", JSON.stringify({ id: "coherence-owner", username: "Fixture", pin_set: true }));
     localStorage.setItem("i18nextLng", "en");
   });

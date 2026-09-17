@@ -1,8 +1,8 @@
 # ABRN Drive v11 Sovereign Vault UI/UX — Verification Report
 
-- **Date**: 2026-09-16 UTC
-- **Release Target**: v11 Sovereign Vault Luxury UI/UX Upgrade
-- **Status**: DEPLOYED AND VERIFIED. 100/100 test files passed (484 tests). Production bundle live.
+- **Date**: 2026-09-17 UTC
+- **Release Target**: v11 Sovereign Vault Luxury UI/UX Upgrade (7-Iteration Hardened)
+- **Status**: DEPLOYED AND VERIFIED. 101/101 test files passed (490 tests). Production bundle live.
 
 ---
 
@@ -32,17 +32,17 @@ The v11 Sovereign Vault UI/UX release delivers an uncompromising luxury desktop 
    - Slide-out luxury inspection drawer (`CryptoPassportDrawer.tsx`) triggered by file-row shield icon or keyboard shortcut.
    - Golden SHA-256 seal display with one-click copy to clipboard.
    - Detailed cipher engine specifications (`AES-256-GCM`, `v2 Sovereign`, `PBKDF2-100k` iterations, `256-bit`).
-   - Live external route HUD detailing active links, expiration timestamps, and one-click emergency route revocation.
+   - Live external route HUD detailing active links, expiration timestamps, and one-click emergency route revocation via `DELETE /v1/files/:id/revoke-external`.
 
 5. **Illuminated Drag-and-Drop Aura & Executive Staging Dock**:
    - Full-window emerald perimeter glow (`UploadZone.tsx`) with zero-knowledge assurance messaging.
    - Floating bottom Staging Dock pill (`StagingDock.tsx`) for multi-file batch operations.
-   - Generation and download of verifiable, timestamped legal/cryptographic transfer slips (`transferSlip.ts`).
+   - Generation and download of verifiable, timestamped legal/cryptographic single and batch transfer slips (`transferSlip.ts`).
 
 6. **Web Audio Micro-Haptics & Ephemeral Vault Privacy Shutter**:
    - Synthesized procedural Web Audio API sounds (`audioHaptics.ts`) without external sound assets (tumbler tick, harmonic unlock chime, deadbolt thud).
-   - Frosted obsidian Privacy Curtain (`VaultPrivacyShutter.tsx`) with 3-minute inactivity auto-lock and PIN unlock.
-   - Command palette integration (`/lock` and `/passport`).
+   - Frosted obsidian Privacy Curtain (`VaultPrivacyShutter.tsx`) with 3-minute inactivity auto-lock, PIN unlock, and memory scrubbing.
+   - Settings panel toggle for audio micro-haptics with live audio test triggers.
 
 ---
 
@@ -50,10 +50,10 @@ The v11 Sovereign Vault UI/UX release delivers an uncompromising luxury desktop 
 
 | Area / Component | Verification Check | Expected Outcome | Actual Evidence / Output | Status |
 |---|---|---|---|---|
-| **Unit Test Suite** | Full Vitest execution (`npm test`) | 100% pass across all files | 100 test files passed (484/484 tests), 31.35s | **PASS** |
+| **Unit Test Suite** | Full Vitest execution (`npm test`) | 100% pass across all files | 101 test files passed (490/490 tests), 32.32s | **PASS** |
 | **Type Integrity** | Strict TypeScript check (`npx tsc -b`) | Zero type errors | Clean exit code 0 | **PASS** |
-| **Production Build** | Vite production compilation (`npm run build`) | Valid hashed bundle emitted | `dist/index.html` (2.25 kB), `index-D7clMoRI.js` (323.30 kB), `index-CnrpSDg2.css` (221.32 kB) | **PASS** |
-| **Asset Publishing** | Public SHA-256 identity check | Public index matches built index | `7ea1fab1c1a4d7da669496b8a7b6e1f115cbe11b58a2450ed391061b774a210c` byte-identical match | **PASS** |
+| **Production Build** | Vite production compilation (`npm run build`) | Valid hashed bundle emitted | `dist/index.html` (2.25 kB), `index-d215rxm9.js` (323.34 kB), `index-BnO31Rw9.css` (221.54 kB) | **PASS** |
+| **Asset Publishing** | Public SHA-256 identity check | Public index matches built index | `e9fa42fc65283cc995424610c5e0631c94862d22ee9878689ed3dce5d1a3a593` byte-identical match | **PASS** |
 | **Backend Readiness** | GET `/ready` endpoint | HTTP 200, all diagnostics healthy | `{"diagnostics":{"database":"ok","migrations":"ok (version: 49)","secrets":"ok","stored_files":"ok (files: 439)","uploads_dir":"ok"},"status":"ready"}` | **PASS** |
 | **Live UI Navigation** | Chrome DevTools on `https://abrndrive.filemonprime.net/abrn/files` | Authenticated session renders sorting headers & pointer affordances | Successfully rendered with pointer cursor, sort headers, and hover states | **PASS** |
 | **Crypto Passport** | Live file inspection on `RGC_PIPC_WEB_PILOTO_v0_19.zip` | Slide-out drawer renders Golden Seal, cipher specs, and live HUD | Verified Golden Seal `90b575e462a748a19fce4f31a0d5be59e89c3b10fa7281c947`, cipher specs, proof screenshot captured | **PASS** |
@@ -64,10 +64,10 @@ The v11 Sovereign Vault UI/UX release delivers an uncompromising luxury desktop 
 
 ## 3. Cryptographic Verification & Artifact Identity
 
-- **Staged & Live Index SHA-256**: `7ea1fab1c1a4d7da669496b8a7b6e1f115cbe11b58a2450ed391061b774a210c`
-- **Main JavaScript Bundle**: `dist/assets/index-D7clMoRI.js`
-- **Main CSS Bundle**: `dist/assets/index-CnrpSDg2.css`
-- **Files Bundle**: `dist/assets/files-mTKOy2jR.js`
+- **Staged & Live Index SHA-256**: `e9fa42fc65283cc995424610c5e0631c94862d22ee9878689ed3dce5d1a3a593`
+- **Main JavaScript Bundle**: `dist/assets/index-d215rxm9.js`
+- **Main CSS Bundle**: `dist/assets/index-BnO31Rw9.css`
+- **Files Bundle**: `dist/assets/files-D2fSPzGo.js`
 - **Delta Verification**: 0 breaking schema changes, 0 backend alterations, 0 regressions against existing test suites.
 
 ---

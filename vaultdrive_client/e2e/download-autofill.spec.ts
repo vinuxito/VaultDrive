@@ -34,7 +34,7 @@ test(`autofill and PIN retry: ${bulk ? "bulk" : "single"} ${wrappedKey ? "drop" 
     created_at: "2026-09-14T00:00:00Z",
   };
   await page.addInitScript(() => {
-    localStorage.setItem("token", "synthetic-regression-token");
+    localStorage.setItem("token", `header.${btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }))}.fixture`);
     localStorage.setItem("user", JSON.stringify({
       id: "synthetic-user", email: "fixture@example.test", username: "Fixture",
       pin_set: true, is_admin: false,

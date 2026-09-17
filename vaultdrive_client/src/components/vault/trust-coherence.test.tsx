@@ -56,11 +56,22 @@ it('labels the active count separately from closed recorded routes', async () =>
   expect(await screen.findByText('Old file link')).toBeInTheDocument();
   expect(screen.getByText('0 active external read routes')).toBeInTheDocument();
 });
-it('does not present a link creation time as a precise revocation time', async () => {
+it('presents the recorded audit timestamp for a link revocation', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ data: [{ id: 'closed', event_type: 'revoked', label: 'Public link revoked', at: '2026-01-01T00:00:00Z', tone: 'warn' }] })));
   render(<FileSecurityTimeline fileId="file" />);
-  expect(await screen.findByText(/Closure time is unavailable in this snapshot/)).toBeInTheDocument();
-  expect(document.querySelector('time[datetime="2026-01-01T00:00:00Z"]')).not.toBeInTheDocument();
+  expect(await screen.findByText(/File link closed/)).toBeInTheDocument();
+  expect(document.querySelector('time[datetime="2026-01-01T00:00:00Z"]')).toBeInTheDocument();
+  expect(screen.queryByText(/Closure time is unavailable/)).not.toBeInTheDocument();
+});
+
+it('names aggregate and group access closures without inventing stronger claims', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ data: [
+    { id: 'aggregate', event_type: 'external_access_revoked', label: 'Closed 2 direct share(s) and 1 file link(s)', at: '2026-01-02T00:00:00Z', tone: 'warn' },
+    { id: 'group', event_type: 'group_removed', label: 'Removed from a group', at: '2026-01-01T00:00:00Z', tone: 'warn' },
+  ] })));
+  render(<FileSecurityTimeline fileId="file" />);
+  expect(await screen.findByText(/Closed 2 direct shares and 1 file link/)).toBeInTheDocument();
+  expect(screen.getByText(/Group access removed/)).toBeInTheDocument();
 });
 
 it('treats malformed access entries as unavailable rather than zero active routes', async () => {

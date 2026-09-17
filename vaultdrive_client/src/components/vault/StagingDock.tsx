@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { Download, Link2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Download, Link2, X, AlertOctagon, FileText } from "lucide-react";
 import { formatBytes } from "../../utils/format";
 import { playTumblerClick } from "../../utils/audioHaptics";
 import type { FileData } from "./FileGrid";
@@ -9,6 +10,8 @@ interface StagingDockProps {
   onClearDock: () => void;
   onBatchDownload: (files: FileData[]) => void;
   onBatchShare?: (files: FileData[]) => void;
+  onBatchSever?: (files: FileData[]) => void;
+  onDownloadBatchSlip?: (files: FileData[]) => void;
 }
 
 export const StagingDock: React.FC<StagingDockProps> = ({
@@ -16,7 +19,11 @@ export const StagingDock: React.FC<StagingDockProps> = ({
   onClearDock,
   onBatchDownload,
   onBatchShare,
+  onBatchSever,
+  onDownloadBatchSlip,
 }) => {
+  const { t } = useTranslation(["drive"]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && dockedFiles.length > 0) {
@@ -43,7 +50,7 @@ export const StagingDock: React.FC<StagingDockProps> = ({
         </div>
         <div className="flex flex-col">
           <span className="text-xs font-semibold text-foreground">
-            Staged for Action
+            {t("drive:vault.stagingDock.stagedForAction", { defaultValue: "Staged for Action" })}
           </span>
           <span className="text-[10px] text-muted-foreground font-mono">
             {formatBytes(totalBytes)}
@@ -64,7 +71,7 @@ export const StagingDock: React.FC<StagingDockProps> = ({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] cursor-pointer select-none"
         >
           <Download className="w-3.5 h-3.5" />
-          <span>Batch Download</span>
+          <span>{t("drive:vault.stagingDock.batchDownload", { defaultValue: "Batch Download" })}</span>
         </button>
 
         {onBatchShare && (
@@ -77,7 +84,37 @@ export const StagingDock: React.FC<StagingDockProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border text-xs font-medium transition-all active:scale-[0.98] cursor-pointer select-none"
           >
             <Link2 className="w-3.5 h-3.5" />
-            <span>Combined Link</span>
+            <span>{t("drive:vault.stagingDock.combinedLink", { defaultValue: "Combined Link" })}</span>
+          </button>
+        )}
+
+        {onDownloadBatchSlip && (
+          <button
+            type="button"
+            onClick={() => {
+              playTumblerClick();
+              onDownloadBatchSlip(dockedFiles);
+            }}
+            title="Download Consolidated Cryptographic Transfer Slip"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border text-xs font-medium transition-all active:scale-[0.98] cursor-pointer select-none"
+          >
+            <FileText className="w-3.5 h-3.5 text-primary" />
+            <span>{t("drive:vault.stagingDock.transferSlip", { defaultValue: "Transfer Slip" })}</span>
+          </button>
+        )}
+
+        {onBatchSever && (
+          <button
+            type="button"
+            onClick={() => {
+              playTumblerClick();
+              onBatchSever(dockedFiles);
+            }}
+            title="Sever External Access for All Docked Files"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold transition-all active:scale-[0.98] cursor-pointer select-none"
+          >
+            <AlertOctagon className="w-3.5 h-3.5" />
+            <span>{t("drive:vault.stagingDock.batchSever", { defaultValue: "Batch Sever" })}</span>
           </button>
         )}
 
@@ -87,8 +124,8 @@ export const StagingDock: React.FC<StagingDockProps> = ({
             playTumblerClick();
             onClearDock();
           }}
-          title="Clear Dock (Esc)"
-          aria-label="Clear dock"
+          title={t("drive:vault.stagingDock.clearDock", { defaultValue: "Clear Dock (Esc)" })}
+          aria-label={t("drive:vault.stagingDock.clearDock", { defaultValue: "Clear dock" })}
           className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer select-none"
         >
           <X className="w-4 h-4" />

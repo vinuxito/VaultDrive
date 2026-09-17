@@ -39,6 +39,13 @@ jobs:
     env:
       DB_URL: postgres://postgres:postgres@localhost:5432/vaultdrive?sslmode=disable
       JWT_SECRET: trust-proof-e2e-secret-key-minimum-32-characters
+      PRODUCT_NAME: ABRN Drive
+      PRODUCT_SLUG: abrn-drive
+      AGENT_KEY_PREFIX: abrnak
+      VITE_PRODUCT_NAME: ABRN Drive
+      VITE_API_URL: /api
+      VITE_BASE_PATH: /abrn
+      VITE_AGENT_KEY_PREFIX: abrnak
 
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +69,7 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Install Goose
-        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+        run: go install github.com/pressly/goose/v3/cmd/goose@v3.28.0
 
       - name: Run database migrations
         run: |
@@ -83,9 +90,28 @@ jobs:
       - name: Run backend tests
         run: go test ./...
 
+      - name: Prepare isolated browser runtime
+        run: |
+          mkdir -p "$RUNNER_TEMP/abrn-e2e/runtime/vaultdrive_client" "$RUNNER_TEMP/abrn-e2e/uploads"
+          cd vaultdrive_client
+          npm run build -- --mode test --outDir "$RUNNER_TEMP/abrn-e2e/dist" --emptyOutDir
+          cd ..
+          go build -o "$RUNNER_TEMP/abrn-e2e/abrndrive" .
+          ln -s "$RUNNER_TEMP/abrn-e2e/dist" "$RUNNER_TEMP/abrn-e2e/runtime/vaultdrive_client/dist"
+          cd "$RUNNER_TEMP/abrn-e2e/runtime"
+          LISTEN_HOST=127.0.0.1 PORT=8090 BASE_PATH=/abrn/ UPLOAD_DIR="$RUNNER_TEMP/abrn-e2e/uploads" ENABLE_ARGON2ID=true "$RUNNER_TEMP/abrn-e2e/abrndrive" > "$RUNNER_TEMP/abrn-e2e/backend.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8090/ready; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+
       - name: Run Playwright trust proof suite
         working-directory: vaultdrive_client
-        run: npx playwright test
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8090/abrn/
+          E2E_API_BASE_URL: http://127.0.0.1:8090/api
+        run: npm run test:e2e:external
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}

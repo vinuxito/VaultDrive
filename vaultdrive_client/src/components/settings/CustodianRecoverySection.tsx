@@ -55,9 +55,11 @@ interface ActiveCustodian {
 
 interface PendingRecoveryRequest {
   id: string;
-  owner_id: string;
+  attempt_id: string;
+  challenge: string;
+  verification_code: string;
+  expires_at: string;
   owner_username: string;
-  owner_email: string;
   owner_first_name: string;
   owner_last_name: string;
   wrapped_share_payload: string;
@@ -101,13 +103,17 @@ export function CustodianRecoverySection() {
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalPasswordInput, setApprovalPasswordInput] = useState("");
+  const [confirmedAttemptIds, setConfirmedAttemptIds] = useState<Set<string>>(() => new Set());
   const [showApprovalPromptId, setShowApprovalPromptId] = useState<string | null>(null);
 
   const fetchActiveConfig = useCallback(async () => {
     if (!currentUser) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
     try {
       const response = await fetch(
-        `${branding.apiBasePath}/v1/recovery/status?username=${currentUser.username}`
+        `${branding.apiBasePath}/v1/recovery/config`,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (response.ok) {
         const data = (await response.json()) as {
@@ -385,7 +391,8 @@ export function CustodianRecoverySection() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          owner_id: request.owner_id,
+          attempt_id: request.attempt_id,
+          challenge: request.challenge,
           decrypted_share_part: decryptedSharePartHex,
         }),
       });
@@ -630,10 +637,30 @@ export function CustodianRecoverySection() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{req.owner_first_name} {req.owner_last_name}</p>
-                      <p className="text-xs text-muted-foreground">@{req.owner_username} • {req.owner_email}</p>
+                      <p className="text-xs text-muted-foreground">@{req.owner_username}</p>
                     </div>
                     <span className="brand-badge bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px]">Pending approval</span>
                   </div>
+
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+                    <p data-testid={`custodian-recovery-code-${req.attempt_id}`} className="font-semibold">{t("drive:recovery.verificationCode", { defaultValue: "Verification code" })}: <span className="font-mono tracking-wider">{req.verification_code}</span></p>
+                    <p className="mt-1 text-muted-foreground">{t("drive:recovery.custodianVerifyOutOfBand", { defaultValue: "Contact the account owner outside ABRN Drive and confirm this exact code before approving. This request expires {{time}}.", time: new Date(req.expires_at).toLocaleString() })}</p>
+                  </div>
+
+                  <label className="flex items-start gap-2 text-xs text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={confirmedAttemptIds.has(req.attempt_id)}
+                      onChange={(event) => setConfirmedAttemptIds((current) => {
+                        const next = new Set(current);
+                        if (event.target.checked) next.add(req.attempt_id);
+                        else next.delete(req.attempt_id);
+                        return next;
+                      })}
+                      className="mt-0.5"
+                    />
+                    <span>{t("drive:recovery.confirmedOutOfBand", { defaultValue: "I confirmed this exact code with the account owner outside ABRN Drive." })}</span>
+                  </label>
 
                   {showApprovalPromptId === req.id && (
                     <div className="space-y-2 p-3 border rounded-xl bg-muted/40 animate-in fade-in slide-in-from-top-1 duration-200">
@@ -655,7 +682,7 @@ export function CustodianRecoverySection() {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleApproveRequest(req, approvalPasswordInput)}
-                      disabled={approvingId === req.id}
+                      disabled={approvingId === req.id || !confirmedAttemptIds.has(req.attempt_id)}
                       variant="outline"
                       className="text-xs border-primary/30 text-primary hover:bg-primary/5 w-full"
                     >

@@ -167,8 +167,27 @@ test.describe("Credential session recovery", () => {
       await gotoStable(ownerPage, "/login");
       await ownerPage.getByRole("button", { name: "Recover Lost Account" }).click();
       await ownerPage.locator("#recover-username").fill(owner.username);
+      const recoveryRequestResponse = ownerPage.waitForResponse((response) =>
+        response.request().method() === "POST" && response.url().endsWith("/api/v1/recovery/request"),
+      );
+      const recoveryStatusRequest = ownerPage.waitForRequest((request) =>
+        request.method() === "GET" && request.url().endsWith("/api/v1/recovery/status"),
+      );
       await ownerPage.getByRole("button", { name: "Request Account Recovery" }).click();
+      const recoveryStart = await (await recoveryRequestResponse).json() as {
+        recovery_token: string;
+        verification_code: string;
+        expires_at: string;
+      };
+      expect(recoveryStart.recovery_token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      expect(recoveryStart.verification_code).toMatch(/^[A-F0-9]{8}$/);
+      expect(Date.parse(recoveryStart.expires_at)).toBeGreaterThan(Date.now());
       await expect(ownerPage.getByText("Waiting for custodians to decrypt and approve shares...")).toBeVisible();
+      await expect(ownerPage.getByTestId("recovery-verification-code")).toContainText(recoveryStart.verification_code);
+
+      const observedStatusRequest = await recoveryStatusRequest;
+      expect(observedStatusRequest.url()).not.toContain("username=");
+      expect(observedStatusRequest.headers().authorization).toBe(`Bearer ${recoveryStart.recovery_token}`);
 
       for (const [page, custodian] of [
         [custodianAPage, custodianA],
@@ -179,6 +198,9 @@ test.describe("Credential session recovery", () => {
         await expect(securityTab).toBeVisible();
         await securityTab.click();
         await expect(page.getByText(`@${owner.username}`)).toBeVisible({ timeout: 20_000 });
+        await expect(page.locator('[data-testid^="custodian-recovery-code-"]')).toContainText(recoveryStart.verification_code);
+        await expect(page.getByText(/confirm this exact code/i)).toBeVisible();
+        await page.getByRole("checkbox").check();
         await page.getByRole("button", { name: "Approve Recovery" }).click();
         const approvalPassword = page.locator('[id^="approve-password-"]');
         if (await approvalPassword.isVisible({ timeout: 3_000 }).catch(() => false)) {
@@ -191,7 +213,14 @@ test.describe("Credential session recovery", () => {
       await expect(ownerPage.locator("#new-password")).toBeVisible({ timeout: 25_000 });
       await ownerPage.locator("#new-password").fill(newPassword);
       await ownerPage.locator("#confirm-password").fill(newPassword);
+      const resetRequestPromise = ownerPage.waitForRequest((request) =>
+        request.method() === "POST" && request.url().endsWith("/api/v1/recovery/reset"),
+      );
       await ownerPage.getByRole("button", { name: "Recover & Reset Account" }).click();
+      const resetRequest = await resetRequestPromise;
+      expect(resetRequest.headers().authorization).toBe(`Bearer ${recoveryStart.recovery_token}`);
+      expect(resetRequest.postDataJSON()).toMatchObject({ kek_envelope_version: 2 });
+      expect(resetRequest.postDataJSON()).not.toHaveProperty("username");
       await expect(ownerPage.getByText("Account Recovered Successfully")).toBeVisible({ timeout: 20_000 });
       await ownerPage.getByRole("button", { name: "Log In" }).click();
       await ownerPage.getByRole("button", { name: "Password", exact: true }).click();

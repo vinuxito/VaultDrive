@@ -24,10 +24,19 @@ import {
   AlertCircle,
   Loader2,
   Building2,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme, SKINS } from "../components/theme-provider";
 import { cn } from "../lib/utils";
+import {
+  isHapticsEnabled,
+  setHapticsEnabled,
+  playTumblerClick,
+  playUnlockChime,
+  playDeadboltThud,
+} from "../utils/audioHaptics";
 import { getPINStatus, setPIN } from "../utils/api";
 import { AgentApiKeysSection } from "../components/settings/AgentApiKeysSection";
 import { AgentDeveloperPortalSection } from "../components/settings/AgentDeveloperPortalSection";
@@ -59,6 +68,7 @@ export default function Settings() {
   const [orgName, setOrgName] = useState<string>("");
   const [orgSaving, setOrgSaving] = useState(false);
   const [orgSaved, setOrgSaved] = useState(false);
+  const [hapticsOn, setHapticsOn] = useState(() => isHapticsEnabled());
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -151,7 +161,14 @@ export default function Settings() {
         previousPassword: showRecovery ? previousPasswordInput : undefined,
       });
 
-      await setPIN(pinInput, token, pinSet ? oldPinInput : undefined, privateKeyPinEncrypted);
+      await setPIN(
+        pinInput,
+        token,
+        pinSet ? oldPinInput : undefined,
+        privateKeyPinEncrypted,
+        reEncryptedPrivateKey,
+        typeof userObj?.kek_envelope_version === "number" ? userObj.kek_envelope_version : 1,
+      );
       setPinSet(true);
       setCredential(pinInput, "pin");
       setPinSuccess(pinSet ? "PIN changed successfully." : "PIN set successfully.");
@@ -322,6 +339,72 @@ export default function Settings() {
                 </button>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Haptic Sound Design */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {hapticsOn ? <Volume2 className="w-5 h-5 text-primary" /> : <VolumeX className="w-5 h-5 text-muted-foreground" />}
+              Haptic Sound Design
+            </CardTitle>
+            <CardDescription>
+              Procedural Web Audio micro-haptics for PIN tumblers, vault unlock chimes, and deadbolt revocations
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/20">
+              <div className="space-y-0.5">
+                <Label htmlFor="haptics-switch" className="text-sm font-medium">
+                  Audio Micro-Haptics
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Sub-5ms synthesized oscillator pulses (-20dB polite sound governance)
+                </p>
+              </div>
+              <Switch
+                id="haptics-switch"
+                checked={hapticsOn}
+                onCheckedChange={(checked) => {
+                  setHapticsEnabled(checked);
+                  setHapticsOn(checked);
+                  if (checked) playTumblerClick();
+                }}
+              />
+            </div>
+
+            {hapticsOn && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => playTumblerClick()}
+                  className="text-xs cursor-pointer select-none"
+                >
+                  Test Tumbler
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => playUnlockChime()}
+                  className="text-xs cursor-pointer select-none"
+                >
+                  Test Unlock Chime
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => playDeadboltThud()}
+                  className="text-xs cursor-pointer select-none"
+                >
+                  Test Deadbolt Thud
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -1,10 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
-	"time"
 	"unicode"
 
 	"github.com/vinuxito/VaultDrive/auth"
@@ -13,11 +12,13 @@ import (
 
 func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, user database.User) {
 	var req struct {
-		PIN                     string `json:"pin"`
-		OldPIN                  string `json:"old_pin"`
-		PrivateKeyPinEncrypted  string `json:"private_key_pin_encrypted"`
+		PIN                    string `json:"pin"`
+		OldPIN                 string `json:"old_pin"`
+		PrivateKeyPinEncrypted string `json:"private_key_pin_encrypted"`
+		PrivateKeyEncrypted    string `json:"private_key_encrypted,omitempty"`
+		KekEnvelopeVersion     *int32 `json:"kek_envelope_version,omitempty"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024*1024)).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
@@ -26,46 +27,17 @@ func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, 
 		respondWithError(w, http.StatusBadRequest, "PIN must be exactly 4 digits", nil)
 		return
 	}
-
-	existing, err := cfg.dbQueries.GetUserPINStatus(r.Context(), user.ID)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to check PIN status", err)
+	if len(req.PrivateKeyPinEncrypted) < 32 || len(req.PrivateKeyPinEncrypted) > 512*1024 {
+		respondWithError(w, http.StatusBadRequest, "A valid encrypted PIN key is required", nil)
 		return
 	}
-
-	if existing.PinHash.Valid && existing.PinHash.String != "" {
-		if req.OldPIN == "" {
-			respondWithError(w, http.StatusBadRequest, "old_pin required to change existing PIN", nil)
-			return
-		}
-
-		var lockedUntil *time.Time
-		var failedAttempts int
-		cfg.db.QueryRowContext(r.Context(),
-			"SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1", user.ID,
-		).Scan(&failedAttempts, &lockedUntil)
-		if lockedUntil != nil && lockedUntil.After(time.Now()) {
-			respondWithError(w, http.StatusTooManyRequests,
-				"Too many incorrect PIN attempts. Try again after "+lockedUntil.UTC().Format(time.RFC3339), nil)
-			return
-		}
-
-		if err := auth.CheckPasswordHash(req.OldPIN, existing.PinHash.String); err != nil {
-			newAttempts := failedAttempts + 1
-			if newAttempts >= 5 {
-				cfg.db.ExecContext(r.Context(),
-					"UPDATE users SET pin_failed_attempts = $1, pin_locked_until = NOW() + INTERVAL '15 minutes' WHERE id = $2",
-					newAttempts, user.ID)
-			} else {
-				cfg.db.ExecContext(r.Context(),
-					"UPDATE users SET pin_failed_attempts = $1 WHERE id = $2",
-					newAttempts, user.ID)
-			}
-			respondWithError(w, http.StatusUnauthorized, "Incorrect current PIN", nil)
-			return
-		}
-		cfg.db.ExecContext(r.Context(),
-			"UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1", user.ID)
+	if req.KekEnvelopeVersion == nil || (*req.KekEnvelopeVersion != 1 && *req.KekEnvelopeVersion != 2) {
+		respondWithError(w, http.StatusBadRequest, "A valid key envelope version is required", nil)
+		return
+	}
+	if req.PrivateKeyEncrypted != "" && (len(req.PrivateKeyEncrypted) < 32 || len(req.PrivateKeyEncrypted) > 512*1024) {
+		respondWithError(w, http.StatusBadRequest, "Invalid repaired password key envelope", nil)
+		return
 	}
 
 	pinHash, err := auth.HashPassword(req.PIN)
@@ -74,24 +46,23 @@ func (cfg *ApiConfig) handlerSetUserPIN(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	now := time.Now().UTC()
-	if err := cfg.dbQueries.SetUserPIN(r.Context(), database.SetUserPINParams{
-		ID:       user.ID,
-		PinHash:  sql.NullString{String: pinHash, Valid: true},
-		PinSetAt: sql.NullTime{Time: now, Valid: true},
-	}); err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to save PIN", err)
-		return
+	mutation := setPINMutation{
+		PINHash: pinHash, OldPIN: req.OldPIN,
+		PrivateKeyPinEncrypted: req.PrivateKeyPinEncrypted,
+		PrivateKeyEncrypted:    req.PrivateKeyEncrypted,
 	}
-
-	if req.PrivateKeyPinEncrypted != "" {
-		if err := cfg.dbQueries.SetPrivateKeyPinEncrypted(r.Context(), database.SetPrivateKeyPinEncryptedParams{
-			ID:                    user.ID,
-			PrivateKeyPinEncrypted: sql.NullString{String: req.PrivateKeyPinEncrypted, Valid: true},
-		}); err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Failed to save PIN-encrypted private key", err)
-			return
+	mutation.KekEnvelopeVersion = *req.KekEnvelopeVersion
+	mutation.HasKekEnvelopeVersion = true
+	if err := cfg.setPINAtomically(r.Context(), user.ID, mutation, r); err != nil {
+		switch {
+		case errors.Is(err, errIncorrectPIN):
+			respondWithError(w, http.StatusUnauthorized, "Incorrect current PIN", nil)
+		case errors.Is(err, errPINLocked):
+			respondWithError(w, http.StatusTooManyRequests, "Too many incorrect PIN attempts. Try again later.", nil)
+		default:
+			respondWithError(w, http.StatusInternalServerError, "PIN and encrypted key were not saved", err)
 		}
+		return
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]bool{"success": true})

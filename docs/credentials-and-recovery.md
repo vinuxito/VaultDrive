@@ -26,6 +26,20 @@ For earlier File Request records, the owner access-key field contains a base64 1
 
 Authenticated decryption must succeed before a file key is reused in the session. Failed input returns to an editable prompt; successful browser download initiation does not prove the user saved or read the file.
 
+## Custodian recovery request contract
+
+Configured custodians are standing configuration only. They are not pending approvals. A recovery request creates one bounded, expiring attempt with a new verification code, per-custodian challenge, and single-use bearer capability. The browser receives the capability once and keeps it in session storage. Public status, reset, and cancel calls require `Authorization: Bearer <recovery capability>`; a username by itself cannot read approvals or reset an account.
+
+Before approving, each custodian must contact the account owner outside ABRN Drive and compare the exact verification code. An approval is bound to that request, custodian, challenge, and stored share index. Public status exposes generic custodian labels and approved share material needed by the requesting browser; it does not expose custodian email addresses or configured shares from another attempt.
+
+The API refuses an expired attempt as soon as its expiry is evaluated. Approved plaintext share parts are physically deleted when an expiry-processing request runs for that attempt, owner, or custodian. There is currently no periodic cleanup worker, so this is event-driven deletion rather than a guarantee that the row is erased at the exact 24-hour wall-clock boundary. Cancel and successful reset delete the attempt's approval rows immediately inside their database transaction. Replacing custodian configuration also cancels the active attempt and clears its approval material.
+
+Successful recovery changes the password and v2 password envelope, clears the incompatible PIN envelope, consumes the attempt, records the audit event, and revokes all refresh tokens in the same transaction. Access JWTs already issued before recovery are not yet centrally revocable and can remain valid until their normal 30-minute expiry. This is an explicit residual security gate; users should not treat recovery completion as immediate revocation of every already-issued access token.
+
+Password changes, PIN repair, login envelope migration, and recovery reset lock and re-read the current user row before mutation. Required key-envelope persistence and its audit event are part of the same transaction; a persistence failure fails the credential mutation rather than silently accepting a password/PIN change that loses key access.
+
+When an administrator assigns a temporary login password, the forced-change screen can also accept the user's previous password solely to unlock the existing browser-side key envelope. The temporary password remains the current password sent to the account API; the previous envelope password is never included in that request. Before any password or PIN mutation is sent, the browser decrypts the newly generated wrapper, compares the exact private-key PEM, and imports the forced-change key. A failed verification leaves the server credential unchanged.
+
 ## Evidence and limits
 
 See the [coverage ledger](reports/2026-09-14-ui-ux-coherence-coverage.md) and [implementation log](SESSION_MEMORY_2026-09-14-ui-ux-coherence-implementation.md) for exact fixture and private-backend results. Physical passkey/device acceptance and unassisted participant trials are separate gates. Historical universal-PIN language in older design documents is not a guarantee for password-derived or sender-password cohorts.

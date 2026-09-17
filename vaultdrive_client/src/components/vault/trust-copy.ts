@@ -49,6 +49,8 @@ export function accessLabel(entry: AccessEntry, t: TFunction): string {
     if (match) return t('coherence.trust.groupMembers', { defaultValue: '{{name}} · {{count}} members', name: match[1], count: Number(match[2]) });
   }
   if (entry.kind === 'share_link') return entry.label.replace(/^Public link/, accessKind(entry.kind, t)).replace(/ · last opened .*/, '');
+  if (entry.kind === 'folder_share') return entry.label.replace(/^Folder collaborator: /, '');
+  if (entry.kind === 'folder_link') return entry.label.replace(/^Folder link/, accessKind(entry.kind, t)).replace(/ · last opened .*/, '');
   return entry.label;
 }
 
@@ -62,6 +64,15 @@ export function timelineLabel(event: { event_type: string; label: string }, t: T
     case 'accessed': return t('coherence.trust.fetchCount', { defaultValue: '{{count}} authorized link fetches; reading is not confirmed', count: Number(event.label.match(/\d+/)?.[0] ?? 0) });
     case 'revoked': return t('coherence.trust.linkClosed', { defaultValue: 'File link closed' });
     case 'expired': return t('coherence.trust.linkExpired', { defaultValue: 'File link expired' });
+    case 'external_access_revoked': {
+      const counts = event.label.match(/Closed (\d+) direct share\(s\) and (\d+) file link\(s\)/);
+      return t('coherence.trust.externalAccessClosed', {
+        defaultValue: 'Closed {{directCount}} direct shares and {{linkCount}} file links',
+        directCount: Number(counts?.[1] ?? 0),
+        linkCount: Number(counts?.[2] ?? 0),
+      });
+    }
+    case 'group_removed': return t('coherence.trust.groupRemoved', { defaultValue: 'Group access removed' });
     default: return t('coherence.trust.recordedActivity', { defaultValue: 'Recorded file activity' });
   }
 }

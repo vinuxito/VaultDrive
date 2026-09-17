@@ -7,10 +7,7 @@ import { file, fixture, inspect } from "./helpers/theme-fixture";
 const skins = ["light", "business", "dark", "quantix", "cyberpunk", "elegant"] as const;
 const locales = ["en", "es"] as const;
 const widths = [1280, 390] as const;
-const evidenceRoot = path.resolve(
-  process.cwd(),
-  "../.omx/reports/coherence-implementation-2026-09-14/iteration-5",
-);
+
 
 const labels = {
   en: {
@@ -102,7 +99,9 @@ async function installCriticalStateFixture(page: Page, skin: string, locale: "en
 }
 
 async function capture(page: Page, name: string) {
-  const screens = path.join(evidenceRoot, "screens");
+  const screens = process.env.COHERENCE_EVIDENCE_DIR
+    ? path.resolve(process.env.COHERENCE_EVIDENCE_DIR, "screens")
+    : test.info().outputPath("screens");
   await mkdir(screens, { recursive: true });
   const result = await inspect(page);
   const dimensions = await page.evaluate(() => ({
@@ -195,6 +194,15 @@ for (const skin of skins) {
           await expect(accessDialog.getByRole("status")).toHaveCount(0);
           expect(state.revokeAttempts()).toBe(1);
           await capture(page, `${skin}-${locale}-${width}-revoke-unknown`);
+          await accessDialog.getByRole("button", { name: locale === "en" ? "Show support details" : "Mostrar datos de soporte", exact: true }).click();
+          const support = accessDialog.getByRole("textbox", { name: locale === "en" ? "Support details preview" : "Vista previa de datos de soporte", exact: true });
+          await expect(support).toBeVisible();
+          const details = await support.inputValue();
+          expect(details).toContain("Operation: access_revoke");
+          expect(details).toContain("Confirmation: unknown");
+          expect(details).not.toMatch(/visual@example|Contrast audit|Bearer|fixture-invalid|#key=/);
+          await support.scrollIntoViewIfNeeded();
+          await capture(page, `${skin}-${locale}-${width}-support-preview`);
         } else {
           await page.goto("files", { waitUntil: "domcontentloaded" });
           const menuButton = page.getByRole("button", { name: "Open menu", exact: true });

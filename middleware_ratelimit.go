@@ -11,6 +11,7 @@ import (
 type slidingWindow struct {
 	mu       sync.Mutex
 	requests map[string][]time.Time
+	windows  map[string]time.Duration
 }
 
 func newSlidingWindow() *slidingWindow {
@@ -35,6 +36,10 @@ func (sw *slidingWindow) allow(key string, limit int, window time.Duration) bool
 
 	sw.mu.Lock()
 	defer sw.mu.Unlock()
+	if sw.windows == nil {
+		sw.windows = make(map[string]time.Duration)
+	}
+	sw.windows[key] = window
 
 	times := sw.requests[key]
 
@@ -58,8 +63,9 @@ func (sw *slidingWindow) allow(key string, limit int, window time.Duration) bool
 func (sw *slidingWindow) purge() {
 	sw.mu.Lock()
 	defer sw.mu.Unlock()
-	cutoff := time.Now().Add(-10 * time.Minute)
+	now := time.Now()
 	for key, times := range sw.requests {
+		cutoff := now.Add(-sw.windows[key])
 		valid := times[:0]
 		for _, t := range times {
 			if t.After(cutoff) {
@@ -68,6 +74,7 @@ func (sw *slidingWindow) purge() {
 		}
 		if len(valid) == 0 {
 			delete(sw.requests, key)
+			delete(sw.windows, key)
 		} else {
 			sw.requests[key] = valid
 		}
@@ -97,9 +104,9 @@ func isLoopbackIP(ip string) bool {
 	if parsed == nil {
 		return false
 	}
-	// Playwright tests interact with docker-proxy which forwards traffic
-	// with a private IP address. This bypasses rate-limiting for tests.
-	return parsed.IsLoopback() || parsed.IsPrivate()
+	// Private networks can contain untrusted clients; only direct loopback
+	// traffic remains exempt for isolated development/test processes.
+	return parsed.IsLoopback()
 }
 
 // middlewareRateLimitLogin limits login attempts to 10 per minute per IP.
@@ -171,4 +178,3 @@ func middlewareRateLimitDropUpload(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-

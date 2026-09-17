@@ -4,6 +4,8 @@ import { Activity, AlertTriangle, Loader2 } from "lucide-react";
 import { API_URL } from "../../utils/api";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 import { Button } from "../ui/button";
+import { SupportDetails } from "../support/SupportDetails";
+import { createSupportDetails } from "../support/support-details-data";
 
 interface HealthResponse {
   status?: string;
@@ -15,6 +17,7 @@ interface HealthResponse {
   requests_total?: number;
   errors_total?: number;
   checkedAt?: string;
+  requestId?: string;
 }
 
 const fetcher = async (url: string): Promise<HealthResponse> => {
@@ -22,7 +25,7 @@ const fetcher = async (url: string): Promise<HealthResponse> => {
   if (!response.ok) throw new Error("Service status unavailable");
   const data: unknown = await response.json();
   if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Invalid service status");
-  return { ...data, checkedAt: new Date().toISOString() };
+  return { ...data, checkedAt: new Date().toISOString(), requestId: response.headers.get("X-Request-Id") ?? undefined };
 };
 
 export function StatusPanel() {
@@ -66,6 +69,12 @@ export function StatusPanel() {
           {data?.checkedAt && <p className="text-xs text-muted-foreground">{copy("lastChecked", "Last checked")}: {new Date(data.checkedAt).toLocaleTimeString()}{error ? ` · ${copy("stale", "Previous result; may be out of date")}` : ""}</p>}
         </>
       )}
+      {!isLoading && status !== "available" && <SupportDetails details={createSupportDetails({
+        operation: "service_status", confirmation: "not_applicable",
+        errorClass: "unknown",
+        requestId: error ? undefined : data?.requestId, buildId: import.meta.env.VITE_BUILD_ID,
+        now: !error && data?.checkedAt ? new Date(data.checkedAt) : undefined,
+      })} />}
       {isAdmin && data && (
         <details className="border-t border-border pt-3 text-sm">
           <summary className="cursor-pointer text-foreground">{copy("operatorDetails", "Operator details")}</summary>

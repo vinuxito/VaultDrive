@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
 	"database/sql"
-	"encoding/json"
 	"net/http"
+	"strings"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 type updateGroupRequest struct {
@@ -25,18 +24,39 @@ func (cfg *ApiConfig) updateGroupHandler(w http.ResponseWriter, r *http.Request,
 	}
 
 	var req updateGroupRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := decodeGroupRequest(w, r, &req); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	group, err := cfg.dbQueries.GetGroupByID(context.Background(), groupID)
-	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Group not found", err)
+	req.Name = strings.TrimSpace(req.Name)
+	req.Description = strings.TrimSpace(req.Description)
+	if len(req.Name) > maxGroupNameBytes || len(req.Description) > maxGroupDescription {
+		respondWithError(w, http.StatusBadRequest, "Group name or description is too long", nil)
+		return
+	}
+	if req.Name == "" && req.Description == "" {
+		respondWithError(w, http.StatusBadRequest, "A group name or description is required", nil)
 		return
 	}
 
-	_, err = cfg.dbQueries.UpdateGroup(context.Background(), database.UpdateGroupParams{
+	authz, err := groupAuthorizationFor(r.Context(), cfg.dbQueries, groupID, user.ID)
+	if err != nil {
+		respondGroupAuthorizationError(w, err)
+		return
+	}
+	if !authz.owner {
+		respondWithError(w, http.StatusForbidden, "Only the group owner can update this group", nil)
+		return
+	}
+	tx, err := cfg.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to update group", err)
+		return
+	}
+	defer tx.Rollback()
+	queries := cfg.dbQueries.WithTx(tx)
+
+	group, err := queries.UpdateGroup(r.Context(), database.UpdateGroupParams{
 		ID:          groupID,
 		UserID:      user.ID,
 		Name:        sql.NullString{String: req.Name, Valid: req.Name != ""},
@@ -44,6 +64,14 @@ func (cfg *ApiConfig) updateGroupHandler(w http.ResponseWriter, r *http.Request,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to update group", err)
+		return
+	}
+	if err := recordGroupMutation(r.Context(), queries, r, user.ID, "group.updated", "group_updated", "group", groupID, map[string]string{"name": group.Name}); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to record group update", err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to commit group update", err)
 		return
 	}
 

@@ -117,6 +117,12 @@ test.describe("Decentralized Master Key Recovery (Shamir SSSS)", () => {
 
     // Page should go to "wait" phase
     await expect(pageOwner.getByText("Waiting for custodians to decrypt and approve shares...")).toBeVisible({ timeout: 20000 });
+    const verificationCode = await pageOwner.getByTestId("recovery-verification-code").textContent();
+    expect(verificationCode).toMatch(/[A-F0-9]{8}/);
+    // Resume the actual server attempt using this tab's stored capability.
+    await pageOwner.reload();
+    await expect(pageOwner.getByText("Waiting for custodians to decrypt and approve shares...")).toBeVisible({ timeout: 20000 });
+    await expect(pageOwner.getByTestId("recovery-verification-code")).toHaveText(verificationCode!);
 
     // Custodian A navigates to settings, sees request, approves
     console.log("Custodian A approving recovery...");
@@ -128,6 +134,9 @@ test.describe("Decentralized Master Key Recovery (Shamir SSSS)", () => {
     await expect(securityTabA).toHaveAttribute("aria-selected", "true", { timeout: 10000 });
     await expect(pageA.getByText(`@${ownerAcc.username}`)).toBeVisible({ timeout: 20000 });
     // Click Approve Recovery first to trigger the password prompt if credentials are not cached in the session vault
+    await expect(pageA.locator('[data-testid^="custodian-recovery-code-"]')).toHaveText(verificationCode!);
+    await expect(pageA.getByRole("button", { name: "Approve Recovery" })).toBeDisabled();
+    await pageA.getByRole("checkbox").check();
     await pageA.getByRole("button", { name: "Approve Recovery" }).click();
     const approvePasswordA = pageA.locator(`[id^="approve-password-"]`);
     if (await approvePasswordA.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -146,6 +155,9 @@ test.describe("Decentralized Master Key Recovery (Shamir SSSS)", () => {
     await expect(securityTabB).toHaveAttribute("aria-selected", "true", { timeout: 10000 });
     await expect(pageB.getByText(`@${ownerAcc.username}`)).toBeVisible({ timeout: 20000 });
     // Click Approve Recovery first to trigger the password prompt if credentials are not cached in the session vault
+    await expect(pageB.locator('[data-testid^="custodian-recovery-code-"]')).toHaveText(verificationCode!);
+    await expect(pageB.getByRole("button", { name: "Approve Recovery" })).toBeDisabled();
+    await pageB.getByRole("checkbox").check();
     await pageB.getByRole("button", { name: "Approve Recovery" }).click();
     const approvePasswordB = pageB.locator(`[id^="approve-password-"]`);
     if (await approvePasswordB.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -181,5 +193,6 @@ test.describe("Decentralized Master Key Recovery (Shamir SSSS)", () => {
     // Verify redirect after login (since PIN was reset, it should prompt to setup a new PIN or re-onboard)
     await pageOwner.waitForURL((url) => !url.toString().includes("/login"), { timeout: 20000 });
     await expect(pageOwner).not.toHaveURL(/\/login/);
+    await Promise.all([contextOwner.close(), contextA.close(), contextB.close()]);
   });
 });

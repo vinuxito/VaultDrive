@@ -1,10 +1,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
-	"time"
 
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
@@ -20,6 +19,7 @@ func (cfg *ApiConfig) handleChangePassword(w http.ResponseWriter, r *http.Reques
 		OldPassword         string `json:"old_password"`
 		NewPassword         string `json:"new_password"`
 		PrivateKeyEncrypted string `json:"private_key_encrypted,omitempty"`
+		KekEnvelopeVersion  int32  `json:"kek_envelope_version"`
 	}
 
 	var req request
@@ -38,7 +38,7 @@ func (cfg *ApiConfig) handleChangePassword(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Verify old password matches
+	// Early feedback only. The transactional helper locks and verifies the fresh row again.
 	if err := auth.CheckPasswordHash(req.OldPassword, user.PasswordHash); err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Current password is incorrect", err)
 		return
@@ -57,39 +57,18 @@ func (cfg *ApiConfig) handleChangePassword(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	now := time.Now()
-
-	// Update password
-	err = cfg.dbQueries.UpdateUserPassword(context.Background(), database.UpdateUserPasswordParams{
-		ID:           user.ID,
-		PasswordHash: string(hashedPassword),
-		UpdatedAt:    now,
-	})
+	err = cfg.changePasswordAtomically(r.Context(), user.ID, req.OldPassword,
+		string(hashedPassword), req.PrivateKeyEncrypted, req.KekEnvelopeVersion, r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error updating password", err)
-		return
-	}
-
-	// Save re-encrypted private key if provided (browser-side re-encryption)
-	if req.PrivateKeyEncrypted != "" {
-		err = cfg.dbQueries.UpdateUserPrivateKeyEncrypted(context.Background(), database.UpdateUserPrivateKeyEncryptedParams{
-			ID:                  user.ID,
-			PrivateKeyEncrypted: req.PrivateKeyEncrypted,
-			UpdatedAt:           now,
-		})
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Error updating encrypted private key", err)
+		if errors.Is(err, errCredentialChanged) {
+			respondWithError(w, http.StatusConflict, "Your credentials changed. Sign in again before retrying.", err)
 			return
 		}
-	}
-
-	// Clear force_password_change flag
-	err = cfg.dbQueries.ClearForcePasswordChange(context.Background(), database.ClearForcePasswordChangeParams{
-		ID:        user.ID,
-		UpdatedAt: now,
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error clearing password change flag", err)
+		if req.PrivateKeyEncrypted == "" {
+			respondWithError(w, http.StatusBadRequest, "The encrypted account key is required. No password change was saved.", err)
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "Password change could not be saved atomically", err)
 		return
 	}
 

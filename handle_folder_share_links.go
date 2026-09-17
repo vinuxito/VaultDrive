@@ -836,14 +836,12 @@ func (cfg *ApiConfig) handlerGetFolderShareFile(w http.ResponseWriter, r *http.R
 		w.Header().Set("X-File-Metadata", dbFile.EncryptedMetadata.String)
 	}
 
-	_, _ = io.Copy(w, file)
-
-	// Log download audit event
+	// Record the actual stream outcome.
 	actorDetails := map[string]interface{}{
 		"actor_type": "anonymous_link",
 		"link_id":    link.ID.String(),
 		"filename":   dbFile.Filename,
 		"file_size":  dbFile.FileSize,
 	}
-	cfg.insertAudit(r.Context(), link.OwnerID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
+	cfg.streamDownload(w, r, file, link.OwnerID, dbFile.ID, actorDetails)
 }

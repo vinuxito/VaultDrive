@@ -308,8 +308,11 @@ func TestFolderShareDownstreamOutagesRemainRetryable(t *testing.T) {
 			if out.Code != http.StatusServiceUnavailable {
 				t.Fatalf("downstream outage became status %d: %s", out.Code, out.Body.String())
 			}
-			if !strings.Contains(diagnostic.String(), "database is closed") {
-				t.Fatalf("root cause diagnostic was suppressed: %s", diagnostic.String())
+			if !strings.Contains(diagnostic.String(), "event=response_error status=503") || !strings.Contains(diagnostic.String(), "error_class=internal") {
+				t.Fatalf("sanitized outage diagnostic was suppressed: %s", diagnostic.String())
+			}
+			if strings.Contains(diagnostic.String(), "database is closed") {
+				t.Fatalf("raw driver error escaped the operational log boundary: %s", diagnostic.String())
 			}
 		})
 	}

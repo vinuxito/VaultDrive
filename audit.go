@@ -3,14 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
-	"github.com/vinuxito/VaultDrive/internal/database"
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 func nullUUID(id uuid.UUID) uuid.NullUUID {
@@ -43,18 +45,55 @@ func mustJSON(value interface{}) json.RawMessage {
 	return json.RawMessage(b)
 }
 
-func requestIP(r *http.Request) string {
-	if forwarded := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); forwarded != "" {
-		parts := strings.Split(forwarded, ",")
-		if len(parts) > 0 {
-			return strings.TrimSpace(parts[0])
+// Only the immediate trusted proxy may describe its upstream client chain.
+// Apache on this host forwards over loopback and appends the actual peer.
+func trustedProxyIP(ip net.IP) bool {
+	if ip == nil {
+		return false
+	}
+	if ip.IsLoopback() {
+		return true
+	}
+	ranges := strings.Split(os.Getenv("TRUSTED_PROXY_CIDRS"), ",")
+	if len(ranges) > 16 {
+		return false
+	}
+	for _, raw := range ranges {
+		_, network, err := net.ParseCIDR(strings.TrimSpace(raw))
+		if err == nil && network.Contains(ip) {
+			return true
 		}
 	}
-	host, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr))
-	if err == nil {
-		return host
+	return false
+}
+
+func requestIP(r *http.Request) string {
+	host := strings.TrimSpace(r.RemoteAddr)
+	if parsed, _, err := net.SplitHostPort(host); err == nil {
+		host = parsed
 	}
-	return strings.TrimSpace(r.RemoteAddr)
+	peer := net.ParseIP(host)
+	if peer == nil {
+		return "unknown"
+	}
+	forwarded := strings.TrimSpace(r.Header.Get("X-Forwarded-For"))
+	if forwarded == "" || !trustedProxyIP(peer) {
+		return peer.String()
+	}
+	if len(forwarded) > 1024 {
+		return "unknown"
+	}
+	parts := strings.Split(forwarded, ",")
+	if len(parts) > 16 {
+		return "unknown"
+	}
+	for i := len(parts) - 1; i >= 0 && trustedProxyIP(peer); i-- {
+		peer = net.ParseIP(strings.TrimSpace(parts[i]))
+		if peer == nil {
+			return "unknown"
+		}
+	}
+	return peer.String()
 }
 
 func requestInet(r *http.Request) pqtype.Inet {
@@ -62,19 +101,26 @@ func requestInet(r *http.Request) pqtype.Inet {
 	if ip == nil {
 		return pqtype.Inet{}
 	}
-	return pqtype.Inet{IPNet: net.IPNet{IP: ip, Mask: net.CIDRMask(32, 32)}, Valid: true}
+	bits := 128
+	if ip.To4() != nil {
+		bits = 32
+	}
+	return pqtype.Inet{IPNet: net.IPNet{IP: ip, Mask: net.CIDRMask(bits, bits)}, Valid: true}
 }
 
 func (cfg *ApiConfig) insertActivity(ctx context.Context, userID uuid.UUID, eventType string, payload interface{}) {
-	_ = cfg.dbQueries.InsertActivity(ctx, database.InsertActivityParams{
+	err := cfg.dbQueries.InsertActivity(ctx, database.InsertActivityParams{
 		UserID:    userID,
 		EventType: eventType,
 		Payload:   marshalJSONB(payload),
 	})
+	if err != nil {
+		log.Printf("event=activity_write_failed request_id=%q error_class=%s", operationalRequestID(ctx), operationalErrorClass(err))
+	}
 }
 
 func (cfg *ApiConfig) insertAudit(ctx context.Context, userID uuid.UUID, action string, resourceType string, resourceID *uuid.UUID, metadata interface{}, r *http.Request) {
-	_, _ = cfg.dbQueries.CreateAuditLog(ctx, database.CreateAuditLogParams{
+	_, err := cfg.dbQueries.CreateAuditLog(ctx, database.CreateAuditLogParams{
 		UserID:       nullUUID(userID),
 		Action:       action,
 		ResourceType: resourceType,
@@ -83,4 +129,7 @@ func (cfg *ApiConfig) insertAudit(ctx context.Context, userID uuid.UUID, action 
 		IpAddress:    requestInet(r),
 		CreatedAt:    time.Now().UTC(),
 	})
+	if err != nil {
+		log.Printf("event=audit_write_failed request_id=%q error_class=%s", operationalRequestID(ctx), operationalErrorClass(err))
 	}
+}

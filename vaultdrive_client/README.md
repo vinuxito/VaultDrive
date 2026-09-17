@@ -1,4 +1,4 @@
-# QuantiX Drive Frontend
+# ABRN Drive frontend (shared QuantiX codebase)
 
 This directory contains the React + TypeScript frontend for QuantiX Drive.
 
@@ -42,7 +42,9 @@ in an overlay to render an alternate logo.
 
 - Owner trust model: one app-wide 4-digit PIN
 - Owner session trust is reused across normal secure flows
-- Public share links carry the AES key in the URL fragment
+- Supported file-content flows use browser Web Crypto and public share links carry the AES key in the URL fragment
+- Filenames, sizes and access metadata remain visible to the service
+- Secure Drop delivery recovery and account recovery are documented server-coordinated exceptions to browser-only key handling
 - Secure Drop and File Request sender experiences must explain what the app can and cannot see in plain language
 - Agent UI must stay ciphertext-first and scope-driven
 
@@ -73,7 +75,9 @@ This does more than just run Playwright. The current harness:
 - runs goose migrations against that database,
 - starts the Go app with explicit local dev env,
 - writes encrypted test uploads into `/tmp/quantix-playwright-uploads` by default,
-- then runs the 38-spec trust proof suite.
+- then runs the committed Playwright specs.
+
+Use the final coherence verification report for current result counts.
 
 Run the frontend build:
 
@@ -104,13 +108,16 @@ npm run preview
 - It defaults to a dedicated database, `vaultdrive_playwright`, so the suite does not collide with a half-migrated local dev database.
 - It defaults to a dedicated upload directory, `/tmp/quantix-playwright-uploads`, so the suite does not depend on repo-local file permissions.
 - If you need to target a different local database or upload directory, override `E2E_DB_NAME`, `E2E_DB_URL`, `E2E_ADMIN_DB_URL`, or `E2E_UPLOAD_DIR`.
-- If you need to target a proxied or remote environment, override `E2E_BASE_URL` explicitly.
+- Remote/proxied testing must use the dedicated external runner with both targets explicitly set:
+  `E2E_BASE_URL='https://reviewed-host/abrn/' E2E_API_BASE_URL='https://reviewed-host/api' npm run test:e2e:external -- <reviewed-spec-list>`.
 
-As of 2026-06-24, the verified local status is:
+Historical snapshot from 2026-06-24 (not current release acceptance):
 
 - `npm run build` ✅
 - `npm test` ✅ (133/133)
 - `npm run test:e2e` ✅ (48/48)
+
+The current release decision belongs in [`../docs/reports/2026-09-16-ui-ux-coherence-verification.md`](../docs/reports/2026-09-16-ui-ux-coherence-verification.md). Five-person unassisted journeys, native zoom/assistive technology, physical devices, passkeys, browser/OS save behavior, reboot survival and restore evidence remain separate manual gates until that report records them.
 
 
 ## Key Files

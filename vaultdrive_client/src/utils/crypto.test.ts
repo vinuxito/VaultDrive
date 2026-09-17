@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   arrayBufferToBase64,
+  decryptPrivateKeyWithPIN,
   decryptPrivateKeyWithPassword,
+  encryptPrivateKeyWithPIN,
   encryptPrivateKeyWithPassword,
   importRSAPrivateKey,
 } from "./crypto";
@@ -69,6 +71,24 @@ describe("decryptPrivateKeyWithPassword", () => {
     await expect(
       decryptPrivateKeyWithPassword(password, encryptedPrivateKey),
     ).resolves.toBe(privateKeyPem);
+  });
+
+  it("round-trips a version 2 password envelope without changing the key bytes", async () => {
+    const password = "version-two-password";
+    const privateKeyPem = "-----BEGIN PRIVATE KEY-----\nexact-v2-password-key\n-----END PRIVATE KEY-----";
+    const encryptedPrivateKey = await encryptPrivateKeyWithPassword(password, privateKeyPem, 2);
+
+    await expect(decryptPrivateKeyWithPassword(password, encryptedPrivateKey, 2)).resolves.toBe(privateKeyPem);
+  });
+});
+
+describe("PIN private-key envelopes", () => {
+  it("round-trips a version 2 PIN envelope without changing the key bytes", async () => {
+    const pin = "4826";
+    const privateKeyPem = "-----BEGIN PRIVATE KEY-----\nexact-v2-pin-key\n-----END PRIVATE KEY-----";
+    const encryptedPrivateKey = await encryptPrivateKeyWithPIN(pin, privateKeyPem, 2);
+
+    await expect(decryptPrivateKeyWithPIN(pin, encryptedPrivateKey, 2)).resolves.toBe(privateKeyPem);
   });
 });
 

@@ -68,8 +68,9 @@ import {
 import { CryptoPassportDrawer } from "../components/vault/CryptoPassportDrawer";
 import { StagingDock } from "../components/vault/StagingDock";
 import { VaultPrivacyShutter } from "../components/vault/VaultPrivacyShutter";
-import { downloadTransferSlip } from "../utils/transferSlip";
-import { playTumblerClick } from "../utils/audioHaptics";
+import { downloadTransferSlip, downloadBatchTransferSlip } from "../utils/transferSlip";
+import { playTumblerClick, playDeadboltThud } from "../utils/audioHaptics";
+import { useToast } from "../context/ToastContext";
 import type {
   TreeNode,
   DropTokenInfo,
@@ -215,6 +216,7 @@ export default function Files() {
   const navigate = useNavigate();
   const location = useLocation();
   const sessionVault = useSessionVault();
+  const { addToast } = useToast();
   const { t } = useTranslation(["drive"]);
 
   const routeState = location.state as { highlightFileId?: string; onboardingTask?: FirstTask; manageDropToken?: string } | null;
@@ -851,6 +853,13 @@ export default function Files() {
     setFocusedFileIndex(-1);
   }, [selectedNode]);
 
+  // Guard: keep focusedFileIndex strictly within bounds when visible files change
+  useEffect(() => {
+    if (focusedFileIndex >= visibleFiles.length) {
+      setFocusedFileIndex(visibleFiles.length > 0 ? 0 : -1);
+    }
+  }, [visibleFiles.length, focusedFileIndex]);
+
   // Step 1: Return-Scroll Anchoring & Subtle Focus Ring
   useEffect(() => {
     if (!previewFile && !accessPanelFile && !showShareModal && !receiptFile && !passportFile && lastInteractedFileId) {
@@ -904,24 +913,45 @@ export default function Files() {
 
       if (isVaultLocked || bulkDownloadFiles !== null || showPasswordModal) return;
 
-      // Hotkey: ⌘I or P -> Toggle Cryptographic Passport
-      if (((e.metaKey || e.ctrlKey) && (e.key === "i" || e.key === "I")) || e.key === "p" || e.key === "P") {
-        if (previewFile) return;
-        const targetFile = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
-        if (targetFile) {
+      // If Cryptographic Passport drawer is open, only allow dismissal keys
+      if (passportFile !== null) {
+        if (
+          e.key === "Escape" ||
+          ((e.metaKey || e.ctrlKey) && (e.key === "i" || e.key === "I")) ||
+          e.key === "p" ||
+          e.key === "P"
+        ) {
           e.preventDefault();
           playTumblerClick();
-          setPassportFile((prev) => (prev?.id === targetFile.id ? null : targetFile));
+          setPassportFile(null);
         }
         return;
       }
 
-      // Spacebar: Toggle Quick Look preview
+      // If File Preview modal is open, Space or Escape dismisses it; block background traversal
+      if (previewFile !== null) {
+        if (e.key === " " || e.code === "Space" || e.key === "Escape") {
+          e.preventDefault();
+          setPreviewFile(null);
+        }
+        return;
+      }
+
+      // Hotkey: ⌘I or P -> Open Cryptographic Passport
+      if (((e.metaKey || e.ctrlKey) && (e.key === "i" || e.key === "I")) || e.key === "p" || e.key === "P") {
+        const targetFile = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
+        if (targetFile) {
+          e.preventDefault();
+          playTumblerClick();
+          setPassportFile(targetFile);
+        }
+        return;
+      }
+
+      // Spacebar: Open Quick Look preview for focused file
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
-        if (previewFile) {
-          setPreviewFile(null);
-        } else if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
+        if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
           const file = visibleFiles[focusedFileIndex];
           setLastInteractedFileId(file.id);
           setPreviewFile({
@@ -2967,6 +2997,32 @@ export default function Files() {
       <StagingDock
         dockedFiles={stagedFiles}
         onClearDock={() => setStagedFiles([])}
+        onDownloadBatchSlip={(files) => downloadBatchTransferSlip(files, currentUser?.email)}
+        onBatchSever={async (files) => {
+          const token = localStorage.getItem("token");
+          if (!token) return;
+          playDeadboltThud();
+          let severedCount = 0;
+          for (const f of files) {
+            try {
+              const res = await fetch(`${API_URL}/v1/files/${f.id}/revoke-external`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res.ok) severedCount++;
+            } catch {
+              // Ignore individual network failures
+            }
+          }
+          if (severedCount === files.length) {
+            addToast(`Severed all external access for ${severedCount} file(s).`, "success");
+          } else if (severedCount > 0) {
+            addToast(`Severed external access for ${severedCount} of ${files.length} file(s).`, "info");
+          } else {
+            addToast("Could not sever external access. Please retry.", "error");
+          }
+          mutateMyFiles();
+        }}
         onBatchDownload={(files) => {
           const bulkFiles: BulkDownloadFile[] = files.map((f) => ({
             id: f.id,
@@ -2983,7 +3039,22 @@ export default function Files() {
       <VaultPrivacyShutter
         isLocked={isVaultLocked}
         onUnlock={() => setIsVaultLocked(false)}
-        onScrubMemory={() => setPreviewFile(null)}
+        onScrubMemory={() => {
+          setPreviewFile(null);
+          setPassportFile(null);
+          if (typeof document !== "undefined") {
+            const mediaElements = document.querySelectorAll("audio, video");
+            mediaElements.forEach((el) => {
+              try {
+                (el as HTMLMediaElement).pause();
+                (el as HTMLMediaElement).src = "";
+                (el as HTMLMediaElement).load();
+              } catch {
+                // Safe ignore
+              }
+            });
+          }
+        }}
       />
 
       {undoAction && (

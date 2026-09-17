@@ -154,11 +154,15 @@ export const setPIN = async (
   pin: string,
   token: string,
   oldPin?: string,
-  privateKeyPinEncrypted?: string
+  privateKeyPinEncrypted?: string,
+  privateKeyEncrypted?: string,
+  kekEnvelopeVersion?: number,
 ): Promise<{ success: boolean }> => {
-  const body: Record<string, string> = { pin };
+  const body: Record<string, string | number> = { pin };
   if (oldPin) body.old_pin = oldPin;
   if (privateKeyPinEncrypted) body.private_key_pin_encrypted = privateKeyPinEncrypted;
+  if (privateKeyEncrypted) body.private_key_encrypted = privateKeyEncrypted;
+  if (typeof kekEnvelopeVersion === "number") body.kek_envelope_version = kekEnvelopeVersion;
   const response = await fetch(`${API_URL}/users/pin`, {
     method: 'POST',
     headers: {

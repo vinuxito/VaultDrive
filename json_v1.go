@@ -7,22 +7,24 @@ import (
 )
 
 type apiV1Meta struct {
-	RequestID string      `json:"request_id"`
+	RequestID  string      `json:"request_id"`
 	Pagination interface{} `json:"pagination,omitempty"`
 }
 
 type apiV1Response struct {
-	Success bool      `json:"success"`
+	Success bool        `json:"success"`
 	Data    interface{} `json:"data,omitempty"`
 	Error   interface{} `json:"error,omitempty"`
-	Meta    apiV1Meta `json:"meta"`
+	Meta    apiV1Meta   `json:"meta"`
 }
 
 func ensureRequestID(w http.ResponseWriter, r *http.Request) string {
-	if existing := r.Header.Get("X-Request-Id"); existing != "" {
-		w.Header().Set("X-Request-Id", existing)
-		return existing
+	if existing := w.Header().Get("X-Request-Id"); existing != "" {
+		if _, err := uuid.Parse(existing); err == nil {
+			return existing
+		}
 	}
+
 	requestID := uuid.NewString()
 	w.Header().Set("X-Request-Id", requestID)
 	return requestID
@@ -33,7 +35,7 @@ func respondWithV1(w http.ResponseWriter, r *http.Request, code int, payload int
 		Success: code < http.StatusBadRequest,
 		Data:    payload,
 		Meta: apiV1Meta{
-			RequestID: ensureRequestID(w, r),
+			RequestID:  ensureRequestID(w, r),
 			Pagination: pagination,
 		},
 	})

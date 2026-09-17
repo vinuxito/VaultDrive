@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"io"
-
 	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/vinuxito/VaultDrive/internal/database"
@@ -115,13 +113,6 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Debug logging
-	if dbFile.EncryptedMetadata.Valid {
-		println("Metadata found:", dbFile.EncryptedMetadata.String)
-	} else {
-		println("No metadata found for file:", dbFile.ID.String())
-	}
-
 	// Open the file from the configured storage root.
 	storagePath, err := resolveStoredFilePath(dbFile.FilePath)
 	if err != nil {
@@ -149,30 +140,12 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 		w.Header().Set("X-Wrapped-Key", wrappedKey)
 	}
 
-	// Stream the file content
-	_, err = io.Copy(w, file)
-	if err != nil {
-		// Can't send JSON error here because we might have already sent some bytes
-		// Just log it if we had a logger, or ignore
-		return
-	}
-
-	// Log download audit event
-	var actorType = "owner"
-	var actorDetails = map[string]interface{}{}
+	actorType := "owner"
 	if userID != dbFile.OwnerID.UUID {
 		actorType = "user"
-		var email string
-		_ = cfg.db.QueryRowContext(r.Context(), "SELECT email FROM users WHERE id = $1", userID).Scan(&email)
-		actorDetails["email"] = email
-	} else {
-		var email string
-		_ = cfg.db.QueryRowContext(r.Context(), "SELECT email FROM users WHERE id = $1", userID).Scan(&email)
-		actorDetails["email"] = email
 	}
-	actorDetails["actor_type"] = actorType
-	actorDetails["filename"] = dbFile.Filename
-	actorDetails["file_size"] = dbFile.FileSize
-
-	cfg.insertAudit(r.Context(), dbFile.OwnerID.UUID, "file.downloaded", "file", &dbFile.ID, actorDetails, r)
+	cfg.streamDownload(w, r, file, dbFile.OwnerID.UUID, dbFile.ID, map[string]interface{}{
+		"actor_type": actorType, "actor_id": userID.String(),
+		"filename": dbFile.Filename, "file_size": dbFile.FileSize,
+	})
 }
