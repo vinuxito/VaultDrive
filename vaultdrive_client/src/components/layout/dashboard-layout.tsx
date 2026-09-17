@@ -1,6 +1,6 @@
 import { useState, useRef, type ReactNode, useEffect, useCallback } from "react";
 import { Menu, Search, Bell, Command } from "lucide-react";
-import { Sidebar } from "./sidebar";
+import { Sidebar, type SidebarMode } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { BottomNav } from "../mobile/bottom-nav";
 import { LanguageToggle } from "../ui/language-toggle";
@@ -54,7 +54,39 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const user = getStoredUserFromLocalStorage() ?? {};
   const currentOwnerId = typeof user.id === "string" ? user.id : null;
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
+    const saved = localStorage.getItem("abrndrive_sidebar_mode");
+    return (saved === "expanded" || saved === "compact" || saved === "hidden") ? saved : "expanded";
+  });
+
+  const toggleSidebarMode = useCallback(() => {
+    setSidebarMode((prev) => {
+      const next: SidebarMode = prev === "expanded" ? "compact" : prev === "compact" ? "hidden" : "expanded";
+      localStorage.setItem("abrndrive_sidebar_mode", next);
+      return next;
+    });
+  }, []);
+
+  // Keyboard shortcut: ⌘B / Ctrl+B to toggle sidebar visibility
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+        const activeEl = document.activeElement;
+        if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || (activeEl as HTMLElement).isContentEditable)) {
+          return;
+        }
+        e.preventDefault();
+        setSidebarMode((prev) => {
+          const next: SidebarMode = prev === "hidden" ? "expanded" : "hidden";
+          localStorage.setItem("abrndrive_sidebar_mode", next);
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   // Command palette state moved to global component
   const [activityFeedOpen, setActivityFeedOpen] = useState(false);
@@ -347,22 +379,46 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Global CommandPalette renders via App.tsx */}
 
       <Sidebar
-        collapsed={sidebarCollapsed}
+        mode={sidebarMode}
+        collapsed={sidebarMode !== "expanded"}
       />
+
+      {sidebarMode === "hidden" && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            setSidebarMode("expanded");
+            localStorage.setItem("abrndrive_sidebar_mode", "expanded");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              setSidebarMode("expanded");
+              localStorage.setItem("abrndrive_sidebar_mode", "expanded");
+            }
+          }}
+          className="fixed inset-y-0 left-0 w-2 z-40 hover:bg-primary/30 transition-colors cursor-pointer hidden md:block group"
+          title="Click to restore sidebar (⌘B)"
+          aria-label="Restore sidebar"
+        >
+          <div className="h-full w-full opacity-0 group-hover:opacity-100 bg-primary/40 transition-opacity" />
+        </div>
+      )}
 
       <MobileNav isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} />
 
       <main className={cn(
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
-        sidebarCollapsed ? "md:ml-[72px]" : "md:ml-64"
-        )}>
+        sidebarMode === "expanded" ? "md:ml-64" : sidebarMode === "compact" ? "md:ml-[68px]" : "md:ml-0"
+      )}>
         <header className="sticky top-0 z-30 lux-navbar px-2 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-1 sm:gap-3 shadow-sm shadow-primary/5">
           <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <button
               type="button"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onClick={toggleSidebarMode}
               className="p-2 rounded-lg hover:bg-primary/10 transition-colors hidden md:block"
               aria-label="Toggle sidebar"
+              title={`Sidebar: ${sidebarMode} (⌘B to toggle)`}
             >
               <Menu className="w-5 h-5" />
             </button>

@@ -179,6 +179,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
             key={file.id}
             id={`file-row-${file.id}`}
             data-file-id={file.id}
+            data-file-row-id={file.id}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (!target.closest("button, input, a, [data-prevent-row-click]")) {

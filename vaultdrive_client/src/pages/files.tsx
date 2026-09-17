@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { legacyFileRequestSalt } from "../utils/file-request-credential";
-import { AnimatePresence } from "framer-motion";
+import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -21,11 +21,22 @@ import {
   Users,
   Upload,
   ChevronRight,
+  ChevronDown,
   Menu,
   CheckCircle2,
   FolderOpen,
   Folder as FolderIcon,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import { VaultContextMenu, type ContextMenuState } from "../components/vault/VaultContextMenu";
+import { useMarqueeSelection } from "../hooks/useMarqueeSelection";
 import { FirstTaskGuide, type FirstTask } from "../components/onboarding/FirstTaskGuide";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_URL } from "../utils/api";
@@ -59,7 +70,6 @@ import {
   BulkActionBar,
   BulkDownloadModal,
   FileGrid,
-  FileActionsMenu,
   UploadZone,
   FileSearch,
   type FileTypeFilter,
@@ -355,6 +365,123 @@ export default function Files() {
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [fileContextMenu, setFileContextMenu] = useState<{ file: FileData; x: number; y: number } | null>(null);
+
+  // v12 Step 2: Resizable Tree Splitter with Auto-Fit
+  const DEFAULT_TREE_WIDTH = 260;
+  const MIN_TREE_WIDTH = 180;
+  const MAX_TREE_WIDTH = 520;
+  const SNAP_COLLAPSE_THRESHOLD = 150;
+
+  const [treePaneWidth, setTreePaneWidth] = useState<number>(() => {
+    const saved = localStorage.getItem("abrndrive_tree_pane_width");
+    if (!saved) return DEFAULT_TREE_WIDTH;
+    const parsed = parseInt(saved, 10);
+    return !isNaN(parsed) && parsed >= MIN_TREE_WIDTH && parsed <= MAX_TREE_WIDTH ? parsed : DEFAULT_TREE_WIDTH;
+  });
+  const [isTreeCollapsed, setIsTreeCollapsed] = useState(false);
+  const [isDraggingSplitter, setIsDraggingSplitter] = useState(false);
+  const treeAsideRef = useRef<HTMLElement | null>(null);
+
+  const handleSplitterMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingSplitter(true);
+    const startX = e.clientX;
+    const startWidth = treePaneWidth;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta = moveEvent.clientX - startX;
+      const newWidth = startWidth + delta;
+      if (newWidth < SNAP_COLLAPSE_THRESHOLD) {
+        setIsTreeCollapsed(true);
+      } else {
+        setIsTreeCollapsed(false);
+        const clamped = Math.min(MAX_TREE_WIDTH, Math.max(MIN_TREE_WIDTH, newWidth));
+        setTreePaneWidth(clamped);
+      }
+    };
+
+    const onMouseUp = (upEvent: MouseEvent) => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsDraggingSplitter(false);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      const delta = upEvent.clientX - startX;
+      const finalWidth = startWidth + delta;
+      if (finalWidth >= SNAP_COLLAPSE_THRESHOLD) {
+        const clamped = Math.min(MAX_TREE_WIDTH, Math.max(MIN_TREE_WIDTH, finalWidth));
+        localStorage.setItem("abrndrive_tree_pane_width", String(clamped));
+      }
+    };
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, [treePaneWidth]);
+
+  const handleAutoFitWidth = useCallback(() => {
+    if (!treeAsideRef.current) return;
+    const labels = treeAsideRef.current.querySelectorAll<HTMLElement>(".vault-tree-node-label, span.truncate");
+    if (labels && labels.length > 0) {
+      let maxTextWidth = 0;
+      labels.forEach((el) => {
+        maxTextWidth = Math.max(maxTextWidth, el.scrollWidth);
+      });
+      const optimal = Math.min(MAX_TREE_WIDTH, Math.max(MIN_TREE_WIDTH, maxTextWidth + 100));
+      setTreePaneWidth(optimal);
+      setIsTreeCollapsed(false);
+      localStorage.setItem("abrndrive_tree_pane_width", String(optimal));
+    }
+  }, []);
+
+  // v12 Step 3: Desktop Context Menu
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    targetType: "canvas",
+  });
+
+  const copyFileHash = useCallback(async (file: FileData) => {
+    try {
+      let hash = file.parent_hash || file.id;
+      if (file.metadata) {
+        try {
+          const m = JSON.parse(file.metadata);
+          if (m?.sha256) hash = m.sha256;
+          else if (m?.digest) hash = m.digest;
+        } catch {
+          // ignore
+        }
+      }
+      await navigator.clipboard.writeText(hash);
+      addToast(t("drive:toast.hashCopied", "Sello SHA-256 copiado"), "success");
+    } catch {
+      // ignore
+    }
+  }, [addToast, t]);
+
+  // v12 Step 4: Marquee Selection Hook
+  const { lassoRect, handleMouseDown: handleMarqueeMouseDown } = useMarqueeSelection({
+    containerRef: fileContainerRef,
+    selectedIds: selectedFileIds,
+    onSelectionChange: setSelectedFileIds,
+    enabled: selectedNode.type !== "manage-drops" && selectedNode.type !== "manage-requests" && selectedNode.type !== "manage-folder-shares",
+  });
+
+  const handleCanvasContextMenu = useCallback((event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (target.closest("[data-file-id], [data-file-row-id], button, a, input, [role='button']")) return;
+    event.preventDefault();
+    setContextMenu({
+      isOpen: true,
+      x: event.clientX,
+      y: event.clientY,
+      targetType: "canvas",
+    });
+  }, []);
 
   const [showShareLinkModal, setShowShareLinkModal] = useState(false);
   const [fileForShareLink, setFileForShareLink] = useState<{
@@ -2188,10 +2315,13 @@ export default function Files() {
           )}
 
           <aside
+            ref={treeAsideRef}
+            style={{ width: isTreeCollapsed ? 0 : `${treePaneWidth}px` }}
             className={`
-              w-60 shrink-0 border-r border-border/60 bg-card overflow-y-auto
+              shrink-0 border-r border-border/60 bg-card overflow-y-auto
               md:relative md:translate-x-0
-              fixed inset-y-0 left-0 z-50 transition-transform duration-300
+              fixed inset-y-0 left-0 z-50 transition-all duration-150
+              ${isTreeCollapsed ? "hidden md:hidden" : ""}
               ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
             `}
           >
@@ -2219,7 +2349,58 @@ export default function Files() {
             />
           </aside>
 
-          <main className="flex-1 flex flex-col overflow-hidden bg-muted">
+          {/* Draggable vertical splitter with auto-fit on double click */}
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-valuenow={isTreeCollapsed ? 0 : treePaneWidth}
+            aria-valuemin={MIN_TREE_WIDTH}
+            aria-valuemax={MAX_TREE_WIDTH}
+            aria-label="Resize folder tree pane"
+            tabIndex={0}
+            onMouseDown={handleSplitterMouseDown}
+            onDoubleClick={handleAutoFitWidth}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") {
+                setTreePaneWidth((w) => {
+                  const nw = Math.max(MIN_TREE_WIDTH, w - (e.shiftKey ? 48 : 16));
+                  localStorage.setItem("abrndrive_tree_pane_width", String(nw));
+                  return nw;
+                });
+              } else if (e.key === "ArrowRight") {
+                setTreePaneWidth((w) => {
+                  const nw = Math.min(MAX_TREE_WIDTH, w + (e.shiftKey ? 48 : 16));
+                  localStorage.setItem("abrndrive_tree_pane_width", String(nw));
+                  return nw;
+                });
+              } else if (e.key === "Enter" || e.key === " ") {
+                setIsTreeCollapsed((c) => !c);
+              }
+            }}
+            className={cn(
+              "w-1 relative z-20 cursor-col-resize select-none transition-colors duration-150 group hidden md:block",
+              "hover:bg-primary/50 active:bg-primary",
+              isDraggingSplitter ? "bg-primary" : "bg-border/60"
+            )}
+            title="Arrastra para redimensionar, doble clic para auto-ajustar"
+          >
+            <div className="absolute top-1/2 -translate-y-1/2 -left-1 w-3 h-8 rounded-full bg-primary/20 border border-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <div className="w-0.5 h-3 bg-primary rounded-full" />
+            </div>
+          </div>
+
+          <main className="flex-1 flex flex-col overflow-hidden bg-muted relative">
+            {isTreeCollapsed && (
+              <button
+                type="button"
+                onClick={() => setIsTreeCollapsed(false)}
+                className="absolute top-3 left-3 z-30 px-2 py-1 rounded-md bg-card border border-border shadow-md hover:bg-primary/10 text-xs flex items-center gap-1.5 transition-colors hidden md:flex cursor-pointer select-none"
+                title="Expandir árbol de carpetas"
+              >
+                <FolderIcon className="w-3.5 h-3.5 text-primary" />
+                <span className="font-medium text-[11px]">Carpetas</span>
+              </button>
+            )}
             {selectedNode.type === "manage-drops" ? (
               <div className="flex-1 overflow-auto p-6">
                 <UploadLinksSection initialToken={manageDropToken} />
@@ -2250,9 +2431,58 @@ export default function Files() {
                   <Menu className="w-4 h-4" />
                 </button>
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-muted-foreground sm:gap-2">
-                  <span className="break-words text-muted-foreground">{t("drive:vault.title")}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedNode({ type: "all" });
+                      setSelectedFileIds(new Set());
+                    }}
+                    className="break-words text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    {t("drive:vault.title")}
+                  </button>
                   <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                   <span className="min-w-0 break-words font-medium text-foreground">{panelTitle}</span>
+
+                  {selectedNode.type === "folder" && (() => {
+                    const currentFolder = folders.find((f) => f.id === selectedNode.folderId);
+                    const siblings = folders.filter(
+                      (f) => f.parentId === currentFolder?.parentId && f.id !== currentFolder?.id
+                    );
+                    if (siblings.length === 0) return null;
+                    return (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label="Carpetas hermanas"
+                            className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-[190px] bg-card/95 backdrop-blur-md">
+                          <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold">
+                            {t("drive:nav.siblingFolders", "Carpetas hermanas")}
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {siblings.map((sibling) => (
+                            <DropdownMenuItem
+                              key={sibling.id}
+                              onClick={() => {
+                                setSelectedNode({ type: "folder", folderId: sibling.id, folderName: sibling.name });
+                                setSelectedFileIds(new Set());
+                              }}
+                              className="cursor-pointer flex items-center gap-2 text-xs"
+                            >
+                              <FolderIcon className="w-3.5 h-3.5 text-primary" />
+                              <span className="truncate">{sibling.name}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    );
+                  })()}
 
                   <span className="ml-1 text-xs text-muted-foreground">
                     ({visibleFiles.length})
@@ -2378,7 +2608,23 @@ export default function Files() {
               </div>
             )}
 
-            <div ref={fileContainerRef} className="flex-1 overflow-y-auto px-6 py-4">
+            <div
+              ref={fileContainerRef}
+              onMouseDown={handleMarqueeMouseDown}
+              onContextMenu={handleCanvasContextMenu}
+              className="flex-1 overflow-y-auto px-6 py-4 relative select-none"
+            >
+              {lassoRect?.isSelecting && (
+                <div
+                  className="fixed pointer-events-none z-40 border border-primary/70 bg-primary/15 rounded-xs backdrop-blur-[1px] shadow-sm"
+                  style={{
+                    left: `${lassoRect.left}px`,
+                    top: `${lassoRect.top}px`,
+                    width: `${lassoRect.width}px`,
+                    height: `${lassoRect.height}px`,
+                  }}
+                />
+              )}
               {activeViewError && visibleFiles.length > 0 && (
                 <p role="status" className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
                   Showing the last loaded files. {activeViewError}
@@ -2474,13 +2720,15 @@ export default function Files() {
                     });
                   }}
                   onContextMenu={(event, file) => {
-                    if (file.is_owner === false) return;
                     event.preventDefault();
                     setOpenActionMenu(null);
-                    setFileContextMenu({
-                      file,
-                      x: Math.min(event.clientX, window.innerWidth - 220),
-                      y: Math.min(event.clientY, window.innerHeight - 120),
+                    const isMulti = selectedFileIds.size > 1 && selectedFileIds.has(file.id);
+                    setContextMenu({
+                      isOpen: true,
+                      x: event.clientX,
+                      y: event.clientY,
+                      targetType: isMulti ? "multi-file" : "file",
+                      targetData: isMulti ? visibleFiles.filter((f) => selectedFileIds.has(f.id)) : file,
                     });
                   }}
                   setOpenActionMenu={setOpenActionMenu}
@@ -2510,19 +2758,77 @@ export default function Files() {
 
       <UploadZone isDragging={isDragging} />
 
-      <AnimatePresence>
-        {fileContextMenu && (
-          <FileActionsMenu
-            x={fileContextMenu.x}
-            y={fileContextMenu.y}
-            file={fileContextMenu.file}
-            onMoveClick={(file) => {
-              void handleMoveClick(file);
-              setFileContextMenu(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
+      <VaultContextMenu
+        state={contextMenu}
+        onClose={() => setContextMenu((prev) => ({ ...prev, isOpen: false }))}
+        onPreview={(file) => {
+          setLastInteractedFileId(file.id);
+          setPreviewFile({
+            ...file,
+            folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+          });
+        }}
+        onDownload={(file) =>
+          handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id)
+        }
+        onShare={(file) => {
+          setLastInteractedFileId(file.id);
+          handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined);
+        }}
+        onPassport={(file) => {
+          setPassportFile(file);
+        }}
+        onMove={(file) => {
+          void handleMoveClick(file);
+        }}
+        onToggleStar={(fileId) => {
+          toggleStar(fileId);
+        }}
+        onCopyHash={(file) => {
+          void copyFileHash(file);
+        }}
+        onDelete={(file) => {
+          handleDeleteClick(file.id, file.filename);
+        }}
+        onBatchDownload={(files) => {
+          const bulkFiles: BulkDownloadFile[] = files.map((f: FileData) => ({
+            id: f.id,
+            filename: f.filename,
+            metadata: f.metadata,
+            pin_wrapped_key: f.pin_wrapped_key,
+            is_owner: f.is_owner,
+            folder_id: f.folder_id,
+          }));
+          setBulkDownloadFiles(bulkFiles);
+        }}
+        onBatchMove={(files) => {
+          if (files.length > 0) void handleMoveClick(files[0]);
+        }}
+        onBatchStage={(files) => {
+          setStagedFiles((prev) => {
+            const existingIds = new Set(prev.map((f) => f.id));
+            const newToAdd = files.filter((f: FileData) => !existingIds.has(f.id));
+            return [...prev, ...newToAdd];
+          });
+          setSelectedFileIds(new Set());
+          addToast(`${files.length} archivos enviados al Staging Dock`, "success");
+        }}
+        onBatchDelete={(files) => {
+          if (files.length > 0) handleDeleteClick(files[0].id, `${files.length} archivos`);
+        }}
+        onCreateFolder={() => openCreateFolderModal()}
+        onCreateSubfolder={(parentId) => openCreateFolderModal(parentId)}
+        onUploadHere={() => {
+          const input = document.getElementById("file-input") as HTMLInputElement | null;
+          input?.click();
+        }}
+        onRenameFolder={openRenameFolderModal}
+        onShareFolder={handleShareFolder}
+        onDeleteFolder={openDeleteFolderModal}
+        onRefresh={() => {
+          void fetchFiles();
+        }}
+      />
 
       {cryptoEvent && (
         <details className="mx-4 my-3 max-w-xl rounded-xl border border-border bg-card p-3">

@@ -1,4 +1,5 @@
-import { Upload, Link2, Users, Layers } from "lucide-react";
+import { Upload, Link2, Users, Layers, ShieldCheck } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export type FileOrigin =
   | { type: "my-upload" }
@@ -41,32 +42,59 @@ export function OriginBadge({ origin, size = "sm" }: OriginBadgeProps) {
 
   let icon: React.ReactNode;
   let label: string;
+  let tooltipTitle: string;
+  let tooltipDetail: string;
 
   switch (origin.type) {
     case "my-upload":
       icon = <Upload className={iconSize} />;
       label = "Vault";
+      tooltipTitle = "Bóveda Personal Soberana";
+      tooltipDetail = "Cifrado local con AES-256-GCM en el navegador antes de la transmisión.";
       break;
     case "drop":
       icon = <Link2 className={iconSize} />;
       label = `Drop: ${origin.linkName}`;
+      tooltipTitle = "Intake Vía Secure Drop";
+      tooltipDetail = `Recibido mediante portal "${origin.linkName}" con llave de entrega de un solo uso.`;
       break;
     case "shared":
       icon = <Users className={iconSize} />;
       label = `@${origin.sharedBy}`;
+      tooltipTitle = "Compartido Contigo";
+      tooltipDetail = `Autorizado por @${origin.sharedBy} mediante sobre criptográfico RSA individual.`;
       break;
     case "group":
       icon = <Layers className={iconSize} />;
       label = origin.groupName;
+      tooltipTitle = "Espacio de Grupo";
+      tooltipDetail = `Acceso colaborativo gestionado por el grupo "${origin.groupName}".`;
       break;
   }
 
-  return (
+  const badge = (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border font-medium ${cfg.bg} ${cfg.text} ${cfg.border} ${sizeClass}`}
+      className={`inline-flex items-center gap-1 rounded-full border font-medium ${cfg.bg} ${cfg.text} ${cfg.border} ${sizeClass} cursor-help select-none`}
     >
       {icon}
       {label}
     </span>
+  );
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent side="top" sideOffset={6} className="max-w-[260px] p-2.5 space-y-1 bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-xl">
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-primary">
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+            <span>{tooltipTitle}</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            {tooltipDetail}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

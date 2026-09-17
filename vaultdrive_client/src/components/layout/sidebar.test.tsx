@@ -38,4 +38,28 @@ describe("Sidebar", () => {
 
     expect(logout).toHaveBeenCalledOnce();
   });
+
+  it("renders with compact width in compact mode", () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={["/files"]}>
+        <Sidebar mode="compact" />
+      </MemoryRouter>,
+    );
+
+    const aside = container.querySelector("aside");
+    expect(aside).toHaveClass("w-[68px]");
+    expect(screen.getByRole("button", { name: "Files" })).toBeInTheDocument();
+  });
+
+  it("renders with hidden classes in hidden mode", () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={["/files"]}>
+        <Sidebar mode="hidden" />
+      </MemoryRouter>,
+    );
+
+    const aside = container.querySelector("aside");
+    expect(aside).toHaveClass("-translate-x-full");
+    expect(aside).toHaveClass("opacity-0");
+  });
 });

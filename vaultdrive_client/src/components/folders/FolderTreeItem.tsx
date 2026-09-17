@@ -50,10 +50,43 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   onCollaborate,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const springTimerRef = useState<{ timer: NodeJS.Timeout | null }>({ timer: null })[0];
 
   const hasChildren = folder.children.length > 0;
   const indentPx = level * 18 + (variant === "sidebar" ? 8 : 12);
   const isSidebar = variant === "sidebar";
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+
+    if (hasChildren && !folder.isExpanded && !springTimerRef.timer) {
+      springTimerRef.timer = setTimeout(() => {
+        onToggleExpand();
+        springTimerRef.timer = null;
+      }, 400);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    if (springTimerRef.timer) {
+      clearTimeout(springTimerRef.timer);
+      springTimerRef.timer = null;
+    }
+  };
+
+  const handleDrop = (_e: React.DragEvent) => {
+    setIsDragOver(false);
+    if (springTimerRef.timer) {
+      clearTimeout(springTimerRef.timer);
+      springTimerRef.timer = null;
+    }
+  };
 
   return (
     <div
@@ -63,12 +96,17 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
           onNavigate();
         }
       }}
-      className={`group flex items-center gap-2 rounded-lg transition-colors relative cursor-pointer select-none active:scale-[0.99] ${
-        active
-          ? "bg-primary/10 text-foreground"
-          : isSidebar
-            ? "text-muted-foreground hover:bg-primary/8 hover:text-foreground"
-            : "hover:bg-primary/5"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`group flex items-center gap-2 rounded-lg transition-all relative cursor-pointer select-none active:scale-[0.99] ${
+        isDragOver
+          ? "ring-2 ring-primary/80 bg-primary/20 scale-[1.01]"
+          : active
+            ? "bg-primary/10 text-foreground"
+            : isSidebar
+              ? "text-muted-foreground hover:bg-primary/8 hover:text-foreground"
+              : "hover:bg-primary/5"
       } ${isSidebar ? "px-2.5 py-1.5" : "px-3 py-2"}`}
       style={{ paddingLeft: `${indentPx}px` }}
     >
@@ -105,7 +143,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       <button
         type="button"
         onClick={onNavigate}
-        className={`flex-1 text-left truncate transition-colors cursor-pointer select-none ${isSidebar ? "text-sm" : "text-sm"} ${
+        className={`flex-1 text-left truncate transition-colors cursor-pointer select-none vault-tree-node-label ${isSidebar ? "text-sm" : "text-sm"} ${
           active ? "font-medium text-foreground" : ""
         }`}
       >
