@@ -2426,12 +2426,12 @@ export default function Files() {
                   <FolderOpen className="w-12 h-12 mb-3 stroke-[1.5]" />
                   <p className="text-base font-medium text-foreground">
                     {searchQuery
-                      ? t("drive:vault.noSearchResults")
+                      ? t("drive:vault.noSearchResults", "No files match your search")
                       : selectedNode.type === "starred"
-                        ? t("drive:vault.noStarredFiles")
+                        ? t("drive:vault.noStarred", "No starred files")
                         : selectedNode.type === "shared"
-                          ? t("drive:vault.noSharedFiles")
-                          : t("drive:vault.noFilesInFolder")}
+                          ? t("drive:vault.noShared", "Nothing shared with you yet")
+                          : t("drive:vault.noFiles", "No files here yet")}
                   </p>
 
                   {selectedNode.type === "all" && !isSharedView && (

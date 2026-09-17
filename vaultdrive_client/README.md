@@ -111,6 +111,15 @@ npm run preview
 - Remote/proxied testing must use the dedicated external runner with both targets explicitly set:
   `E2E_BASE_URL='https://reviewed-host/abrn/' E2E_API_BASE_URL='https://reviewed-host/api' npm run test:e2e:external -- <reviewed-spec-list>`.
 
+Historical snapshot from 2026-09-17 (Recovery & E2E Verification Checkpoint):
+
+- `npm run build` ✅ (`dist/index.html` SHA-256: `859275e8e74058e11a5b2afab79f6645633155ad67d0947e4208867167f583bf`)
+- `npm run typecheck` ✅ (0 errors)
+- `npm test` ✅ (101/101 test files, 490/490 passed)
+- `npm run test:e2e` (Playwright) ✅ (`v11-sovereign-vault-ux.spec.ts` 1/1 passed)
+- Live public parity verified at `https://abrndrive.filemonprime.net/abrn/` (matching SHA-256 seal)
+- [Verification Report](../docs/reports/2026-09-17-recovery-verification-and-closeout.md) | [Dashboard](../docs/reports/2026-09-17-recovery-verification-and-closeout.html) | [Memory](../docs/memories/session-2026-09-17-recovery-verification-and-closeout.md)
+
 Historical snapshot from 2026-06-24 (not current release acceptance):
 
 - `npm run build` ✅
