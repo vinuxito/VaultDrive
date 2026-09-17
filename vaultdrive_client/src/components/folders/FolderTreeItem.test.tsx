@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -47,5 +47,23 @@ describe("FolderTreeItem", () => {
 
     expect(screen.getByRole("button", { name: /share folder/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /create upload link/i })).not.toBeInTheDocument();
+  });
+
+  it("fires onContextMenu when right-clicked", () => {
+    const onContextMenu = vi.fn();
+    const folder = { id: "folder-1", name: "Inbox", parentId: null, children: [], fileCount: 0, isExpanded: false };
+
+    render(
+      <FolderTreeItem
+        {...baseProps}
+        folder={folder}
+        onContextMenu={onContextMenu}
+      />
+    );
+
+    const folderEl = screen.getByText("Inbox").closest("div");
+    expect(folderEl).not.toBeNull();
+    fireEvent.contextMenu(folderEl!);
+    expect(onContextMenu).toHaveBeenCalledWith(expect.anything(), folder);
   });
 });

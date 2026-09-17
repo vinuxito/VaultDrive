@@ -880,5 +880,24 @@
       "removeMember": "Member removal was not confirmed. Refresh the group before retrying.",
       "removeFile": "Group file removal was not confirmed. Refresh the group before retrying."
     }
+  },
+  "actions": {
+    "preview": "Quick Look",
+    "download": "Download",
+    "share": "Share Link",
+    "cryptoPassport": "Cryptographic Passport",
+    "move": "Move to Folder…",
+    "star": "Star",
+    "unstar": "Unstar",
+    "copyHash": "Copy SHA-256 Seal",
+    "delete": "Delete File",
+    "batchDownload": "Download Batch (Zip)",
+    "addToDock": "Send to Staging Dock",
+    "batchDelete": "Delete Selected",
+    "newSubfolder": "New Subfolder",
+    "uploadHere": "Upload File Here",
+    "shareFolder": "Share Folder",
+    "renameFolder": "Rename Folder",
+    "deleteFolder": "Delete Folder"
   }
 }

@@ -25,6 +25,7 @@ interface FolderTreeProps {
   onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
   onCollaborateFolder?: (folderId: string, name: string) => void;
+  onContextMenuFolder?: (e: React.MouseEvent, folderId: string, folderName: string) => void;
 }
 
 function getActivePathIds(folders: Folder[], activeFolderId?: string | null): Set<string> {
@@ -63,6 +64,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   onCollectUploadsForFolder,
   onManageShareFolder,
   onCollaborateFolder,
+  onContextMenuFolder,
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string> | null>(null);
 
@@ -149,6 +151,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         onCollectUploads={onCollectUploadsForFolder ? () => onCollectUploadsForFolder(node.id, node.name) : undefined}
         onManageShares={onManageShareFolder ? () => onManageShareFolder(node.id, node.name) : undefined}
         onCollaborate={onCollaborateFolder ? () => onCollaborateFolder(node.id, node.name) : undefined}
+        onContextMenu={onContextMenuFolder ? (e, f) => onContextMenuFolder(e, f.id, f.name) : undefined}
       />
       {node.isExpanded && node.children.map((child) => renderFolderNode(child, level + 1))}
     </div>

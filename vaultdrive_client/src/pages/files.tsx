@@ -382,31 +382,50 @@ export default function Files() {
   const [isDraggingSplitter, setIsDraggingSplitter] = useState(false);
   const treeAsideRef = useRef<HTMLElement | null>(null);
 
-  const handleSplitterMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleSplitterPointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     setIsDraggingSplitter(true);
     const startX = e.clientX;
     const startWidth = treePaneWidth;
 
-    const onMouseMove = (moveEvent: MouseEvent) => {
+    const onPointerMove = (moveEvent: PointerEvent) => {
       const delta = moveEvent.clientX - startX;
       const newWidth = startWidth + delta;
       if (newWidth < SNAP_COLLAPSE_THRESHOLD) {
-        setIsTreeCollapsed(true);
+        setIsTreeCollapsed((prev) => {
+          if (!prev) playTumblerClick();
+          return true;
+        });
       } else {
-        setIsTreeCollapsed(false);
+        setIsTreeCollapsed((prev) => {
+          if (prev) playTumblerClick();
+          return false;
+        });
         const clamped = Math.min(MAX_TREE_WIDTH, Math.max(MIN_TREE_WIDTH, newWidth));
         setTreePaneWidth(clamped);
       }
     };
 
-    const onMouseUp = (upEvent: MouseEvent) => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+    const cleanup = () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", cleanup);
+      window.removeEventListener("keydown", onKeyDown);
       setIsDraggingSplitter(false);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+    };
 
+    const onKeyDown = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === "Escape") {
+        cleanup();
+        setTreePaneWidth(startWidth);
+        setIsTreeCollapsed(startWidth < SNAP_COLLAPSE_THRESHOLD);
+      }
+    };
+
+    const onPointerUp = (upEvent: PointerEvent) => {
+      cleanup();
       const delta = upEvent.clientX - startX;
       const finalWidth = startWidth + delta;
       if (finalWidth >= SNAP_COLLAPSE_THRESHOLD) {
@@ -417,8 +436,10 @@ export default function Files() {
 
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", cleanup);
+    window.addEventListener("keydown", onKeyDown);
   }, [treePaneWidth]);
 
   const handleAutoFitWidth = useCallback(() => {
@@ -433,6 +454,7 @@ export default function Files() {
       setTreePaneWidth(optimal);
       setIsTreeCollapsed(false);
       localStorage.setItem("abrndrive_tree_pane_width", String(optimal));
+      playTumblerClick();
     }
   }, []);
 
@@ -2346,6 +2368,16 @@ export default function Files() {
               onCollectUploadsForFolder={handleCreateUploadLinkForFolder}
               onManageShareFolder={handleManageFolderShares}
               onCollaborateFolder={handleManageCollaborators}
+              onContextMenuFolder={(e, folderId, folderName) => {
+                e.preventDefault();
+                setContextMenu({
+                  isOpen: true,
+                  x: e.clientX,
+                  y: e.clientY,
+                  targetType: "folder",
+                  targetData: { id: folderId, name: folderName },
+                });
+              }}
             />
           </aside>
 
@@ -2358,7 +2390,7 @@ export default function Files() {
             aria-valuemax={MAX_TREE_WIDTH}
             aria-label="Resize folder tree pane"
             tabIndex={0}
-            onMouseDown={handleSplitterMouseDown}
+            onPointerDown={handleSplitterPointerDown}
             onDoubleClick={handleAutoFitWidth}
             onKeyDown={(e) => {
               if (e.key === "ArrowLeft") {
@@ -2768,12 +2800,14 @@ export default function Files() {
             folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
           });
         }}
-        onDownload={(file) =>
-          handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id)
-        }
+        onDownload={(file) => {
+          if (!file?.id) return;
+          handleDownload(file.id, file.filename || file.name || "download", file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id);
+        }}
         onShare={(file) => {
+          if (!file?.id) return;
           setLastInteractedFileId(file.id);
-          handleShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined);
+          handleShareClick(file.id, file.filename || file.name || "file", file.metadata, file.pin_wrapped_key || undefined);
         }}
         onPassport={(file) => {
           setPassportFile(file);

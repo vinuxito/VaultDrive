@@ -86,8 +86,8 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
     const MENU_HEIGHT = 320;
     const padding = 12;
 
-    const clampedX = Math.max(padding, Math.min(state.x, window.innerWidth - MENU_WIDTH - padding));
-    const clampedY = Math.max(padding, Math.min(state.y, window.innerHeight - MENU_HEIGHT - padding));
+    const clampedX = Math.max(padding, Math.min(state.x, Math.max(padding, window.innerWidth - MENU_WIDTH - padding)));
+    const clampedY = Math.max(padding, Math.min(state.y, Math.max(padding, window.innerHeight - MENU_HEIGHT - padding)));
 
     setCoords({ x: clampedX, y: clampedY });
   }, [state.isOpen, state.x, state.y]);
@@ -175,7 +175,7 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
       {targetType === "file" && targetData && (
         <>
           <div className="px-3 py-1 text-[11px] font-semibold text-muted-foreground truncate border-b border-border/40 mb-1">
-            {targetData.name}
+            {targetData.filename || targetData.name || "Archivo"}
           </div>
           {onPreview && (
             <MenuItem

@@ -70,18 +70,34 @@ export function useMarqueeSelection({
     const handleMouseMove = (e: MouseEvent) => {
       if (!isTrackingRef.current) return;
 
-      const deltaX = e.clientX - startPosRef.current.x;
-      const deltaY = e.clientY - startPosRef.current.y;
+      let currentX = e.clientX;
+      let currentY = e.clientY;
+
+      if (containerRef.current) {
+        const bounds = containerRef.current.getBoundingClientRect();
+        if (bounds.width > 0 && bounds.height > 0) {
+          currentX = Math.max(bounds.left, Math.min(bounds.right, currentX));
+          currentY = Math.max(bounds.top, Math.min(bounds.bottom, currentY));
+        }
+      }
+
+      const deltaX = currentX - startPosRef.current.x;
+      const deltaY = currentY - startPosRef.current.y;
 
       // Require a minimum 4px drag threshold before starting visual lasso
       if (!lassoRect && Math.hypot(deltaX, deltaY) < 5) return;
 
-      const left = Math.min(startPosRef.current.x, e.clientX);
-      const top = Math.min(startPosRef.current.y, e.clientY);
-      const right = Math.max(startPosRef.current.x, e.clientX);
-      const bottom = Math.max(startPosRef.current.y, e.clientY);
-      const width = right - left;
-      const height = bottom - top;
+      // Prevent text selection while actively lassoing
+      if (document.body.style.userSelect !== "none") {
+        document.body.style.userSelect = "none";
+      }
+
+      const left = Math.min(startPosRef.current.x, currentX);
+      const top = Math.min(startPosRef.current.y, currentY);
+      const right = Math.max(startPosRef.current.x, currentX);
+      const bottom = Math.max(startPosRef.current.y, currentY);
+      const width = Math.max(0, right - left);
+      const height = Math.max(0, bottom - top);
 
       setLassoRect({ left, top, width, height, isSelecting: true });
 
@@ -99,12 +115,15 @@ export function useMarqueeSelection({
         }
       });
 
-      // Apply modifiers
-      if (modifierRef.current.shift) {
+      // Apply dynamic modifiers directly from live mouse event
+      const isShift = e.shiftKey;
+      const isAlt = e.altKey;
+
+      if (isShift) {
         const combined = new Set(initialSelectedRef.current);
         intersectedIds.forEach((id) => combined.add(id));
         onSelectionChange(combined);
-      } else if (modifierRef.current.alt) {
+      } else if (isAlt) {
         const subtracted = new Set(initialSelectedRef.current);
         intersectedIds.forEach((id) => subtracted.delete(id));
         onSelectionChange(subtracted);
@@ -118,16 +137,29 @@ export function useMarqueeSelection({
         isTrackingRef.current = false;
         setLassoRect(null);
         cachedItemsRef.current = [];
+        document.body.style.userSelect = "";
+      }
+    };
+
+    const handleBlur = () => {
+      if (isTrackingRef.current) {
+        isTrackingRef.current = false;
+        setLassoRect(null);
+        cachedItemsRef.current = [];
+        document.body.style.userSelect = "";
       }
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("blur", handleBlur);
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("blur", handleBlur);
+      document.body.style.userSelect = "";
     };
-  }, [lassoRect, onSelectionChange]);
+  }, [containerRef, lassoRect, onSelectionChange]);
 
   return {
     lassoRect,

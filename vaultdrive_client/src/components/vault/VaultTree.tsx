@@ -49,6 +49,7 @@ interface VaultTreeProps {
   onCollectUploadsForFolder?: (folderId: string, name: string) => void;
   onManageShareFolder?: (folderId: string, name: string) => void;
   onCollaborateFolder?: (folderId: string, name: string) => void;
+  onContextMenuFolder?: (e: React.MouseEvent, folderId: string, folderName: string) => void;
 }
 
 function isDropExpired(token: DropTokenInfo): boolean {
@@ -163,6 +164,7 @@ export function VaultTree({
   onCollectUploadsForFolder,
   onManageShareFolder,
   onCollaborateFolder,
+  onContextMenuFolder,
 }: VaultTreeProps) {
   const { t } = useTranslation(["drive"]);
   const [foldersOpen, setFoldersOpen] = useState(true);
@@ -249,6 +251,7 @@ export function VaultTree({
             onCollectUploadsForFolder={onCollectUploadsForFolder}
             onManageShareFolder={onManageShareFolder}
             onCollaborateFolder={onCollaborateFolder}
+            onContextMenuFolder={onContextMenuFolder}
           />
         </div>
       )}

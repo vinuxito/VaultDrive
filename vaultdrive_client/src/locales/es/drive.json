@@ -881,5 +881,24 @@
       "removeMember": "No se confirmó que se quitara al miembro. Actualiza el grupo antes de volver a intentarlo.",
       "removeFile": "No se confirmó que se quitara el archivo del grupo. Actualiza el grupo antes de volver a intentarlo."
     }
+  },
+  "actions": {
+    "preview": "Vista Rápida",
+    "download": "Descargar",
+    "share": "Compartir Enlace",
+    "cryptoPassport": "Pasaporte Criptográfico",
+    "move": "Mover a Carpeta…",
+    "star": "Destacar",
+    "unstar": "Quitar Destacado",
+    "copyHash": "Copiar Sello SHA-256",
+    "delete": "Eliminar Archivo",
+    "batchDownload": "Descargar Lote (Zip)",
+    "addToDock": "Enviar al Staging Dock",
+    "batchDelete": "Eliminar Seleccionados",
+    "newSubfolder": "Nueva Subcarpeta",
+    "uploadHere": "Subir Archivo Aquí",
+    "shareFolder": "Compartir Carpeta",
+    "renameFolder": "Renombrar Carpeta",
+    "deleteFolder": "Eliminar Carpeta"
   }
 }

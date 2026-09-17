@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import type { FolderNode } from "./FolderTree";
+import { playTumblerClick } from "../../utils/audioHaptics";
 
 interface FolderTreeItemProps {
   folder: FolderNode;
@@ -31,6 +32,7 @@ interface FolderTreeItemProps {
   onCollectUploads?: () => void;
   onManageShares?: () => void;
   onCollaborate?: () => void;
+  onContextMenu?: (e: React.MouseEvent, folder: FolderNode) => void;
 }
 
 export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
@@ -48,6 +50,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   onCollectUploads,
   onManageShares,
   onCollaborate,
+  onContextMenu,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -65,6 +68,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     if (hasChildren && !folder.isExpanded && !springTimerRef.timer) {
       springTimerRef.timer = setTimeout(() => {
         onToggleExpand();
+        playTumblerClick();
         springTimerRef.timer = null;
       }, 400);
     }
@@ -94,6 +98,13 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         const target = e.target as HTMLElement;
         if (!target.closest("button, input, [data-prevent-folder-click]")) {
           onNavigate();
+        }
+      }}
+      onContextMenu={(e) => {
+        if (onContextMenu) {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu(e, folder);
         }
       }}
       onDragOver={handleDragOver}

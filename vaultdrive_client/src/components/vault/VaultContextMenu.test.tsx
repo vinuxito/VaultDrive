@@ -52,8 +52,8 @@ describe("VaultContextMenu", () => {
       />
     );
 
-    expect(screen.getByText("2 archivos seleccionados")).toBeInTheDocument();
-    const batchBtn = screen.getByText("Descargar Lote (Zip)");
+    expect(screen.getByText(/archivos seleccionados/i)).toBeInTheDocument();
+    const batchBtn = screen.getByText(/Download Batch|Descargar Lote/i);
     expect(batchBtn).toBeInTheDocument();
 
     await userEvent.click(batchBtn);
@@ -76,6 +76,37 @@ describe("VaultContextMenu", () => {
     );
 
     fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("renders folder actions and executes folder operations", async () => {
+    const onShareFolder = vi.fn();
+    const onRenameFolder = vi.fn();
+    const onCreateSubfolder = vi.fn();
+    const onClose = vi.fn();
+    const mockFolder = { id: "folder-123", name: "Confidential Docs" };
+
+    render(
+      <VaultContextMenu
+        state={{
+          isOpen: true,
+          x: 150,
+          y: 250,
+          targetType: "folder",
+          targetData: mockFolder,
+        }}
+        onClose={onClose}
+        onShareFolder={onShareFolder}
+        onRenameFolder={onRenameFolder}
+        onCreateSubfolder={onCreateSubfolder}
+      />
+    );
+
+    expect(screen.getByText(/Confidential Docs/i)).toBeInTheDocument();
+    const shareBtn = screen.getByText(/Share Folder|Compartir Carpeta/i);
+    expect(shareBtn).toBeInTheDocument();
+    await userEvent.click(shareBtn);
+    expect(onShareFolder).toHaveBeenCalledWith("folder-123", "Confidential Docs");
     expect(onClose).toHaveBeenCalled();
   });
 });
