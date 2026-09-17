@@ -111,12 +111,21 @@ npm run preview
 - Remote/proxied testing must use the dedicated external runner with both targets explicitly set:
   `E2E_BASE_URL='https://reviewed-host/abrn/' E2E_API_BASE_URL='https://reviewed-host/api' npm run test:e2e:external -- <reviewed-spec-list>`.
 
+Historical snapshot from 2026-09-17 (v12 Sovereign File Manager Recovery, Verification & Closeout Checkpoint):
+
+- `npm run build` ✅ (`dist/index.html` SHA-256: `b7d936260f80847870464ab25462a02fb2acd97375a571415d8f9593ff0cdc27`)
+- `npm run typecheck` ✅ (0 errors)
+- `npm test` ✅ (104/104 test files, 502/502 passed)
+- `npm run test:e2e` (Playwright) ✅ (`v11-sovereign-vault-ux.spec.ts` 1/1 passed in 11.2s on port 8094)
+- Live public parity verified at `https://abrndrive.filemonprime.net/abrn/` (matching SHA-256 seal)
+- [Closeout Report](../docs/reports/2026-09-17-v12-recovery-verification-and-closeout.md) | [Closeout Dashboard](../docs/reports/2026-09-17-v12-recovery-verification-and-closeout.html) | [Closeout Memory](../docs/memories/session-2026-09-17-v12-recovery-verification-and-closeout.md)
+
 Historical snapshot from 2026-09-17 (v12 Sovereign File Manager Evolution Checkpoint):
 
-- `npm run build` ✅ (`dist/index.html` SHA-256: `1277a2c595bc95239a615b8cd66fab796ede1180eabef17bfc7a36f201003c15`)
+- `npm run build` ✅ (`dist/index.html` SHA-256: `b7d936260f80847870464ab25462a02fb2acd97375a571415d8f9593ff0cdc27`)
 - `npm run typecheck` ✅ (0 errors)
-- `npm test` ✅ (104/104 test files, 499/499 passed)
-- `npm run test:e2e` (Playwright) ✅ (`v11-sovereign-vault-ux.spec.ts` 1/1 passed in 12.7s)
+- `npm test` ✅ (104/104 test files, 502/502 passed)
+- `npm run test:e2e` (Playwright) ✅ (`v11-sovereign-vault-ux.spec.ts` 1/1 passed in 10.4s)
 - Live public parity verified at `https://abrndrive.filemonprime.net/abrn/` (matching SHA-256 seal)
 - [Verification Report](../docs/reports/2026-09-17-v12-file-manager-evolution-verification.md) | [Dashboard](../docs/reports/2026-09-17-v12-file-manager-evolution-verification.html) | [Session Memory](../docs/memories/session-2026-09-17-v12-sovereign-file-manager-evolution.md)
 
