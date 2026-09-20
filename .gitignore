@@ -21,6 +21,7 @@ test
 vaultdrive_client/playwright-report/
 test-results/
 vaultdrive_client/test-results/
+.playwright-cli/
 
 # Session state from local agent tooling
 .omc/
