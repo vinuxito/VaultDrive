@@ -159,7 +159,7 @@ export function FileWidget({
             </div>
 
             {/* File Metadata Line */}
-            <div className="flex gap-3 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted-foreground">
               <span>{formatFileSize(file.file_size)}</span>
               <span>•</span>
               <span>{formatDate(file.created_at)}</span>

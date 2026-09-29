@@ -423,7 +423,7 @@ export default function AccessCenter() {
     : tab === "shares" ? shareSource.error : dropSource.error;
 
   return (
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-8 pb-24 md:pb-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -669,28 +669,32 @@ function ShareCard({ item, copiedId, actionsDisabled, onRecover, onRevoke }: Sha
   const linkAvailable = item.is_active && item.status !== "expired" && item.status !== "closed" && item.status !== "revoked" && item.status !== "unknown";
   const disabled = actionsDisabled || !linkAvailable;
   return (
-    <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
-      <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
-        <Link2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
+          <Link2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{item.resource_name}</p>
+          <p className="text-xs text-muted-foreground truncate sm:whitespace-normal">
+            {item.type === "folder" ? "Folder share" : "File share"} · Created {relativeTime(item.created_at)} · {item.access_count} views
+            {item.last_accessed_at && ` · Last viewed ${relativeTime(item.last_accessed_at)}`}
+          </p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{item.resource_name}</p>
-        <p className="text-xs text-muted-foreground">
-          {item.type === "folder" ? "Folder share" : "File share"} · Created {relativeTime(item.created_at)} · {item.access_count} views
-          {item.last_accessed_at && ` · Last viewed ${relativeTime(item.last_accessed_at)}`}
-        </p>
-      </div>
-      <StatusBadge status={item.status} />
-      <div className="flex items-center gap-1 shrink-0">
-        <Button variant="ghost" size="icon" title="Copy full link" aria-label="Copy full link" disabled={disabled} onClick={() => onRecover(item, "copy")}>
-          {copiedId === item.id ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-        </Button>
-        <Button variant="ghost" size="icon" title="Open full link" aria-label="Open full link" disabled={disabled} onClick={() => onRecover(item, "open")}>
-          <ExternalLink className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="icon" title={`Revoke ${item.resource_name} link`} aria-label={`Revoke ${item.resource_name} link`} disabled={disabled} onClick={() => onRevoke(item)}>
-          <Ban className="w-4 h-4 text-destructive" />
-        </Button>
+      <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/40">
+        <StatusBadge status={item.status} />
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="ghost" size="icon" title="Copy full link" aria-label="Copy full link" disabled={disabled} onClick={() => onRecover(item, "copy")}>
+            {copiedId === item.id ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" title="Open full link" aria-label="Open full link" disabled={disabled} onClick={() => onRecover(item, "open")}>
+            <ExternalLink className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" title={`Revoke ${item.resource_name} link`} aria-label={`Revoke ${item.resource_name} link`} disabled={disabled} onClick={() => onRevoke(item)}>
+            <Ban className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -703,22 +707,26 @@ interface DropCardProps {
 
 function DropCard({ item, status }: DropCardProps) {
   return (
-    <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Upload className="w-4 h-4 text-primary" />
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <Upload className="w-4 h-4 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{item.link_name ?? item.token.slice(0, 12) + "…"}</p>
+          <p className="text-xs text-muted-foreground truncate sm:whitespace-normal">
+            Drop link · {item.files_uploaded} file{item.files_uploaded !== 1 ? "s" : ""} received
+            {item.last_upload_at && ` · Last upload ${relativeTime(item.last_upload_at)}`}
+            {item.expires_at && ` · Expires ${relativeTime(item.expires_at)}`}
+            {item.has_password && " · Password protected"}
+          </p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{item.link_name ?? item.token.slice(0, 12) + "…"}</p>
-        <p className="text-xs text-muted-foreground">
-          Drop link · {item.files_uploaded} file{item.files_uploaded !== 1 ? "s" : ""} received
-          {item.last_upload_at && ` · Last upload ${relativeTime(item.last_upload_at)}`}
-          {item.expires_at && ` · Expires ${relativeTime(item.expires_at)}`}
-          {item.has_password && " · Password protected"}
-        </p>
-      </div>
-      <StatusBadge status={status} />
-      <div className="flex items-center gap-1 shrink-0">
-        <Link to="/files" state={{ manageDropToken: item.token }} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">Manage</Link>
+      <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/40">
+        <StatusBadge status={status} />
+        <div className="flex items-center gap-1 shrink-0">
+          <Link to="/files" state={{ manageDropToken: item.token }} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">Manage</Link>
+        </div>
       </div>
     </div>
   );

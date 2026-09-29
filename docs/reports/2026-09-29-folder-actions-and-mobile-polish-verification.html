@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de Verificación - ABRN Drive: Menú de Acciones y Pulido Móvil</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(99, 102, 241, 0.2);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+    }
+    .container { max-width: 1080px; margin: 0 auto; }
+    .header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: var(--emerald-glow);
+      border: 1px solid var(--emerald);
+      color: #34d399;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    h1 { font-size: 1.85rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+    .kpi-card.emerald::before { background: var(--emerald); }
+    .kpi-value { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem; }
+    .kpi-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th {
+      background: rgba(30, 41, 59, 0.7);
+      padding: 1rem 1.25rem;
+      color: #cbd5e1;
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+    }
+    tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-pass { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-info { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .card p { margin-bottom: 0.75rem; color: #cbd5e1; font-size: 0.95rem; }
+    .card p:last-child { margin-bottom: 0; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+    .seal-box {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px dashed rgba(16, 185, 129, 0.4);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      color: #a7f3d0;
+      word-break: break-all;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Reporte de Verificación: Menú de Acciones & Pulido Móvil</h1>
+        <p class="subtitle">ABRN Drive — Diagnóstico, Corrección de Eventos, Portaleo de Menú y Auditoría Nativa Android 13</p>
+      </div>
+      <div class="badge-status">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        SEGURO CONTINUAR
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card emerald">
+        <div class="kpi-value">504 / 504</div>
+        <div class="kpi-label">Tests Unitarios Frontend (104 Suites)</div>
+      </div>
+      <div class="kpi-card emerald">
+        <div class="kpi-value">0 Errores</div>
+        <div class="kpi-label">TypeScript Typecheck Estricto</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">11.24s</div>
+        <div class="kpi-label">Compilación Bundle Vite</div>
+      </div>
+      <div class="kpi-card emerald">
+        <div class="kpi-value">PASSED</div>
+        <div class="kpi-label">Auditoría Android 13 Waydroid</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      Diagnóstico y Corrección de Problemas
+    </h2>
+    <div class="card">
+      <p><strong>1. Clics Ignorados en Menú de Acciones de Carpeta:</strong> El contenedor sidebar posee <code>transform: translateX(0)</code> en Tailwind, lo que atrapó el botón invisible de fondo <code>&lt;button className="fixed inset-0 z-10"&gt;</code> dentro del sidebar sobre las filas vecinas. Los clics fuera del menú eran absorbidos por este botón sin ejecutar la acción objetivo. Además, la falta de <code>stopPropagation</code> provocaba que al desmontarse el menú, el evento burbujeara a la fila de la carpeta ejecutando <code>onNavigate()</code> y cancelando los modales abiertos.</p>
+      <p><strong>Solución implementada:</strong> Portaleo directo a <code>document.body</code> vía <code>createPortal</code>, eliminación de botón trampa reemplazándolo con un listener de captura en <code>window</code> (<code>pointerdown</code>), detección de colisión con bordes del viewport y <code>stopPropagation</code> estricto en el trigger y en los 6 botones de acción.</p>
+      <p><strong>2. Pulido Responsivo Móvil (Android 13 / Dispositivos 360-390px):</strong> Las tarjetas de <code>ShareCard</code> y <code>DropCard</code> en el Access Center fueron adaptadas a diseño apilado (<code>flex-col sm:flex-row</code>), el texto de metadatos en <code>FileWidget</code> se configuró con <code>flex-wrap</code>, y se añadió espaciado inferior <code>pb-24</code> para evitar que la barra fija <code>BottomNav</code> cubra elementos.</p>
+    </div>
+
+    <h2 class="section-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+      Matriz de Verificación (Estándar 8K Reality)
+    </h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Prueba / Batería</th>
+            <th>Comando Ejecutado</th>
+            <th>Resultado</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Acciones de Carpeta</strong></td>
+            <td><code>npx vitest run src/components/folders/FolderTreeItem.test.tsx</code></td>
+            <td>5 de 5 pasadas (aislamiento de clics y Escape)</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Access Center</strong></td>
+            <td><code>npx vitest run src/pages/access-center.test.tsx</code></td>
+            <td>16 de 16 pasadas (estados verídicos de fuentes)</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Suite Frontend Completa</strong></td>
+            <td><code>npm test</code> (Vitest 4.1.0)</td>
+            <td>104 suites pasadas, 504 pruebas pasadas (0 fallas)</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TypeScript Estricto</strong></td>
+            <td><code>npm run typecheck</code></td>
+            <td>0 errores en aplicación y specs E2E</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Bundle de Producción</strong></td>
+            <td><code>npm run build</code></td>
+            <td>Compilado sin errores en 11.24s</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Contratos Backend Go</strong></td>
+            <td><code>go test ./...</code></td>
+            <td>PASS en 0.049s</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Análisis Estático Backend</strong></td>
+            <td><code>go vet ./...</code></td>
+            <td>0 observaciones</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Auditoría Móvil Android 13</strong></td>
+            <td><code>python3 .../filemon_mobile_client.py audit</code></td>
+            <td>VERDICT: PASSED (Nav Clearance verificado en Waydroid)</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>Servicio y Endpoint HTTPS</strong></td>
+            <td><code>curl -I https://abrndrive.filemonprime.net/abrn/</code></td>
+            <td>HTTP 200 OK (Last-Modified coincide con build)</td>
+            <td><span class="badge badge-pass">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      Sello Criptográfico de Producción
+    </h2>
+    <div class="card">
+      <p>El artefacto compilado en producción <code>vaultdrive_client/dist/index.html</code> ha sido sellado criptográficamente:</p>
+      <div class="seal-box">
+        SHA-256: b62624aa3f37a81a2a9463132629bbfd70e867c5af4f938e5765e6d742279eae
+      </div>
+    </div>
+  </div>
+</body>
+</html>

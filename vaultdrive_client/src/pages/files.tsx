@@ -2644,7 +2644,7 @@ export default function Files() {
               ref={fileContainerRef}
               onMouseDown={handleMarqueeMouseDown}
               onContextMenu={handleCanvasContextMenu}
-              className="flex-1 overflow-y-auto px-6 py-4 relative select-none"
+              className="flex-1 overflow-y-auto px-6 py-4 pb-24 md:pb-4 relative select-none"
             >
               {lassoRect?.isSelecting && (
                 <div

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../ui/button";
 import {
   Folder,
@@ -55,6 +56,80 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   const [showMenu, setShowMenu] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const springTimerRef = useState<{ timer: NodeJS.Timeout | null }>({ timer: null })[0];
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuCoords, setMenuCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  const updateMenuPosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const menuWidth = 192; // 12rem / w-48
+    const estimatedHeight = 240;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeTop = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+
+    const top = placeTop
+      ? Math.max(8, rect.top - estimatedHeight - 4)
+      : Math.min(window.innerHeight - estimatedHeight - 8, rect.bottom + 4);
+
+    let left = rect.right - menuWidth;
+    if (left < 8) left = 8;
+    if (left + menuWidth > window.innerWidth - 8) {
+      left = window.innerWidth - menuWidth - 8;
+    }
+
+    setMenuCoords({ top, left });
+  }, []);
+
+  const toggleMenu = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setShowMenu((prev) => {
+      if (!prev) {
+        updateMenuPosition();
+        return true;
+      }
+      return false;
+    });
+  }, [updateMenuPosition]);
+
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (
+        menuRef.current?.contains(target) ||
+        triggerRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setShowMenu(false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowMenu(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    const handleScrollOrResize = () => {
+      setShowMenu(false);
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown, true);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown, true);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [showMenu]);
 
   const hasChildren = folder.children.length > 0;
   const indentPx = level * 18 + (variant === "sidebar" ? 8 : 12);
@@ -176,115 +251,147 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       )}
 
       {showActions && (
-        <div className={`relative flex-shrink-0 transition-opacity ${active || showMenu ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+        <div
+          data-prevent-folder-click
+          className={`relative flex-shrink-0 transition-opacity ${
+            active || showMenu ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
           <Button
+            ref={triggerRef}
             variant="ghost"
             size="sm"
-            onClick={() => setShowMenu((prev) => !prev)}
-            className={`h-7 w-7 p-0 ${isSidebar ? "text-muted-foreground hover:text-foreground hover:bg-muted" : ""}`}
+            onClick={toggleMenu}
+            className={`h-7 w-7 p-0 cursor-pointer ${
+              isSidebar ? "text-muted-foreground hover:text-foreground hover:bg-muted" : ""
+            }`}
             aria-label={`Folder actions for ${folder.name}`}
+            aria-expanded={showMenu}
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
 
-          {showMenu && (
-            <>
-              <button
-                type="button"
-                aria-label="Close folder actions"
-                className="fixed inset-0 z-10"
-                onClick={() => setShowMenu(false)}
-              />
-
-              <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border bg-popover shadow-lg z-20 overflow-hidden">
+          {showMenu &&
+            createPortal(
+              <div
+                ref={menuRef}
+                role="menu"
+                aria-label={`Actions for ${folder.name}`}
+                style={{
+                  position: "fixed",
+                  top: `${menuCoords.top}px`,
+                  left: `${menuCoords.left}px`,
+                  zIndex: 9999,
+                }}
+                className="w-48 rounded-lg border border-border bg-popover text-popover-foreground shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100 py-1"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <button
                   type="button"
-                  onClick={() => {
-                    onCreateSubfolder();
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowMenu(false);
+                    onCreateSubfolder();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
                 >
                   <FolderPlus className="w-4 h-4" />
                   Create Subfolder
                 </button>
+
                 {onCollectUploads && folder.fileCount === 0 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      onCollectUploads();
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowMenu(false);
+                      onCollectUploads();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
                   >
                     <Upload className="w-4 h-4" />
                     Create Upload Link
                   </button>
                 )}
+
                 {onShare && folder.fileCount !== 0 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      onShare();
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowMenu(false);
+                      onShare();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
                   >
                     <Share2 className="w-4 h-4" />
                     Share Folder
                   </button>
                 )}
+
                 {onManageShares && (
                   <button
                     type="button"
-                    onClick={() => {
-                      onManageShares();
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowMenu(false);
+                      onManageShares();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
                   >
                     <Link2 className="w-4 h-4" />
                     Manage Shared Links
                   </button>
                 )}
+
                 {onCollaborate && (
                   <button
                     type="button"
-                    onClick={() => {
-                      onCollaborate();
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowMenu(false);
+                      onCollaborate();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
                   >
                     <Users className="w-4 h-4" />
                     Collaborators
                   </button>
                 )}
+
                 <button
                   type="button"
-                  onClick={() => {
-                    onRename();
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowMenu(false);
+                    onRename();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left cursor-pointer"
                 >
                   <Edit2 className="w-4 h-4" />
                   Rename
                 </button>
+
+                <div className="my-1 border-t border-border/60" />
+
                 <button
                   type="button"
-                  onClick={() => {
-                    onDelete();
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowMenu(false);
+                    onDelete();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-red-600 dark:text-red-400 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-red-600 dark:text-red-400 transition-colors text-left cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
                 </button>
-              </div>
-            </>
-          )}
+              </div>,
+              document.body
+            )}
         </div>
       )}
     </div>

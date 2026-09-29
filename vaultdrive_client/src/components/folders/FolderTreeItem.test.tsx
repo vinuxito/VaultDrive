@@ -66,4 +66,50 @@ describe("FolderTreeItem", () => {
     fireEvent.contextMenu(folderEl!);
     expect(onContextMenu).toHaveBeenCalledWith(expect.anything(), folder);
   });
+
+  it("does not trigger onNavigate when opening folder actions or selecting an action", async () => {
+    const onNavigate = vi.fn();
+    const onCreateSubfolder = vi.fn();
+    const onRename = vi.fn();
+
+    render(
+      <FolderTreeItem
+        {...baseProps}
+        onNavigate={onNavigate}
+        onCreateSubfolder={onCreateSubfolder}
+        onRename={onRename}
+        folder={{ id: "folder-1", name: "Inbox", parentId: null, children: [], fileCount: 0, isExpanded: false }}
+      />
+    );
+
+    // 1. Open actions menu
+    await userEvent.click(screen.getByRole("button", { name: /folder actions for inbox/i }));
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /create subfolder/i })).toBeInTheDocument();
+
+    // 2. Click Create Subfolder
+    await userEvent.click(screen.getByRole("button", { name: /create subfolder/i }));
+    expect(onCreateSubfolder).toHaveBeenCalledTimes(1);
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /create subfolder/i })).not.toBeInTheDocument();
+  });
+
+  it("dismisses menu on Escape without calling onNavigate", async () => {
+    const onNavigate = vi.fn();
+
+    render(
+      <FolderTreeItem
+        {...baseProps}
+        onNavigate={onNavigate}
+        folder={{ id: "folder-1", name: "Inbox", parentId: null, children: [], fileCount: 0, isExpanded: false }}
+      />
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /folder actions for inbox/i }));
+    expect(screen.getByRole("button", { name: /create subfolder/i })).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("button", { name: /create subfolder/i })).not.toBeInTheDocument();
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
 });
