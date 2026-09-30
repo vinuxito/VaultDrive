@@ -2255,6 +2255,7 @@ export default function Files() {
     } else if (passwordAction === "drop-upload") {
       setShowPasswordModal(false);
       setEncryptionPassword("");
+      setCredentialModeOverride(null);
       setPasswordAction(null);
       await performDropUploads(password);
       return;
@@ -2275,6 +2276,7 @@ export default function Files() {
 
           setShowPasswordModal(false);
           setEncryptionPassword("");
+          setCredentialModeOverride(null);
           setPasswordAction(null);
           setPendingSharedFolder(null);
           return;
@@ -2293,6 +2295,7 @@ export default function Files() {
       }
       setShowPasswordModal(false);
       setEncryptionPassword("");
+      setCredentialModeOverride(null);
       setPasswordAction(null);
     }
   }
