@@ -183,7 +183,7 @@ export default function Login() {
       }
 
       persistAuthenticatedSession();
-      navigate(loginIntent ?? (data.pin_set ? "/" : "/files"), { replace: true });
+      navigate(loginIntent ?? "/files", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

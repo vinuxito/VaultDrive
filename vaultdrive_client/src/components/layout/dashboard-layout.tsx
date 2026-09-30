@@ -325,6 +325,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const firstBurstEvent = useRef<typeof events[number] | null>(null);
 
   const activityConnection = useSSE((event) => {
+    if (event.event_type === "connected" || event.event_type === "ping" || event.event_type === "heartbeat" || event.event_type === "reconnect") {
+      return;
+    }
+
     setEvents((prev) => [event, ...prev].slice(0, 50));
     setUnreadCount((prev) => prev + 1);
 
