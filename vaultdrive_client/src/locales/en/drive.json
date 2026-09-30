@@ -82,6 +82,7 @@
       "description": "All decrypted memory buffers scrubbed. Enter your session PIN or press Unlock to restore your workspace.",
       "pinLabel": "4-DIGIT SOVEREIGN PIN",
       "resumeSession": "Resume Sovereign Session",
+      "forgotPin": "Forgot your PIN? Log out to sign in with your password",
       "hotkey": "HOTKEY: ⌘L TO TOGGLE PRIVACY SHUTTER"
     },
     "passwordModal": {
@@ -97,7 +98,9 @@
       "credentialLabel": "File Credential",
       "cancel": "Cancel",
       "placeholderPin": "••••",
-      "placeholderCredential": "Enter credential"
+      "placeholderCredential": "Enter credential",
+      "switchToPassword": "Not a PIN? Try with password",
+      "switchToPin": "Have a PIN? Try with 4 digits"
     },
     "sync": {
       "offline": "Offline Mode — Changes will sync when connection is restored.",

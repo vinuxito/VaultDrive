@@ -78,11 +78,12 @@
       "clearDock": "Limpiar Muelle (Esc)"
     },
     "privacyShutter": {
-      "title": "Bóveda Bloqueada por Privacidad",
-      "description": "Todos los búferes de memoria descifrados fueron purgados. Ingrese su PIN de sesión o presione Desbloquear para restaurar su espacio de trabajo.",
-      "pinLabel": "PIN SOBERANO DE 4 DÍGITOS",
-      "resumeSession": "Reanudar Sesión Soberana",
-      "hotkey": "ACCESO DIRECTO: ⌘L PARA ALTERNAR PERSIANA DE PRIVACIDAD"
+      "title": "Bóveda protegida por seguridad",
+      "description": "Tu pantalla descansó para cuidar tus archivos. Pon tu PIN de 4 dígitos y te dejamos justo donde estabas.",
+      "pinLabel": "PIN DE 4 DÍGITOS",
+      "resumeSession": "Reanudar Sesión",
+      "forgotPin": "¿Olvidaste tu PIN? Cerrar sesión para entrar con tu contraseña",
+      "hotkey": "ACCESO DIRECTO: ⌘L PARA BLOQUEAR O DESBLOQUEAR PANTALLA"
     },
     "passwordModal": {
       "usePin": "Usa tu PIN",
@@ -97,7 +98,9 @@
       "credentialLabel": "Credencial del archivo",
       "cancel": "Cancelar",
       "placeholderPin": "••••",
-      "placeholderCredential": "Ingresar credencial"
+      "placeholderCredential": "Ingresar credencial",
+      "switchToPassword": "¿No era PIN? Probar con contraseña",
+      "switchToPin": "¿Tienes PIN? Probar con 4 dígitos"
     },
     "sync": {
       "offline": "Modo sin conexión — Los cambios se sincronizarán al restablecer la conexión.",

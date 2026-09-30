@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Lock, Unlock, KeyRound } from "lucide-react";
 import { playDeadboltThud, playUnlockChime, playTumblerClick } from "../../utils/audioHaptics";
+import { clearAuthSessionStorage, getLoginUrl } from "../../utils/auth-session";
 
 interface VaultPrivacyShutterProps {
   isLocked: boolean;
@@ -104,6 +105,21 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
             <Unlock className="w-4 h-4" />
             <span>{t("drive:vault.privacyShutter.resumeSession", { defaultValue: "Resume Sovereign Session" })}</span>
           </button>
+
+          <div className="flex justify-center pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                clearAuthSessionStorage();
+                window.location.replace(getLoginUrl());
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground underline cursor-pointer"
+            >
+              {t("drive:vault.privacyShutter.forgotPin", {
+                defaultValue: "Forgot your PIN? Log out to sign in with your password",
+              })}
+            </button>
+          </div>
         </form>
 
         <p className="text-[10px] text-muted-foreground font-mono">

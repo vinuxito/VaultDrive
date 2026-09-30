@@ -297,6 +297,7 @@ export default function Files() {
 
   const [encryptionPassword, setEncryptionPassword] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [credentialModeOverride, setCredentialModeOverride] = useState<"pin" | "password" | null>(null);
   const [passwordAction, setPasswordAction] = useState<"upload" | "download" | "drop-upload" | "decrypt-folder" | null>(null);
   const [pendingDownload, setPendingDownload] = useState<{
     fileId: string;
@@ -2975,7 +2976,8 @@ export default function Files() {
       {showPasswordModal && (() => {
         const credScheme = pendingDownload ? getFileCredentialScheme(pendingDownload) : "password";
         const isUpload = passwordAction === "upload" || passwordAction === "drop-upload";
-        const usePin = isUpload ? ownerUsesPin : credScheme !== "password";
+        const defaultUsePin = isUpload ? ownerUsesPin : credScheme !== "password";
+        const usePin = credentialModeOverride !== null ? credentialModeOverride === "pin" : defaultUsePin;
         return (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
@@ -3047,8 +3049,24 @@ export default function Files() {
                   )}
                   placeholder={usePin ? t("drive:vault.passwordModal.placeholderPin") : t("drive:vault.passwordModal.placeholderCredential")}
                   className={`w-full px-3 py-2 border rounded-md bg-primary-foreground/15 border-primary-foreground/25 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground/50 focus:bg-primary-foreground/20${usePin ? " text-center tracking-widest text-xl" : ""}`}
-
                 />
+
+                {!isUpload && (
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCredentialModeOverride(usePin ? "password" : "pin");
+                        setEncryptionPassword("");
+                      }}
+                      className="text-xs text-primary-foreground/90 hover:text-white underline cursor-pointer"
+                    >
+                      {usePin
+                        ? t("drive:vault.passwordModal.switchToPassword", { defaultValue: "¿No era PIN? Probar con contraseña" })
+                        : t("drive:vault.passwordModal.switchToPin", { defaultValue: "¿Tienes PIN? Probar con 4 dígitos" })}
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -3058,6 +3076,7 @@ export default function Files() {
                   onClick={() => {
                     setShowPasswordModal(false);
                     setEncryptionPassword("");
+                    setCredentialModeOverride(null);
                     setPasswordAction(null);
                     setPendingDownload(null);
                   }}
