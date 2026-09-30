@@ -19,7 +19,6 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
-  Lock,
 } from "lucide-react";
 
 interface StatCard {
@@ -89,6 +88,64 @@ function SkeletonCard() {
       </div>
     </div>
   );
+}
+
+export function formatActivityMessage(item: ActivityItem, t: (key: string, options?: any) => string): string {
+  const rawMeta = item.description || item.message || "";
+  const meta = (rawMeta && rawMeta !== item.event_type) ? rawMeta : "";
+  switch (item.event_type) {
+    case "folder_share_link_created":
+      return t("drive:dashboard.activity.folderShareCreated", {
+        name: meta || t("drive:dashboard.activity.folderFallback", { defaultValue: "carpeta" }),
+        defaultValue: meta ? `Se creó enlace para ${meta}` : "Se creó un enlace para compartir carpeta",
+      });
+    case "secure_drop_created":
+      return t("drive:dashboard.activity.dropCreated", {
+        name: meta || t("drive:dashboard.activity.dropFallback", { defaultValue: "portal" }),
+        defaultValue: meta ? `Se creó portal de entrega ${meta}` : "Se creó un portal de entrega Secure Drop",
+      });
+    case "secure_drop_revoked":
+      return t("drive:dashboard.activity.dropRevoked", {
+        name: meta || t("drive:dashboard.activity.dropFallback", { defaultValue: "portal" }),
+        defaultValue: meta ? `Se revocó portal de entrega ${meta}` : "Se revocó un portal de entrega Secure Drop",
+      });
+    case "file_shared":
+      return t("drive:dashboard.activity.fileShared", {
+        name: meta || t("drive:dashboard.activity.fileFallback", { defaultValue: "archivo" }),
+        defaultValue: meta ? `Se compartió el archivo ${meta}` : "Se compartió un archivo protegido",
+      });
+    case "file_upload":
+    case "file_uploaded":
+      return meta
+        ? t("drive:dashboard.activity.fileUploadedName", {
+            name: meta,
+            defaultValue: `Archivo subido: ${meta}`,
+          })
+        : t("drive:dashboard.activity.fileUploaded", {
+            defaultValue: "Subiste un archivo a la bóveda",
+          });
+    case "download":
+    case "file_downloaded":
+      return t("drive:dashboard.activity.fileDownloaded", {
+        name: meta || t("drive:dashboard.activity.fileFallback", { defaultValue: "archivo" }),
+        defaultValue: meta ? `Se descargó ${meta}` : "Se descargó un archivo",
+      });
+    case "link_revoked":
+      return t("drive:dashboard.activity.linkRevoked", {
+        name: meta || t("drive:dashboard.activity.linkFallback", { defaultValue: "enlace" }),
+        defaultValue: meta ? `Se revocó el enlace ${meta}` : "Se revocó un enlace de acceso",
+      });
+    case "drop_uploaded":
+      return t("drive:dashboard.activity.dropUploaded", {
+        defaultValue: "Se recibieron archivos por Secure Drop",
+      });
+    default:
+      if (meta) return meta;
+      return item.event_type
+        .split("_")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+  }
 }
 
 export default function Dashboard() {
@@ -240,13 +297,6 @@ export default function Dashboard() {
       icon: Share2,
       color: "bg-emerald-700 hover:bg-emerald-800 text-white",
       onClick: () => navigate("/files", { state: { onboardingTask: "share" } }),
-    },
-    {
-      label: t("drive:dashboard.start.createRoom", "Create ZK Room"),
-      description: t("drive:dashboard.start.createRoomDesc", "Create an ephemeral collaborative encrypted room"),
-      icon: Lock,
-      color: "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
-      onClick: () => navigate(`/room/${crypto.randomUUID()}`),
     },
   ];
 
@@ -445,7 +495,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-foreground truncate">
-                          {item.message || item.description || item.event_type}
+                          {formatActivityMessage(item, t)}
                         </p>
                         {timestamp && (
                           <p className="text-xs text-muted-foreground mt-0.5">{formatRelativeTime(timestamp)}</p>

@@ -195,8 +195,8 @@
       "title": "Empieza Aquí",
       "upload": "Subir Archivo",
       "uploadDesc": "Agrega archivos cifrados a tu bóveda",
-      "createLink": "Crear Enlace de Subida",
-      "createLinkDesc": "Crea un enlace seguro para la entrega de archivos",
+      "createLink": "Pedir Documentos a un Cliente",
+      "createLinkDesc": "Crea una solicitud para que te manden archivos sin cuenta",
       "share": "Compartir un Archivo",
       "shareDesc": "Comparte de forma segura con un usuario"
     },
@@ -207,7 +207,20 @@
       "step2": "Crea un enlace de subida para clientes",
       "step3": "Comparte un archivo con un colega",
       "noActivity": "Sin actividad aún",
-      "noActivityDesc": "Sube o comparte un archivo para empezar."
+      "noActivityDesc": "Sube o comparte un archivo para empezar.",
+      "folderShareCreated": "Creaste un enlace para compartir {{name}}",
+      "dropCreated": "Creaste el portal de entrega {{name}}",
+      "dropRevoked": "Revocaste el portal de entrega {{name}}",
+      "fileShared": "Compartiste el archivo {{name}}",
+      "dropUploaded": "Se recibieron archivos por Secure Drop",
+      "fileUploaded": "Subiste un archivo a la bóveda",
+      "fileUploadedName": "Subiste {{name}}",
+      "fileDownloaded": "Se descargó {{name}}",
+      "linkRevoked": "Revocaste el acceso a {{name}}",
+      "folderFallback": "carpeta",
+      "dropFallback": "portal",
+      "fileFallback": "archivo",
+      "linkFallback": "enlace"
     }
   },
   "shared": {
@@ -905,5 +918,62 @@
     "shareFolder": "Compartir Carpeta",
     "renameFolder": "Renombrar Carpeta",
     "deleteFolder": "Eliminar Carpeta"
+  },
+  "accessCenter": {
+    "title": "Centro de Acceso",
+    "subtitle": "Rutas de acceso activas · Quién puede ver y subir archivos a tu bóveda",
+    "tabs": {
+      "all": "Todas las rutas",
+      "shares": "Enlaces para compartir",
+      "drop": "Portales de subida"
+    },
+    "filters": {
+      "all": "Todos",
+      "never_used": "Sin visitas"
+    },
+    "status": {
+      "active": "Activo",
+      "expired": "Vencido",
+      "revoked": "Revocado",
+      "stale": "Inactivo",
+      "never_used": "Sin visitas",
+      "closed": "Cerrado",
+      "unknown": "Desconocido"
+    },
+    "sources": {
+      "shares": "Enlaces para compartir",
+      "sharesUnavailable": "Los enlaces para compartir no están disponibles temporalmente.",
+      "sharesStale": "Los enlaces para compartir pueden estar desactualizados.",
+      "tryShares": "Reintentar enlaces para compartir",
+      "refreshShares": "Actualizar enlaces para compartir",
+      "drops": "Portales de subida",
+      "dropsUnavailable": "Los portales de subida no están disponibles temporalmente.",
+      "dropsStale": "Los portales de subida pueden estar desactualizados.",
+      "tryDrops": "Reintentar portales de subida",
+      "refreshDrops": "Actualizar portales de subida",
+      "tryAgain": "Reintentar",
+      "refresh": "Actualizar"
+    },
+    "card": {
+      "folderShare": "Carpeta compartida",
+      "fileShare": "Archivo compartido",
+      "dropLink": "Portal de subida",
+      "created": "Creado el {{date}}",
+      "views": "{{count}} visitas",
+      "views_one": "1 visita",
+      "lastViewed": "Última visita: {{date}}",
+      "filesReceived": "{{count}} archivos recibidos",
+      "filesReceived_one": "1 archivo recibido",
+      "lastUpload": "Última subida {{time}}",
+      "expires": "Vence {{time}}",
+      "passwordProtected": "Protegido con contraseña",
+      "copyLink": "Copiar enlace completo",
+      "openLink": "Abrir enlace",
+      "revokeLink": "Revocar acceso",
+      "revokeNamedLink": "Revocar enlace de {{name}}",
+      "unnamedResource": "Elemento",
+      "manageDrop": "Administrar",
+      "shareWhatsApp": "Mandar por WhatsApp"
+    }
   }
 }

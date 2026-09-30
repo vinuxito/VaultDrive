@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { API_URL } from "../utils/api";
-import { ShieldCheck, Link2, Upload, FileQuestion, ExternalLink, Copy, AlertTriangle, Clock, CheckCircle, XCircle, Ban, Loader2, Trash2, X } from "lucide-react";
+import { ShieldCheck, Link2, Upload, FileQuestion, ExternalLink, Copy, AlertTriangle, Clock, CheckCircle, XCircle, Ban, Loader2, Trash2, X, MessageCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { relativeTime } from "../utils/format";
 import { branding } from "../config/branding";
@@ -408,9 +408,9 @@ export default function AccessCenter() {
   const filteredDrops = statusFilter === "all" ? dropTokens : dropTokens.filter((d) => dropStatus(d) === statusFilter);
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode; count: number | string }[] = [
-    { key: "all", label: "All access", icon: <ShieldCheck className="w-4 h-4" />, count: shareSource.error || dropSource.error ? "—" : allItems.length },
-    { key: "shares", label: "Share links", icon: <Link2 className="w-4 h-4" />, count: shareSource.error && shares.length === 0 ? "—" : shares.length },
-    { key: "drop", label: "Drop routes", icon: <Upload className="w-4 h-4" />, count: dropSource.error && dropTokens.length === 0 ? "—" : dropTokens.length },
+    { key: "all", label: copy("drive:accessCenter.tabs.all", "All access"), icon: <ShieldCheck className="w-4 h-4" />, count: shareSource.error || dropSource.error ? "—" : allItems.length },
+    { key: "shares", label: copy("drive:accessCenter.tabs.shares", "Share links"), icon: <Link2 className="w-4 h-4" />, count: shareSource.error && shares.length === 0 ? "—" : shares.length },
+    { key: "drop", label: copy("drive:accessCenter.tabs.drop", "Drop routes"), icon: <Upload className="w-4 h-4" />, count: dropSource.error && dropTokens.length === 0 ? "—" : dropTokens.length },
   ];
 
   const baseURL = window.location.origin + branding.basePath;
@@ -430,8 +430,8 @@ export default function AccessCenter() {
             <ShieldCheck className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Access Center</h1>
-            <p className="text-sm text-muted-foreground">All outbound access grants — share links and drop routes in one place.</p>
+            <h1 className="text-xl font-semibold text-foreground">{copy("drive:accessCenter.title", "Access Center")}</h1>
+            <p className="text-sm text-muted-foreground">{copy("drive:accessCenter.subtitle", "All outbound access grants — share links and drop routes in one place.")}</p>
           </div>
         </div>
 
@@ -466,7 +466,7 @@ export default function AccessCenter() {
                   : "bg-background text-muted-foreground border-border hover:border-primary/40"
               }`}
             >
-              {s === "all" ? "All" : s === "never_used" ? "Never used" : s.charAt(0).toUpperCase() + s.slice(1)}
+              {s === "all" ? copy("drive:accessCenter.filters.all", "All") : s === "never_used" ? copy("drive:accessCenter.filters.never_used", "Never used") : copy(`drive:accessCenter.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1))}
             </button>
           ))}
         </div>
@@ -515,7 +515,7 @@ export default function AccessCenter() {
                     item.kind === "share" ? (
                       <ShareCard key={idx} item={item.data} copiedId={copiedId} actionsDisabled={shareSource.stale} onRecover={beginRecovery} onRevoke={setConfirmRevoke} />
                     ) : (
-                      <DropCard key={idx} item={item.data} status={item.status} />
+                      <DropCard key={idx} item={item.data} status={item.status} baseURL={baseURL} />
                     )
                   )}
                 </div>
@@ -538,7 +538,7 @@ export default function AccessCenter() {
               filteredDrops.length === 0 && !relevantLoading && !relevantError ? <EmptyState filtered={statusFilter !== "all"} onClear={() => setStatusFilter("all")} /> : (
                 <div className="space-y-2">
                   {filteredDrops.map((d) => (
-                    <DropCard key={d.id} item={d} status={dropStatus(d)} />
+                    <DropCard key={d.id} item={d} status={dropStatus(d)} baseURL={baseURL} />
                   ))}
                 </div>
               )
@@ -666,8 +666,20 @@ interface ShareCardProps {
 }
 
 function ShareCard({ item, copiedId, actionsDisabled, onRecover, onRevoke }: ShareCardProps) {
+  const { t } = useTranslation(["drive", "common"]);
+  const copy = (key: string, fallback: string) => {
+    const translated = t(key, { defaultValue: fallback });
+    return translated === key ? fallback : translated;
+  };
   const linkAvailable = item.is_active && item.status !== "expired" && item.status !== "closed" && item.status !== "revoked" && item.status !== "unknown";
   const disabled = actionsDisabled || !linkAvailable;
+  const kindLabel = item.type === "folder" ? copy("drive:accessCenter.card.folderShare", "Folder share") : copy("drive:accessCenter.card.fileShare", "File share");
+  const createdLabel = t("drive:accessCenter.card.created", { date: relativeTime(item.created_at), defaultValue: `Created ${relativeTime(item.created_at)}` });
+  const viewsLabel = item.access_count === 1
+    ? t("drive:accessCenter.card.views_one", { count: 1, defaultValue: "1 view" })
+    : t("drive:accessCenter.card.views", { count: item.access_count, defaultValue: `${item.access_count} views` });
+  const lastViewedLabel = item.last_accessed_at ? ` · ${t("drive:accessCenter.card.lastViewed", { date: relativeTime(item.last_accessed_at), defaultValue: `Last viewed ${relativeTime(item.last_accessed_at)}` })}` : "";
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
       <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -675,20 +687,19 @@ function ShareCard({ item, copiedId, actionsDisabled, onRecover, onRevoke }: Sha
           <Link2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{item.resource_name}</p>
+          <p className="text-sm font-medium truncate">{item.resource_name || copy("drive:accessCenter.card.unnamedResource", "Resource")}</p>
           <p className="text-xs text-muted-foreground truncate sm:whitespace-normal">
-            {item.type === "folder" ? "Folder share" : "File share"} · Created {relativeTime(item.created_at)} · {item.access_count} views
-            {item.last_accessed_at && ` · Last viewed ${relativeTime(item.last_accessed_at)}`}
+            {kindLabel} · {createdLabel} · {viewsLabel}{lastViewedLabel}
           </p>
         </div>
       </div>
       <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/40">
         <StatusBadge status={item.status} />
         <div className="flex items-center gap-1 shrink-0">
-          <Button variant="ghost" size="icon" title="Copy full link" aria-label="Copy full link" disabled={disabled} onClick={() => onRecover(item, "copy")}>
+          <Button variant="ghost" size="icon" title={copy("drive:accessCenter.card.copyLink", "Copy full link")} aria-label={copy("drive:accessCenter.card.copyLink", "Copy full link")} disabled={disabled} onClick={() => onRecover(item, "copy")}>
             {copiedId === item.id ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
           </Button>
-          <Button variant="ghost" size="icon" title="Open full link" aria-label="Open full link" disabled={disabled} onClick={() => onRecover(item, "open")}>
+          <Button variant="ghost" size="icon" title={copy("drive:accessCenter.card.openLink", "Open full link")} aria-label={copy("drive:accessCenter.card.openLink", "Open full link")} disabled={disabled} onClick={() => onRecover(item, "open")}>
             <ExternalLink className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" title={`Revoke ${item.resource_name} link`} aria-label={`Revoke ${item.resource_name} link`} disabled={disabled} onClick={() => onRevoke(item)}>
@@ -703,9 +714,26 @@ function ShareCard({ item, copiedId, actionsDisabled, onRecover, onRevoke }: Sha
 interface DropCardProps {
   item: DropToken;
   status: string;
+  baseURL: string;
 }
 
-function DropCard({ item, status }: DropCardProps) {
+function DropCard({ item, status, baseURL }: DropCardProps) {
+  const { t } = useTranslation(["drive", "common"]);
+  const copy = (key: string, fallback: string) => {
+    const translated = t(key, { defaultValue: fallback });
+    return translated === key ? fallback : translated;
+  };
+
+  const filesLabel = item.files_uploaded === 1
+    ? t("drive:accessCenter.card.filesReceived_one", { count: 1, defaultValue: "1 file received" })
+    : t("drive:accessCenter.card.filesReceived", { count: item.files_uploaded, defaultValue: `${item.files_uploaded} files received` });
+  const lastUploadLabel = item.last_upload_at ? ` · ${t("drive:accessCenter.card.lastUpload", { time: relativeTime(item.last_upload_at), defaultValue: `Last upload ${relativeTime(item.last_upload_at)}` })}` : "";
+  const expiresLabel = item.expires_at ? ` · ${t("drive:accessCenter.card.expires", { time: relativeTime(item.expires_at), defaultValue: `Expires ${relativeTime(item.expires_at)}` })}` : "";
+  const passwordLabel = item.has_password ? ` · ${copy("drive:accessCenter.card.passwordProtected", "Password protected")}` : "";
+
+  const dropUrl = `${baseURL}/drop/${encodeURIComponent(item.token)}`;
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(dropUrl)}`;
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
       <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -715,17 +743,28 @@ function DropCard({ item, status }: DropCardProps) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{item.link_name ?? item.token.slice(0, 12) + "…"}</p>
           <p className="text-xs text-muted-foreground truncate sm:whitespace-normal">
-            Drop link · {item.files_uploaded} file{item.files_uploaded !== 1 ? "s" : ""} received
-            {item.last_upload_at && ` · Last upload ${relativeTime(item.last_upload_at)}`}
-            {item.expires_at && ` · Expires ${relativeTime(item.expires_at)}`}
-            {item.has_password && " · Password protected"}
+            {copy("drive:accessCenter.card.dropLink", "Drop link")} · {filesLabel}{lastUploadLabel}{expiresLabel}{passwordLabel}
           </p>
         </div>
       </div>
       <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/40">
         <StatusBadge status={status} />
         <div className="flex items-center gap-1 shrink-0">
-          <Link to="/files" state={{ manageDropToken: item.token }} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">Manage</Link>
+          {status === "active" && (
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={copy("drive:accessCenter.card.shareWhatsApp", "WhatsApp")}
+              title={copy("drive:accessCenter.card.shareWhatsApp", "WhatsApp")}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </a>
+          )}
+          <Link to="/files" state={{ manageDropToken: item.token }} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-foreground hover:bg-muted" aria-label="Manage Drop route">
+            {copy("drive:accessCenter.card.manageDrop", "Manage")}
+          </Link>
         </div>
       </div>
     </div>

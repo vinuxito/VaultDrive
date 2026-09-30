@@ -198,7 +198,9 @@
       "createLink": "Create Client Upload Link",
       "createLinkDesc": "Create a secure link for client file delivery",
       "share": "Share a File",
-      "shareDesc": "Securely share with a user"
+      "shareDesc": "Securely share with a user",
+      "createRoom": "Request Documents from Client",
+      "createRoomDesc": "Create a drop portal so clients can send files without an account"
     },
     "activity": {
       "title": "Activity",
@@ -207,7 +209,20 @@
       "step2": "Create a client upload link",
       "step3": "Share a file with a colleague",
       "noActivity": "No activity yet",
-      "noActivityDesc": "Upload or share a file to begin."
+      "noActivityDesc": "Upload or share a file to begin.",
+      "folderShareCreated": "Created share link for {{name}}",
+      "dropCreated": "Created drop portal {{name}}",
+      "dropRevoked": "Revoked drop portal {{name}}",
+      "fileShared": "Shared file {{name}}",
+      "dropUploaded": "Files received via Secure Drop",
+      "fileUploaded": "Uploaded file to vault",
+      "fileUploadedName": "Uploaded {{name}}",
+      "fileDownloaded": "Downloaded {{name}}",
+      "linkRevoked": "Revoked access to {{name}}",
+      "folderFallback": "folder",
+      "dropFallback": "portal",
+      "fileFallback": "file",
+      "linkFallback": "link"
     }
   },
   "shared": {
@@ -904,5 +919,62 @@
     "shareFolder": "Share Folder",
     "renameFolder": "Rename Folder",
     "deleteFolder": "Delete Folder"
+  },
+  "accessCenter": {
+    "title": "Access Center",
+    "subtitle": "All outbound access grants — share links and drop routes in one place",
+    "tabs": {
+      "all": "All access",
+      "shares": "Share links",
+      "drop": "Drop routes"
+    },
+    "filters": {
+      "all": "All",
+      "never_used": "Never used"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "stale": "Stale",
+      "never_used": "Never used",
+      "closed": "Closed",
+      "unknown": "Unknown"
+    },
+    "sources": {
+      "shares": "Share links",
+      "sharesUnavailable": "Share links are unavailable.",
+      "sharesStale": "Share links may be out of date.",
+      "tryShares": "Try share links again",
+      "refreshShares": "Refresh share links",
+      "drops": "Drop routes",
+      "dropsUnavailable": "Drop routes are unavailable.",
+      "dropsStale": "Drop routes may be out of date.",
+      "tryDrops": "Try drop routes again",
+      "refreshDrops": "Refresh drop routes",
+      "tryAgain": "Try again",
+      "refresh": "Refresh"
+    },
+    "card": {
+      "folderShare": "Folder share",
+      "fileShare": "File share",
+      "dropLink": "Drop link",
+      "created": "Created {{date}}",
+      "views": "{{count}} views",
+      "views_one": "1 view",
+      "lastViewed": "Last viewed: {{date}}",
+      "filesReceived": "{{count}} files received",
+      "filesReceived_one": "1 file received",
+      "lastUpload": "Last upload {{time}}",
+      "expires": "Expires {{time}}",
+      "passwordProtected": "Password protected",
+      "copyLink": "Copy full link",
+      "openLink": "Open full link",
+      "revokeLink": "Revoke access",
+      "revokeNamedLink": "Revoke {{name}} link",
+      "unnamedResource": "Resource",
+      "manageDrop": "Manage",
+      "shareWhatsApp": "WhatsApp"
+    }
   }
 }
