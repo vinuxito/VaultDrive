@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon, Lock, ShieldCheck, Building2, Copy } from "lucide-react";
+import { Upload, UploadCloud, Loader2, CheckCircle, XCircle, Clock, AlertCircle, ArrowLeft, FolderOpen, FileIcon, Lock, ShieldCheck, Building2, Copy, MessageCircle, Download } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { hexToBytes } from "../utils/crypto";
@@ -402,8 +402,44 @@ export default function DropUpload() {
   const totalCount = uploadProgress.length;
 
   if (delivered && completedCount > 0) {
+    const folioCode = `ABRN-DRP-${(token?.slice(0, 4) || "8472").toUpperCase()}-${(deliveryRef?.slice(0, 4) || "F9").toUpperCase()}`;
+    const successfulFiles = uploadProgress.filter((p) => p.status === "success");
+    const waFilesSummary = successfulFiles.map((f) => f.fileName).join(", ");
+    const waText = `Hola, acabo de subir mis documentos a ${tokenInfo.owner_display_name || "ABRN Asesores"}. Folio: ${folioCode}. Archivos: ${waFilesSummary}.`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+
+    const downloadReceipt = () => {
+      const receiptText = `================================================================================
+             ABRN DRIVE — COMPROBANTE OFICIAL DE ENTREGA DIGITAL             
+================================================================================
+FOLIO ÚNICO:     ${folioCode}
+FECHA Y HORA:    ${new Date().toLocaleString()}
+DESTINATARIO:    ${tokenInfo.owner_display_name || "ABRN Asesores"}${tokenInfo.owner_organization ? ` · ${tokenInfo.owner_organization}` : ""}
+PORTAL:          ${tokenInfo.link_name || tokenInfo.folder_name || "Entrega Segura"}
+TOTAL ARCHIVOS:  ${completedCount}
+
+DOCUMENTOS ENTREGADOS:
+${successfulFiles.map((f, i) => `  ${i + 1}. ${f.fileName} (${formatBytes(f.bytesTotal || 0)})`).join("\n")}
+
+SELLO DE SEGURIDAD:
+  Cifrado de origen: AES-256-GCM en el navegador
+  Estado de ruta:    Entregado y sellado en bóveda
+================================================================================
+`;
+      const blob = new Blob([receiptText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `comprobante-${folioCode}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
     const receiptLines = [
       `✓ Delivered securely`,
+      `Folio: ${folioCode}`,
       `To: ${tokenInfo.owner_display_name || ""}${tokenInfo.owner_organization ? ` · ${tokenInfo.owner_organization}` : ""}`,
       `Files: ${completedCount} file${completedCount > 1 ? "s" : ""}`,
       `Time: ${new Date().toLocaleString()}`,
@@ -425,11 +461,39 @@ export default function DropUpload() {
             </p>
           </div>
 
-          <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left">
-            <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">{copy("drive:transfers.common.deliveryReceipt", "Delivery receipt")}</p>
-            <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">
-              The route worked, the upload is complete, and the owner can now review the delivery from the vault without the server learning the key from your link.
-            </p>
+          {/* El Recibo Sagrado - Folio Card */}
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-card border border-border shadow-sm text-left">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Folio de Entrega</p>
+              <p className="text-base font-mono font-bold text-foreground mt-0.5">{folioCode}</p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              Verificado
+            </span>
+          </div>
+
+          <div className="brand-receipt-surface rounded-[1.6rem] px-4 py-4 text-left space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">{copy("drive:transfers.common.deliveryReceipt", "Delivery receipt")}</p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-800 dark:text-emerald-200">
+                Tus archivos se entregaron directamente en la bóveda de ABRN Asesores. Nadie más tiene acceso.
+              </p>
+            </div>
+
+            {/* Documentos Blindados */}
+            <div className="pt-2 border-t border-emerald-200/40 dark:border-emerald-800/40 space-y-1">
+              <p className="text-[11px] font-semibold text-emerald-950 dark:text-emerald-100 uppercase tracking-wider">
+                Documentos ({completedCount})
+              </p>
+              <div className="max-h-32 overflow-y-auto space-y-1 text-xs text-emerald-900 dark:text-emerald-200">
+                {successfulFiles.map((f) => (
+                  <div key={f.id} className="flex items-center justify-between py-0.5">
+                    <span className="truncate max-w-[200px] font-medium">{f.fileName}</span>
+                    <span className="text-[11px] opacity-80 shrink-0">{formatBytes(f.bytesTotal || 0)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="text-left bg-card/80 rounded-2xl border border-border p-4 space-y-2 text-sm">
@@ -444,6 +508,27 @@ export default function DropUpload() {
             <p className="text-muted-foreground">{completedCount} file{completedCount > 1 ? "s" : ""} received</p>
             <p className="text-muted-foreground text-xs">{new Date().toLocaleString()}</p>
             {deliveryRef && <p className="text-muted-foreground text-xs">Ref: {deliveryRef}</p>}
+          </div>
+
+          {/* Action Levers: 1-Tap WhatsApp + Descargar Comprobante */}
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-colors shadow-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Mandar por WhatsApp
+            </a>
+            <button
+              type="button"
+              onClick={downloadReceipt}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-muted text-foreground text-sm font-medium transition-colors cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              Descargar Comprobante
+            </button>
           </div>
 
           <div className="text-left bg-card/70 rounded-2xl border border-border p-4 space-y-2 text-sm">
@@ -722,9 +807,17 @@ export default function DropUpload() {
                   </p>
                 )}
                 {retryableIds.length > 0 && (
-                  <Button type="button" variant="outline" onClick={() => void handleUpload([], false, retryableIds)}>
-                    Retry confirmed failures ({retryableIds.length})
-                  </Button>
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2 text-left">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed font-medium">
+                        Se nos cortó la señal tantito o hubo un detalle de red, pero tus archivos siguen seleccionados en tu teléfono o computadora. Pícale abajo para reintentar.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" onClick={() => void handleUpload([], false, retryableIds)} className="border-amber-500/40 hover:bg-amber-500/10 text-amber-900 dark:text-amber-100 font-medium">
+                      Retry confirmed failures ({retryableIds.length})
+                    </Button>
+                  </div>
                 )}
               </div>
             )}
