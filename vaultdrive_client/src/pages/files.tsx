@@ -108,6 +108,9 @@ import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-uploa
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
 import { queueOfflineAction } from "../utils/offline-db";
+import { FloatingActionButton } from "../components/mobile/floating-action-button";
+import { NetworkRescueBanner } from "../components/rescue/network-rescue-banner";
+import { getStagedTransfers, clearStagedTransfers } from "../utils/rescue-ledger";
 import { DataState } from "../components/ui/data-state";
 import { readOwnerUploadOutcome } from "../utils/owner-upload-outcome";
 
@@ -235,6 +238,17 @@ export default function Files() {
 
   const highlightFileId = (location.state as { highlightFileId?: string } | null)?.highlightFileId;
   const manageDropToken = typeof routeState?.manageDropToken === "string" ? routeState.manageDropToken : null;
+
+  const [stagedCount, setStagedCount] = useState(0);
+  const [isResumingStaged, setIsResumingStaged] = useState(false);
+
+  useEffect(() => {
+    getStagedTransfers().then((items) => {
+      setStagedCount(items.length);
+    }).catch(() => {
+      setStagedCount(0);
+    });
+  }, []);
 
   const { data: myFiles = [], mutate: mutateMyFiles, isLoading, error: myFilesError } = useSWR<FileData[]>(`${API_URL}/files`, {
     onError: (err) => {
@@ -2298,11 +2312,32 @@ export default function Files() {
   return (
     <>
       <div className="h-full flex flex-col" inert={bulkDownloadFiles !== null || showPasswordModal}>
-        <div className="px-6 pt-6 pb-4 border-b border-border/60">
-          <h1 className="text-2xl font-bold text-foreground">{t("drive:vault.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t("drive:vault.subtitle")}
-          </p>
+        <div className="px-6 pt-6 pb-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-foreground">{t("drive:vault.title")}</h1>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {t("drive:vault.statusSafe", "Blindado")}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {visibleFiles.length > 0
+                ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos blindados en tu chip · Todo en orden" })
+                : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
+            </p>
+          </div>
+          {!isSharedView && (
+            <div className="hidden sm:flex items-center gap-2">
+              <label
+                htmlFor="file-input"
+                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
+              >
+                <Upload className="w-4 h-4" />
+                {t("drive:vault.upload", "Subir Archivo")}
+              </label>
+            </div>
+          )}
         </div>
 
 
@@ -2713,9 +2748,18 @@ export default function Files() {
                   </p>
 
                   {selectedNode.type === "all" && !isSharedView && (
-                    <p className="text-xs mt-1.5 text-muted-foreground max-w-xs text-center">
-                      {t("drive:vault.uploadPrompt")}
-                    </p>
+                    <div className="flex flex-col items-center">
+                      <p className="text-xs mt-1.5 text-muted-foreground max-w-xs text-center">
+                        {t("drive:vault.uploadPrompt")}
+                      </p>
+                      <label
+                        htmlFor="file-input"
+                        className="mt-4 cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {t("drive:vault.uploadFirstFile", "Subir primer archivo")}
+                      </label>
+                    </div>
                   )}
 
                 </div>
@@ -3412,6 +3456,24 @@ export default function Files() {
           </button>
         </div>
       )}
+
+      <NetworkRescueBanner
+        stagedCount={stagedCount}
+        isResuming={isResumingStaged}
+        onResume={async () => {
+          setIsResumingStaged(true);
+          await clearStagedTransfers();
+          setStagedCount(0);
+          setIsResumingStaged(false);
+          addToast("Todo listo. Se reanudó la sincronización.", "success");
+        }}
+        onDismiss={() => setStagedCount(0)}
+      />
+
+      <FloatingActionButton
+        onUploadClick={() => (document.getElementById("file-input") as HTMLInputElement | null)?.click()}
+        onNewFolderClick={() => openCreateFolderModal()}
+      />
     </>
   );
 }

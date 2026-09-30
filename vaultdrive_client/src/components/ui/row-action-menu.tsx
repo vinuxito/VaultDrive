@@ -121,11 +121,12 @@ function RowActionMenuContent({
           aria-label={triggerAriaLabel}
           data-testid={triggerTestId}
           className={cn(
-            "text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
+            "text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center sm:min-h-0 sm:min-w-0 touch-manipulation",
             triggerClassName,
           )}
           onClick={(event) => {
             event.stopPropagation();
+            if (navigator.vibrate) navigator.vibrate(10);
             setIsOpen(true);
           }}
         >
@@ -195,7 +196,7 @@ function RowActionMenuContent({
                             setIsOpen(false);
                           }}
                           className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-left font-medium min-h-[44px] cursor-pointer",
+                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-left font-medium min-h-[48px] cursor-pointer",
                             "text-foreground hover:bg-muted active:bg-muted/80",
                             action.disabled && "opacity-50 cursor-not-allowed pointer-events-none"
                           )}
@@ -228,7 +229,7 @@ function RowActionMenuContent({
                             setIsOpen(false);
                           }}
                           className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-left font-medium min-h-[44px] cursor-pointer",
+                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-left font-medium min-h-[48px] cursor-pointer",
                             "text-destructive hover:bg-destructive/10 active:bg-destructive/15",
                             action.disabled && "opacity-50 cursor-not-allowed pointer-events-none"
                           )}

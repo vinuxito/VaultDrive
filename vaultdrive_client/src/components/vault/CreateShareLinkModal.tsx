@@ -10,6 +10,7 @@ import {
   Calendar,
   Shield,
   Lock,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
@@ -611,13 +612,25 @@ export function CreateShareLinkModal({
                   from the file's access panel.
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   variant="modal-cancel"
                   onClick={handleClose}
-                  className={cn("flex-1", "")}
+                  className="flex-1"
                 >
                   Close
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const text = `Te comparto este documento seguro vía ABRN Drive:\n📄 ${file.filename}\n🔒 Cifrado de extremo a extremo:\n${shareUrl}`;
+                    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
+                  className="flex-1 font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <MessageCircle className="w-4 h-4 fill-current" />
+                  WhatsApp
                 </Button>
                 <Button
                   onClick={handleCopy}

@@ -263,7 +263,7 @@ export const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
             variant="ghost"
             size="sm"
             onClick={toggleMenu}
-            className={`h-7 w-7 p-0 cursor-pointer ${
+            className={`h-9 w-9 sm:h-7 sm:w-7 flex items-center justify-center p-0 cursor-pointer touch-manipulation ${
               isSidebar ? "text-muted-foreground hover:text-foreground hover:bg-muted" : ""
             }`}
             aria-label={`Folder actions for ${folder.name}`}
