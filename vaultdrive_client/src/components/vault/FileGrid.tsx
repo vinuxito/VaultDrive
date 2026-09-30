@@ -180,6 +180,10 @@ export const FileGrid: React.FC<FileGridProps> = ({
             id={`file-row-${file.id}`}
             data-file-id={file.id}
             data-file-row-id={file.id}
+            style={{
+              contentVisibility: "auto",
+              containIntrinsicSize: "0 48px",
+            }}
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (!target.closest("button, input, a, [data-prevent-row-click]")) {
@@ -391,8 +395,8 @@ export const FileGrid: React.FC<FileGridProps> = ({
               )}
             </div>
 
-            {/* Mobile actions via RowActionMenu */}
-            <div className="md:hidden relative shrink-0">
+            {/* Unified actions via RowActionMenu */}
+            <div className="relative shrink-0">
               {!isPending && (
                 <RowActionMenu
                   actions={[

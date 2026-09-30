@@ -496,4 +496,25 @@ describe("AccessCenter truthful source states", () => {
 
     expect(await screen.findByText(/manager:/)).toHaveTextContent('"manageDropToken":"drop-token"');
   });
+
+  it("renders a WhatsApp share link on active drop routes", async () => {
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/v1/shares")) return jsonResponse([]);
+      if (url.endsWith("/drop/tokens")) return jsonResponse([drop]);
+      throw new Error(`Unhandled fetch: ${url}`);
+    }) as typeof fetch;
+
+    render(
+      <MemoryRouter>
+        <AccessCenter />
+      </MemoryRouter>,
+    );
+
+    const card = (await screen.findByText("Client intake")).closest("div.rounded-xl") as HTMLElement;
+    const waLink = within(card).getByRole("link", { name: "WhatsApp" });
+    expect(waLink).toBeInTheDocument();
+    expect(waLink).toHaveAttribute("href", expect.stringContaining("https://wa.me/?text="));
+    expect(waLink).toHaveAttribute("href", expect.stringContaining(encodeURIComponent("drop-token")));
+  });
 });

@@ -123,4 +123,42 @@ describe("FileGrid action labels", () => {
     nameBtn.click();
     expect(onSort).toHaveBeenCalledWith("name");
   });
+
+  it("applies content-visibility: auto for DOM performance containment", () => {
+    const { container } = render(
+      <FileGrid
+        files={[{
+          id: "file-perf-1",
+          filename: "budget.xlsx",
+          file_size: 1024,
+          created_at: "2026-09-16T00:00:00Z",
+          metadata: "{}",
+          is_owner: true,
+        }]}
+        selectedFileIds={new Set()}
+        toggleFileSelection={vi.fn()}
+        toggleSelectAllVisible={vi.fn()}
+        allVisibleSelected={false}
+        headerCheckboxRef={createRef<HTMLInputElement>()}
+        onDownload={vi.fn()}
+        onCreateShareLink={vi.fn()}
+        onToggleStar={vi.fn()}
+        onAccessPanel={vi.fn()}
+        onShareClick={vi.fn()}
+        onQuickShare={vi.fn()}
+        onManageSharesClick={vi.fn()}
+        onMoveClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+        onPreviewClick={vi.fn()}
+        onContextMenu={vi.fn()}
+        setOpenActionMenu={vi.fn()}
+        openActionMenu={null}
+        onOpenReceipt={vi.fn()}
+      />,
+    );
+
+    const row = container.querySelector("#file-row-file-perf-1") as HTMLElement;
+    expect(row).not.toBeNull();
+    expect(row.style.contentVisibility).toBe("auto");
+  });
 });

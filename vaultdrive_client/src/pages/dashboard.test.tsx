@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Dashboard from "./dashboard";
+import Dashboard, { formatActivityMessage } from "./dashboard";
 
 vi.mock("../components/dashboard/StatusPanel", () => ({
   StatusPanel: () => null,
@@ -143,5 +143,47 @@ describe("Dashboard truthful overview counts", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: new RegExp(buttonName, "i") }));
     expect(screen.getByTestId("location-state")).toHaveTextContent(JSON.stringify({ onboardingTask }));
+  });
+});
+
+describe("Dashboard humanized activity messages (Lenguaje de Cancha)", () => {
+  const dummyT = (_key: string, options?: any) => {
+    if (options?.defaultValue) {
+      if (options?.name) return options.defaultValue.replace("{{name}}", options.name);
+      return options.defaultValue;
+    }
+    return _key;
+  };
+
+  it("formats folder_share_link_created into natural language without raw database slugs", () => {
+    const msg = formatActivityMessage({
+      id: "act-1",
+      event_type: "folder_share_link_created",
+      message: "Contabilidad 2026",
+      created_at: "2026-09-30T10:00:00Z",
+    }, dummyT);
+    expect(msg).toContain("Contabilidad 2026");
+    expect(msg).not.toContain("folder_share_link_created");
+  });
+
+  it("formats secure_drop_created into natural language without raw database slugs", () => {
+    const msg = formatActivityMessage({
+      id: "act-2",
+      event_type: "secure_drop_created",
+      message: "Portal SAT",
+      created_at: "2026-09-30T10:00:00Z",
+    }, dummyT);
+    expect(msg).toContain("Portal SAT");
+    expect(msg).not.toContain("secure_drop_created");
+  });
+
+  it("converts unknown snake_case event types into clean Title Case", () => {
+    const msg = formatActivityMessage({
+      id: "act-3",
+      event_type: "custom_audit_log_exported",
+      created_at: "2026-09-30T10:00:00Z",
+    }, dummyT);
+    expect(msg).toBe("Custom Audit Log Exported");
+    expect(msg).not.toContain("_");
   });
 });
