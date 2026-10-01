@@ -271,8 +271,8 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
                 onClick={logout}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                  "text-red-700 dark:text-red-300 hover:bg-destructive/10",
-                  "text-left justify-center"
+                  "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+                  "text-left justify-center cursor-pointer"
                 )}
                 title={t("common:nav.logout")}
                 aria-label={t("common:nav.logout")}
@@ -290,8 +290,8 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
             onClick={logout}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-              "text-red-700 dark:text-red-300 hover:bg-destructive/10",
-              "text-left"
+              "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+              "text-left cursor-pointer"
             )}
             title={t("common:nav.logout")}
             aria-label={t("common:nav.logout")}

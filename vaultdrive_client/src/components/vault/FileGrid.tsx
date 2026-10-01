@@ -194,8 +194,8 @@ export const FileGrid: React.FC<FileGridProps> = ({
             className={`
               group flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-pointer select-none active:scale-[0.999] duration-75
               ${isSelected
-                ? "bg-primary-foreground/60 border-primary/40"
-                : "bg-background border-border/60 hover:border-border hover:bg-primary/5 dark:hover:bg-primary/10 hover:shadow-sm"
+                ? "bg-primary/10 border-primary/50 shadow-xs"
+                : "bg-card border-border/60 hover:border-primary/30 hover:bg-muted/30 hover:shadow-xs"
               }
               ${focusedFileId === file.id ? "ring-2 ring-primary/60 bg-primary/10 border-primary/40 shadow-sm" : ""}
               ${isPending ? "opacity-60" : ""}

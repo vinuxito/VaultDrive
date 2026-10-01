@@ -2353,22 +2353,22 @@ export default function Files() {
   return (
     <>
       <div className="h-full flex flex-col" inert={bulkDownloadFiles !== null || showPasswordModal}>
-        <div className="px-6 pt-6 pb-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-border/60 bg-card/40 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">{t("drive:vault.title")}</h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">{t("drive:vault.title")}</h1>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 {t("drive:vault.statusSafe", "Blindado")}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               {visibleFiles.length > 0
                 ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos blindados en tu chip · Todo en orden" })
                 : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               type="button"
               onClick={() => {
@@ -2376,20 +2376,20 @@ export default function Files() {
                 setIsVaultLocked(true);
               }}
               title={t("drive:vault.lockVaultTooltip", { defaultValue: "Bloquear Bóveda (⌘L)" })}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-border bg-card text-foreground hover:bg-muted/80 shadow-sm transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium rounded-xl border border-border bg-card hover:bg-muted/80 text-foreground shadow-xs transition-all active:scale-95 cursor-pointer"
             >
               <Lock className="w-4 h-4 text-amber-500" />
-              <span className="hidden md:inline">{t("drive:vault.lockVault", { defaultValue: "Bloquear Bóveda" })}</span>
+              <span>{t("drive:vault.lockVault", { defaultValue: "Bloquear" })}</span>
               <kbd className="hidden lg:inline text-[10px] font-mono px-1 py-0.5 rounded bg-muted border border-border/80 text-muted-foreground">⌘L</kbd>
             </button>
             {!isSharedView && (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <label
                   htmlFor="file-input"
-                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
+                  className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95 cursor-pointer"
                 >
                   <Upload className="w-4 h-4" />
-                  {t("drive:vault.upload", "Subir Archivo")}
+                  <span>{t("drive:vault.upload", "Subir Archivo")}</span>
                 </label>
               </div>
             )}
@@ -2636,14 +2636,6 @@ export default function Files() {
 
                 {!isSharedView && (
                   <>
-                    <label
-                      htmlFor="file-input"
-                      className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      {t("drive:vault.upload")}
-                    </label>
-
                     <input
                       id="file-input"
                       type="file"
@@ -2660,10 +2652,10 @@ export default function Files() {
                     />
                     <label
                       htmlFor="folder-input"
-                      className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
+                      className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-border bg-card text-foreground hover:bg-muted/80 shadow-2xs transition-colors active:scale-95"
                     >
-                      <FolderOpen className="w-3.5 h-3.5" />
-                      {t("drive:vault.folder")}
+                      <FolderOpen className="w-3.5 h-3.5 text-primary" />
+                      <span>{t("drive:vault.folder")}</span>
                     </label>
 
                     <input
@@ -2745,7 +2737,7 @@ export default function Files() {
               ref={fileContainerRef}
               onMouseDown={handleMarqueeMouseDown}
               onContextMenu={handleCanvasContextMenu}
-              className="flex-1 overflow-y-auto px-6 py-4 pb-24 md:pb-4 relative select-none"
+              className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 pb-36 md:pb-8 relative select-none"
             >
               {lassoRect?.isSelecting && (
                 <div
@@ -2801,9 +2793,11 @@ export default function Files() {
               )}
 
               {!activeViewLoading && visibleFiles.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                  <FolderOpen className="w-12 h-12 mb-3 stroke-[1.5]" />
-                  <p className="text-base font-medium text-foreground">
+                <div className="flex flex-col items-center justify-center py-12 sm:py-20 mb-12 text-muted-foreground">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 text-primary shadow-xs">
+                    <FolderOpen className="w-8 h-8 stroke-[1.5]" />
+                  </div>
+                  <p className="text-base sm:text-lg font-semibold text-foreground">
                     {searchQuery
                       ? t("drive:vault.noSearchResults", "No files match your search")
                       : selectedNode.type === "starred"
@@ -2815,12 +2809,12 @@ export default function Files() {
 
                   {selectedNode.type === "all" && !isSharedView && (
                     <div className="flex flex-col items-center">
-                      <p className="text-xs mt-1.5 text-muted-foreground max-w-xs text-center">
+                      <p className="text-xs sm:text-sm mt-1 text-muted-foreground max-w-sm text-center">
                         {t("drive:vault.uploadPrompt")}
                       </p>
                       <label
                         htmlFor="file-input"
-                        className="mt-4 cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
+                        className="mt-5 cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all active:scale-95 cursor-pointer"
                       >
                         <Upload className="w-4 h-4" />
                         {t("drive:vault.uploadFirstFile", "Subir primer archivo")}

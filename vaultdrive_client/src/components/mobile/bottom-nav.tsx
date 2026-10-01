@@ -33,7 +33,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t("common:nav.bottomNavigation", "Bottom navigation")}
-      className="fixed bottom-0 left-0 right-0 z-30 lux-navbar border-t border-primary/15 md:hidden safe-area-bottom"
+      className="fixed bottom-0 left-0 right-0 z-30 bg-card/90 backdrop-blur-2xl border-t border-border/80 shadow-lg md:hidden safe-area-bottom"
     >
       <div className="flex min-h-16 items-stretch justify-around py-1">
         {navItems.slice(0, 2).map(({ path, icon: Icon, label }) => {

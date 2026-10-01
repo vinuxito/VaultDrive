@@ -12,11 +12,11 @@ export interface SkinMeta {
 }
 
 export const SKINS: SkinMeta[] = [
-  { id: "quantix",   label: "QuantiX",   swatchBg: "#0a0a1a", swatchPrimary: "#01fff7", swatchAccent: "#ea12ff", isDark: true  },
-  { id: "light",     label: "Light",     swatchBg: "#faf8f5", swatchPrimary: "#7d4f50", swatchAccent: "#c4999b", isDark: false },
-  { id: "dark",      label: "Dark",      swatchBg: "#1e2330", swatchPrimary: "#c4999b", swatchAccent: "#7d4f50", isDark: true  },
+  { id: "quantix",   label: "QuantiX",   swatchBg: "#090a12", swatchPrimary: "#06b6d4", swatchAccent: "#7c3aed", isDark: true  },
+  { id: "light",     label: "Light",     swatchBg: "#f8fafc", swatchPrimary: "#0f172a", swatchAccent: "#2563eb", isDark: false },
+  { id: "dark",      label: "Dark",      swatchBg: "#030712", swatchPrimary: "#6366f1", swatchAccent: "#10b981", isDark: true  },
   { id: "cyberpunk", label: "Cyberpunk", swatchBg: "#0d0d0d", swatchPrimary: "#f0ff00", swatchAccent: "#ff0090", isDark: true  },
-  { id: "elegant",   label: "Elegant",   swatchBg: "#1a1208", swatchPrimary: "#b8860b", swatchAccent: "#d4a017", isDark: true  },
+  { id: "elegant",   label: "Elegant",   swatchBg: "#1a1208", swatchPrimary: "#d4af37", swatchAccent: "#b8860b", isDark: true  },
   { id: "business",  label: "Business",  swatchBg: "#f8fafc", swatchPrimary: "#1e40af", swatchAccent: "#3b82f6", isDark: false },
 ];
 
