@@ -201,19 +201,26 @@ export const FileGrid: React.FC<FileGridProps> = ({
               ${isPending ? "opacity-60" : ""}
             `}
           >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              disabled={isPending}
-              onChange={() => toggleFileSelection(file.id)}
-              aria-label={t("drive:vault.selectFile", { filename: file.filename, defaultValue: "Select {{filename}}" })}
-              className="w-4 h-4 rounded border-border accent-primary shrink-0 cursor-pointer disabled:cursor-not-allowed"
-            />
+            <label
+              htmlFor={`select-file-${file.id}`}
+              className="min-h-[44px] min-w-[44px] -m-2 p-2 flex items-center justify-center cursor-pointer shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                id={`select-file-${file.id}`}
+                type="checkbox"
+                checked={isSelected}
+                disabled={isPending}
+                onChange={() => toggleFileSelection(file.id)}
+                aria-label={t("drive:vault.selectFile", { filename: file.filename, defaultValue: "Select {{filename}}" })}
+                className="w-4 h-4 rounded border-border accent-primary shrink-0 cursor-pointer disabled:cursor-not-allowed"
+              />
+            </label>
 
             <button
               type="button"
               disabled={isPending}
-              className="flex min-w-0 flex-[1_1_12rem] items-center gap-2 cursor-pointer text-left disabled:cursor-not-allowed"
+              className="flex min-w-0 flex-[1_1_12rem] items-center gap-2 cursor-pointer text-left disabled:cursor-not-allowed py-1"
               onContextMenu={(event) => onContextMenu(event, file)}
               onClick={() => onPreviewClick(file)}
             >
@@ -227,18 +234,36 @@ export const FileGrid: React.FC<FileGridProps> = ({
               </span>
             </button>
 
-            <span
+            <button
+              type="button"
+              data-prevent-row-click="true"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenReceipt(file);
               }}
-              className="relative flex h-2.5 w-2.5 shrink-0 cursor-pointer select-none rounded-full items-center justify-center p-0 hover:scale-125 transition-transform"
+              className="relative flex h-8 w-8 sm:h-6 sm:w-6 shrink-0 cursor-pointer select-none rounded-full items-center justify-center p-0 hover:bg-emerald-500/10 transition-transform active:scale-95"
               title={t("drive:vault.actions.viewReceipt")}
               data-testid={`receipt-pulse-${file.id}`}
+              aria-label={`Recibo criptográfico de ${file.filename}`}
             >
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
+            </button>
+
+            {/* Mobile Sub-line: Visible file size, date, and cryptographic seal */}
+            <div className="w-full sm:hidden flex items-center justify-between text-xs text-muted-foreground pt-1.5 border-t border-border/40 mt-0.5">
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-medium text-foreground/80">{formatBytes(file.file_size)}</span>
+                <span className="text-muted-foreground/60">•</span>
+                <span>{formatDate(file.created_at)}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <ShieldCheck className="w-3 h-3" />
+                  AES-256
+                </span>
+              </div>
+            </div>
 
             {onPassportClick && (
               <button

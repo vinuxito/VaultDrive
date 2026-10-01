@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Lock,
   MessageCircle,
+  Share2,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
@@ -205,6 +206,25 @@ export function CreateShareLinkModal({
         setTimeout(() => setCopied(false), 2000);
       })
       .catch(() => undefined);
+  }
+
+  async function handleNativeShare() {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Archivo blindado: ${file.filename}`,
+          text: `Te comparto este documento seguro vía ABRN Drive:\n📄 ${file.filename}\n🔒 Cifrado de extremo a extremo:`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          handleCopy();
+        }
+      }
+    } else {
+      handleCopy();
+    }
   }
 
   function handleClose() {
@@ -639,6 +659,16 @@ export function CreateShareLinkModal({
                   <MessageCircle className="w-4 h-4 fill-current" />
                   WhatsApp
                 </Button>
+                {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
+                  <Button
+                    type="button"
+                    onClick={handleNativeShare}
+                    className="flex-1 font-semibold gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Compartir
+                  </Button>
+                )}
                 <Button
                   onClick={handleCopy}
                   className={cn(

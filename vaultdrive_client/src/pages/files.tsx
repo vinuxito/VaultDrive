@@ -22,7 +22,6 @@ import {
   Upload,
   ChevronRight,
   ChevronDown,
-  Menu,
   CheckCircle2,
   FolderOpen,
   Folder as FolderIcon,
@@ -109,6 +108,8 @@ import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
 import { queueOfflineAction } from "../utils/offline-db";
 import { FloatingActionButton } from "../components/mobile/floating-action-button";
+import { MobileFolderSheet } from "../components/mobile/MobileFolderSheet";
+import { MobileProofPill } from "../components/mobile/MobileProofPill";
 import { NetworkRescueBanner } from "../components/rescue/network-rescue-banner";
 import { getStagedTransfers, clearStagedTransfers } from "../utils/rescue-ledger";
 import { DataState } from "../components/ui/data-state";
@@ -355,6 +356,7 @@ export default function Files() {
   const [previewFile, setPreviewFile] = useState<FileData | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileFolderSheetOpen, setMobileFolderSheetOpen] = useState(false);
 
   const [sortBy, setSortBy] = useState<"name" | "date" | "size">("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -377,6 +379,15 @@ export default function Files() {
 
   // Step 6: Ephemeral Vault Privacy Shutter
   const [isVaultLocked, setIsVaultLocked] = useState(false);
+
+  // Ley Tola Proof of Life Pill
+  const [proofPillData, setProofPillData] = useState<{
+    isOpen: boolean;
+    filename: string;
+    filesize?: string;
+    sha256?: string;
+    shareUrl?: string;
+  } | null>(null);
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [fileContextMenu, setFileContextMenu] = useState<{ file: FileData; x: number; y: number } | null>(null);
@@ -1255,8 +1266,24 @@ export default function Files() {
         if (file) setPassportFile(file);
       }
     };
+    const handleProofPill = (e: Event) => {
+      const detail = (e as CustomEvent<{ filename: string; filesize?: string; sha256?: string; shareUrl?: string }>).detail;
+      if (detail?.filename) {
+        setProofPillData({
+          isOpen: true,
+          filename: detail.filename,
+          filesize: detail.filesize,
+          sha256: detail.sha256,
+          shareUrl: detail.shareUrl,
+        });
+      }
+    };
     window.addEventListener("vault-action", handleVaultAction);
-    return () => window.removeEventListener("vault-action", handleVaultAction);
+    window.addEventListener("proof-pill", handleProofPill);
+    return () => {
+      window.removeEventListener("vault-action", handleVaultAction);
+      window.removeEventListener("proof-pill", handleProofPill);
+    };
   }, [focusedFileIndex, visibleFiles]);
 
   const toggleStar = async (fileId: string) => {
@@ -1406,6 +1433,11 @@ export default function Files() {
       const fileInput = document.getElementById("file-input") as HTMLInputElement;
       if (fileInput) fileInput.value = "";
       await fetchFiles();
+      setProofPillData({
+        isOpen: true,
+        filename: uploadFile.name,
+        filesize: formatBytes(uploadFile.size),
+      });
       if (selectedNode.type === "folder") {
         await syncExistingFolderShares(selectedNode.folderId);
       }
@@ -1509,6 +1541,11 @@ export default function Files() {
         return false;
       }
       updateTray(100, "done");
+      setProofPillData({
+        isOpen: true,
+        filename: file.name,
+        filesize: formatBytes(file.size),
+      });
       return true;
     } catch (err) {
       console.error(err);
@@ -2511,10 +2548,12 @@ export default function Files() {
               <div className="flex min-w-0 items-start gap-1.5 sm:items-center sm:gap-2">
                 <button
                   type="button"
-                  onClick={() => setSidebarOpen(true)}
-                  className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors mr-1"
+                  onClick={() => setMobileFolderSheetOpen(true)}
+                  aria-label="Explorar carpetas"
+                  className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border text-foreground text-xs font-semibold shadow-xs active:scale-95 cursor-pointer min-h-[44px] mr-1"
                 >
-                  <Menu className="w-4 h-4" />
+                  <FolderIcon className="w-4 h-4 text-primary" />
+                  <span>Carpetas</span>
                 </button>
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-muted-foreground sm:gap-2">
                   <button
@@ -2608,6 +2647,14 @@ export default function Files() {
                     <input
                       id="file-input"
                       type="file"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    <input
+                      id="camera-input"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
                       className="hidden"
                       onChange={handleFileSelect}
                     />
@@ -3510,8 +3557,48 @@ export default function Files() {
 
       <FloatingActionButton
         onUploadClick={() => (document.getElementById("file-input") as HTMLInputElement | null)?.click()}
+        onCameraClick={() => (document.getElementById("camera-input") as HTMLInputElement | null)?.click()}
         onNewFolderClick={() => openCreateFolderModal()}
       />
+
+      <MobileFolderSheet
+        isOpen={mobileFolderSheetOpen}
+        onClose={() => setMobileFolderSheetOpen(false)}
+        folders={folders}
+        currentFolderId={selectedNode.type === "folder" ? selectedNode.folderId : null}
+        fileCountsByFolderId={folderFileCounts}
+        allFilesCount={myFiles.length}
+        starredCount={starredCount}
+        sharedCount={sharedFiles.length}
+        onSelectRoot={() => {
+          setSelectedNode({ type: "all" });
+          setSelectedFileIds(new Set());
+        }}
+        onSelectStarred={() => {
+          setSelectedNode({ type: "starred" });
+          setSelectedFileIds(new Set());
+        }}
+        onSelectShared={() => {
+          setSelectedNode({ type: "shared" });
+          setSelectedFileIds(new Set());
+        }}
+        onSelectFolder={(folderId, folderName) => {
+          setSelectedNode({ type: "folder", folderId, folderName });
+          setSelectedFileIds(new Set());
+        }}
+        onCreateFolder={() => openCreateFolderModal()}
+      />
+
+      {proofPillData && (
+        <MobileProofPill
+          isOpen={proofPillData.isOpen}
+          filename={proofPillData.filename}
+          filesize={proofPillData.filesize}
+          sha256={proofPillData.sha256}
+          shareUrl={proofPillData.shareUrl}
+          onClose={() => setProofPillData(null)}
+        />
+      )}
     </>
   );
 }
