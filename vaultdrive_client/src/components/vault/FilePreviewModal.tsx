@@ -113,6 +113,8 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [decryptedBlob, setDecryptedBlob] = useState<Blob | null>(null);
+  const [decryptedSha256, setDecryptedSha256] = useState<string | null>(null);
+  const [hashCopied, setHashCopied] = useState(false);
   const [credential, setCredential] = useState("");
   const [showCredentialPrompt, setShowCredentialPrompt] = useState(false);
 
@@ -289,6 +291,16 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
       const blob = new Blob([decryptedBuffer]);
       setDecryptedBlob(blob);
+      try {
+        if (typeof crypto !== "undefined" && crypto.subtle?.digest) {
+          const hashBuffer = await crypto.subtle.digest("SHA-256", decryptedBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const sha256Hex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+          setDecryptedSha256(sha256Hex);
+        }
+      } catch {
+        // Safe fallback if crypto.subtle is mocked or unavailable
+      }
       await checkSignature(decryptedBuffer, requestId);
       if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
 
@@ -338,6 +350,8 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     setTextContent(null);
     setLoadError("");
     setDecryptedBlob(null);
+    setDecryptedSha256(null);
+    setHashCopied(false);
     setCredential("");
     setTrustExpanded(false);
     setSignatureB64(null);
@@ -656,6 +670,43 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
           {!showCredentialPrompt && !isLoading && !loadError && (
             <>
+              {decryptedSha256 && (
+                <div className="mb-4 rounded-2xl border border-primary/25 bg-primary/5 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-foreground">
+                          {t("coherence.preview.sovereignSeal", { defaultValue: "Sello de Integridad Criptográfica" })}
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+                          AES-256-GCM
+                        </span>
+                        <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                          {t("coherence.preview.clientDecrypted", { defaultValue: "Descifrado localmente · Cero datos al servidor" })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1 font-mono text-[11px] text-muted-foreground truncate">
+                        <span className="text-foreground/70 font-semibold shrink-0">SHA-256:</span>
+                        <span className="truncate select-all text-xs text-foreground/90 font-mono">{decryptedSha256}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(decryptedSha256);
+                      setHashCopied(true);
+                      setTimeout(() => setHashCopied(false), 2000);
+                    }}
+                    className="shrink-0 text-xs h-8 px-3 font-medium self-end sm:self-center"
+                  >
+                    {hashCopied ? t("common:copied", { defaultValue: "¡Copiado!" }) : t("coherence.preview.copyHash", { defaultValue: "Copiar Hash" })}
+                  </Button>
+                </div>
+              )}
               {decryptedBlob && (
                 <details className="mb-5 rounded-2xl border border-border bg-muted/60 px-4 py-4 space-y-3"><summary className="cursor-pointer text-sm">{t("coherence.preview.localSignature", { defaultValue: "Local file signature" })}</summary>
                   <div className="flex flex-wrap gap-2 items-center justify-between">

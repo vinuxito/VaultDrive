@@ -2331,17 +2331,32 @@ export default function Files() {
                 : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
             </p>
           </div>
-          {!isSharedView && (
-            <div className="hidden sm:flex items-center gap-2">
-              <label
-                htmlFor="file-input"
-                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
-              >
-                <Upload className="w-4 h-4" />
-                {t("drive:vault.upload", "Subir Archivo")}
-              </label>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                playDeadboltThud();
+                setIsVaultLocked(true);
+              }}
+              title={t("drive:vault.lockVaultTooltip", { defaultValue: "Bloquear Bóveda (⌘L)" })}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-border bg-card text-foreground hover:bg-muted/80 shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <Lock className="w-4 h-4 text-amber-500" />
+              <span className="hidden md:inline">{t("drive:vault.lockVault", { defaultValue: "Bloquear Bóveda" })}</span>
+              <kbd className="hidden lg:inline text-[10px] font-mono px-1 py-0.5 rounded bg-muted border border-border/80 text-muted-foreground">⌘L</kbd>
+            </button>
+            {!isSharedView && (
+              <div className="hidden sm:flex items-center gap-2">
+                <label
+                  htmlFor="file-input"
+                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
+                >
+                  <Upload className="w-4 h-4" />
+                  {t("drive:vault.upload", "Subir Archivo")}
+                </label>
+              </div>
+            )}
+          </div>
         </div>
 
 
@@ -3448,6 +3463,7 @@ export default function Files() {
         onScrubMemory={() => {
           setPreviewFile(null);
           setPassportFile(null);
+          sessionVault.clearVault();
           if (typeof document !== "undefined") {
             const mediaElements = document.querySelectorAll("audio, video");
             mediaElements.forEach((el) => {

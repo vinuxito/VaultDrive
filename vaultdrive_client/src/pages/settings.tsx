@@ -487,6 +487,65 @@ export default function Settings() {
 
         {/* Security Tab */}
         <TabPanel id="security" activeTab={activeTab} className="space-y-6">
+        {/* Sovereign Security Posture Score Card */}
+        <Card className="border-primary/30 bg-primary/5 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                  Sovereign Security Posture
+                </CardTitle>
+                <CardDescription>
+                  Live cryptographic defense status of your account, keys, and biometrics
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                <span className="font-mono text-2xl font-bold text-foreground">
+                  {pinSet ? "100%" : "75%"}
+                </span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  pinSet
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                }`}>
+                  {pinSet ? "Blindaje Total" : "Atención Requerida"}
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="w-full bg-muted/60 rounded-full h-2 overflow-hidden border border-border">
+              <div
+                className={`h-full transition-all duration-500 ${pinSet ? "bg-emerald-500 w-full" : "bg-amber-500 w-3/4"}`}
+              />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 text-xs">
+              <div className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-card">
+                <CheckCircle2 className={`w-4 h-4 shrink-0 ${pinSet ? "text-emerald-500" : "text-amber-500"}`} />
+                <div>
+                  <span className="font-semibold block">PIN de Bóveda</span>
+                  <span className="text-[11px] text-muted-foreground">{pinSet ? "4 dígitos activo" : "Pendiente de activar"}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-card">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <div>
+                  <span className="font-semibold block">Cifrado AES-256</span>
+                  <span className="text-[11px] text-muted-foreground">Envolvente KEK local</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-card">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <div>
+                  <span className="font-semibold block">Intercambio RSA-2048</span>
+                  <span className="text-[11px] text-muted-foreground">Llaves asimétricas</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

@@ -9,6 +9,7 @@ import {
   Key,
   Calendar,
   Shield,
+  ShieldCheck,
   Lock,
   MessageCircle,
 } from "lucide-react";
@@ -599,6 +600,12 @@ export function CreateShareLinkModal({
                   )}
                   onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                 />
+                {copied && (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-1.5 animate-in fade-in duration-200">
+                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                    <span>Enlace con llave criptográfica copiado de forma segura.</span>
+                  </p>
+                )}
               </div>
               <div
                 className={cn(

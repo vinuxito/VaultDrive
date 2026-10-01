@@ -25,4 +25,9 @@ describe("VaultPrivacyShutter", () => {
     await userEvent.click(screen.getByRole("button", { name: /resume sovereign session/i }));
     expect(onUnlock).toHaveBeenCalled();
   });
+
+  it("renders emergency signout button to recover via password", () => {
+    render(<VaultPrivacyShutter isLocked={true} onUnlock={vi.fn()} />);
+    expect(screen.getByRole("button", { name: /forgot your pin/i })).toBeInTheDocument();
+  });
 });
