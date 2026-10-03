@@ -27,8 +27,8 @@
   --accent:                 263 70% 58%;
   --accent-foreground:      0 0% 100%;
 
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive:            0 80% 76%;
+  --destructive-foreground: 0 0% 5%;
 
   --border:                 240 20% 18%;
   --input:                  240 20% 14%;
@@ -97,16 +97,16 @@
   --secondary-foreground:   222 47% 11%;
 
   --muted:                  210 40% 96.1%;
-  --muted-foreground:       215 16% 47%;   /* #64748b */
+  --muted-foreground:       215 16% 36%;   /* #475569 deep slate */
 
   --accent:                 221 83% 53%;   /* #2563eb royal sapphire accent */
   --accent-foreground:      0 0% 100%;
 
-  --destructive:            0 84% 60%;     /* #ef4444 */
+  --destructive:            0 75% 42%;     /* #bc1e1e rich accessible ruby */
   --destructive-foreground: 0 0% 100%;
 
   --border:                 214 32% 91%;   /* #e2e8f0 crisp subtle border */
-  --input:                  214 32% 91%;
+  --input:                  0 0% 100%;
   --ring:                   222 47% 11%;
 
   --radius:                 0.625rem;
@@ -156,7 +156,7 @@
   --popover:                224 45% 8%;
   --popover-foreground:     210 40% 98%;
 
-  --primary:                239 84% 67%;   /* #6366f1 electric iris/indigo */
+  --primary:                239 84% 60%;   /* #4f52e6 electric iris */
   --primary-foreground:     0 0% 100%;
 
   --secondary:              224 35% 14%;   /* #151d2f */
@@ -166,10 +166,10 @@
   --muted-foreground:       215 20% 65%;
 
   --accent:                 160 84% 39%;   /* #10b981 emerald cryptographic seal */
-  --accent-foreground:      0 0% 100%;
+  --accent-foreground:      0 0% 5%;
 
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive:            0 80% 76%;     /* #f87171 high-contrast rose */
+  --destructive-foreground: 0 0% 5%;
 
   --border:                 224 30% 17%;   /* #172138 sleek luminous border */
   --input:                  224 30% 14%;
