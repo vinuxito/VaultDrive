@@ -297,22 +297,22 @@ export default function Login() {
       </div>
 
       <div className="brand-glass-card w-full max-w-md p-0 overflow-hidden shadow-[var(--shadow-glow-primary)]">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-2">
-            <span className="brand-badge">{t("auth:login.privateAccess")}</span>
+        <CardHeader className="text-center py-4 md:py-6">
+          <div className="flex justify-center mb-1 md:mb-2">
+            <span className="brand-badge text-[11px] py-0.5 px-2.5">{t("auth:login.privateAccess")}</span>
           </div>
-          <div className="flex justify-center mb-4">
-            <BrandLogo className="w-20 h-20" />
+          <div className="flex justify-center mb-2 md:mb-4">
+            <BrandLogo className="w-14 h-14 md:w-20 md:h-20" />
           </div>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-xl md:text-2xl">
             {isLogin ? t("auth:login.welcome", { product: branding.productName }) : t("auth:login.join", { product: branding.productName })}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs md:text-sm hidden sm:block">
             {isLogin
               ? t("auth:login.welcomeDesc")
               : t("auth:login.joinDesc")}
           </CardDescription>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <div className="mt-2 hidden sm:flex flex-wrap items-center justify-center gap-1.5 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
               <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
               {t("auth:login.feature1")}
@@ -329,7 +329,7 @@ export default function Login() {
         </CardHeader>
 
 
-        <CardContent>
+        <CardContent className="pt-0">
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="text-sm text-destructive">{error}</p>
@@ -350,7 +350,7 @@ export default function Login() {
           )}
 
           {isLogin ? (
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-3 md:space-y-4">
               <div className="flex p-1 rounded-xl border border-border/80 bg-muted/40 backdrop-blur-xs">
                 <button
                   type="button"
@@ -379,7 +379,7 @@ export default function Login() {
                 </button>
               </div>
 
-              <div className="rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2.5 text-xs text-muted-foreground">
+              <div className="rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-xs text-muted-foreground hidden sm:block">
                 <p className="font-medium text-foreground">
                   {loginMode === "password" ? t("auth:login.passwordHint") : t("auth:login.pinHint")}
                 </p>

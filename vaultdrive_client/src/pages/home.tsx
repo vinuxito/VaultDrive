@@ -101,9 +101,8 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Your files are encrypted in your browser before upload. Access paths are visible,
-              reviewable, and revocable. Secure Drop keeps recovery material for authorized owner
-              recovery, so its trust model is stated separately instead of hidden behind an absolute promise.
+              Tus documentos se cifran en tu dispositivo antes de viajar a la nube. Nadie en el servidor
+              puede abrirlos sin tu llave. Seguridad soberana, verificable y con control total.
             </p>
 
             {/* Encryption trust signal — cycling badge */}

@@ -114,6 +114,9 @@ import { NetworkRescueBanner } from "../components/rescue/network-rescue-banner"
 import { getStagedTransfers, clearStagedTransfers } from "../utils/rescue-ledger";
 import { DataState } from "../components/ui/data-state";
 import { readOwnerUploadOutcome } from "../utils/owner-upload-outcome";
+import { MobileShareSheet } from "../components/mobile/MobileShareSheet";
+import { ReciboSagradoCard, type ReciboData } from "../components/vault/ReciboSagradoCard";
+import { VaultProofOfBlindajeCard } from "../components/vault/VaultProofOfBlindajeCard";
 
 
 interface FileData {
@@ -539,6 +542,15 @@ export default function Files() {
     pin_wrapped_key?: string | null;
     folder_id?: string | null;
   } | null>(null);
+
+  const [reciboSagrado, setReciboSagrado] = useState<ReciboData | null>(null);
+  const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileScreen(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [showFolderShareModal, setShowFolderShareModal] = useState(false);
   const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
@@ -1364,6 +1376,8 @@ export default function Files() {
       let ivStr = "";
       let credentialSchemeStr = "";
 
+      let cipherHashHex = "";
+
       if (isSharedFolder) {
         const folderKey = sessionVault.getFolderKey(selectedNode.folderId);
         if (!folderKey) {
@@ -1372,6 +1386,8 @@ export default function Files() {
         encryptionKey = await generateFileKey();
         setCryptoEvent(null);
         const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey, setCryptoEvent);
+        const hashBuf = await crypto.subtle.digest("SHA-256", encryptedData);
+        cipherHashHex = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
         encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
         wrappedKeyStr = await wrapKeyWithAES(folderKey, encryptionKey);
         ivStr = arrayBufferToBase64(iv);
@@ -1383,6 +1399,8 @@ export default function Files() {
         encryptionKey = await deriveKeyFromPassword(password, salt, 100000);
         setCryptoEvent(null);
         const { encryptedData, iv } = await encryptFile(selectedFile, encryptionKey, setCryptoEvent);
+        const hashBuf = await crypto.subtle.digest("SHA-256", encryptedData);
+        cipherHashHex = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
         encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
         wrappedKeyStr = arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv);
         ivStr = arrayBufferToBase64(iv);
@@ -1438,6 +1456,13 @@ export default function Files() {
         filename: uploadFile.name,
         filesize: formatBytes(uploadFile.size),
       });
+      setReciboSagrado({
+        fileId: outcome.kind === "confirmed" ? outcome.fileId : "uploaded",
+        filename: uploadFile.name,
+        size: uploadFile.size,
+        hash: cipherHashHex || undefined,
+        timestamp: new Date(),
+      });
       if (selectedNode.type === "folder") {
         await syncExistingFolderShares(selectedNode.folderId);
       }
@@ -1483,6 +1508,8 @@ export default function Files() {
       let ivStr = "";
       let credentialSchemeStr = "";
 
+      let cipherHashHex = "";
+
       if (isSharedFolder && targetFolderId) {
         const folderKey = sessionVault.getFolderKey(targetFolderId);
         if (!folderKey) {
@@ -1492,6 +1519,8 @@ export default function Files() {
         updateTray(30, "uploading");
         setCryptoEvent(null);
         const { encryptedData, iv } = await encryptFile(file, encryptionKey, setCryptoEvent);
+        const hashBuf = await crypto.subtle.digest("SHA-256", encryptedData);
+        cipherHashHex = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
         encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
         wrappedKeyStr = await wrapKeyWithAES(folderKey, encryptionKey);
         ivStr = arrayBufferToBase64(iv);
@@ -1504,6 +1533,8 @@ export default function Files() {
         updateTray(30, "uploading");
         setCryptoEvent(null);
         const { encryptedData, iv } = await encryptFile(file, encryptionKey, setCryptoEvent);
+        const hashBuf = await crypto.subtle.digest("SHA-256", encryptedData);
+        cipherHashHex = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
         encryptedBlob = new Blob([encryptedData], { type: "application/octet-stream" });
         wrappedKeyStr = arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv);
         ivStr = arrayBufferToBase64(iv);
@@ -1545,6 +1576,13 @@ export default function Files() {
         isOpen: true,
         filename: file.name,
         filesize: formatBytes(file.size),
+      });
+      setReciboSagrado({
+        fileId: outcome.kind === "confirmed" ? outcome.fileId : "uploaded",
+        filename: file.name,
+        size: file.size,
+        hash: cipherHashHex || undefined,
+        timestamp: new Date(),
       });
       return true;
     } catch (err) {
@@ -2807,19 +2845,26 @@ export default function Files() {
                           : t("drive:vault.noFiles", "No files here yet")}
                   </p>
 
-                  {selectedNode.type === "all" && !isSharedView && (
-                    <div className="flex flex-col items-center">
-                      <p className="text-xs sm:text-sm mt-1 text-muted-foreground max-w-sm text-center">
-                        {t("drive:vault.uploadPrompt")}
-                      </p>
-                      <label
-                        htmlFor="file-input"
-                        className="mt-5 cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all active:scale-95 cursor-pointer"
-                      >
-                        <Upload className="w-4 h-4" />
-                        {t("drive:vault.uploadFirstFile", "Subir primer archivo")}
-                      </label>
-                    </div>
+                  {selectedNode.type === "all" && !isSharedView && !searchQuery ? (
+                    <VaultProofOfBlindajeCard
+                      onUploadClick={() => (document.getElementById("file-input") as HTMLInputElement)?.click()}
+                      className="mt-6 w-full"
+                    />
+                  ) : (
+                    selectedNode.type === "all" && !isSharedView && (
+                      <div className="flex flex-col items-center">
+                        <p className="text-xs sm:text-sm mt-1 text-muted-foreground max-w-sm text-center">
+                          {t("drive:vault.uploadPrompt")}
+                        </p>
+                        <label
+                          htmlFor="file-input"
+                          className="mt-5 cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Upload className="w-4 h-4" />
+                          {t("drive:vault.uploadFirstFile", "Subir primer archivo")}
+                        </label>
+                      </div>
+                    )
                   )}
 
                 </div>
@@ -3377,10 +3422,38 @@ export default function Files() {
       )}
 
       {showShareLinkModal && fileForShareLink && (
-        <CreateShareLinkModal
-          isOpen={showShareLinkModal}
-          onClose={() => { setShowShareLinkModal(false); setFileForShareLink(null); }}
-          file={fileForShareLink}
+        isMobileScreen ? (
+          <MobileShareSheet
+            isOpen={showShareLinkModal}
+            onClose={() => { setShowShareLinkModal(false); setFileForShareLink(null); }}
+            file={fileForShareLink}
+          />
+        ) : (
+          <CreateShareLinkModal
+            isOpen={showShareLinkModal}
+            onClose={() => { setShowShareLinkModal(false); setFileForShareLink(null); }}
+            file={fileForShareLink}
+          />
+        )
+      )}
+
+      {reciboSagrado && (
+        <ReciboSagradoCard
+          receipt={reciboSagrado}
+          onClose={() => setReciboSagrado(null)}
+          onShare={(fileId) => {
+            const f = myFiles.find((x) => x.id === fileId);
+            if (f) {
+              setFileForShareLink({
+                id: f.id,
+                filename: f.filename,
+                metadata: f.metadata,
+                pin_wrapped_key: f.pin_wrapped_key,
+                folder_id: f.folder_id,
+              });
+              setShowShareLinkModal(true);
+            }
+          }}
         />
       )}
 
