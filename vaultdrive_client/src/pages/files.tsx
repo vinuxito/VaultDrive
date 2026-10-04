@@ -115,8 +115,6 @@ import { getStagedTransfers, clearStagedTransfers } from "../utils/rescue-ledger
 import { DataState } from "../components/ui/data-state";
 import { readOwnerUploadOutcome } from "../utils/owner-upload-outcome";
 import { MobileShareSheet } from "../components/mobile/MobileShareSheet";
-import { ReciboSagradoCard, type ReciboData } from "../components/vault/ReciboSagradoCard";
-import { VaultProofOfBlindajeCard } from "../components/vault/VaultProofOfBlindajeCard";
 
 
 interface FileData {
@@ -390,6 +388,7 @@ export default function Files() {
     filesize?: string;
     sha256?: string;
     shareUrl?: string;
+    fileId?: string;
   } | null>(null);
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
@@ -543,7 +542,6 @@ export default function Files() {
     folder_id?: string | null;
   } | null>(null);
 
-  const [reciboSagrado, setReciboSagrado] = useState<ReciboData | null>(null);
   const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
 
   useEffect(() => {
@@ -1455,13 +1453,8 @@ export default function Files() {
         isOpen: true,
         filename: uploadFile.name,
         filesize: formatBytes(uploadFile.size),
-      });
-      setReciboSagrado({
-        fileId: outcome.kind === "confirmed" ? outcome.fileId : "uploaded",
-        filename: uploadFile.name,
-        size: uploadFile.size,
-        hash: cipherHashHex || undefined,
-        timestamp: new Date(),
+        sha256: cipherHashHex || undefined,
+        fileId: outcome.kind === "confirmed" ? outcome.fileId : undefined,
       });
       if (selectedNode.type === "folder") {
         await syncExistingFolderShares(selectedNode.folderId);
@@ -1576,13 +1569,8 @@ export default function Files() {
         isOpen: true,
         filename: file.name,
         filesize: formatBytes(file.size),
-      });
-      setReciboSagrado({
-        fileId: outcome.kind === "confirmed" ? outcome.fileId : "uploaded",
-        filename: file.name,
-        size: file.size,
-        hash: cipherHashHex || undefined,
-        timestamp: new Date(),
+        sha256: cipherHashHex || undefined,
+        fileId: outcome.kind === "confirmed" ? outcome.fileId : undefined,
       });
       return true;
     } catch (err) {
@@ -2845,26 +2833,19 @@ export default function Files() {
                           : t("drive:vault.noFiles", "No files here yet")}
                   </p>
 
-                  {selectedNode.type === "all" && !isSharedView && !searchQuery ? (
-                    <VaultProofOfBlindajeCard
-                      onUploadClick={() => (document.getElementById("file-input") as HTMLInputElement)?.click()}
-                      className="mt-6 w-full"
-                    />
-                  ) : (
-                    selectedNode.type === "all" && !isSharedView && (
-                      <div className="flex flex-col items-center">
-                        <p className="text-xs sm:text-sm mt-1 text-muted-foreground max-w-sm text-center">
-                          {t("drive:vault.uploadPrompt")}
-                        </p>
-                        <label
-                          htmlFor="file-input"
-                          className="mt-5 cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all active:scale-95 cursor-pointer"
-                        >
-                          <Upload className="w-4 h-4" />
-                          {t("drive:vault.uploadFirstFile", "Subir primer archivo")}
-                        </label>
-                      </div>
-                    )
+                  {selectedNode.type === "all" && !isSharedView && (
+                    <div className="flex flex-col items-center">
+                      <p className="text-xs sm:text-sm mt-1 text-muted-foreground max-w-sm text-center">
+                        {t("drive:vault.uploadPrompt")}
+                      </p>
+                      <label
+                        htmlFor="file-input"
+                        className="mt-5 cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {t("drive:vault.uploadFirstFile", "Subir primer archivo")}
+                      </label>
+                    </div>
                   )}
 
                 </div>
@@ -3437,26 +3418,6 @@ export default function Files() {
         )
       )}
 
-      {reciboSagrado && (
-        <ReciboSagradoCard
-          receipt={reciboSagrado}
-          onClose={() => setReciboSagrado(null)}
-          onShare={(fileId) => {
-            const f = myFiles.find((x) => x.id === fileId);
-            if (f) {
-              setFileForShareLink({
-                id: f.id,
-                filename: f.filename,
-                metadata: f.metadata,
-                pin_wrapped_key: f.pin_wrapped_key,
-                folder_id: f.folder_id,
-              });
-              setShowShareLinkModal(true);
-            }
-          }}
-        />
-      )}
-
       <MoveFileModal
         open={showMoveFileModal}
         onOpenChange={(open) => {
@@ -3664,6 +3625,15 @@ export default function Files() {
           sha256={proofPillData.sha256}
           shareUrl={proofPillData.shareUrl}
           onClose={() => setProofPillData(null)}
+          onShare={
+            proofPillData.fileId
+              ? () => {
+                  const id = proofPillData.fileId!;
+                  setProofPillData(null);
+                  handleQuickShare(id);
+                }
+              : undefined
+          }
         />
       )}
     </>

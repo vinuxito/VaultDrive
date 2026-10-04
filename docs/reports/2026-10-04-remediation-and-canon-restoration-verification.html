@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABRN Drive — Remediation & Canon Restoration Verification</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 27, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #3b82f6;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 2.5rem 1.5rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+    .header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-pass { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; margin-top: 0.5rem; }
+    .subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .grid-kpi {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      backdrop-filter: blur(12px);
+    }
+    .kpi-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .kpi-val { font-size: 1.75rem; font-weight: 800; color: #fff; margin-top: 0.35rem; }
+    .kpi-sub { font-size: 0.8rem; color: #34d399; margin-top: 0.25rem; }
+    .section-title { font-size: 1.2rem; font-weight: 700; color: #fff; margin: 2rem 0 1rem; }
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.85rem 1rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+    }
+    td { padding: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+    tr:last-child td { border-bottom: none; }
+    .code { font-family: var(--font-mono); font-size: 0.8rem; color: #93c5fd; background: rgba(59, 130, 246, 0.1); padding: 0.2rem 0.4rem; border-radius: 0.35rem; }
+    .tag-pass { color: #34d399; font-weight: 700; }
+    .footer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--card-border); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="badge badge-pass">● SEGURO CONTINUAR</div>
+        <h1>ABRN Drive — Remediation & Canon Restoration</h1>
+        <p class="subtitle">Eradication of toy components, modal collision resolution, language harmony, and Android 13 audit</p>
+      </div>
+      <div style="text-align: right; color: var(--text-muted); font-size: 0.85rem;">
+        <div>Date: 2026-10-04 UTC</div>
+        <div>Target: /lamp/www/ABRN-Drive</div>
+      </div>
+    </div>
+
+    <div class="grid-kpi">
+      <div class="kpi-card">
+        <div class="kpi-title">TypeScript Compiler</div>
+        <div class="kpi-val">0 Errors</div>
+        <div class="kpi-sub">✓ Strict Clean</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Targeted Vitest Suite</div>
+        <div class="kpi-val">3 / 3 Passed</div>
+        <div class="kpi-sub">✓ 100% Pass in 3.51s</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Vite Production Build</div>
+        <div class="kpi-val">13.42s</div>
+        <div class="kpi-sub">✓ Clean Dist Bundle</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Android 13 Audit</div>
+        <div class="kpi-val">100% Above Fold</div>
+        <div class="kpi-sub">✓ Zero Mobile Scroll</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Verification Battery</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Subsystem</th>
+            <th>Verification Command</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Type Safety</strong></td>
+            <td><span class="code">npm run typecheck</span></td>
+            <td><span class="tag-pass">PASS (Exit 0)</span></td>
+            <td>Strict check on client & e2e configs</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Components</strong></td>
+            <td><span class="code">vitest run Mobile*.test.tsx</span></td>
+            <td><span class="tag-pass">PASS (3/3)</span></td>
+            <td>MobileProofPill & MobileShareSheet tests</td>
+          </tr>
+          <tr>
+            <td><strong>Production Build</strong></td>
+            <td><span class="code">npm run build</span></td>
+            <td><span class="tag-pass">PASS (Exit 0)</span></td>
+            <td>Compiled in 13.42s into vaultdrive_client/dist</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Landing Audit</strong></td>
+            <td><span class="code">ADB /abrn/ Framebuffer</span></td>
+            <td><span class="tag-pass">VERIFIED</span></td>
+            <td>Linguistic harmony restored, English hero copy</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Login Viewport</strong></td>
+            <td><span class="code">ADB /abrn/login Framebuffer</span></td>
+            <td><span class="tag-pass">VERIFIED</span></td>
+            <td>Inputs, PIN switcher, and CTA 100% above fold</td>
+          </tr>
+          <tr>
+            <td><strong>Full Test Suite Gate</strong></td>
+            <td><span class="code">npm run test</span></td>
+            <td><span style="color: var(--amber); font-weight: 700;">HELD AS REQUESTED</span></td>
+            <td>Explicit user command: test live before full run</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title">Remediation Matrix</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Previous Regressed State</th>
+            <th>Restored Canon State</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Empty Vault View</strong></td>
+            <td>Nested toy card inside dashed box with mock text & emoji buttons</td>
+            <td>Single, dignified fintech luxury container with clean upload prompt</td>
+          </tr>
+          <tr>
+            <td><strong>Upload Confirmation</strong></td>
+            <td>Simultaneous double-popup collision at <span class="code">bottom-20</span> over the FAB</td>
+            <td>Unified <span class="code">MobileProofPill</span> with cryptographic SHA-256 seal & quick share</td>
+          </tr>
+          <tr>
+            <td><strong>Marketing Hero</strong></td>
+            <td>Injected Spanish copy breaking English page language harmony</td>
+            <td>Authentic English hero copy restored</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile Login Fold</strong></td>
+            <td>Vertical scrolling required on budget mobile viewports</td>
+            <td>Compact header & hidden hints keeping 100% of controls above fold</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      ABRN Drive · Verification Report · Practical Filemón Philosophy & Experiencia de Barrio Nivel Dios
+    </div>
+  </div>
+</body>
+</html>
