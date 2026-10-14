@@ -306,17 +306,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("auth-change", handleAuthChange);
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
   // Auto-dismiss is now handled by ToastProvider
 
   // Burst consolidation: events arriving within 800 ms are grouped into one toast.

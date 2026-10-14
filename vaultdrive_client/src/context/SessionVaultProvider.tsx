@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, type ReactNode } from "react";
 import { arrayBufferToBase64, base64ToArrayBuffer, importRSAPrivateKey } from "../utils/crypto";
 import { SessionVaultContext, parseCachedCredential, type CachedCredential } from "./session-vault-context";
+import { globalVaultSearchIndex } from "../utils/vault-search-index";
 
 // Ephemeral page-load key generated synchronously once when JS module loads
 const EPHEMERAL_KEY = Array.from(
@@ -131,6 +132,7 @@ export function SessionVaultProvider({ children }: { children: ReactNode }) {
     credentialRef.current = null;
     sessionStorage.removeItem("vault_cached_private_key");
     sessionStorage.removeItem("vault_cached_credential");
+    globalVaultSearchIndex.scrub();
   }, []);
 
   // Background async restore on mount

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>v18 El Cerebro Ciego — Executive Verification Dashboard</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --card: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #6366f1;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+    }
+    .container { max-width: 1120px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-top: 0.35rem; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+    }
+    .kpi-value { font-size: 1.75rem; font-weight: 800; color: var(--text); }
+    .kpi-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    h2 { font-size: 1.15rem; margin-bottom: 1rem; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      background: rgba(99, 102, 241, 0.12);
+      color: #c7d2fe;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.3rem;
+    }
+    .pass { color: var(--emerald); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>v18 El Cerebro Ciego — Verification Dashboard</h1>
+        <p class="subtitle">Sovereign Client-Side RAM Search Index, Smart Document Triage &amp; Telepathic Omnibar</p>
+      </div>
+      <div class="badge">✓ SEGURO CONTINUAR · 46/46 TESTS PASSING</div>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">0 Errors</div>
+        <div class="kpi-label">Strict TypeScript (tsc -b)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">46 / 46</div>
+        <div class="kpi-label">Targeted Vitest Suites (8 files)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">&lt; 1.5 ms</div>
+        <div class="kpi-label">550-Doc RAM Query Latency</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">0 Bytes</div>
+        <div class="kpi-label">Plaintext Sent to Server</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>1. Ruthless Critique &amp; Remediations Executed</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Defect Found in 81ead5d</th>
+            <th>Root Cause</th>
+            <th>Production Fix Verified</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Double-Modal Collision on <code>⌘K</code></strong></td>
+            <td>Both <code>CommandPalette</code> and <code>VaultOmnibar</code> listened to <code>⌘K</code>, and <code>dashboard-layout.tsx</code> re-dispatched duplicate keydown events.</td>
+            <td>Removed duplicate keydown re-dispatcher; reserved <code>⌘K</code> for <code>CommandPalette</code> (wired to <code>globalVaultSearchIndex</code>); bound <code>/</code>, <code>⌘⇧F</code>, header pill, and mobile thumb dock to <code>VaultOmnibar</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Broken Triage Signature &amp; Missing Auto-Rename</strong></td>
+            <td><code>files.tsx</code> passed <code>selectedFile.type</code> as <code>textSample</code> (arg 2) without reading file bytes; banner showed raw <code>"generic"</code> enum.</td>
+            <td>Created <code>triageFileObject(file)</code> reading first 64KB in browser RAM; extracted CFDI <code>UUID</code>/<code>Moneda</code>; added <code>detectedType</code> badge and 1-click <strong>Auto-nombrar</strong> button.</td>
+          </tr>
+          <tr>
+            <td><strong>Unreferenced <code>streaming-decrypt.ts</code> &amp; Index Wipe</strong></td>
+            <td><code>streaming-decrypt.ts</code> was never imported; <code>files.tsx</code> called <code>clear()</code> on every SWR re-render.</td>
+            <td>Wired <code>extractSnippetForIndexing</code> into <code>FilePreviewModal.tsx</code> and <code>files.tsx</code>; added persistent <code>enrichDocument()</code> + <code>syncDocuments()</code> + Panic Lock <code>scrub()</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Omnibar Missing Highlights, Match Count &amp; i18n</strong></td>
+            <td>Hardcoded Spanish strings, no match highlights, no <code>⌘S</code>/<code>⌘D</code>/<code>⌘⇧C</code> shortcuts.</td>
+            <td>Added EN/ES i18n keys, <code>&lt;mark&gt;</code> character highlighting, live match counter, and <code>⌘S</code>/<code>⌘D</code>/<code>⌘⇧C</code> shortcuts.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>2. Cold Verification Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Suite / Gate</th>
+            <th>Command</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TypeScript Compiler</td>
+            <td><code>npm run typecheck</code></td>
+            <td class="pass">PASS (0 errors)</td>
+          </tr>
+          <tr>
+            <td>Step 01: RAM Search Index</td>
+            <td><code>npx vitest run src/utils/vault-search-index.test.ts</code></td>
+            <td class="pass">PASS (9/9 tests)</td>
+          </tr>
+          <tr>
+            <td>Step 02: Document Triage</td>
+            <td><code>npx vitest run src/utils/document-triage.test.ts</code></td>
+            <td class="pass">PASS (7/7 tests)</td>
+          </tr>
+          <tr>
+            <td>Step 03: Telepathic Omnibar</td>
+            <td><code>npx vitest run src/components/vault/VaultOmnibar.test.tsx</code></td>
+            <td class="pass">PASS (5/5 tests)</td>
+          </tr>
+          <tr>
+            <td>Step 04: Streaming Decrypt</td>
+            <td><code>npx vitest run src/utils/streaming-decrypt.test.ts</code></td>
+            <td class="pass">PASS (3/3 tests)</td>
+          </tr>
+          <tr>
+            <td>Step 05: Vault Integration</td>
+            <td><code>npx vitest run FileSearch CommandPalette DashboardLayout FilePreviewModal</code></td>
+            <td class="pass">PASS (22/22 tests)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

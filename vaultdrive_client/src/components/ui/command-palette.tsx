@@ -141,18 +141,22 @@ export function CommandPalette() {
                     {fileResults.map((file) => (
                       <Command.Item
                         key={file.id}
-                        value={`file-${file.id}-${file.filename}`}
+                        value={`file-${file.id}-${file.filename}-${inputValue}`}
                         onSelect={() => runCommand(() => navigate("/files", { state: { highlightFileId: file.id } }))}
                         className="flex cursor-pointer items-center rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
                       >
                         <FileTypeIcon filename={file.filename} className="mr-3 h-4 w-4 text-muted-foreground shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="font-medium truncate">{file.filename}</span>
-                          {file.folder_name && (
+                          {file.snippet ? (
+                            <span className="text-[10px] text-muted-foreground truncate">
+                              {file.snippet}
+                            </span>
+                          ) : file.folder_name ? (
                             <span className="text-[10px] text-muted-foreground">
                               {t("common:commandPalette.inFolder", { folder: file.folder_name })}
                             </span>
-                          )}
+                          ) : null}
                         </div>
                       </Command.Item>
                     ))}
@@ -160,6 +164,23 @@ export function CommandPalette() {
                 )}
 
                 <Command.Group heading="Vault Operations" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                  <Command.Item
+                    value="action-omnibar /search cerebro ciego omnibar blind brain"
+                    onSelect={() => runCommand(() => {
+                      navigate("/files");
+                      setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "search" } }));
+                      }, 60);
+                    })}
+                    className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                  >
+                    <div className="flex items-center">
+                      <Search className="mr-3 h-4 w-4 text-primary" />
+                      <span>Cerebro Ciego — Omnibar Search</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-mono">/</span>
+                  </Command.Item>
+
                   <Command.Item
                     value="action-lock-vault /lock lock"
                     onSelect={() => runCommand(() => {

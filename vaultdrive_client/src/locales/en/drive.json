@@ -984,5 +984,30 @@
       "manageDrop": "Manage",
       "shareWhatsApp": "WhatsApp"
     }
+  },
+  "omnibar": {
+    "dialogLabel": "Sovereign Vault Omnibar",
+    "triggerLabel": "Blind Brain",
+    "triggerAria": "Open Blind Brain Omnibar",
+    "placeholder": "Search by filename, RFC, amount ($), clause, or tag…",
+    "activeBadge": "Blind Brain Active",
+    "ramTitle": "Zero-Knowledge In-Memory Search",
+    "ramSubtitle": "Type any word, amount ($), tax ID (RFC), or tag. Your files are indexed 100% locally in RAM.",
+    "noMatches": "No matches for “{{query}}”",
+    "noMatchesHint": "Try searching by extension (.pdf, .xml), year (2026), or exact amount.",
+    "matchCount_one": "1 match",
+    "matchCount_other": "{{count}} matches",
+    "preview": "Quick Look (Enter)",
+    "share": "Share (⌘S)",
+    "copySeal": "Copy SHA-256 / Link (⌘C)",
+    "download": "Download (⌘D)",
+    "navHint": "↑↓ navigate • ↵ open • ⌘S share • ⌘D download",
+    "localEncrypted": "100% Client-Side Index"
+  },
+  "triage": {
+    "badgeLabel": "Blind Brain Detected",
+    "autoRename": "Auto-name: {{name}}",
+    "applied": "Smart name applied",
+    "indexedToast": "Indexed in Blind Brain ({{category}})"
   }
 }

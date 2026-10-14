@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Files, Share2, User, Lock } from "lucide-react";
+import { Files, Share2, User, Lock, Search } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useTranslation } from "react-i18next";
 import { useTransitionNavigate } from "../../hooks";
@@ -15,6 +15,20 @@ export function BottomNav() {
   if (!token || location.pathname === "/login") {
     return null;
   }
+
+  const handleQuickSearch = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(15);
+    }
+    if (location.pathname !== "/files") {
+      navigate("/files");
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "search" } }));
+      }, 80);
+    } else {
+      window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "search" } }));
+    }
+  };
 
   const handleQuickLock = () => {
     playDeadboltThud();
@@ -36,7 +50,7 @@ export function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-30 bg-card/90 backdrop-blur-2xl border-t border-border/80 shadow-lg md:hidden safe-area-bottom"
     >
       <div className="flex min-h-16 items-stretch justify-around py-1">
-        {navItems.slice(0, 2).map(({ path, icon: Icon, label }) => {
+        {navItems.slice(0, 1).map(({ path, icon: Icon, label }) => {
           const isActive = isRouteActive(location.pathname, path);
           return (
             <Link
@@ -59,6 +73,19 @@ export function BottomNav() {
           );
         })}
 
+        {/* Telepathic Omnibar Search button */}
+        <button
+          type="button"
+          onClick={handleQuickSearch}
+          aria-label={t("drive:omnibar.triggerAria", "Abrir Omnibar Cerebro Ciego")}
+          className="flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-1 transition-colors duration-200 cursor-pointer text-muted-foreground hover:text-foreground active:scale-95 min-h-[48px]"
+        >
+          <Search className="w-5 h-5 mb-1 text-primary" />
+          <span className="line-clamp-2 text-center text-[11px] font-medium leading-tight">
+            {t("common:search", "Buscar")}
+          </span>
+        </button>
+
         {/* Sovereign Emergency Lock button in thumb sweep (Bottom 40%) */}
         <button
           type="button"
@@ -74,7 +101,7 @@ export function BottomNav() {
           </span>
         </button>
 
-        {navItems.slice(2).map(({ path, icon: Icon, label }) => {
+        {navItems.slice(1).map(({ path, icon: Icon, label }) => {
           const isActive = isRouteActive(location.pathname, path);
           return (
             <Link

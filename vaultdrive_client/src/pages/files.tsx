@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   FolderOpen,
   Folder as FolderIcon,
+  Sparkles,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -115,6 +116,9 @@ import { getStagedTransfers, clearStagedTransfers } from "../utils/rescue-ledger
 import { DataState } from "../components/ui/data-state";
 import { readOwnerUploadOutcome } from "../utils/owner-upload-outcome";
 import { MobileShareSheet } from "../components/mobile/MobileShareSheet";
+import { VaultOmnibar } from "../components/vault/VaultOmnibar";
+import { globalVaultSearchIndex, type IndexDocument } from "../utils/vault-search-index";
+import { analyzeDocumentTriage, triageFileObject, type TriageResult } from "../utils/document-triage";
 
 
 interface FileData {
@@ -296,6 +300,28 @@ export default function Files() {
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
 
   const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
+  const [selectedFileTriage, setSelectedFileTriage] = useState<TriageResult | null>(null);
+  const [selectedFileSnippet, setSelectedFileSnippet] = useState<string>("");
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setSelectedFileTriage(null);
+      setSelectedFileSnippet("");
+      return;
+    }
+    let cancelled = false;
+    // Immediate synchronous baseline triage from filename + MIME
+    setSelectedFileTriage(analyzeDocumentTriage(selectedFile.name, "", selectedFile.type || ""));
+    void triageFileObject(selectedFile).then(({ triage, snippetText }) => {
+      if (!cancelled) {
+        setSelectedFileTriage(triage);
+        setSelectedFileSnippet(snippetText);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedFile]);
 
   const [encryptionPassword, setEncryptionPassword] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -543,6 +569,7 @@ export default function Files() {
   } | null>(null);
 
   const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const [showOmnibar, setShowOmnibar] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobileScreen(window.innerWidth < 768);
@@ -892,7 +919,11 @@ export default function Files() {
 
     if (q) {
       const allFiles = [...myFiles, ...sharedAsFiles];
-      const filtered = allFiles.filter((file) => file.filename.toLowerCase().includes(q));
+      const indexMatches = globalVaultSearchIndex.search(q, 500);
+      const matchedIds = new Set(indexMatches.map((m) => m.doc.id));
+      const filtered = allFiles.filter(
+        (file) => file.filename.toLowerCase().includes(q) || matchedIds.has(file.id)
+      );
       return applySort(applyTypeFilter(filtered));
     }
 
@@ -928,6 +959,45 @@ export default function Files() {
 
     return applySort(applyTypeFilter(list));
   }, [applySort, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles, sharedFolders, sharedFolderFiles]);
+
+  useEffect(() => {
+    if (isVaultLocked) {
+      globalVaultSearchIndex.scrub();
+      return;
+    }
+    const allFiles = [...myFiles, ...sharedAsFiles];
+    const docs: IndexDocument[] = allFiles.map((f) => {
+      let tags: string[] = [];
+      let snippetText: string | undefined;
+      let mimeType: string | undefined;
+      let sha256: string | undefined;
+      try {
+        const meta = JSON.parse(f.metadata);
+        if (Array.isArray(meta.tags)) tags = meta.tags;
+        if (typeof meta.snippet === "string") snippetText = meta.snippet;
+        if (typeof meta.mime_type === "string") mimeType = meta.mime_type;
+        if (typeof meta.sha256 === "string") sha256 = meta.sha256;
+      } catch {
+        /* ignore */
+      }
+      const baselineTriage = analyzeDocumentTriage(f.filename, snippetText || "", mimeType || "");
+      const mergedTags = Array.from(new Set([...tags, ...baselineTriage.suggestedTags]));
+      return {
+        id: f.id,
+        filename: f.filename,
+        folderId: f.folder_id || f.drop_folder_id,
+        folderName: folders.find((fol) => fol.id === (f.folder_id || f.drop_folder_id))?.name,
+        tags: mergedTags,
+        snippetText: snippetText || baselineTriage.summaryText,
+        filesize: f.file_size || 0,
+        mimeType,
+        updatedAt: f.created_at,
+        sha256,
+        detectedType: baselineTriage.detectedType,
+      };
+    });
+    globalVaultSearchIndex.syncDocuments(docs);
+  }, [myFiles, sharedAsFiles, folders, isVaultLocked]);
 
   const selectedSharedFolder = selectedNode.type === "folder"
     && sharedFolders.some((folder) => folder.id === selectedNode.folderId);
@@ -1079,9 +1149,17 @@ export default function Files() {
         return;
       }
 
+      // Hotkey: / or ⌘⇧F / Ctrl+Shift+F -> Telepathic Omnibar Search (⌘K is reserved for global CommandPalette)
+      if (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "f" || e.key === "F"))) {
+        e.preventDefault();
+        setShowOmnibar((prev) => !prev);
+        return;
+      }
+
       // Hotkey: ⌘L / Ctrl+L -> Lock Privacy Shutter
       if ((e.metaKey || e.ctrlKey) && (e.key === "l" || e.key === "L")) {
         e.preventDefault();
+        setShowOmnibar(false);
         setIsVaultLocked((prev) => !prev);
         return;
       }
@@ -1274,6 +1352,8 @@ export default function Files() {
       } else if (detail?.action === "passport") {
         const file = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
         if (file) setPassportFile(file);
+      } else if (detail?.action === "search") {
+        setShowOmnibar(true);
       }
     };
     const handleProofPill = (e: Event) => {
@@ -1447,6 +1527,19 @@ export default function Files() {
       }
       setSelectedFile(null);
       const fileInput = document.getElementById("file-input") as HTMLInputElement;
+      const finalTriage = selectedFileTriage || analyzeDocumentTriage(uploadFile.name, selectedFileSnippet, uploadFile.type || "");
+      globalVaultSearchIndex.enrichDocument(
+        {
+          id: outcome.kind === "confirmed" ? outcome.fileId : undefined,
+          filename: uploadFile.name,
+        },
+        {
+          snippetText: selectedFileSnippet || finalTriage.summaryText,
+          tags: finalTriage.suggestedTags,
+          detectedType: finalTriage.detectedType,
+          sha256: cipherHashHex || undefined,
+        }
+      );
       if (fileInput) fileInput.value = "";
       await fetchFiles();
       setProofPillData({
@@ -1565,6 +1658,23 @@ export default function Files() {
         return false;
       }
       updateTray(100, "done");
+      try {
+        const { triage, snippetText } = await triageFileObject(file);
+        globalVaultSearchIndex.enrichDocument(
+          {
+            id: outcome.kind === "confirmed" ? outcome.fileId : undefined,
+            filename: file.name,
+          },
+          {
+            snippetText: snippetText || triage.summaryText,
+            tags: triage.suggestedTags,
+            detectedType: triage.detectedType,
+            sha256: cipherHashHex || undefined,
+          }
+        );
+      } catch {
+        // Non-blocking enrichment
+      }
       setProofPillData({
         isOpen: true,
         filename: file.name,
@@ -2441,6 +2551,7 @@ export default function Files() {
           typeFilter={typeFilter}
           setTypeFilter={setTypeFilter}
           disabled={bulkDownloadFiles !== null || showPasswordModal}
+          onOpenOmnibar={() => setShowOmnibar(true)}
         />
 
         <div className="flex flex-1 overflow-hidden">
@@ -2697,12 +2808,60 @@ export default function Files() {
             </div>
 
             {selectedFile && !isSharedView && (
-              <div className="mx-6 mt-4 flex items-center gap-3 p-3 bg-primary/10 border border-primary/40 rounded-xl shrink-0">
+              <div className="mx-6 mt-4 flex flex-wrap items-center gap-3 p-3 bg-primary/10 border border-primary/40 rounded-xl shrink-0">
                 <File className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-sm text-foreground font-medium flex-1 truncate">
-                  {selectedFile.name}
-                </span>
-                <span className="text-xs text-foreground">
+                <div className="flex-1 min-w-0 flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-foreground font-medium truncate">
+                    {selectedFile.name}
+                  </span>
+                  {selectedFileTriage && (
+                    <span
+                      data-testid="triage-detected-type"
+                      className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold tracking-wider shrink-0"
+                    >
+                      <Sparkles className="w-2.5 h-2.5" />
+                      {selectedFileTriage.detectedType}
+                    </span>
+                  )}
+                  {selectedFileTriage &&
+                    selectedFileTriage.category !== "generic" &&
+                    selectedFileTriage.suggestedTags.length > 0 && (
+                      <span className="text-[10px] font-mono text-muted-foreground hidden sm:inline">
+                        #{selectedFileTriage.suggestedTags.slice(0, 3).join(" #")}
+                      </span>
+                    )}
+                  {selectedFileTriage?.suggestedFilename &&
+                    selectedFileTriage.suggestedFilename !== selectedFile.name && (
+                      <button
+                        type="button"
+                        data-testid="triage-auto-rename-btn"
+                        onClick={() => {
+                          const newName = selectedFileTriage.suggestedFilename!;
+                          const renamedFile = new globalThis.File([selectedFile], newName, {
+                            type: selectedFile.type,
+                            lastModified: selectedFile.lastModified,
+                          });
+                          setSelectedFile(renamedFile);
+                          addToast(
+                            t("drive:triage.applied", {
+                              defaultValue: "Nombre inteligente aplicado",
+                            }) + `: ${newName}`,
+                            "success"
+                          );
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-background/90 border border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        <span>
+                          {t("drive:triage.autoRename", {
+                            name: selectedFileTriage.suggestedFilename,
+                            defaultValue: `Auto-nombrar: ${selectedFileTriage.suggestedFilename}`,
+                          })}
+                        </span>
+                      </button>
+                    )}
+                </div>
+                <span className="text-xs text-foreground shrink-0">
                   {formatBytes(selectedFile.size)}
                 </span>
                 <Button
@@ -3636,6 +3795,40 @@ export default function Files() {
           }
         />
       )}
+
+      <VaultOmnibar
+        isOpen={showOmnibar}
+        onClose={() => setShowOmnibar(false)}
+        onSelectFile={(fileId, action) => {
+          const allFiles = [...myFiles, ...sharedAsFiles];
+          const file = allFiles.find((f) => f.id === fileId);
+          if (!file) return;
+          if (action === "share") {
+            handleCreateShareLink(file);
+          } else if (action === "copy") {
+            const indexed = globalVaultSearchIndex.getDocument(file.id);
+            const seal = indexed?.sha256 || file.id;
+            if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+              void navigator.clipboard.writeText(seal);
+              addToast(
+                t("drive:actions.copyHash", { defaultValue: "Sello SHA-256 copiado" }) + `: ${seal.slice(0, 12)}…`,
+                "success"
+              );
+            } else {
+              handleCreateShareLink(file);
+            }
+          } else if (action === "download") {
+            void handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id);
+          } else {
+            setLastInteractedFileId(file.id);
+            setPreviewFile({
+              ...file,
+              folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+            });
+          }
+        }}
+        searchIndex={globalVaultSearchIndex}
+      />
     </>
   );
 }

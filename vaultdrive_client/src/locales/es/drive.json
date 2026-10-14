@@ -983,5 +983,30 @@
       "manageDrop": "Administrar",
       "shareWhatsApp": "Mandar por WhatsApp"
     }
+  },
+  "omnibar": {
+    "dialogLabel": "Omnibar de Bóveda Soberana",
+    "triggerLabel": "Cerebro Ciego",
+    "triggerAria": "Abrir Omnibar Cerebro Ciego",
+    "placeholder": "Buscar por nombre, RFC, monto, cláusula o etiqueta…",
+    "activeBadge": "Cerebro Ciego Activo",
+    "ramTitle": "Búsqueda Soberana en Memoria RAM",
+    "ramSubtitle": "Escribe cualquier palabra, monto ($), RFC o etiqueta. Tus archivos se indexan de forma 100% ciega y cifrada.",
+    "noMatches": "Sin coincidencias para “{{query}}”",
+    "noMatchesHint": "Prueba buscando por extensión (.pdf, .xml), año (2026) o monto exacto.",
+    "matchCount_one": "1 coincidencia",
+    "matchCount_other": "{{count}} coincidencias",
+    "preview": "Vista Previa (Enter)",
+    "share": "Compartir (⌘S)",
+    "copySeal": "Copiar Sello / Enlace (⌘C)",
+    "download": "Descargar (⌘D)",
+    "navHint": "↑↓ navegar • ↵ abrir • ⌘S compartir • ⌘D descargar",
+    "localEncrypted": "100% Cifrado Local"
+  },
+  "triage": {
+    "badgeLabel": "Cerebro Ciego Detectó",
+    "autoRename": "Auto-nombrar: {{name}}",
+    "applied": "Nombre inteligente aplicado",
+    "indexedToast": "Indexado en Cerebro Ciego ({{category}})"
   }
 }

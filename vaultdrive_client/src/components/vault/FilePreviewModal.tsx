@@ -17,6 +17,9 @@ import {
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
 import { getFileCredentialScheme } from "../../utils/file-credential";
 import { playTumblerClick, playUnlockChime } from "../../utils/audioHaptics";
+import { extractSnippetForIndexing } from "../../utils/streaming-decrypt";
+import { analyzeDocumentTriage } from "../../utils/document-triage";
+import { globalVaultSearchIndex } from "../../utils/vault-search-index";
 
 export interface FileEntry {
   id: string;
@@ -291,15 +294,31 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
       const blob = new Blob([decryptedBuffer]);
       setDecryptedBlob(blob);
+      let computedSha256 = "";
       try {
         if (typeof crypto !== "undefined" && crypto.subtle?.digest) {
           const hashBuffer = await crypto.subtle.digest("SHA-256", decryptedBuffer);
           const hashArray = Array.from(new Uint8Array(hashBuffer));
-          const sha256Hex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-          setDecryptedSha256(sha256Hex);
+          computedSha256 = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+          setDecryptedSha256(computedSha256);
         }
       } catch {
         // Safe fallback if crypto.subtle is mocked or unavailable
+      }
+      try {
+        const snippet = extractSnippetForIndexing(decryptedBuffer, "", file.filename) || "";
+        const triage = analyzeDocumentTriage(file.filename, snippet, "");
+        globalVaultSearchIndex.enrichDocument(
+          { id: file.id, filename: file.filename },
+          {
+            snippetText: snippet || triage.summaryText,
+            tags: triage.suggestedTags,
+            detectedType: triage.detectedType,
+            sha256: computedSha256 || undefined,
+          }
+        );
+      } catch {
+        // Non-blocking enrichment
       }
       await checkSignature(decryptedBuffer, requestId);
       if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };

@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Search, X } from "lucide-react";
+import { Search, X, Sparkles } from "lucide-react";
 
 export type FileTypeFilter = "all" | "images" | "documents" | "audio" | "video" | "archives";
 
@@ -10,6 +10,7 @@ interface FileSearchProps {
   typeFilter: FileTypeFilter;
   setTypeFilter: (filter: FileTypeFilter) => void;
   disabled?: boolean;
+  onOpenOmnibar?: () => void;
 }
 
 export const FileSearch: React.FC<FileSearchProps> = ({
@@ -18,6 +19,7 @@ export const FileSearch: React.FC<FileSearchProps> = ({
   typeFilter,
   setTypeFilter,
   disabled = false,
+  onOpenOmnibar,
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -33,36 +35,55 @@ export const FileSearch: React.FC<FileSearchProps> = ({
   return (
     <div className="px-6 py-3 border-b border-border/60 bg-background shrink-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-        <form role="search" autoComplete="off" onSubmit={(event) => event.preventDefault()} className="relative flex-1 max-w-md">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <input
-            type="search"
-            name="vault-file-search"
-            autoComplete="off"
-            data-lpignore="true"
-            data-1p-ignore
-            disabled={disabled}
-            value={searchQuery}
-            onChange={(e) => {
-              if (!disabled) setSearchQuery(e.target.value);
-            }}
-            placeholder={t("drive:vault.search")}
-            aria-label={t("drive:vault.search")}
-            className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
-          />
+        <div className="flex items-center gap-2 flex-1 max-w-xl">
+          <form role="search" autoComplete="off" onSubmit={(event) => event.preventDefault()} className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              type="search"
+              name="vault-file-search"
+              autoComplete="off"
+              data-lpignore="true"
+              data-1p-ignore
+              disabled={disabled}
+              value={searchQuery}
+              onChange={(e) => {
+                if (!disabled) setSearchQuery(e.target.value);
+              }}
+              placeholder={t("drive:vault.search")}
+              aria-label={t("drive:vault.search")}
+              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
+            />
 
-          {searchQuery && (
+            {searchQuery && (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={t("drive:vault.clearSearch", "Clear search")}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </form>
+
+          {onOpenOmnibar && (
             <button
               type="button"
               disabled={disabled}
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label={t("drive:vault.clearSearch", "Clear search")}
+              onClick={onOpenOmnibar}
+              data-testid="open-omnibar-btn"
+              aria-label={t("drive:omnibar.triggerAria", "Abrir Omnibar Cerebro Ciego")}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 text-xs font-semibold shrink-0 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <X className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{t("drive:omnibar.triggerLabel", "Cerebro Ciego")}</span>
+              <kbd className="px-1 py-0.2 rounded bg-background/80 border border-primary/20 text-[10px] font-mono">
+                /
+              </kbd>
             </button>
           )}
-        </form>
+        </div>
         <div className="flex max-w-full flex-wrap items-center gap-1">
           {(Object.keys(TYPE_FILTER_LABELS) as FileTypeFilter[]).map((type) => (
             <button
@@ -84,3 +105,4 @@ export const FileSearch: React.FC<FileSearchProps> = ({
     </div>
   );
 };
+
