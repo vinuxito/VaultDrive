@@ -1,0 +1,119 @@
+{
+  "rubric_version": "1.0.0",
+  "framework": "mucha-verga-ladder",
+  "scientifically_validated_scale": false,
+  "cumulative": true,
+  "gate_states": [
+    "pass",
+    "fail",
+    "unknown"
+  ],
+  "rungs": [
+    {
+      "id": "r1",
+      "name": "Agency",
+      "definition": "Can act locally.",
+      "barrio": "Puede moverle."
+    },
+    {
+      "id": "r2",
+      "name": "High agency",
+      "definition": "Can solve locally.",
+      "barrio": "Sí resuelve."
+    },
+    {
+      "id": "r3",
+      "name": "Mucha verga",
+      "definition": "Solves reliably while respecting the larger system.",
+      "barrio": "Resuelve sin chingar al resto."
+    },
+    {
+      "id": "r4",
+      "name": "No te mames",
+      "definition": "Helps the whole system become more capable without requiring more central control.",
+      "barrio": "Hace que todos resuelvan mejor."
+    }
+  ],
+  "gates": [
+    {
+      "id": "mission_and_scope",
+      "rung": "r1",
+      "definition": "Mission, owner, outcome and operating scope are explicit."
+    },
+    {
+      "id": "authorized_action",
+      "rung": "r1",
+      "definition": "A bounded local operation respects current host-enforced authority."
+    },
+    {
+      "id": "bounded_execution",
+      "rung": "r1",
+      "definition": "Work is bounded and its actual stop/resource controls are known."
+    },
+    {
+      "id": "observable_result",
+      "rung": "r1",
+      "definition": "Result or failure is visible and traceable to the operation."
+    },
+    {
+      "id": "verified_outcome",
+      "rung": "r2",
+      "definition": "A useful task outcome is checked rather than inferred from activity."
+    },
+    {
+      "id": "exception_handling",
+      "rung": "r2",
+      "definition": "Relevant failure, missing-input and interrupted paths are handled."
+    },
+    {
+      "id": "useful_handoff",
+      "rung": "r2",
+      "definition": "Consumer receives the result, context, limitations and next action."
+    },
+    {
+      "id": "bounded_progress",
+      "rung": "r2",
+      "definition": "Work finishes, checkpoints or escalates usefully within its bounds."
+    },
+    {
+      "id": "invariants_preserved",
+      "rung": "r3",
+      "definition": "Larger-system invariants and neighbor boundaries are preserved."
+    },
+    {
+      "id": "repeatable_reliability",
+      "rung": "r3",
+      "definition": "Repeated relevant observations satisfy the scoped evidence plan."
+    },
+    {
+      "id": "containment_recovery",
+      "rung": "r3",
+      "definition": "Failure, cancellation and recovery are bounded and checked."
+    },
+    {
+      "id": "truthful_status",
+      "rung": "r3",
+      "definition": "UI, APIs and reports expose consistent current facts and limitations."
+    },
+    {
+      "id": "reused_capability",
+      "rung": "r4",
+      "definition": "Two distinct consumers accept the same governed capability contract."
+    },
+    {
+      "id": "consumer_benefit",
+      "rung": "r4",
+      "definition": "Consumers gain observed useful capability, with comparison limits."
+    },
+    {
+      "id": "coordination_economics",
+      "rung": "r4",
+      "definition": "Comparable work needs no more routine central steering; costs are visible."
+    },
+    {
+      "id": "maintainable_transfer",
+      "rung": "r4",
+      "definition": "Adoption, operation, versioning, support and exit are maintainable."
+    }
+  ]
+}

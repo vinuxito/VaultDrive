@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Premium large data grid · synthetic teaching demo</title>
+  <link rel="stylesheet" href="grid.css">
+  <script src="grid.js" defer></script>
+</head>
+<body class="grid-demo-page">
+  <main class="grid-demo" id="grid-demo">
+    <header class="masthead">
+      <div class="identity"><span class="brand-mark" aria-hidden="true">G</span><div><p class="eyebrow">A portable reference · version 1</p><h1>Room to work.</h1><p class="intro">A large dataset. A calm, useful view.</p></div></div>
+      <div class="environment"><span class="proof-dot" aria-hidden="true"></span> Offline · synthetic</div>
+    </header>
+
+    <aside class="demo-note" aria-label="Demo boundaries">
+      <strong>Teaching demo.</strong> 20,000 generated records live in a simulated backend. Only 50 rows mount per page. Delays and failures are simulated. This does not prove server throughput, authorization, accounting finality or native mobile behavior. Host adapters must supply those guarantees.
+    </aside>
+
+    <section class="workspace" aria-label="Records workspace">
+      <div class="workspace-header"><div><p class="eyebrow">Operations / documents</p><h2>Document register</h2><p class="subtle">Stable identities, complete amounts and one next action per row.</p></div><button type="button" class="button primary" id="summary-open" aria-expanded="false" aria-controls="summary-panel">Open supporting summary</button></div>
+      <form class="filter-bar" id="filters" role="search">
+        <label class="search-field">Search records<input id="search" type="search" placeholder="Name, document ID or description" autocomplete="off"></label>
+        <label>Category<select id="category"><option value="all">All categories</option><option value="services">Services</option><option value="supplies">Supplies</option><option value="travel">Travel</option><option value="equipment">Equipment</option></select></label>
+        <button type="submit" class="button secondary">Apply filters</button>
+        <button type="button" class="button ghost" id="filter-reset">Reset</button>
+      </form>
+
+      <div class="readiness-bar"><p id="result-count" aria-live="polite"></p><div class="scope-badge"><span aria-hidden="true">↳</span> <span id="scope-label">View 1</span><span class="tag neutral">50 rows / page</span></div></div>
+      <div class="table-frame">
+        <table class="records-table" aria-label="Synthetic document register">
+          <colgroup><col class="c-select"><col class="c-document"><col class="c-party"><col class="c-category"><col class="c-state"><col class="c-amount"><col class="c-actions"></colgroup>
+          <thead><tr><th class="selection-cell"><input type="checkbox" id="select-page" aria-label="Select visible page"></th><th scope="col">Document</th><th scope="col">Counterparty &amp; purpose</th><th scope="col">Category</th><th scope="col">State</th><th scope="col" class="numeric">Amount · MXN</th><th scope="col" class="action-heading">Next action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty-state" id="empty" hidden><span aria-hidden="true">◇</span><h3>No matching records</h3><p>Try a broader search or reset the filters.</p></div>
+      </div>
+
+      <footer class="workspace-footer">
+        <div class="amount-summary"><p class="eyebrow">Whole filtered dataset <span id="totals-state" class="tag pending">Pending</span></p><output id="full-total" class="financial-value" aria-live="polite">Pending · not a page total</output><p id="totals-detail" class="subtle">Computed after useful rows are painted.</p><button type="button" class="button ghost compact" id="totals-retry" hidden>Retry full totals</button></div>
+        <div class="selection-summary"><p class="eyebrow">Selected records</p><output id="selected-total" class="selected-value">$0.00</output><p id="selected-count" class="subtle">0 selected in this view</p><button type="button" class="button ghost compact" id="clear-selection">Clear selection</button></div>
+        <nav class="pagination" aria-label="Record pages"><button type="button" class="button secondary" id="previous">← Previous</button><span id="page-label" aria-live="polite">Page 1</span><button type="button" class="button secondary" id="next">Next →</button></nav>
+      </footer>
+    </section>
+
+    <section class="support-panel" id="summary-panel" hidden aria-labelledby="summary-heading">
+      <div class="panel-header"><div><p class="eyebrow">Loaded on intent</p><h2 id="summary-heading">Supporting summary</h2></div><span id="summary-state" class="tag pending">Pending</span></div>
+      <p id="summary-content" aria-live="polite">Open this panel to request its own supporting evidence.</p>
+      <button type="button" class="button secondary" id="summary-retry" hidden>Retry summary</button>
+    </section>
+
+    <section class="lab-panel" aria-labelledby="lab-heading"><div><p class="eyebrow">Observe the behavior</p><h2 id="lab-heading">Response laboratory</h2><p class="subtle">Keep working while an auxiliary waits. Change filters during a delay to exercise rejection of an old view.</p></div><div class="lab-controls"><label>Auxiliary delay<select id="delay"><option value="650">Normal · 650 ms</option><option value="2400">Slow · 2.4 s</option><option value="4500">Very slow · 4.5 s</option></select></label><button type="button" class="button secondary" id="fail-next">Fail next full-total request</button><button type="button" class="button ghost" id="refresh-totals">Reload full totals</button></div><div class="lab-feedback"><span id="fail-note">No failure armed.</span><span id="stale-note" role="status">0 old-view responses ignored.</span></div></section>
+    <p class="closing-note">The first useful view is bounded. Supporting evidence has its own lifecycle. Every number keeps its meaning.</p>
+
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><div class="dialog-header"><div><p class="eyebrow">Stable document identity</p><h2 id="detail-title">Document detail</h2></div><button type="button" class="button ghost close-button" id="detail-close" aria-label="Close document detail">×</button></div><dl id="detail-fields"></dl><p class="demo-note">Synthetic detail only. Approval, evidence mutations and exports belong to authorized host owners.</p></dialog>
+  </main>
+</body>
+</html>

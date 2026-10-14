@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "filemon-mobile": {
+      "command": "python3",
+      "args": ["/path/to/skills/filemon-remote-mobile/scripts/mcp_stdio_proxy.py"],
+      "env": {
+        "FILEMON_MOBILE_TOKEN": "YOUR_BEARER_TOKEN_HERE"
+      }
+    }
+  }
+}

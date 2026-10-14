@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0",
+  "assessment_id": "mvl-design-only",
+  "rubric_version": "1.0.0",
+  "mode": "design_only",
+  "assurance": "design_only",
+  "scope": {
+    "capability": "Future reusable uncertainty-review service",
+    "component_version": "demo-1",
+    "host": "Fictional host",
+    "larger_system": "Fictional operational workflow",
+    "owner": "Example owner",
+    "environment": "synthetic teaching fixture, no live system",
+    "window_start": "2026-10-01T00:00:00Z",
+    "window_end": "2026-10-04T00:00:00Z",
+    "workload": "Fictional representative cases defined in this example",
+    "exclusions": [
+      "No claim about any real app or user."
+    ]
+  },
+  "reported_rung": "undetermined",
+  "target_rung": "r4",
+  "assessment_authorizes_execution": false,
+  "deployment_decision": "observe_only",
+  "evidence": [],
+  "gates": {
+    "mission_and_scope": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "authorized_action": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "bounded_execution": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "observable_result": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "verified_outcome": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "exception_handling": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "useful_handoff": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "bounded_progress": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "invariants_preserved": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "repeatable_reliability": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "containment_recovery": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "truthful_status": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "reused_capability": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "consumer_benefit": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "coordination_economics": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    },
+    "maintainable_transfer": {
+      "status": "unknown",
+      "rationale": "Not evaluated in this example.",
+      "evidence_ids": [],
+      "limitations": [
+        "No relevant observation supplied."
+      ]
+    }
+  },
+  "consumers": [],
+  "comparison": null,
+  "blockers": [],
+  "next_action": {
+    "kind": "request_evidence",
+    "description": "Define an approved first consumer and a bounded evidence plan.",
+    "owner": "Example owner",
+    "requires_separate_authorization": false,
+    "budget": "One approved read-only review; no new workers or external calls."
+  },
+  "conclusion": "Target Rung 4, no demonstrated rung. The diagram is a proposed design."
+}

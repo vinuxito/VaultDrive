@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "mvl-observe-only",
+  "version": "1.0.0",
+  "mode": "observe_only",
+  "execution_enabled": false,
+  "target_rung": "r3",
+  "limits": {
+    "max_elapsed_seconds": 900,
+    "max_evidence_records": 100,
+    "max_new_workers": 0,
+    "max_external_calls": 0
+  },
+  "requirements": {
+    "missing_evidence_is_unknown": true,
+    "require_current_evidence": true,
+    "separate_execution_authority": true,
+    "retain_failed_attempts": true,
+    "never_rank_human_worth": true,
+    "preserve_mandatory_approval": true
+  },
+  "notes": [
+    "Illustrative local assessment caps; the owner must confirm suitable bounds.",
+    "Reading this policy does not enforce time limits or grant access.",
+    "Implementation, production reads, mutations, commits, pushes and external calls require separate actual authority.",
+    "A missing control is a reported gap, never a fictional sandbox."
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Filemón Office MX"
+  short_description: "Build a trusted in-app office for people and agents"
+  default_prompt: "Use $filemon-office-mx to reconstruct this project’s in-app document workspace for humans and AI agents, adapting its permissions, formats and verification gates."

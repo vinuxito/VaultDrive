@@ -1,0 +1,361 @@
+/* ==========================================================================
+   FILEMÓN MODAL UI/UX — MASTER STYLESHEET (modal.css)
+   Universal Cinemascope Canvas & Sticky Tactical Dock
+   ========================================================================== */
+
+/* 1. Modal Canvas Geometry & Deep Backdrop */
+.cinemascope-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(0.96) !important;
+  max-width: 1160px !important;
+  width: 92vw !important;
+  max-height: 88vh !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(11, 17, 33, 0.95) !important;
+  backdrop-filter: blur(48px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(180%) !important;
+  box-shadow: 
+    0 32px 72px -16px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  color: #f8fafc !important;
+  opacity: 0 !important;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.cinemascope-modal[open] {
+  opacity: 1 !important;
+  transform: translate(-50%, -50%) scale(1) !important;
+}
+
+.cinemascope-modal::backdrop {
+  background: rgba(3, 7, 18, 0.75) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  transition: backdrop-filter 0.3s ease !important;
+}
+
+/* 2. Zone 1: Frozen Hero Header (Sticky Top) */
+.executive-hero-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  background: rgba(13, 20, 38, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 12px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.hero-left-cluster, .hero-right-cluster {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.executive-badge {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  line-height: 1 !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.origin-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  color: #94a3b8 !important;
+}
+
+.telemetry-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: rgba(56, 189, 248, 0.08) !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
+  color: #38bdf8 !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 600 !important;
+}
+
+.timestamp-chip {
+  font-size: 11.5px !important;
+  color: #64748b !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+.executive-close-btn {
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: #94a3b8 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.executive-close-btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #ef4444 !important;
+}
+.executive-close-btn .close-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  opacity: 0.8 !important;
+}
+
+/* 3. Zone 2: Breathable Content Core */
+.executive-stage {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 20px 24px 28px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  min-height: 220px !important;
+}
+
+/* Instant Dispatch Deck */
+.modal-transmute-deck {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 10px 14px !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  border: 1px solid rgba(56, 189, 248, 0.18) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.transmute-deck-label {
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  color: #38bdf8 !important;
+  text-transform: uppercase !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  margin-right: 4px !important;
+}
+
+.transmute-chip-btn {
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  background: rgba(56, 189, 248, 0.08) !important;
+  color: #7dd3fc !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: all 0.15s ease !important;
+}
+.transmute-chip-btn:hover {
+  background: rgba(56, 189, 248, 0.2) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+.transmute-chip-btn:active {
+  transform: translateY(1px) scale(0.97) !important;
+}
+
+/* High-Definition Content Stages */
+.stage-code-container {
+  background: #080c16 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  padding: 16px 20px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13.5px !important;
+  line-height: 1.65 !important;
+  color: #e2e8f0 !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 4. Zone 3: Frozen Sticky Bottom Tactical Dock */
+.modal-sticky-dock {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 30 !important;
+  background: rgba(10, 16, 30, 0.96) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.7) !important;
+  padding: 12px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.dock-left-zone, .dock-right-zone {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.dock-center-zone {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dock-receipt-badge {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  color: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 4px 12px !important;
+  border-radius: 6px !important;
+}
+
+/* 48px Trucker Touch Targets */
+.trucker-target {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 18px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.dock-btn.outline {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+.dock-btn.outline:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dock-hero-action {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4) !important;
+  min-width: 150px !important;
+}
+.dock-hero-action:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5) !important;
+  filter: brightness(1.08) !important;
+}
+.dock-hero-action:active {
+  transform: translateY(1px) scale(0.98) !important;
+}
+
+/* Pin Favorite Active State */
+.modal-sticky-dock #modal-dock-pin.favorited {
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  background: rgba(251, 191, 36, 0.12) !important;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.3) !important;
+}
+.modal-sticky-dock #modal-dock-pin.favorited svg {
+  fill: #fbbf24 !important;
+  stroke: #fbbf24 !important;
+}
+
+/* 2-Step Armed Delete Button */
+.modal-sticky-dock #modal-dock-delete.armed {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
+  animation: armed-pulse 1.2s infinite ease-in-out !important;
+}
+
+@keyframes armed-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.kbd-subtle {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  opacity: 0.75 !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 4px !important;
+  padding: 1px 5px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* 5. Mobile Adaptive Bottom Sheet (≤ 980px) */
+@media (max-width: 980px) {
+  .cinemascope-modal {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: 88dvh !important;
+    border-radius: 24px 24px 0 0 !important;
+    border-bottom: none !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
+  }
+  .cinemascope-modal[open] {
+    transform: translateY(0) !important;
+  }
+  .dock-center-zone {
+    display: none !important;
+  }
+  .modal-sticky-dock {
+    padding: 10px 14px max(16px, env(safe-area-inset-bottom, 16px)) !important;
+  }
+  .hero-left-cluster {
+    flex-wrap: wrap !important;
+  }
+}

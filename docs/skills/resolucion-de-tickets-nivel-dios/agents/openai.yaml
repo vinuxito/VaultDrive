@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resolución de Tickets · NanoRed"
+  short_description: "Resuelve el pedido exacto con evidencia real en NanoRed"
+  default_prompt: "Usa $resolucion-de-tickets-nivel-dios para resolver este ticket de NanoRed, conservar el pedido y auditar críticamente el build terminado; reproduce, corrige y vuelve a verificar antes del cierre dentro del alcance autorizado."

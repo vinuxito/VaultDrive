@@ -1,0 +1,111 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,99}$"
+    },
+    "version": {
+      "const": "1.0.0"
+    },
+    "mode": {
+      "const": "observe_only"
+    },
+    "execution_enabled": {
+      "const": false
+    },
+    "target_rung": {
+      "enum": [
+        "r1",
+        "r2",
+        "r3",
+        "r4"
+      ]
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "max_elapsed_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_evidence_records": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "max_new_workers": {
+          "const": 0
+        },
+        "max_external_calls": {
+          "const": 0
+        }
+      },
+      "required": [
+        "max_elapsed_seconds",
+        "max_evidence_records",
+        "max_new_workers",
+        "max_external_calls"
+      ],
+      "additionalProperties": false
+    },
+    "requirements": {
+      "type": "object",
+      "properties": {
+        "missing_evidence_is_unknown": {
+          "const": true
+        },
+        "require_current_evidence": {
+          "const": true
+        },
+        "separate_execution_authority": {
+          "const": true
+        },
+        "retain_failed_attempts": {
+          "const": true
+        },
+        "never_rank_human_worth": {
+          "const": true
+        },
+        "preserve_mandatory_approval": {
+          "const": true
+        }
+      },
+      "required": [
+        "missing_evidence_is_unknown",
+        "require_current_evidence",
+        "separate_execution_authority",
+        "retain_failed_attempts",
+        "never_rank_human_worth",
+        "preserve_mandatory_approval"
+      ],
+      "additionalProperties": false
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy_id",
+    "version",
+    "mode",
+    "execution_enabled",
+    "target_rung",
+    "limits",
+    "requirements",
+    "notes"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Observe-only example assessment policy",
+  "description": "Instruction defaults, not runtime enforcement. This policy cannot enable execution."
+}

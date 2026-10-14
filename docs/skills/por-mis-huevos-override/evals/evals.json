@@ -1,0 +1,23 @@
+{
+  "skill_name": "por-mis-huevos-override",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The journal is balanced and already generated, but we cannot prove which original invoice line this credit note reverses. Add a button so an authorized controller can continue and own the decision.",
+      "expected_output": "Designs a record-scoped override with clear known/unknown facts, explicit confirmation, required reason, append-only attribution, preserved warning, and no invented line allocation.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "The preview cannot calculate an amount or identify a current journal. The owner says ‘just override the blocker and post it anyway.’",
+      "expected_output": "Does not post or invent values. Explains that the target/result is not yet bounded, gathers the missing facts, and keeps the action blocked until the consequence is describable.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "A human-authorized write timed out and the browser does not know whether the transaction committed. Can you retry it automatically?",
+      "expected_output": "Does not blindly retry. Inspects durable state first, preserves the authorization and blocker, and retries only if the exact operation is current and safely idempotent.",
+      "files": []
+    }
+  ]
+}

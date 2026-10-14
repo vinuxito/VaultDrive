@@ -1,0 +1,77 @@
+{
+  "package": "mucha-verga-ladder",
+  "version": "1.0.0",
+  "automated_tests": {
+    "run": 113,
+    "passed": 113,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "synthetic contract and CLI checks"
+  },
+  "python_environment": "3.13.5",
+  "validated_json_records": [
+    "examples/01-local-action-r1.json",
+    "examples/02-source-diagnosis-r2.json",
+    "examples/03-bounded-preparer-r3.json",
+    "examples/04-shared-reader-r4.json",
+    "examples/05-screenshot-is-not-proof.json",
+    "examples/06-design-not-demonstration.json",
+    "examples/07-local-success-global-harm.json",
+    "examples/08-hidden-coordination-cost.json",
+    "examples/09-right-sized-stop.json",
+    "templates/assessment.blank.json",
+    "templates/policy.example.json"
+  ],
+  "core_lines": 236,
+  "core_whitespace_words": 1714,
+  "markdown_relative_links_checked": 44,
+  "handbook_anchor_links_checked": 62,
+  "handbook_file_links_checked": 39,
+  "browser_checks": {
+    "desktop": {
+      "viewport": "1440x1000",
+      "method": "Chromium set_content from local HTML bytes; not a file URL or live app test",
+      "horizontal_page_overflow": false,
+      "javascript_errors": [],
+      "external_requests": [],
+      "search_found_entries": 1,
+      "chapter_navigation_hash": "#doc-readme-md"
+    },
+    "mobile": {
+      "viewport": "390x844",
+      "method": "Chromium set_content from local HTML bytes; not a file URL or live app test",
+      "horizontal_page_overflow": false,
+      "javascript_errors": [],
+      "external_requests": [],
+      "search_found_entries": 1,
+      "chapter_navigation_hash": "#doc-readme-md"
+    }
+  },
+  "environment_interruptions": [
+    {
+      "attempt": "file URL navigation",
+      "result": "ERR_BLOCKED_BY_ADMINISTRATOR",
+      "classification": "environment policy; handbook not reached"
+    },
+    {
+      "attempt": "temporary loopback HTTP navigation",
+      "result": "ERR_BLOCKED_BY_ADMINISTRATOR",
+      "classification": "environment policy; handbook not reached"
+    }
+  ],
+  "live_app_scenarios": {
+    "defined": 48,
+    "run": 0,
+    "status": "NOT RUN"
+  },
+  "target_runtime_discovery_tested": false,
+  "physical_mobile_device_tested": false,
+  "source_authenticity_verified": false,
+  "execution_authorized": false,
+  "archive_retest": "113 tests passed after final archive extraction",
+  "limitations": [
+    "Machine checker verifies internal consistency of declared evidence, not external truth.",
+    "Direct file-URL browser opening in this container was not verified.",
+    "No app, production repository, account or user device was accessed."
+  ]
+}

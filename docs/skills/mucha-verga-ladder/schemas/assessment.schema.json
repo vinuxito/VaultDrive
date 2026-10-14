@@ -1,0 +1,568 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,99}$"
+    },
+    "rubric_version": {
+      "const": "1.0.0"
+    },
+    "mode": {
+      "enum": [
+        "observe_only",
+        "design_only"
+      ]
+    },
+    "assurance": {
+      "enum": [
+        "observed",
+        "synthetic_example",
+        "design_only"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "capability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "component_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "larger_system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "window_start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "window_end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "workload": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "capability",
+        "component_version",
+        "host",
+        "larger_system",
+        "owner",
+        "environment",
+        "window_start",
+        "window_end",
+        "workload",
+        "exclusions"
+      ],
+      "additionalProperties": false
+    },
+    "reported_rung": {
+      "enum": [
+        "undetermined",
+        "r1",
+        "r2",
+        "r3",
+        "r4"
+      ]
+    },
+    "target_rung": {
+      "enum": [
+        "r1",
+        "r2",
+        "r3",
+        "r4"
+      ]
+    },
+    "assessment_authorizes_execution": {
+      "const": false
+    },
+    "deployment_decision": {
+      "enum": [
+        "observe_only",
+        "hold",
+        "ready_for_owner_review",
+        "containment_required"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      },
+      "maxItems": 1000
+    },
+    "gates": {
+      "type": "object",
+      "properties": {
+        "mission_and_scope": {
+          "$ref": "#/$defs/gate"
+        },
+        "authorized_action": {
+          "$ref": "#/$defs/gate"
+        },
+        "bounded_execution": {
+          "$ref": "#/$defs/gate"
+        },
+        "observable_result": {
+          "$ref": "#/$defs/gate"
+        },
+        "verified_outcome": {
+          "$ref": "#/$defs/gate"
+        },
+        "exception_handling": {
+          "$ref": "#/$defs/gate"
+        },
+        "useful_handoff": {
+          "$ref": "#/$defs/gate"
+        },
+        "bounded_progress": {
+          "$ref": "#/$defs/gate"
+        },
+        "invariants_preserved": {
+          "$ref": "#/$defs/gate"
+        },
+        "repeatable_reliability": {
+          "$ref": "#/$defs/gate"
+        },
+        "containment_recovery": {
+          "$ref": "#/$defs/gate"
+        },
+        "truthful_status": {
+          "$ref": "#/$defs/gate"
+        },
+        "reused_capability": {
+          "$ref": "#/$defs/gate"
+        },
+        "consumer_benefit": {
+          "$ref": "#/$defs/gate"
+        },
+        "coordination_economics": {
+          "$ref": "#/$defs/gate"
+        },
+        "maintainable_transfer": {
+          "$ref": "#/$defs/gate"
+        }
+      },
+      "required": [
+        "mission_and_scope",
+        "authorized_action",
+        "bounded_execution",
+        "observable_result",
+        "verified_outcome",
+        "exception_handling",
+        "useful_handoff",
+        "bounded_progress",
+        "invariants_preserved",
+        "repeatable_reliability",
+        "containment_recovery",
+        "truthful_status",
+        "reused_capability",
+        "consumer_benefit",
+        "coordination_economics",
+        "maintainable_transfer"
+      ],
+      "additionalProperties": false
+    },
+    "consumers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/consumer"
+      },
+      "maxItems": 100
+    },
+    "comparison": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/comparison"
+        }
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      },
+      "maxItems": 100
+    },
+    "next_action": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "observe",
+            "request_evidence",
+            "propose_change",
+            "containment_review",
+            "stop"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requires_separate_authorization": {
+          "type": "boolean"
+        },
+        "budget": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "description",
+        "owner",
+        "requires_separate_authorization",
+        "budget"
+      ],
+      "additionalProperties": false
+    },
+    "conclusion": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "rubric_version",
+    "mode",
+    "assurance",
+    "scope",
+    "reported_rung",
+    "target_rung",
+    "assessment_authorizes_execution",
+    "deployment_decision",
+    "evidence",
+    "gates",
+    "consumers",
+    "comparison",
+    "blockers",
+    "next_action",
+    "conclusion"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mucha Verga Ladder scoped assessment",
+  "description": "Structure plus declared-evidence consistency; not source verification or execution authorization.",
+  "$defs": {
+    "gate": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "status",
+        "rationale",
+        "evidence_ids",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,99}$"
+        },
+        "kind": {
+          "enum": [
+            "owner_policy",
+            "observation",
+            "test_result",
+            "measurement",
+            "claim"
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_group": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "inspected": {
+          "type": "boolean"
+        },
+        "currentness": {
+          "enum": [
+            "current",
+            "stale",
+            "superseded",
+            "unknown"
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "observation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "locator",
+        "source_group",
+        "observed_at",
+        "inspected",
+        "currentness",
+        "synthetic",
+        "observation",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "consumer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,99}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "comparison": {
+      "type": "object",
+      "properties": {
+        "workload_comparable": {
+          "type": "boolean"
+        },
+        "comparison_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accepted_outcomes_before": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "accepted_outcomes_after": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "routine_steering_minutes_before": {
+          "type": "number",
+          "minimum": 0
+        },
+        "routine_steering_minutes_after": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mandatory_review_minutes_before": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mandatory_review_minutes_after": {
+          "type": "number",
+          "minimum": 0
+        },
+        "recovery_minutes_before": {
+          "type": "number",
+          "minimum": 0
+        },
+        "recovery_minutes_after": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mandatory_review_preserved": {
+          "type": "boolean"
+        },
+        "neighbor_burden_checked": {
+          "type": "boolean"
+        },
+        "guardrails_preserved": {
+          "type": "boolean"
+        },
+        "lifecycle_costs_accepted": {
+          "type": "boolean"
+        },
+        "benefit_demonstrated": {
+          "type": "boolean"
+        },
+        "benefit_observation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lifecycle_cost_notes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "workload_comparable",
+        "comparison_basis",
+        "accepted_outcomes_before",
+        "accepted_outcomes_after",
+        "routine_steering_minutes_before",
+        "routine_steering_minutes_after",
+        "mandatory_review_minutes_before",
+        "mandatory_review_minutes_after",
+        "recovery_minutes_before",
+        "recovery_minutes_after",
+        "mandatory_review_preserved",
+        "neighbor_burden_checked",
+        "guardrails_preserved",
+        "lifecycle_costs_accepted",
+        "benefit_demonstrated",
+        "benefit_observation",
+        "lifecycle_cost_notes",
+        "evidence_ids",
+        "caveats"
+      ],
+      "additionalProperties": false
+    },
+    "blocker": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,99}$"
+        },
+        "severity": {
+          "enum": [
+            "blocking",
+            "advisory"
+          ]
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "severity",
+        "status",
+        "description",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

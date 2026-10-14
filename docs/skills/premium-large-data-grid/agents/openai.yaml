@@ -1,0 +1,4 @@
+interface:
+  display_name: "Premium Large Data Grid"
+  short_description: "Beautiful fast grids with honest scoped evidence"
+  default_prompt: "Use $premium-large-data-grid to adapt a beautiful, bounded and trustworthy grid to this application, preserving its owners and current test authority."

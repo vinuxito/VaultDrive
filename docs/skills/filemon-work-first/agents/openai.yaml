@@ -1,0 +1,4 @@
+interface:
+  display_name: "Filemón Work-First"
+  short_description: "Turn existing module pages into evidence-first workspaces"
+  default_prompt: "Use $filemon-work-first to apply the notificaciones work-first pattern to this project’s real workflows for people and AI agents."

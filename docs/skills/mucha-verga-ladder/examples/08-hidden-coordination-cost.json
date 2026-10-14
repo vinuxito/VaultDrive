@@ -1,0 +1,464 @@
+{
+  "schema_version": "1.0",
+  "assessment_id": "mvl-hidden-coordination-cost",
+  "rubric_version": "1.0.0",
+  "mode": "observe_only",
+  "assurance": "synthetic_example",
+  "scope": {
+    "capability": "Synthetic capability for documentation",
+    "component_version": "demo-1",
+    "host": "Fictional host",
+    "larger_system": "Fictional operational workflow",
+    "owner": "Example owner",
+    "environment": "synthetic teaching fixture, no live system",
+    "window_start": "2026-10-01T00:00:00Z",
+    "window_end": "2026-10-04T00:00:00Z",
+    "workload": "Fictional representative cases defined in this example",
+    "exclusions": [
+      "No claim about any real app or user."
+    ]
+  },
+  "reported_rung": "r3",
+  "target_rung": "r4",
+  "assessment_authorizes_execution": false,
+  "deployment_decision": "observe_only",
+  "evidence": [
+    {
+      "id": "E01",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/mission_and_scope",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Mission, owner, outcome and operating scope are explicit.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E02",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/authorized_action",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: A bounded local operation respects current host-enforced authority.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E03",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/bounded_execution",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Work is bounded and its actual stop/resource controls are known.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E04",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/observable_result",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Result or failure is visible and traceable to the operation.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E05",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/verified_outcome",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: A useful task outcome is checked rather than inferred from activity.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E06",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/exception_handling",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Relevant failure, missing-input and interrupted paths are handled.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E07",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/useful_handoff",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Consumer receives the result, context, limitations and next action.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E08",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/bounded_progress",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Work finishes, checkpoints or escalates usefully within its bounds.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E09",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/invariants_preserved",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Larger-system invariants and neighbor boundaries are preserved.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E10",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/repeatable_reliability",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Repeated relevant observations satisfy the scoped evidence plan.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E11",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/containment_recovery",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Failure, cancellation and recovery are bounded and checked.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E12",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/truthful_status",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: UI, APIs and reports expose consistent current facts and limitations.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E13",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/reused_capability",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Two distinct consumers accept the same governed capability contract.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E14",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/consumer_benefit",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Consumers gain observed useful capability, with comparison limits.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E15",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/coordination_economics",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Synthetic steering comparison is 80 minutes before and 120 after for 40 outcomes each.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    },
+    {
+      "id": "E16",
+      "kind": "test_result",
+      "locator": "synthetic://mvl-hidden-coordination-cost/maintainable_transfer",
+      "source_group": "mvl-hidden-coordination-cost-controlled-exercise",
+      "observed_at": "2026-10-03T12:00:00Z",
+      "inspected": true,
+      "currentness": "current",
+      "synthetic": true,
+      "observation": "Fictional scenario reports this condition satisfied: Adoption, operation, versioning, support and exit are maintainable.",
+      "limitations": [
+        "Synthetic record; inspected/current are example declarations, not an actual external observation."
+      ]
+    }
+  ],
+  "gates": {
+    "mission_and_scope": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Mission, owner, outcome and operating scope are explicit.",
+      "evidence_ids": [
+        "E01"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "authorized_action": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: A bounded local operation respects current host-enforced authority.",
+      "evidence_ids": [
+        "E02"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "bounded_execution": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Work is bounded and its actual stop/resource controls are known.",
+      "evidence_ids": [
+        "E03"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "observable_result": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Result or failure is visible and traceable to the operation.",
+      "evidence_ids": [
+        "E04"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "verified_outcome": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: A useful task outcome is checked rather than inferred from activity.",
+      "evidence_ids": [
+        "E05"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "exception_handling": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Relevant failure, missing-input and interrupted paths are handled.",
+      "evidence_ids": [
+        "E06"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "useful_handoff": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Consumer receives the result, context, limitations and next action.",
+      "evidence_ids": [
+        "E07"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "bounded_progress": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Work finishes, checkpoints or escalates usefully within its bounds.",
+      "evidence_ids": [
+        "E08"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "invariants_preserved": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Larger-system invariants and neighbor boundaries are preserved.",
+      "evidence_ids": [
+        "E09"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "repeatable_reliability": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Repeated relevant observations satisfy the scoped evidence plan.",
+      "evidence_ids": [
+        "E10"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "containment_recovery": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Failure, cancellation and recovery are bounded and checked.",
+      "evidence_ids": [
+        "E11"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "truthful_status": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: UI, APIs and reports expose consistent current facts and limitations.",
+      "evidence_ids": [
+        "E12"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "reused_capability": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Two distinct consumers accept the same governed capability contract.",
+      "evidence_ids": [
+        "E13"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "consumer_benefit": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Consumers gain observed useful capability, with comparison limits.",
+      "evidence_ids": [
+        "E14"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    },
+    "coordination_economics": {
+      "status": "fail",
+      "rationale": "Comparable work requires more routine central steering and its lifecycle tradeoff is unaccepted.",
+      "evidence_ids": [
+        "E15"
+      ],
+      "limitations": []
+    },
+    "maintainable_transfer": {
+      "status": "pass",
+      "rationale": "Teaching fixture declares: Adoption, operation, versioning, support and exit are maintainable.",
+      "evidence_ids": [
+        "E16"
+      ],
+      "limitations": [
+        "Evidence strength must be independently reviewed in any real use."
+      ]
+    }
+  },
+  "consumers": [
+    {
+      "id": "consumer-a",
+      "description": "First fictional consumer.",
+      "evidence_ids": [
+        "E13"
+      ]
+    },
+    {
+      "id": "consumer-b",
+      "description": "Second fictional consumer.",
+      "evidence_ids": [
+        "E13"
+      ]
+    }
+  ],
+  "comparison": {
+    "workload_comparable": true,
+    "comparison_basis": "Fictional matched set of 40 accepted inspections for both baseline and candidate, with denied/missing-source cases retained in the supporting report.",
+    "accepted_outcomes_before": 40,
+    "accepted_outcomes_after": 40,
+    "routine_steering_minutes_before": 80,
+    "routine_steering_minutes_after": 120,
+    "mandatory_review_minutes_before": 20,
+    "mandatory_review_minutes_after": 20,
+    "recovery_minutes_before": 12,
+    "recovery_minutes_after": 8,
+    "mandatory_review_preserved": true,
+    "neighbor_burden_checked": true,
+    "guardrails_preserved": true,
+    "lifecycle_costs_accepted": false,
+    "benefit_demonstrated": true,
+    "benefit_observation": "The UI has a useful extra capability, but steering rises from 2.00 to 3.00 minutes per accepted outcome.",
+    "lifecycle_cost_notes": "The owner has not accepted increased ongoing support.",
+    "evidence_ids": [
+      "E14",
+      "E15",
+      "E16"
+    ],
+    "caveats": [
+      "Synthetic comparison only.",
+      "This small example does not establish production reliability or isolate every causal factor."
+    ]
+  },
+  "blockers": [],
+  "next_action": {
+    "kind": "request_evidence",
+    "description": "Gather the next missing scoped observation; do not change the system.",
+    "owner": "Example owner",
+    "requires_separate_authorization": false,
+    "budget": "One approved read-only review; no new workers or external calls."
+  },
+  "conclusion": "Rung 3 remains the cumulative declared result. Reuse alone is not system leverage under this rubric."
+}
