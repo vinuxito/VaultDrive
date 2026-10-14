@@ -1009,5 +1009,27 @@
     "autoRename": "Auto-name: {{name}}",
     "applied": "Smart name applied",
     "indexedToast": "Indexed in Blind Brain ({{category}})"
+  },
+  "office": {
+    "pluginSuiteBadge": "Quantix ABRN SAT • Amarre Fiscal (Roche)",
+    "viewGlassTwin": "Executive View (Glass Twin)",
+    "viewRawSource": "Original Source",
+    "viewAmarreContract": "SAT / Amarre Fiscal (Roche) Contract",
+    "copyCitation": "Copy Citation / UUID",
+    "copiedCitation": "Citation copied!",
+    "copyAmarreJson": "Copy Amarre Fiscal (Roche) JSON",
+    "copiedAmarreJson": "Amarre Fiscal JSON copied!",
+    "sendWhatsApp": "Send Summary via WhatsApp",
+    "emisorTitle": "Issuer (Emisor SAT)",
+    "receptorTitle": "Recipient (Receptor Fiscal)",
+    "conceptosTitle": "Invoice Line Items (Conceptos CFDI)",
+    "totalsTitle": "Tax Breakdown & Total",
+    "uuidLabel": "Fiscal UUID (Timbre SAT)",
+    "filterRowsPlaceholder": "Filter rows in this sheet (e.g. RFC, folio, amount)…",
+    "selectedCell": "Active Cell",
+    "formulaLabel": "Formula",
+    "backToVault": "← Back to Vault (Esc)",
+    "ramLineage": "Decrypted in RAM • 0 Bytes Altered",
+    "downloadOriginal": "Download Original"
   }
 }

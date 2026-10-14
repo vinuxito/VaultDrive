@@ -20,6 +20,12 @@ import { playTumblerClick, playUnlockChime } from "../../utils/audioHaptics";
 import { extractSnippetForIndexing } from "../../utils/streaming-decrypt";
 import { analyzeDocumentTriage } from "../../utils/document-triage";
 import { globalVaultSearchIndex } from "../../utils/vault-search-index";
+import {
+  canHandleWithFilemonOffice,
+  parseFilemonOfficeDocument,
+  type FilemonOfficeDocumentContract,
+} from "../../utils/filemon-office";
+import { FilemonOfficeStage } from "./FilemonOfficeStage";
 
 export interface FileEntry {
   id: string;
@@ -115,6 +121,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   const [trustExpanded, setTrustExpanded] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
+  const [officeDoc, setOfficeDoc] = useState<FilemonOfficeDocumentContract | null>(null);
   const [decryptedBlob, setDecryptedBlob] = useState<Blob | null>(null);
   const [decryptedSha256, setDecryptedSha256] = useState<string | null>(null);
   const [hashCopied, setHashCopied] = useState(false);
@@ -324,16 +331,50 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
       if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
 
       const ext = file.filename.split(".").pop()?.toLowerCase() ?? "";
-      const textTypes = ["txt", "md", "json", "csv", "xml", "html", "js", "ts", "py", "go", "sh"];
+      const textTypes = ["txt", "md", "json", "csv", "tsv", "xml", "html", "js", "ts", "py", "go", "sh"];
 
       if (textTypes.includes(ext)) {
         const text = await blob.text();
         if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
         setTextContent(text);
+        if (canHandleWithFilemonOffice(file.filename)) {
+          const textBytes = new TextEncoder().encode(text);
+          const textBuffer = textBytes.buffer.slice(textBytes.byteOffset, textBytes.byteOffset + textBytes.byteLength);
+          const parsedOffice = await parseFilemonOfficeDocument({
+            id: file.id,
+            filename: file.filename,
+            buffer: textBuffer,
+            sha256: computedSha256 || undefined,
+          });
+          if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
+          setOfficeDoc(parsedOffice);
+        }
+      } else if (ext === "xlsx") {
+        const parsedOffice = await parseFilemonOfficeDocument({
+          id: file.id,
+          filename: file.filename,
+          buffer: decryptedBuffer,
+          sha256: computedSha256 || undefined,
+        });
+        if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
+        setOfficeDoc(parsedOffice);
       } else {
         const url = URL.createObjectURL(blob);
         if (requestId !== previewGeneration.current) URL.revokeObjectURL(url);
-        else setBlobUrl(url);
+        else {
+          setBlobUrl(url);
+          if (ext === "pdf") {
+            const parsedPdf = await parseFilemonOfficeDocument({
+              id: file.id,
+              filename: file.filename,
+              buffer: decryptedBuffer,
+              sha256: computedSha256 || undefined,
+            });
+            if (requestId === previewGeneration.current) {
+              setOfficeDoc(parsedPdf);
+            }
+          }
+        }
       }
       playUnlockChime();
       return { success: true };
@@ -367,6 +408,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     if (!file) return;
     setBlobUrl(null);
     setTextContent(null);
+    setOfficeDoc(null);
     setLoadError("");
     setDecryptedBlob(null);
     setDecryptedSha256(null);
@@ -448,6 +490,10 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
     if (!file) return null;
     const ext = file.filename.split(".").pop()?.toLowerCase() ?? "";
 
+    if (officeDoc && ext !== "pdf") {
+      return <FilemonOfficeStage doc={officeDoc} />;
+    }
+
     if (textContent !== null) {
       return (
         <pre className="text-sm text-foreground overflow-auto max-h-[70vh] p-4 bg-muted rounded whitespace-pre-wrap break-words">
@@ -495,12 +541,39 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   if (!file) return null;
 
   const credType = getCredentialType(file);
+  const isOfficeSupported = canHandleWithFilemonOffice(file.filename);
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="preview-title" tabIndex={-1} className="bg-card text-card-foreground border border-border rounded-2xl w-full min-w-0 max-w-5xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 border-b border-border shrink-0 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-4">
-          <h2 id="preview-title" className="min-w-0 flex-1 text-foreground font-semibold truncate text-sm">{file.filename}</h2>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="preview-title" tabIndex={-1} className="bg-card text-card-foreground border border-border rounded-2xl w-full min-w-0 max-w-[94vw] xl:max-w-6xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl overflow-hidden">
+        {/* Zone 1: Frozen Top Executive Hero Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 border-b border-border shrink-0 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-3.5 bg-surface-subtle/50">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 id="preview-title" className="min-w-0 text-foreground font-semibold truncate text-sm sm:text-base">{file.filename}</h2>
+              {isOfficeSupported && (
+                <>
+                  <span
+                    data-testid="filemon-office-badge"
+                    className="inline-flex items-center rounded-md bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-accent/30"
+                  >
+                    {officeDoc?.badgeLabel || "FILEMÓN OFFICE"}
+                  </span>
+                  <span
+                    data-testid="filemon-office-suite-pill"
+                    className="hidden md:inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 border border-indigo-500/25"
+                  >
+                    {t("office.pluginSuiteBadge", { defaultValue: "Quantix ABRN SAT • Amarre Fiscal (Roche)" })}
+                  </span>
+                </>
+              )}
+            </div>
+            {officeDoc?.headline && (
+              <p className="text-xs font-mono text-muted-foreground truncate" data-testid="filemon-office-headline">
+                {officeDoc.headline}
+              </p>
+            )}
+          </div>
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1.5 shrink-0 sm:gap-2">
             <Button
               size="sm"
@@ -793,6 +866,39 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
             </>
           )}
         </div>
+
+        {/* Zone 3: Frozen Sticky Bottom Tactical Dock */}
+        {!showCredentialPrompt && !isLoading && !loadError && decryptedBlob && (
+          <div
+            data-testid="filemon-office-tactical-dock"
+            className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-surface-subtle/90 px-3 py-2.5 shrink-0 sm:px-5"
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex min-h-[42px] items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-surface-hover transition-colors"
+            >
+              {t("office.backToVault", { defaultValue: "← Volver a Bóveda (Esc)" })}
+            </button>
+
+            <div className="hidden lg:flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-mono text-emerald-700 dark:text-emerald-300">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                SHA-256: {(decryptedSha256 || "LOCAL").slice(0, 16)}… •{" "}
+                {t("office.ramLineage", { defaultValue: "Leído en RAM • 0 Bytes Alterados" })}
+              </span>
+            </div>
+
+            <Button
+              type="button"
+              onClick={handleDownloadDecrypted}
+              className="min-h-[42px] rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-xs font-semibold gap-1.5"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {t("office.downloadOriginal", { defaultValue: "Descargar Original" })}
+            </Button>
+          </div>
+        )}
       </div>
       {showSigningUnlock && <SigningUnlockDialog
         busy={isSigning}

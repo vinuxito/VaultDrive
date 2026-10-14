@@ -1008,5 +1008,27 @@
     "autoRename": "Auto-nombrar: {{name}}",
     "applied": "Nombre inteligente aplicado",
     "indexedToast": "Indexado en Cerebro Ciego ({{category}})"
+  },
+  "office": {
+    "pluginSuiteBadge": "Quantix ABRN SAT • Amarre Fiscal (Roche)",
+    "viewGlassTwin": "Vista Ejecutiva (Glass Twin)",
+    "viewRawSource": "Fuente Original",
+    "viewAmarreContract": "Ficha SAT / Amarre Fiscal (Roche)",
+    "copyCitation": "Copiar Cita / UUID",
+    "copiedCitation": "¡Cita copiada!",
+    "copyAmarreJson": "Copiar JSON Amarre Fiscal (Roche)",
+    "copiedAmarreJson": "¡JSON de Amarre Fiscal copiado!",
+    "sendWhatsApp": "Enviar Resumen WhatsApp",
+    "emisorTitle": "Emisor Fiscal (SAT)",
+    "receptorTitle": "Receptor / Cliente Fiscal",
+    "conceptosTitle": "Conceptos del Comprobante (CFDI)",
+    "totalsTitle": "Desglose de Impuestos y Total",
+    "uuidLabel": "Folio Fiscal UUID (Timbre SAT)",
+    "filterRowsPlaceholder": "Filtrar filas en esta hoja (ej. RFC, folio, monto)…",
+    "selectedCell": "Celda Activa",
+    "formulaLabel": "Fórmula",
+    "backToVault": "← Volver a Bóveda (Esc)",
+    "ramLineage": "Leído en RAM • 0 Bytes Alterados",
+    "downloadOriginal": "Descargar Original"
   }
 }

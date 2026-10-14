@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v19-filemon-office-plugin",
+    "environment": "Ubuntu Linux 64-bit • Node/Vite + Vitest JSDOM",
+    "report": "docs/reports/2026-10-14-v19-filemon-office-plugin-verification.md",
+    "files": [
+      {
+        "path": "vaultdrive_client/src/utils/filemon-office.ts",
+        "sha256": "551bcbc1151fa287c5774b6935201bf03753d313be14f364fe7fcb07d4b9d62b"
+      },
+      {
+        "path": "vaultdrive_client/src/utils/filemon-office.test.ts",
+        "sha256": "11fb814a8bbf743b483a514c06d68a17f2184560dacf0a5576c543ce9353f54e"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilemonOfficeStage.tsx",
+        "sha256": "46c0a117645e1a24c4da1db741f9fbfa3b099dcdffd9a6544132d09608988e3e"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilemonOfficeStage.test.tsx",
+        "sha256": "b57bb0a2ae810a859bedcd601b52a03be370080c86f1fa7c113697dac12e0426"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilePreviewModal.tsx",
+        "sha256": "750f2d20c0dc21505343b2affab40058c53a21db951e9326638757a5c3c38e86"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilePreviewModal.test.tsx",
+        "sha256": "33339bafae98f7ffa4089d01ecf2aba2d4507f7d8175c7841750a0d37e0c459b"
+      },
+      {
+        "path": "vaultdrive_client/src/locales/en/drive.json",
+        "sha256": "30a59246d7d8eac211829752c118595a08cdba1d984dc13f67457ff083f64941"
+      },
+      {
+        "path": "vaultdrive_client/src/locales/es/drive.json",
+        "sha256": "c54f85483d3f893dacc2a591b6a98884325b25d1e79484f14e67756b82ea3f26"
+      },
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "42e8831082333ad3f4ab72fc9bbeecef946d51aeff47aba43e2c98ca27d105ed"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-OFFICE-ENGINE",
+      "description": "Zero-knowledge in-RAM Filemón Office parser engine for CFDI 4.0 XML, multi-sheet XLSX, and CSV/TSV with Amarre Fiscal (Roche) & Quantix ABRN SAT contract output.",
+      "check_ids": [
+        "CHK-TYPECHECK",
+        "CHK-OFFICE-UNIT",
+        "CHK-PROD-BUILD"
+      ]
+    },
+    {
+      "id": "REQ-GLASS-TWIN-STAGE",
+      "description": "FilemonOfficeStage UI with 1-Click Instant Dispatch Deck, CFDI 4.0 Live Glass Twin, and multi-sheet Spreadsheet Workbench.",
+      "check_ids": [
+        "CHK-STAGE-UI",
+        "CHK-PROD-BUILD"
+      ]
+    },
+    {
+      "id": "REQ-CINEMASCOPE-MODAL-DOCK",
+      "description": "3-Zone Cinemascope Modal and Sticky Bottom Tactical Dock in FilePreviewModal preserving all existing preview tests.",
+      "check_ids": [
+        "CHK-MODAL-INTEGRATION",
+        "CHK-PROD-BUILD"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-TYPECHECK",
+      "build_id": "v19-filemon-office-plugin",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "npm --prefix vaultdrive_client run typecheck",
+      "expected": "0 TypeScript compilation errors",
+      "actual": "0 errors (exit 0)",
+      "environment": "Node.js / TypeScript tsc -b",
+      "requirement_ids": [
+        "REQ-OFFICE-ENGINE"
+      ],
+      "evidence": [
+        "docs/reports/2026-10-14-v19-filemon-office-plugin-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-OFFICE-UNIT",
+      "build_id": "v19-filemon-office-plugin",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/utils/filemon-office.test.ts",
+      "expected": "5/5 unit tests pass",
+      "actual": "5/5 passed in 126ms",
+      "environment": "Vitest 4.1.0 + JSDOM",
+      "requirement_ids": [
+        "REQ-OFFICE-ENGINE"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/utils/filemon-office.test.ts"
+      ]
+    },
+    {
+      "id": "CHK-STAGE-UI",
+      "build_id": "v19-filemon-office-plugin",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/components/vault/FilemonOfficeStage.test.tsx",
+      "expected": "2/2 component tests pass",
+      "actual": "2/2 passed in 626ms",
+      "environment": "Vitest 4.1.0 + React Testing Library",
+      "requirement_ids": [
+        "REQ-GLASS-TWIN-STAGE"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/components/vault/FilemonOfficeStage.test.tsx"
+      ]
+    },
+    {
+      "id": "CHK-MODAL-INTEGRATION",
+      "build_id": "v19-filemon-office-plugin",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/components/vault/FilePreviewModal.test.tsx",
+      "expected": "14/14 modal tests pass (13 existing + 1 new Filemón Office CFDI 4.0 test)",
+      "actual": "14/14 passed in 3.40s",
+      "environment": "Vitest 4.1.0 + React Testing Library",
+      "requirement_ids": [
+        "REQ-CINEMASCOPE-MODAL-DOCK"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/components/vault/FilePreviewModal.test.tsx"
+      ]
+    },
+    {
+      "id": "CHK-PROD-BUILD",
+      "build_id": "v19-filemon-office-plugin",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "npm --prefix vaultdrive_client run build",
+      "expected": "Production bundle compiles cleanly",
+      "actual": "Built in 25.11s (exit 0)",
+      "environment": "Vite Production Bundler",
+      "requirement_ids": [
+        "REQ-OFFICE-ENGINE",
+        "REQ-GLASS-TWIN-STAGE",
+        "REQ-CINEMASCOPE-MODAL-DOCK"
+      ],
+      "evidence": [
+        "vaultdrive_client/dist/index.html"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-STALE-TEXT-RACE",
+      "severity": "HIGH",
+      "status": "FIXED",
+      "requirement_ids": [
+        "REQ-CINEMASCOPE-MODAL-DOCK"
+      ],
+      "reproduction": "Switch selected file in FilePreviewModal while Blob.prototype.text() is still pending.",
+      "expected": "Stale file text and Filemón Office parsed state must not publish after file selection changes.",
+      "actual": "Guarded parseFilemonOfficeDocument after blob.text() with requestId === previewGeneration.current.",
+      "cause": "Async race when switching files rapidly.",
+      "fix": "Sequenced parseFilemonOfficeDocument after await blob.text() with previewGeneration requestId check.",
+      "verification_check_ids": [
+        "CHK-MODAL-INTEGRATION"
+      ]
+    }
+  ]
+}

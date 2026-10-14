@@ -343,4 +343,61 @@ describe("FilePreviewModal cached credential recovery", () => {
     await userEvent.click(screen.getByRole("button", { name: /edit credential/i }));
     expect(screen.getByLabelText(/^pin$/i)).toHaveValue("1234");
   });
+
+  it("opens CFDI 4.0 XML inside Filemón Office with Live Glass Twin, Quantix ABRN SAT / Amarre Fiscal (Roche) pill, and Sticky Bottom Tactical Dock", async () => {
+    vaultMocks.getFolderKey.mockReturnValue({} as CryptoKey);
+    vaultMocks.getCredential.mockReturnValue(null);
+    const cfdiXml = `<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" Version="4.0" Serie="FA" Folio="901" Total="28450.00" SubTotal="24525.86" Moneda="MXN">
+  <cfdi:Emisor Rfc="QAB240101AAA" Nombre="QUANTIX ABRN INDUSTRIAL SA DE CV" RegimenFiscal="601" />
+  <cfdi:Receptor Rfc="ROCH9001019A1" Nombre="ROCHE LOGISTICA Y AMARRE FISCAL SA DE CV" UsoCFDI="G03" />
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="80141600" Cantidad="1" ClaveUnidad="E48" Descripcion="AMARRE FISCAL OCTUBRE" ValorUnitario="24525.86" Importe="24525.86" />
+  </cfdi:Conceptos>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital UUID="550E8400-E29B-41D4-A716-446655440000" />
+  </cfdi:Complemento>
+</cfdi:Comprobante>`;
+
+    class CfdiWorker {
+      onmessage: ((event: MessageEvent) => void) | null = null;
+      onerror: ((event: ErrorEvent) => void) | null = null;
+      postMessage() {
+        queueMicrotask(() =>
+          this.onmessage?.({
+            data: {
+              success: true,
+              decryptedBuffer: new TextEncoder().encode(cfdiXml).buffer,
+            },
+          } as MessageEvent),
+        );
+      }
+      terminate() {}
+    }
+    vi.stubGlobal("Worker", CfdiWorker);
+
+    render(
+      <FilePreviewModal
+        file={{
+          id: "cfdi-roche",
+          folder_id: "folder",
+          filename: "factura_roche.xml",
+          is_owner: true,
+          metadata: JSON.stringify({ credential_scheme: "folder" }),
+        }}
+        onClose={() => {}}
+        onDownload={() => {}}
+      />,
+    );
+
+    expect(await screen.findByTestId("filemon-office-cfdi-twin")).toBeInTheDocument();
+    expect(screen.getByTestId("filemon-office-badge")).toHaveTextContent(
+      "FILEMÓN OFFICE • CFDI 4.0",
+    );
+    expect(screen.getByTestId("filemon-office-suite-pill")).toHaveTextContent(
+      /Quantix ABRN SAT • Amarre Fiscal \(Roche\)/,
+    );
+    expect(screen.getByTestId("filemon-office-tactical-dock")).toBeInTheDocument();
+    expect(screen.getByText("AMARRE FISCAL OCTUBRE")).toBeInTheDocument();
+  });
 });
