@@ -109,4 +109,33 @@ describe("VaultContextMenu", () => {
     expect(onShareFolder).toHaveBeenCalledWith("folder-123", "Confidential Docs");
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("calls onWhatsAppShare and onStageFile from single-file context menu", async () => {
+    const onWhatsAppShare = vi.fn();
+    const onStageFile = vi.fn();
+    const onClose = vi.fn();
+
+    render(
+      <VaultContextMenu
+        state={{
+          isOpen: true,
+          x: 120,
+          y: 180,
+          targetType: "file",
+          targetData: mockFile,
+        }}
+        onClose={onClose}
+        onWhatsAppShare={onWhatsAppShare}
+        onStageFile={onStageFile}
+      />
+    );
+
+    const waBtn = screen.getByText(/Enviar por WhatsApp/i);
+    await userEvent.click(waBtn);
+    expect(onWhatsAppShare).toHaveBeenCalledWith(mockFile);
+
+    const stageBtn = screen.getByText(/Send to Staging Dock|Enviar al Staging Dock/i);
+    await userEvent.click(stageBtn);
+    expect(onStageFile).toHaveBeenCalledWith(mockFile);
+  });
 });

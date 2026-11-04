@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v20-abrn-vibe-resizable-drive",
+    "environment": "Ubuntu Linux 64-bit • Node/Vite + Vitest JSDOM + Real Chromium via bsk",
+    "report": "docs/reports/2026-11-04-v20-abrn-vibe-resizable-drive-verification.md",
+    "files": [
+      {
+        "path": "vaultdrive_client/src/styles/skins.css",
+        "sha256": "36e7bea2022f51c2524dd26c9c00edf08924bec62ede525588a1187f15d6fc70"
+      },
+      {
+        "path": "vaultdrive_client/src/components/theme-context.ts",
+        "sha256": "3b3c05631146e84ea62c10f376f16c196f83835721e6bb04d8a9f62feb6189ca"
+      },
+      {
+        "path": "vaultdrive_client/src/components/ThemeProvider.tsx",
+        "sha256": "dda8f9e27128d9bbff2f12111917219f096d8e6b2021eb9210dcfffc62c8bb94"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/sidebar.tsx",
+        "sha256": "5771f5782c216aaaae5983067d24597a92b99f735fcf5ffa8c1d82800c43e20d"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/dashboard-layout.tsx",
+        "sha256": "1aa5c91e29fff5a599d557c599ed787f752c00f040c6c3965a9a6337226fc6f0"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultInspectorPane.tsx",
+        "sha256": "83eaa6d52f673a541aa0882ebf3fe970f9f90fe7e6dce9ea36c5096a593818ed"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultInspectorPane.test.tsx",
+        "sha256": "63bcdc481a12c3e6f1dfe04ed24d3da7faeaaf72af856448c687c5e7737762ae"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.tsx",
+        "sha256": "0fec049495337878a4c695a307d3dea0917f082c0fed5f51cb3b388c7c225db4"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.test.tsx",
+        "sha256": "6a5d80adb358e1eb26df4e2baa4a521e35a0b0db8e74084877f9e60b015d8f67"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultContextMenu.tsx",
+        "sha256": "ff4d3d702e4dc9393ca881e683b16233ef907485da2eb8845a29b52aaed3b639"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultContextMenu.test.tsx",
+        "sha256": "bed11cc95ff8afbaf58e2d96c7a91b3b77595c51263fb089fe43d70589597d1f"
+      },
+      {
+        "path": "vaultdrive_client/src/pages/files.tsx",
+        "sha256": "8642fecfd6db512dc688e3724e14871f4fa2997e4f11bae5689fbb774e02e4ab"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/drive.html",
+        "sha256": "91f8cb5fbc639ae37d52ecc5dc65a43975dcd19c68acd2e74821771a97559586"
+      },
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "c0fc35098f68d77b88587d2446728f257209fec573898117b31689781ab77b10"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-ABRN-PALETTE",
+      "description": "Immutable ABRN Asesores Warm Cream & Burgundy (light) and Deep Slate & Rose-Burgundy (dark) palettes with 100% WCAG 4.5:1 compliance, upright BrandLogo, and 1-click topbar mode switcher.",
+      "check_ids": [
+        "CHK-TYPECHECK",
+        "CHK-WCAG-SKINS",
+        "CHK-LAYOUT-SHELL",
+        "CHK-BSK-LIVE"
+      ]
+    },
+    {
+      "id": "REQ-THREE-PANE-INSPECTOR",
+      "description": "3-pane dual-splitter resizable workspace on /files with VaultInspectorPane supporting all 5 preview formats (PDF, 4K, Video 64KB, Code, XLSX), 1-click #key/WhatsApp/RSA/SHA-256 dispatch, and format badges in FileGrid.",
+      "check_ids": [
+        "CHK-TYPECHECK",
+        "CHK-INSPECTOR-PANE",
+        "CHK-GRID-CONTEXT",
+        "CHK-PROD-BUILD",
+        "CHK-BSK-LIVE"
+      ]
+    },
+    {
+      "id": "REQ-CONTEXT-MENU",
+      "description": "Right-click VaultContextMenu with keyboard shortcut badges and WhatsApp (W) + Staging Dock (X) actions.",
+      "check_ids": [
+        "CHK-GRID-CONTEXT",
+        "CHK-PROD-BUILD"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-TYPECHECK",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "npm --prefix vaultdrive_client run typecheck",
+      "expected": "0 TypeScript compilation errors",
+      "actual": "0 errors (exit 0)",
+      "environment": "Node.js / TypeScript tsc -b",
+      "requirement_ids": [
+        "REQ-ABRN-PALETTE",
+        "REQ-THREE-PANE-INSPECTOR"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-04-v20-abrn-vibe-resizable-drive-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-WCAG-SKINS",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/config/skin-contrast.test.ts src/config/brand-theme.test.ts",
+      "expected": "80/80 WCAG contrast and brand theme tests pass",
+      "actual": "80/80 passed (exit 0)",
+      "environment": "Vitest 4.1.0 + JSDOM",
+      "requirement_ids": [
+        "REQ-ABRN-PALETTE"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/styles/skins.css"
+      ]
+    },
+    {
+      "id": "CHK-LAYOUT-SHELL",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/components/layout/sidebar.test.tsx src/components/layout/dashboard-layout.test.tsx",
+      "expected": "7/7 sidebar and dashboard layout tests pass",
+      "actual": "7/7 passed (exit 0)",
+      "environment": "Vitest 4.1.0 + React Testing Library",
+      "requirement_ids": [
+        "REQ-ABRN-PALETTE"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/components/layout/dashboard-layout.tsx"
+      ]
+    },
+    {
+      "id": "CHK-INSPECTOR-PANE",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/components/vault/VaultInspectorPane.test.tsx",
+      "expected": "1/1 5-format inspector pane test passes",
+      "actual": "1/1 passed (exit 0)",
+      "environment": "Vitest 4.1.0 + React Testing Library",
+      "requirement_ids": [
+        "REQ-THREE-PANE-INSPECTOR"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/components/vault/VaultInspectorPane.test.tsx"
+      ]
+    },
+    {
+      "id": "CHK-GRID-CONTEXT",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "npx vitest run src/components/vault/FileGrid.test.tsx src/components/vault/VaultContextMenu.test.tsx src/components/vault/FilePreviewModal.test.tsx",
+      "expected": "23/23 FileGrid, VaultContextMenu, and FilePreviewModal tests pass",
+      "actual": "23/23 passed (exit 0)",
+      "environment": "Vitest 4.1.0 + React Testing Library",
+      "requirement_ids": [
+        "REQ-THREE-PANE-INSPECTOR",
+        "REQ-CONTEXT-MENU"
+      ],
+      "evidence": [
+        "vaultdrive_client/src/components/vault/VaultContextMenu.test.tsx"
+      ]
+    },
+    {
+      "id": "CHK-PROD-BUILD",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "npm --prefix vaultdrive_client run build",
+      "expected": "Production bundle and /previews/drive.html compile cleanly",
+      "actual": "Built in 12.83s (exit 0)",
+      "environment": "Vite Production Bundler",
+      "requirement_ids": [
+        "REQ-THREE-PANE-INSPECTOR",
+        "REQ-CONTEXT-MENU"
+      ],
+      "evidence": [
+        "vaultdrive_client/dist/index.html"
+      ]
+    },
+    {
+      "id": "CHK-BSK-LIVE",
+      "build_id": "v20-abrn-vibe-resizable-drive",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "bsk navigate https://abrndrive.filemonprime.net/abrn/files + toggle abrn-mode-dark / abrn-mode-light + bsk screenshot",
+      "expected": "Live 3-pane workspace renders ABRN Cream (#faf8f5/#7a1f2b) and ABRN Slate (#1e2330/#c4999b) identically to approved preview",
+      "actual": "Verified live 3-pane workspace in both ABRN Cream and ABRN Slate in real browser via bsk",
+      "environment": "Real Chromium Browser via bsk",
+      "requirement_ids": [
+        "REQ-ABRN-PALETTE",
+        "REQ-THREE-PANE-INSPECTOR"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-04-v20-abrn-vibe-resizable-drive-verification.md"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-V20-01",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "requirement_ids": [
+        "REQ-ABRN-PALETTE"
+      ],
+      "reproduction": "Click ABRN Slate in topbar mode switcher while browser tab is in an unfocused window.",
+      "expected": "Theme switches synchronously to ABRN Slate (data-theme=\"dark\").",
+      "actual": "setSkinState(next) is now called immediately before startViewTransition and buttons expose data-testid=\"abrn-mode-light\" / \"abrn-mode-dark\".",
+      "cause": "startViewTransition callback waited on document visibility and buttons lacked individual data-testid attributes.",
+      "fix": "Called setSkinState(next) immediately in ThemeProvider.tsx and added data-testid attributes in dashboard-layout.tsx.",
+      "verification_check_ids": [
+        "CHK-LAYOUT-SHELL",
+        "CHK-BSK-LIVE"
+      ]
+    },
+    {
+      "id": "FND-V20-02",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "requirement_ids": [
+        "REQ-THREE-PANE-INSPECTOR"
+      ],
+      "reproduction": "Open /abrn/files at 922px viewport width with all 3 panes visible.",
+      "expected": "FileGrid rows remain single-line with readable filenames and VaultInspectorPane shows all 5 format tabs without a horizontal scrollbar.",
+      "actual": "FileGrid uses md:flex-nowrap with min-w-[110px] flex-1 on the filename column and VaultInspectorPane uses grid-cols-5 for the format tabs.",
+      "cause": "flex-wrap and wide inline secondary action buttons squeezed the filename column on medium desktop viewports.",
+      "fix": "Updated FileGrid.tsx to prioritize the filename column on md/lg widths and switched VaultInspectorPane format tabs to grid-cols-5.",
+      "verification_check_ids": [
+        "CHK-INSPECTOR-PANE",
+        "CHK-GRID-CONTEXT",
+        "CHK-BSK-LIVE"
+      ]
+    }
+  ]
+}

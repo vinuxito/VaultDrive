@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive v20 — Reporte de Verificación Ejecutiva</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --surface: #f2efe9;
+      --card: #ffffff;
+      --fg: #2c323f;
+      --muted: #646b78;
+      --primary: #7a1f2b;
+      --border: #e5e0d8;
+      --emerald: #2d8a6e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.55;
+      padding: 36px 24px;
+    }
+    .container { max-width: 1120px; margin: 0 auto; }
+    .header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    h1 {
+      font-family: Georgia, 'Libre Baskerville', serif;
+      font-size: 24px;
+      color: var(--fg);
+    }
+    .badge-pass {
+      background: rgba(45, 138, 110, 0.14);
+      color: var(--emerald);
+      border: 1px solid rgba(45, 138, 110, 0.35);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-family: Georgia, 'Libre Baskerville', serif;
+      font-size: 17px;
+      margin-bottom: 14px;
+      color: var(--fg);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      background: var(--surface);
+    }
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--primary);margin-bottom:4px;">
+          ABRN Asesores · TICKET-2026-11-04-ABRN-VIBE-RESIZABLE-DRIVE
+        </div>
+        <h1>Verificación Ejecutiva v20 — Paleta Inmutable ABRN &amp; Bóveda 3-Paneles</h1>
+      </div>
+      <span class="badge-pass">PASS · SEGURO CONTINUAR</span>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Suites Vitest Focalizadas</div>
+        <div class="kpi-value">111 / 111</div>
+        <div class="kpi-sub">8 archivos de prueba en verde (0 fallos)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Contraste WCAG 2.1 AA</div>
+        <div class="kpi-value">100%</div>
+        <div class="kpi-sub">ABRN Cream (#faf8f5) &amp; ABRN Slate (#1e2330)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Visor Inspector en RAM</div>
+        <div class="kpi-value">5 Formatos</div>
+        <div class="kpi-sub">PDF · 4K · Video 64KB · Código · XLSX</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Lint Estático &amp; Typecheck</div>
+        <div class="kpi-value">0 Errores</div>
+        <div class="kpi-sub">tsc -b + lint.mjs (0 FAIL, 0 WARN)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Matriz de Verificación</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Comando / Evidencia</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Paleta Inmutable ABRN</strong></td>
+            <td><code>npx vitest run src/config/skin-contrast.test.ts src/config/brand-theme.test.ts</code></td>
+            <td>80/80 PASS</td>
+          </tr>
+          <tr>
+            <td><strong>Topbar &amp; Sidebar ABRN</strong></td>
+            <td><code>npx vitest run src/components/layout/sidebar.test.tsx src/components/layout/dashboard-layout.test.tsx</code></td>
+            <td>7/7 PASS</td>
+          </tr>
+          <tr>
+            <td><strong>Inspector 5-Formatos &amp; Tabla</strong></td>
+            <td><code>npx vitest run src/components/vault/VaultInspectorPane.test.tsx src/components/vault/FileGrid.test.tsx</code></td>
+            <td>5/5 PASS</td>
+          </tr>
+          <tr>
+            <td><strong>Menú Contextual &amp; Modal 94vw</strong></td>
+            <td><code>npx vitest run src/components/vault/VaultContextMenu.test.tsx src/components/vault/FilePreviewModal.test.tsx</code></td>
+            <td>19/19 PASS</td>
+          </tr>
+          <tr>
+            <td><strong>Build Producción &amp; Browser Real (bsk)</strong></td>
+            <td><code>npm run build</code> + <code>bsk navigate https://abrndrive.filemonprime.net/abrn/files</code></td>
+            <td>PASS (Exit 0)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

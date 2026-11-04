@@ -160,5 +160,6 @@ describe("FileGrid action labels", () => {
     const row = container.querySelector("#file-row-file-perf-1") as HTMLElement;
     expect(row).not.toBeNull();
     expect(row.style.contentVisibility).toBe("auto");
+    expect(screen.getByText("XLSX")).toBeInTheDocument();
   });
 });

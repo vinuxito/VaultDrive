@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Layers,
   Edit2,
+  MessageCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
@@ -33,10 +34,12 @@ interface VaultContextMenuProps {
   onPreview?: (file: any) => void;
   onDownload?: (file: any) => void;
   onShare?: (file: any) => void;
+  onWhatsAppShare?: (file: any) => void;
   onPassport?: (file: any) => void;
   onMove?: (file: any) => void;
   onToggleStar?: (fileId: string) => void;
   onCopyHash?: (file: any) => void;
+  onStageFile?: (file: any) => void;
   onDelete?: (file: any) => void;
   onBatchDownload?: (files: any[]) => void;
   onBatchMove?: (files: any[]) => void;
@@ -57,10 +60,12 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
   onPreview,
   onDownload,
   onShare,
+  onWhatsAppShare,
   onPassport,
   onMove,
   onToggleStar,
   onCopyHash,
+  onStageFile,
   onDelete,
   onBatchDownload,
   onBatchMove,
@@ -174,7 +179,7 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
     >
       {targetType === "file" && targetData && (
         <>
-          <div className="px-3 py-1 text-[11px] font-semibold text-muted-foreground truncate border-b border-border/40 mb-1">
+          <div className="px-3 py-1.5 text-[11px] font-bold text-primary truncate border-b border-border/60 mb-1">
             {targetData.filename || targetData.name || "Archivo"}
           </div>
           {onPreview && (
@@ -185,14 +190,6 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               onClick={() => onPreview(targetData)}
             />
           )}
-          {onDownload && (
-            <MenuItem
-              icon={Download}
-              label={t("common:actions.download", "Descargar")}
-              shortcut="⌘D"
-              onClick={() => onDownload(targetData)}
-            />
-          )}
           {onShare && (
             <MenuItem
               icon={Share2}
@@ -201,12 +198,36 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               onClick={() => onShare(targetData)}
             />
           )}
+          {onWhatsAppShare && (
+            <MenuItem
+              icon={MessageCircle}
+              label={t("drive:actions.whatsappShare", "Enviar por WhatsApp")}
+              shortcut="W"
+              onClick={() => onWhatsAppShare(targetData)}
+            />
+          )}
           {onPassport && (
             <MenuItem
               icon={Shield}
               label={t("drive:actions.cryptoPassport", "Pasaporte Criptográfico")}
               shortcut="P"
               onClick={() => onPassport(targetData)}
+            />
+          )}
+          {onCopyHash && (
+            <MenuItem
+              icon={Copy}
+              label={t("drive:actions.copyHash", "Copiar Sello SHA-256")}
+              shortcut="C"
+              onClick={() => onCopyHash(targetData)}
+            />
+          )}
+          {onStageFile && (
+            <MenuItem
+              icon={Layers}
+              label={t("drive:actions.addToDock", "Enviar al Staging Dock")}
+              shortcut="X"
+              onClick={() => onStageFile(targetData)}
             />
           )}
           {onMove && (
@@ -225,12 +246,12 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               onClick={() => onToggleStar(targetData.id)}
             />
           )}
-          {onCopyHash && (
+          {onDownload && (
             <MenuItem
-              icon={Copy}
-              label={t("drive:actions.copyHash", "Copiar Sello SHA-256")}
-              shortcut="C"
-              onClick={() => onCopyHash(targetData)}
+              icon={Download}
+              label={t("common:actions.download", "Descargar")}
+              shortcut="⌘D"
+              onClick={() => onDownload(targetData)}
             />
           )}
           <Divider />

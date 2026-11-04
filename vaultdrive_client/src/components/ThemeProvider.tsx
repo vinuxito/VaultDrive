@@ -24,6 +24,10 @@ export function ThemeProvider({
   const [skin, setSkinState] = useState<Skin>(() => {
     // Check new key first
     const stored = localStorage.getItem(storageKey) as Skin | null;
+    if (storageKey === "abrn-drive-skin") {
+      if (stored === "light" || stored === "dark") return stored;
+      return defaultSkin;
+    }
     if (stored && SKINS.some((s) => s.id === stored)) return stored;
     // Migrate legacy key
     const legacy = localStorage.getItem("vaultdrive-ui-theme");
@@ -72,6 +76,7 @@ export function ThemeProvider({
       );
       
       try {
+        setSkinState(next);
         const transition = doc.startViewTransition(() => {
           setSkinState(next);
         });

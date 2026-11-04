@@ -58,6 +58,45 @@ interface FileGridProps {
   onSort?: (field: "name" | "date" | "size") => void;
   onRowHover?: (file: FileData) => void;
   onPassportClick?: (file: FileData) => void;
+  onDoubleClickRow?: (file: FileData) => void;
+}
+
+function getFormatBadgeMeta(filename: string): { label: string; className: string } {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "pdf") {
+    return {
+      label: "PDF",
+      className: "bg-[#c43e3e]/12 text-[#c43e3e] dark:text-[#f87171] border-[#c43e3e]/30",
+    };
+  }
+  if (["png", "jpg", "jpeg", "webp", "svg", "gif", "bmp", "avif"].includes(ext)) {
+    return {
+      label: "4K",
+      className: "bg-[#3d6bb5]/12 text-[#3d6bb5] dark:text-[#5b82c7] border-[#3d6bb5]/30",
+    };
+  }
+  if (["mp4", "webm", "mov", "mkv", "m4v"].includes(ext)) {
+    return {
+      label: "MP4",
+      className: "bg-primary/12 text-primary border-primary/30",
+    };
+  }
+  if (["xlsx", "xls", "csv", "tsv", "ods"].includes(ext)) {
+    return {
+      label: ext === "csv" ? "CSV" : "XLSX",
+      className: "bg-[#b8860b]/12 text-[#b8860b] dark:text-[#d4a017] border-[#b8860b]/30",
+    };
+  }
+  if (["sh", "ts", "tsx", "js", "py", "go", "json", "md", "xml", "sql"].includes(ext)) {
+    return {
+      label: ext.toUpperCase().slice(0, 4),
+      className: "bg-[#2d8a6e]/12 text-[#2d8a6e] dark:text-[#34d399] border-[#2d8a6e]/30",
+    };
+  }
+  return {
+    label: (ext || "DOC").toUpperCase().slice(0, 4),
+    className: "bg-primary/10 text-primary border-primary/25",
+  };
 }
 
 function formatBytes(bytes: number): string {
@@ -116,6 +155,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
   onSort,
   onRowHover,
   onPassportClick,
+  onDoubleClickRow,
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -144,7 +184,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
             <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
           )}
         </button>
-        <div className="w-28 hidden sm:block">{t("drive:vault.columns.origin")}</div>
+        <div className="w-24 hidden lg:block">{t("drive:vault.columns.origin")}</div>
         <button
           type="button"
           onClick={() => onSort?.("size")}
@@ -158,19 +198,20 @@ export const FileGrid: React.FC<FileGridProps> = ({
         <button
           type="button"
           onClick={() => onSort?.("date")}
-          className="w-24 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 group font-medium hidden lg:flex"
+          className="w-24 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 group font-medium hidden xl:flex"
         >
           {t("drive:vault.columns.date")}
           {sortBy === "date" && (
             <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
           )}
         </button>
-        <div className="w-24 shrink-0" />
+        <div className="w-24 shrink-0 hidden md:block" />
       </div>
 
       {files.map((file) => {
         const isSelected = selectedFileIds.has(file.id);
         const origin = fileOriginFromData(file);
+        const fmtBadge = getFormatBadgeMeta(file.filename);
 
         const isPending = downloadingFileIds.has(file.id) || deletingFileIds.has(file.id);
 
@@ -190,9 +231,16 @@ export const FileGrid: React.FC<FileGridProps> = ({
                 onPreviewClick(file);
               }
             }}
+            onDoubleClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (!target.closest("button, input, a, [data-prevent-row-click]")) {
+                onDoubleClickRow?.(file);
+              }
+            }}
+            onContextMenu={(event) => onContextMenu(event, file)}
             onMouseEnter={() => onRowHover?.(file)}
             className={`
-              group flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-xl border transition-all cursor-pointer select-none active:scale-[0.999] duration-75
+              group flex flex-wrap md:flex-nowrap items-center gap-2.5 px-3 py-2 rounded-xl border transition-all cursor-pointer select-none active:scale-[0.999] duration-75
               ${isSelected
                 ? "bg-primary/10 border-primary/50 shadow-xs"
                 : "bg-card border-border/60 hover:border-primary/30 hover:bg-muted/30 hover:shadow-xs"
@@ -220,16 +268,24 @@ export const FileGrid: React.FC<FileGridProps> = ({
             <button
               type="button"
               disabled={isPending}
-              className="flex min-w-0 flex-[1_1_12rem] items-center gap-2 cursor-pointer text-left disabled:cursor-not-allowed py-1"
+              className="flex min-w-[110px] flex-1 items-center gap-2 cursor-pointer text-left disabled:cursor-not-allowed py-0.5"
               onContextMenu={(event) => onContextMenu(event, file)}
               onClick={() => onPreviewClick(file)}
+              onDoubleClick={() => onDoubleClickRow?.(file)}
             >
               {isPending ? (
                 <Loader2 className="w-4 h-4 text-primary shrink-0 animate-spin" />
               ) : (
-                <File className="w-4 h-4 text-muted-foreground shrink-0" />
+                <>
+                  <span
+                    className={`w-7 h-7 rounded-md border text-[9.5px] font-extrabold inline-flex items-center justify-center shrink-0 ${fmtBadge.className}`}
+                  >
+                    {fmtBadge.label}
+                  </span>
+                  <File className="sr-only" />
+                </>
               )}
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground hover:text-primary transition-colors">
+              <span className="min-w-0 flex-1 truncate text-xs sm:text-sm font-semibold text-foreground hover:text-primary transition-colors">
                 {file.filename}
               </span>
             </button>
@@ -241,7 +297,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                 e.stopPropagation();
                 onOpenReceipt(file);
               }}
-              className="relative flex h-8 w-8 sm:h-6 sm:w-6 shrink-0 cursor-pointer select-none rounded-full items-center justify-center p-0 hover:bg-emerald-500/10 transition-transform active:scale-95"
+              className="relative hidden xl:flex h-6 w-6 shrink-0 cursor-pointer select-none rounded-full items-center justify-center p-0 hover:bg-emerald-500/10 transition-transform active:scale-95"
               title={t("drive:vault.actions.viewReceipt")}
               data-testid={`receipt-pulse-${file.id}`}
               aria-label={`Recibo criptográfico de ${file.filename}`}
@@ -273,7 +329,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                   e.stopPropagation();
                   onPassportClick(file);
                 }}
-                className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
+                className="hidden xl:inline-flex p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
                 title="Cryptographic Passport (⌘I)"
                 aria-label={`Passport for ${file.filename}`}
               >
@@ -281,19 +337,19 @@ export const FileGrid: React.FC<FileGridProps> = ({
               </button>
             )}
 
-            <div className="w-28 hidden sm:block shrink-0">
+            <div className="w-24 hidden xl:block shrink-0 truncate">
               <OriginBadge origin={origin} />
             </div>
 
-            <div className="w-16 text-right text-xs text-muted-foreground hidden md:block shrink-0">
+            <div className="w-16 text-right text-xs font-mono tabular-nums text-muted-foreground hidden lg:block shrink-0">
               {formatBytes(file.file_size)}
             </div>
 
-            <div className="w-24 text-right text-xs text-muted-foreground hidden lg:block shrink-0">
+            <div className="w-24 text-right text-xs font-mono tabular-nums text-muted-foreground hidden 2xl:block shrink-0">
               {formatDate(file.created_at)}
             </div>
 
-            <div className="ml-auto hidden max-w-full shrink-0 flex-wrap items-center justify-end gap-1 md:flex">
+            <div className="ml-auto hidden max-w-full shrink-0 items-center justify-end gap-0.5 md:flex">
               {!isPending && (
                 <>
                   {/* Primary actions — always visible */}

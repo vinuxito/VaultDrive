@@ -79,135 +79,135 @@
   background: rgba(6, 182, 212, 0.65);
 }
 
-/* ── 2. Light (Sovereign Studio Light) ───────────────────────────── */
+/* ── 2. Light (ABRN Asesores — Warm Cream & Burgundy) ────────────── */
 [data-theme="light"] {
-  --background:             210 40% 98%;   /* #f8fafc pristine studio slate */
-  --foreground:             222 47% 11%;   /* #0f172a authoritative deep slate */
+  --background:             36 33% 97%;    /* #faf8f5 ABRN warm cream */
+  --foreground:             220 17% 21%;   /* #2c323f authoritative deep slate */
 
   --card:                   0 0% 100%;     /* pure white */
-  --card-foreground:        222 47% 11%;
+  --card-foreground:        220 17% 21%;
 
   --popover:                0 0% 100%;
-  --popover-foreground:     222 47% 11%;
+  --popover-foreground:     220 17% 21%;
 
-  --primary:                222 47% 11%;   /* #0f172a sleek, high-contrast studio black */
+  --primary:                352 60% 30%;   /* #7a1f2b ABRN deep burgundy */
   --primary-foreground:     0 0% 100%;
 
-  --secondary:              210 40% 96.1%; /* #f1f5f9 cool subtle neutral */
-  --secondary-foreground:   222 47% 11%;
+  --secondary:              36 22% 93%;    /* #f2efe9 warm cream elevated */
+  --secondary-foreground:   220 17% 21%;
 
-  --muted:                  210 40% 96.1%;
-  --muted-foreground:       215 16% 36%;   /* #475569 deep slate */
+  --muted:                  36 22% 93%;
+  --muted-foreground:       33 10% 33%;    /* #5c544b warm accessible neutral */
 
-  --accent:                 221 83% 53%;   /* #2563eb royal sapphire accent */
+  --accent:                 358 24% 38%;   /* #78494b ABRN rose-burgundy */
   --accent-foreground:      0 0% 100%;
 
   --destructive:            0 75% 42%;     /* #bc1e1e rich accessible ruby */
   --destructive-foreground: 0 0% 100%;
 
-  --border:                 214 32% 91%;   /* #e2e8f0 crisp subtle border */
+  --border:                 36 20% 87%;    /* #e5e0d8 warm cream border */
   --input:                  0 0% 100%;
-  --ring:                   222 47% 11%;
+  --ring:                   352 60% 30%;
 
   --radius:                 0.625rem;
-  --font-display:           var(--font-body);
+  --font-display:           "Libre Baskerville", Baskerville, Georgia, serif;
 
-  --glass-bg:               rgba(255, 255, 255, 0.82);
-  --glass-bg-hover:         rgba(255, 255, 255, 0.94);
+  --glass-bg:               rgba(255, 255, 255, 0.86);
+  --glass-bg-hover:         rgba(253, 245, 245, 0.96);
   --glass-bg-heavy:         rgba(255, 255, 255, 0.95);
-  --glass-bg-subtle:        rgba(255, 255, 255, 0.60);
-  --glass-border:           1px solid rgba(226, 232, 240, 0.85);
-  --glass-border-subtle:    1px solid rgba(0, 0, 0, 0.04);
-  --glass-border-strong:    1px solid rgba(15, 23, 42, 0.12);
+  --glass-bg-subtle:        rgba(250, 248, 245, 0.72);
+  --glass-border:           1px solid rgba(229, 224, 216, 0.90);
+  --glass-border-subtle:    1px solid rgba(122, 31, 43, 0.06);
+  --glass-border-strong:    1px solid rgba(122, 31, 43, 0.28);
   --glass-blur-md:          blur(20px);
   --glass-blur-lg:          blur(32px);
-  --shadow-glow-primary:    0 4px 20px rgba(15, 23, 42, 0.08);
-  --gradient-page:          linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --shadow-glow-primary:    0 4px 20px rgba(122, 31, 43, 0.12);
+  --gradient-page:          linear-gradient(180deg, #fdfcfb 0%, #faf8f5 100%);
 
-  scrollbar-color: rgba(100, 116, 139, 0.25) transparent;
+  scrollbar-color: rgba(122, 31, 43, 0.28) transparent;
 }
 
 [data-theme="light"] body {
   background-image:
-    radial-gradient(ellipse 70vw 50vh at   5%   5%, rgba(37, 99, 235, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(15, 23, 42, 0.02) 0%, transparent 50%);
+    radial-gradient(ellipse 70vw 50vh at   5%   5%, rgba(122, 31, 43, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(125, 79, 80, 0.02) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
 [data-theme="light"] ::-webkit-scrollbar         { width: 5px; height: 5px; }
 [data-theme="light"] ::-webkit-scrollbar-track   { background: transparent; }
 [data-theme="light"] ::-webkit-scrollbar-thumb   {
-  background: rgba(100, 116, 139, 0.25);
+  background: rgba(122, 31, 43, 0.28);
   border-radius: 9999px;
 }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.50);
+  background: rgba(122, 31, 43, 0.55);
 }
 
 
-/* ── 3. Dark (Sovereign Obsidian & Iris) ─────────────────────────── */
+/* ── 3. Dark (ABRN Asesores — Deep Slate & Rose-Burgundy) ────────── */
 [data-theme="dark"] {
-  --background:             224 71% 4%;    /* #030712 deep obsidian space */
-  --foreground:             210 40% 98%;   /* #f8fafc */
+  --background:             225 23% 16%;   /* #1e2330 ABRN deep slate */
+  --foreground:             36 15% 94%;    /* #f2f0ed warm cream off-white */
 
-  --card:                   224 45% 8%;    /* #0b0f19 rich dark card */
-  --card-foreground:        210 40% 98%;
+  --card:                   225 18% 22%;   /* #2c3240 ABRN slate card */
+  --card-foreground:        36 15% 94%;
 
-  --popover:                224 45% 8%;
-  --popover-foreground:     210 40% 98%;
+  --popover:                225 18% 22%;
+  --popover-foreground:     36 15% 94%;
 
-  --primary:                239 84% 60%;   /* #4f52e6 electric iris */
-  --primary-foreground:     0 0% 100%;
+  --primary:                357 30% 76%;   /* #d4aeb0 light rose-burgundy */
+  --primary-foreground:     225 23% 16%;
 
-  --secondary:              224 35% 14%;   /* #151d2f */
-  --secondary-foreground:   210 40% 98%;
+  --secondary:              214 15% 27%;   /* #3b434f slate secondary */
+  --secondary-foreground:   36 15% 94%;
 
-  --muted:                  224 35% 12%;
-  --muted-foreground:       215 20% 65%;
+  --muted:                  214 15% 25%;
+  --muted-foreground:       36 15% 78%;
 
-  --accent:                 160 84% 39%;   /* #10b981 emerald cryptographic seal */
-  --accent-foreground:      0 0% 5%;
+  --accent:                 357 30% 76%;   /* #d4aeb0 rose-burgundy accent */
+  --accent-foreground:      225 23% 16%;
 
-  --destructive:            0 80% 76%;     /* #f87171 high-contrast rose */
+  --destructive:            0 80% 78%;     /* #f49999 high-contrast rose */
   --destructive-foreground: 0 0% 5%;
 
-  --border:                 224 30% 17%;   /* #172138 sleek luminous border */
-  --input:                  224 30% 14%;
-  --ring:                   239 84% 67%;
+  --border:                 36 15% 94% / 0.11;
+  --input:                  225 18% 20%;
+  --ring:                   357 30% 76%;
 
   --radius:                 0.625rem;
-  --font-display:           var(--font-body);
+  --font-display:           "Libre Baskerville", Baskerville, Georgia, serif;
 
-  --glass-bg:               rgba(11, 15, 25, 0.75);
-  --glass-bg-hover:         rgba(17, 24, 39, 0.85);
-  --glass-bg-heavy:         rgba(11, 15, 25, 0.90);
-  --glass-bg-subtle:        rgba(11, 15, 25, 0.45);
-  --glass-border:           1px solid rgba(255, 255, 255, 0.08);
-  --glass-border-subtle:    1px solid rgba(255, 255, 255, 0.04);
-  --glass-border-strong:    1px solid rgba(99, 102, 241, 0.30);
+  --glass-bg:               rgba(44, 50, 64, 0.78);
+  --glass-bg-hover:         rgba(54, 62, 78, 0.88);
+  --glass-bg-heavy:         rgba(30, 35, 48, 0.92);
+  --glass-bg-subtle:        rgba(44, 50, 64, 0.48);
+  --glass-border:           1px solid rgba(242, 240, 237, 0.11);
+  --glass-border-subtle:    1px solid rgba(242, 240, 237, 0.06);
+  --glass-border-strong:    1px solid rgba(196, 153, 155, 0.35);
   --glass-blur-md:          blur(24px);
   --glass-blur-lg:          blur(32px);
-  --shadow-glow-primary:    0 4px 24px rgba(99, 102, 241, 0.22);
-  --gradient-page:          linear-gradient(180deg, #030712 0%, #070c18 100%);
+  --shadow-glow-primary:    0 4px 24px rgba(196, 153, 155, 0.18);
+  --gradient-page:          linear-gradient(180deg, #1e2330 0%, #181d2a 100%);
 
-  scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+  scrollbar-color: rgba(196, 153, 155, 0.35) transparent;
 }
 
 [data-theme="dark"] body {
   background-image:
-    radial-gradient(ellipse 70vw 50vh at   5%   5%, rgba( 99, 102, 241, 0.07) 0%, transparent 50%),
-    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba( 16, 185, 129, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse 70vw 50vh at   5%   5%, rgba(196, 153, 155, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(122, 31, 43, 0.05) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar         { width: 5px; height: 5px; }
 [data-theme="dark"] ::-webkit-scrollbar-track   { background: transparent; }
 [data-theme="dark"] ::-webkit-scrollbar-thumb   {
-  background: rgba(99, 102, 241, 0.35);
+  background: rgba(196, 153, 155, 0.35);
   border-radius: 9999px;
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.60);
+  background: rgba(196, 153, 155, 0.60);
 }
 
 

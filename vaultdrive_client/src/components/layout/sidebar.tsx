@@ -75,7 +75,7 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
       >
         <div className="flex-1 flex flex-col overflow-y-auto">
           <div className={cn("flex items-center h-16 px-4 shrink-0 transition-all duration-300", isCompact ? 'justify-center' : 'justify-between')}>
-              <BrandLogo className={cn("h-8 transition-transform duration-300", isCompact && "rotate-90")} />
+              <BrandLogo className="h-9 w-9 rounded-lg object-contain transition-transform duration-300" />
             </div>
 
         <nav className="flex-1 p-3 space-y-2">

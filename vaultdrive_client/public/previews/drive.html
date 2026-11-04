@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="abrn-light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive — Bóveda Cifrada ABRN Asesores</title>
+  <link rel="icon" type="image/png" href="/abrn/abrn-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ==========================================================================
+       IMMUTABLE ABRN VIBE — LUXURY FINTECH DESIGN TOKENS
+       From vaultdrive_client/src/styles/luxury-tokens.css & .env.abrn:
+       - ABRN Burgundy (#7a1f2b / #7d4f50 / #6b4345 / #c4999b)
+       - Warm Cream Neutrals (#fdfcfb / #faf8f5 / #f2efe9 / #e5e0d8)
+       - Deep Slate (#3d4451 / #2c3240 / #1e2330)
+       - Luxury Emerald (#2d8a6e), Amber (#b8860b), Ruby (#c43e3e), Sapphire (#3d6bb5)
+       - Libre Baskerville serif display headings + Inter body
+       ========================================================================== */
+    :root,
+    [data-theme="abrn-light"] {
+      --lux-burgundy-50:  #fdf5f5;
+      --lux-burgundy-100: #f8e8e8;
+      --lux-burgundy-200: #f0d0d1;
+      --lux-burgundy-300: #e3adae;
+      --lux-burgundy-400: #d08485;
+      --lux-burgundy-500: #b8696a;
+      --lux-burgundy-600: #7d4f50;
+      --lux-burgundy-700: #6b4345;
+      --lux-burgundy-800: #4e3233;
+      --lux-burgundy-900: #362324;
+      --abrn-crimson:     #7a1f2b;
+
+      --lux-neutral-50:   #fdfcfb;
+      --lux-neutral-100:  #faf8f5;
+      --lux-neutral-200:  #f2efe9;
+      --lux-neutral-300:  #e5e0d8;
+      --lux-neutral-400:  #c9c2b6;
+      --lux-neutral-500:  #9e968a;
+      --lux-neutral-600:  #746d63;
+      --lux-neutral-700:  #504a43;
+      --lux-neutral-800:  #332f2a;
+      --lux-neutral-900:  #1c1a17;
+
+      --lux-emerald:      #2d8a6e;
+      --lux-amber:        #b8860b;
+      --lux-ruby:         #c43e3e;
+      --lux-sapphire:     #3d6bb5;
+
+      /* Active Semantic Surface Map (ABRN Warm Cream & Burgundy) */
+      --bg:               #faf8f5;
+      --bg-elevated:      #f2efe9;
+      --card:             #ffffff;
+      --card-hover:       #fdf5f5;
+      --popover:          #ffffff;
+      --fg:               #3d4451;
+      --fg-strong:        #1c1a17;
+      --muted:            #f2efe9;
+      --muted-fg:         #746d63;
+      --primary:          #7a1f2b;
+      --primary-soft:     #7d4f50;
+      --primary-fg:       #ffffff;
+      --primary-tint:     #f8e8e8;
+      --border:           #e5e0d8;
+      --border-strong:    rgba(122, 31, 43, 0.28);
+      --stage-canvas:     #f2efe9;
+      --radius:           10px;
+      --font-display:     "Libre Baskerville", Baskerville, Georgia, serif;
+      --font-sans:        "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-code:        "SF Mono", "Fira Code", "Cascadia Code", monospace; /* taste-skill-ignore */
+    }
+
+    /* ABRN Dark Mode (from commit a585d0c skins.css: #1e2330 Slate & #c4999b / #7a1f2b Burgundy) */
+    [data-theme="abrn-dark"] {
+      --bg:               #1e2330;
+      --bg-elevated:      #181d2a;
+      --card:             #2c3240;
+      --card-hover:       #353c4d;
+      --popover:          #262c3a;
+      --fg:               #f2f0ed;
+      --fg-strong:        #ffffff;
+      --muted:            #3d4451;
+      --muted-fg:         #b8bfcc;
+      --primary:          #c4999b;
+      --primary-soft:     #7d4f50;
+      --primary-fg:       #1e2330;
+      --primary-tint:     rgba(196, 153, 155, 0.16);
+      --border:           rgba(242, 240, 237, 0.11);
+      --border-strong:    rgba(196, 153, 155, 0.38);
+      --stage-canvas:     #181d2a;
+      --lux-emerald:      #34d399;
+      --lux-amber:        #d4a017;
+      --lux-ruby:         #f87171;
+      --lux-sapphire:     #5b82c7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 13px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      stroke-width: 1.85;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       2. APP SHELL: ABRN SIDEBAR RAIL + MAIN WORKSPACE
+       ========================================================================== */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      height: 100dvh;
+      width: 100vw;
+      background: var(--bg);
+      transition: grid-template-columns 0.18s ease;
+    }
+
+    .app-shell.nav-expanded {
+      grid-template-columns: 212px 1fr;
+    }
+
+    .app-nav {
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 8px;
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 2px 4px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-expanded .brand-row {
+      justify-content: flex-start;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .abrn-logo-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--border-strong);
+      flex-shrink: 0;
+    }
+
+    .brand-text-wrap,
+    .nav-btn-left > span,
+    .nav-badge,
+    .nav-section-title {
+      display: none;
+    }
+
+    .nav-expanded .brand-text-wrap,
+    .nav-expanded .nav-btn-left > span,
+    .nav-expanded .nav-badge,
+    .nav-expanded .nav-section-title {
+      display: block;
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      white-space: nowrap;
+    }
+
+    .brand-sub {
+      font-size: 10.5px;
+      color: var(--primary);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary-soft);
+      padding: 8px 8px 2px;
+      white-space: nowrap;
+    }
+
+    .nav-btn {
+      height: 36px;
+      padding: 0 10px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 500;
+      transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .nav-expanded .nav-btn {
+      justify-content: space-between;
+    }
+
+    .nav-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .nav-btn:hover {
+      background: var(--card-hover);
+      color: var(--fg-strong);
+    }
+
+    .nav-btn.active {
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-color: var(--border-strong);
+      font-weight: 600;
+    }
+
+    .nav-btn.active svg {
+      color: var(--primary);
+    }
+
+    .nav-badge {
+      font-size: 10.5px;
+      font-variant-numeric: tabular-nums;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--primary);
+      border: 1px solid var(--border);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       3. TOP NAVBAR (ABRN Header + Omnibar + ABRN Cream / Slate Toggle)
+       ========================================================================== */
+    .main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .lux-topbar {
+      height: 52px;
+      padding: 0 14px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .abrn-header-identity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 10px;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .abrn-header-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      white-space: nowrap;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--primary);
+      background: var(--card-hover);
+    }
+
+    .omnibar-trigger {
+      height: 33px;
+      flex: 1;
+      min-width: 150px;
+      max-width: 300px;
+      padding: 0 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .omnibar-trigger:hover,
+    .omnibar-trigger:focus-within {
+      border-color: var(--primary);
+      background: var(--card);
+      color: var(--fg-strong);
+    }
+
+    .omnibar-trigger input {
+      border: none;
+      background: transparent;
+      color: var(--fg-strong);
+      font-size: 12px;
+      width: 100%;
+      outline: none;
+    }
+
+    .kbd-pill {
+      font-size: 10.5px;
+      font-variant-numeric: tabular-nums;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--muted);
+      color: var(--muted-fg);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    /* ABRN Palette Mode Switcher (Warm Cream Burgundy vs Slate Burgundy) */
+    .abrn-mode-bar {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px;
+      border-radius: var(--radius);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .mode-chip {
+      height: 26px;
+      padding: 0 10px;
+      border-radius: calc(var(--radius) - 3px);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted-fg);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .mode-chip.active {
+      background: var(--card);
+      color: var(--primary);
+      border-color: var(--border-strong);
+    }
+
+    .swatch-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      height: 33px;
+      padding: 0 11px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg-strong);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .btn:hover {
+      background: var(--card-hover);
+      border-color: var(--border-strong);
+    }
+
+    .btn-primary {
+      background: #7a1f2b;
+      color: #ffffff;
+      border-color: #7a1f2b;
+    }
+
+    .btn-primary:hover {
+      background: #6b4345;
+      border-color: #6b4345;
+    }
+
+    .btn-emerald {
+      background: color-mix(in srgb, var(--lux-emerald) 14%, var(--card));
+      color: var(--lux-emerald);
+      border-color: color-mix(in srgb, var(--lux-emerald) 38%, transparent);
+    }
+
+    /* ==========================================================================
+       4. VAULT HERO SUBHEADER + TELEMETRY RIBBON
+       ========================================================================== */
+    .vault-subheader {
+      height: 46px;
+      padding: 0 14px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .vault-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .vault-h1 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      white-space: nowrap;
+    }
+
+    .blindado-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 23px;
+      padding: 0 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: color-mix(in srgb, var(--lux-emerald) 14%, var(--card));
+      color: var(--lux-emerald);
+      border: 1px solid color-mix(in srgb, var(--lux-emerald) 35%, transparent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--lux-emerald);
+      display: inline-block;
+    }
+
+    .telemetry-strip {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--card);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .t-cell {
+      padding: 4px 10px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .t-cell:last-child {
+      border-right: none;
+    }
+
+    .t-label {
+      font-size: 11px;
+      color: var(--muted-fg);
+    }
+
+    .t-val {
+      font-size: 12px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--fg-strong);
+    }
+
+    /* ==========================================================================
+       5. 3-PANE RESIZABLE WORKSPACE (VaultTree ⟷ FileGrid ⟷ Split Preview Dock)
+       ========================================================================== */
+    .workspace-split {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* PANE 1: VaultTree (Resizable Left Folder Tree) */
+    .pane-tree {
+      width: 176px;
+      min-width: 140px;
+      max-width: 330px;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .pane-tree.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      overflow: hidden;
+      border: none;
+    }
+
+    .tree-header {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary-soft);
+    }
+
+    .tree-list {
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tree-node {
+      height: 32px;
+      padding: 0 8px;
+      border-radius: calc(var(--radius) - 2px);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+      width: 100%;
+    }
+
+    .tree-node:hover {
+      background: var(--card-hover);
+      color: var(--fg-strong);
+    }
+
+    .tree-node.active {
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-color: var(--border-strong);
+      font-weight: 600;
+    }
+
+    .tree-node-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .tree-node-left span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .folder-icon {
+      color: var(--primary);
+    }
+
+    /* DRAGGABLE VERTICAL SPLITTER (Burgundy accent grip) */
+    .splitter {
+      width: 6px;
+      background: var(--border);
+      cursor: col-resize;
+      position: relative;
+      z-index: 15;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.12s ease;
+    }
+
+    .splitter:hover,
+    .splitter.dragging {
+      background: var(--primary);
+    }
+
+    .splitter-grip {
+      width: 10px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .splitter-grip::after {
+      content: "";
+      width: 2px;
+      height: 12px;
+      border-radius: 2px;
+      background: var(--primary);
+    }
+
+    /* PANE 2: Center File Explorer (FileSearch + FileGrid) */
+    .pane-center {
+      flex: 1;
+      min-width: 290px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .center-toolbar {
+      padding: 7px 10px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .filter-pills {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+
+    .f-pill {
+      height: 25px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted-fg);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .f-pill:hover {
+      color: var(--fg-strong);
+      border-color: var(--border-strong);
+    }
+
+    .f-pill.active {
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-color: var(--border-strong);
+      font-weight: 600;
+    }
+
+    .file-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px 68px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .file-grid-header {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) 56px 56px;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-fg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) 56px 56px;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 8px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
+      cursor: pointer;
+      transition: background-color 0.1s ease, border-color 0.1s ease;
+    }
+
+    .file-row:hover {
+      background: var(--card-hover);
+      border-color: var(--border-strong);
+    }
+
+    .file-row.active {
+      background: var(--primary-tint);
+      border-color: var(--primary);
+    }
+
+    .file-row.checked {
+      background: var(--card-hover);
+      border-color: var(--primary-soft);
+    }
+
+    .file-cell-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .fmt-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9.5px;
+      font-weight: 800;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .fmt-pdf { background: rgba(196, 62, 62, 0.12); color: var(--lux-ruby); border-color: rgba(196, 62, 62, 0.28); }
+    .fmt-img { background: rgba(61, 107, 181, 0.12); color: var(--lux-sapphire); border-color: rgba(61, 107, 181, 0.28); }
+    .fmt-vid { background: rgba(122, 31, 43, 0.12); color: var(--primary); border-color: var(--border-strong); }
+    .fmt-cod { background: rgba(45, 138, 110, 0.12); color: var(--lux-emerald); border-color: rgba(45, 138, 110, 0.28); }
+    .fmt-xls { background: rgba(184, 134, 11, 0.12); color: var(--lux-amber); border-color: rgba(184, 134, 11, 0.28); }
+
+    .file-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--fg-strong);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-submeta {
+      font-size: 10.5px;
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 1px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .origin-tag {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .num-col {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-fg);
+      font-size: 11.5px;
+      white-space: nowrap;
+    }
+
+    .row-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+    }
+
+    .mini-act {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted-fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .mini-act:hover {
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-color: var(--border-strong);
+    }
+
+    /* PANE 3: Resizable Live Preview & Crypto Inspector Dock */
+    .pane-preview {
+      width: 332px;
+      min-width: 265px;
+      max-width: 580px;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .pane-preview.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      overflow: hidden;
+    }
+
+    .preview-dock-header {
+      padding: 9px 12px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .preview-format-tabs {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--card);
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .p-tab {
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted-fg);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .p-tab.active {
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-color: var(--border-strong);
+    }
+
+    /* Dispatch Deck (WhatsApp, #key Share, RSA Sign, Copy Hash) */
+    .dispatch-deck {
+      padding: 6px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .deck-btn {
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg-strong);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .deck-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--card-hover);
+    }
+
+    .deck-btn-primary {
+      background: #7a1f2b;
+      color: #ffffff;
+      border-color: #7a1f2b;
+    }
+
+    .deck-btn-primary:hover {
+      background: #6b4345;
+      color: #ffffff;
+    }
+
+    /* Quiet Stage Canvas for File Preview */
+    .preview-stage-wrap {
+      flex: 1;
+      background: var(--stage-canvas);
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stage-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Cryptographic Passport & Lineage Accordion inside Preview Pane */
+    .passport-strip {
+      border-top: 1px solid var(--border);
+      background: var(--bg-elevated);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .kv-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      gap: 8px;
+    }
+
+    .kv-k { color: var(--muted-fg); }
+    .kv-v { font-weight: 600; color: var(--fg-strong); font-variant-numeric: tabular-nums; }
+
+    /* Sticky Bottom Tactical Dock */
+    .preview-tactical-dock {
+      padding: 8px 12px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       6. FLOATING STAGING DOCK (Multi-File Selection Bar)
+       ========================================================================== */
+    .staging-dock {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: var(--popover);
+      border: 1px solid var(--primary);
+      border-radius: 999px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       7. RIGHT-CLICK CONTEXT MENU (VaultContextMenu.tsx)
+       ========================================================================== */
+    .ctx-menu {
+      position: fixed;
+      z-index: 100;
+      width: 240px;
+      padding: 6px;
+      border-radius: 10px;
+      background: var(--popover);
+      border: 1px solid var(--border-strong);
+    }
+
+    .ctx-header {
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ctx-item {
+      width: 100%;
+      height: 30px;
+      padding: 0 8px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--fg-strong);
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .ctx-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .ctx-item:hover {
+      background: var(--primary-tint);
+      color: var(--primary);
+    }
+
+    .ctx-item.danger {
+      color: var(--lux-ruby);
+    }
+
+    .ctx-item.danger:hover {
+      background: rgba(196, 62, 62, 0.12);
+      color: var(--lux-ruby);
+    }
+
+    .ctx-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 6px;
+    }
+
+    /* ==========================================================================
+       8. FULL CINEMASCOPE EXECUTIVE MODAL (94vw) + SHARE MODAL
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(28, 26, 23, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .cinemascope-modal {
+      width: 94vw;
+      max-width: 1440px;
+      height: 88dvh;
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .cinema-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Toast feedback */
+    .toast-pill {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 120;
+      padding: 9px 14px;
+      border-radius: 8px;
+      background: var(--popover);
+      border: 1px solid var(--primary);
+      color: var(--fg-strong);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Table inside Spreadsheet preview */
+    .sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+
+    .sheet-table th,
+    .sheet-table td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+    }
+
+    .sheet-table th {
+      background: var(--bg-elevated);
+      color: var(--muted-fg);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .sheet-table td.cell-active {
+      outline: 2px solid var(--primary);
+      background: var(--primary-tint);
+    }
+  </style>
+</head>
+<body>
+  <div id="app-shell" class="app-shell" data-ui>
+    <!-- ======================================================================
+         LEFT NAVIGATION SIDEBAR (Real ABRN Asesores Emblem + Bóveda Routes)
+         ====================================================================== -->
+    <aside class="app-nav" aria-label="Navegación principal ABRN Drive">
+      <div>
+        <div class="brand-row">
+          <div class="brand-mark" onclick="toggleNavRail()" title="Expandir/Compactar barra lateral (⌘B)">
+            <img src="/abrn/abrn-logo.png" alt="ABRN Asesores" class="abrn-logo-img" />
+            <div class="brand-text-wrap">
+              <div class="brand-name">ABRN Drive</div>
+              <div class="brand-sub">ABRN Asesores</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-list">
+          <div class="nav-section-title">Bóveda ABRN</div>
+          <button class="nav-btn active" onclick="selectFolder('all', 'Bóveda Principal ABRN', null)" title="Mis Archivos (142)">
+            <span class="nav-btn-left">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <span>Mis Archivos</span>
+            </span>
+            <span class="nav-badge">142</span>
+          </button>
+
+          <button class="nav-btn" onclick="openCinemascopeModal()" title="Vista Previa Cinemascope (Espacio)">
+            <span class="nav-btn-left">
+              <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Vista Cinemascope</span>
+            </span>
+            <span class="nav-badge">94vw</span>
+          </button>
+
+          <button class="nav-btn" onclick="openShareModal()" title="Compartidos (#key)">
+            <span class="nav-btn-left">
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span>Compartidos (#key)</span>
+            </span>
+            <span class="nav-badge">4</span>
+          </button>
+
+          <button class="nav-btn" onclick="filterByOrigin('drop')" title="Buzón Secure Drop">
+            <span class="nav-btn-left">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Buzón Secure Drop</span>
+            </span>
+            <span class="nav-badge">2</span>
+          </button>
+
+          <button class="nav-btn" onclick="filterByOrigin('group')" title="Grupos ABRN">
+            <span class="nav-btn-left">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Grupos ABRN</span>
+            </span>
+            <span class="nav-badge">3</span>
+          </button>
+
+          <div class="nav-section-title">Seguridad</div>
+          <button class="nav-btn" onclick="showToast('Centro de Acceso ABRN: 4 enlaces #key activos, 0 llaves expuestas')" title="Centro de Acceso">
+            <span class="nav-btn-left">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <span>Centro de Acceso</span>
+            </span>
+            <span class="nav-badge">OK</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+        <button class="icon-btn" onclick="toggleNavRail()" title="Expandir/Compactar menú (⌘B)">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+         MAIN COLUMN: ABRN TOPBAR + SUBHEADER + 3-PANE RESIZABLE WORKSPACE
+         ====================================================================== -->
+    <div class="main-area">
+      <!-- TOPBAR: ABRN Brand Identity + Omnibar + ABRN Cream/Slate Switcher + Actions -->
+      <header class="lux-topbar">
+        <div class="topbar-left">
+          <div class="abrn-header-identity">
+            <span class="abrn-header-title">ABRN Asesores</span>
+          </div>
+
+          <div class="omnibar-trigger" onclick="focusOmnibar()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="omnibar-input" type="search" placeholder="Buscar archivo, #etiqueta o SHA-256…" oninput="filterFilesBySearch(this.value)" />
+            <span class="kbd-pill">⌘K</span>
+          </div>
+        </div>
+
+        <!-- Immutable ABRN Vibe Modes: Warm Cream & Burgundy vs Deep Slate & Rose-Burgundy -->
+        <div class="abrn-mode-bar" role="group" aria-label="Paleta Inmutable ABRN">
+          <button class="mode-chip active" data-mode="abrn-light" onclick="setAbrnMode('abrn-light')">
+            <span class="swatch-dot" style="background: #7a1f2b;"></span>ABRN Cream
+          </button>
+          <button class="mode-chip" data-mode="abrn-dark" onclick="setAbrnMode('abrn-dark')">
+            <span class="swatch-dot" style="background: #c4999b;"></span>ABRN Slate
+          </button>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="btn" onclick="togglePreviewPane()" title="Mostrar/Ocultar Panel Inspector (⌘I)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            <span>Inspector</span>
+          </button>
+          <button class="btn" onclick="showToast('Bóveda ABRN bloqueada · Llaves purgadas de RAM')" title="Bloquear Bóveda (⌘L)">
+            <svg viewBox="0 0 24 24" style="color: var(--lux-amber);"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Bloquear</span>
+            <span class="kbd-pill">⌘L</span>
+          </button>
+          <button class="btn btn-primary" onclick="showToast('Cifrando archivo en bloques de 64 KB (AES-256-GCM)…')">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Subir Archivo</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- SUBHEADER: ABRN Serif Heading + Blindado Seal + 1px-Divided Telemetry Strip -->
+      <div class="vault-subheader">
+        <div class="vault-title-group">
+          <h1 class="vault-h1" id="current-folder-title">Bóveda Principal ABRN</h1>
+          <span class="blindado-pill">
+            <span class="pulse-dot"></span>
+            Blindado · AES-256-GCM
+          </span>
+          <span style="font-size: 11.5px; color: var(--muted-fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            Arrastra los 2 divisores verticales para redimensionar · Clic derecho para acciones rápidas
+          </span>
+        </div>
+
+        <div class="telemetry-strip">
+          <div class="t-cell">
+            <span class="t-label">Archivos</span>
+            <span class="t-val" id="stat-file-count">5 visibles</span>
+          </div>
+          <div class="t-cell">
+            <span class="t-label">Enlaces #key</span>
+            <span class="t-val" style="color: var(--primary);">4 activos</span>
+          </div>
+          <div class="t-cell">
+            <span class="t-label">SHA-256</span>
+            <span class="t-val" style="color: var(--lux-emerald);">100% íntegro</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           3-PANE RESIZABLE WORKSPACE
+           Pane 1: VaultTree ⟷ Splitter 1 ⟷ Pane 2: FileGrid ⟷ Splitter 2 ⟷ Pane 3: Live Preview
+           ==================================================================== -->
+      <div class="workspace-split" id="workspace-split">
+        <!-- PANE 1: Resizable Folder Tree (VaultTree.tsx) -->
+        <aside class="pane-tree" id="pane-tree">
+          <div>
+            <div class="tree-header">
+              <span>CARPETAS ABRN</span>
+              <button class="mini-act" onclick="showToast('Nueva carpeta cifrada creada')" title="Nueva carpeta (⇧N)">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+            <div class="tree-list">
+              <button class="tree-node active" onclick="selectFolder('all', 'Bóveda Principal ABRN', this)" oncontextmenu="openContextMenu(event, 'folder', { name: 'Bóveda Principal ABRN', count: 5 })">
+                <span class="tree-node-left">
+                  <svg class="folder-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <span>Todos los archivos</span>
+                </span>
+                <span class="nav-badge" style="display: inline-block;">5</span>
+              </button>
+
+              <button class="tree-node" onclick="selectFolder('arch', 'Expedientes y Contratos', this)" oncontextmenu="openContextMenu(event, 'folder', { name: 'Expedientes y Contratos', count: 2 })">
+                <span class="tree-node-left">
+                  <svg class="folder-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <span>Expedientes y Docs</span>
+                </span>
+                <span class="nav-badge" style="display: inline-block;">2</span>
+              </button>
+
+              <button class="tree-node" onclick="selectFolder('media', 'Diseño y Media 4K', this)" oncontextmenu="openContextMenu(event, 'folder', { name: 'Diseño y Media 4K', count: 2 })">
+                <span class="tree-node-left">
+                  <svg class="folder-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <span>Diseño y Media 4K</span>
+                </span>
+                <span class="nav-badge" style="display: inline-block;">2</span>
+              </button>
+
+              <button class="tree-node" onclick="selectFolder('ops', 'Respaldos e Infraestructura', this)" oncontextmenu="openContextMenu(event, 'folder', { name: 'Respaldos e Infraestructura', count: 1 })">
+                <span class="tree-node-left">
+                  <svg class="folder-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <span>Infraestructura SSH</span>
+                </span>
+                <span class="nav-badge" style="display: inline-block;">1</span>
+              </button>
+
+              <div class="tree-header" style="margin-top: 6px; border-top: 1px solid var(--border);">
+                <span>ACCESO RÁPIDO</span>
+              </div>
+              <button class="tree-node" onclick="filterByStarred(this)">
+                <span class="tree-node-left">
+                  <svg style="color: var(--lux-amber);" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span>Destacados</span>
+                </span>
+                <span class="nav-badge" style="display: inline-block;">3</span>
+              </button>
+
+              <button class="tree-node" onclick="filterByOrigin('drop')">
+                <span class="tree-node-left">
+                  <svg style="color: var(--primary);" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Buzón Secure Drop</span>
+                </span>
+                <span class="nav-badge" style="display: inline-block;">1</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="padding: 8px 10px; border-top: 1px solid var(--border); font-size: 10.5px; color: var(--muted-fg);">
+            <div>Espacio cifrado: <strong style="color: var(--fg-strong);">28.4 / 100 GB</strong></div>
+            <div style="height: 5px; border-radius: 999px; background: var(--muted); overflow: hidden; margin-top: 4px;">
+              <div style="width: 28%; height: 100%; background: var(--primary); border-radius: 999px;"></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- SPLITTER 1: Left Tree Resizer -->
+        <div
+          class="splitter"
+          id="splitter-left"
+          role="separator"
+          aria-orientation="vertical"
+          title="Arrastra para redimensionar carpetas · Doble clic para plegar/expandir"
+          onmousedown="startSplitDrag(event, 'left')"
+          ondblclick="toggleTreePane()"
+        >
+          <div class="splitter-grip"></div>
+        </div>
+
+        <!-- PANE 2: Center File Grid + Filter Bar -->
+        <main class="pane-center" id="pane-center" oncontextmenu="openContextMenu(event, 'canvas', null)">
+          <div class="center-toolbar">
+            <div class="filter-pills">
+              <button class="f-pill active" onclick="filterByFormat('all', this)">Todos (5)</button>
+              <button class="f-pill" onclick="filterByFormat('pdf', this)">PDF</button>
+              <button class="f-pill" onclick="filterByFormat('image', this)">Imagen 4K</button>
+              <button class="f-pill" onclick="filterByFormat('video', this)">Video</button>
+              <button class="f-pill" onclick="filterByFormat('code', this)">Código</button>
+              <button class="f-pill" onclick="filterByFormat('sheet', this)">Hoja XLSX</button>
+            </div>
+
+            <button class="btn" style="height: 25px; padding: 0 8px; font-size: 11px;" onclick="openCinemascopeModal()">
+              <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+              <span>Cinemascope</span>
+            </button>
+          </div>
+
+          <div class="file-list-scroll" id="file-list-container">
+            <div class="file-grid-header">
+              <div>
+                <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)" aria-label="Seleccionar todos" />
+              </div>
+              <div>Archivo · Carpeta · Origen</div>
+              <div class="num-col">Tamaño</div>
+              <div class="num-col">Acciones</div>
+            </div>
+
+            <!-- File Rows rendered dynamically by JS -->
+            <div id="file-rows-mount" style="display: flex; flex-direction: column; gap: 5px;"></div>
+          </div>
+
+          <!-- Floating Staging Dock (appears when >=1 files checked) -->
+          <div id="staging-dock" class="staging-dock hidden">
+            <span class="pulse-dot"></span>
+            <strong id="staging-count" style="font-variant-numeric: tabular-nums; font-size: 11.5px;">2 en Staging</strong>
+            <button class="deck-btn deck-btn-primary" onclick="openShareModal()">Enlace #key Lote</button>
+            <button class="deck-btn" onclick="showToast('Descargando paquete ZIP descifrado…')">ZIP</button>
+            <button class="deck-btn" onclick="clearSelection()">×</button>
+          </div>
+        </main>
+
+        <!-- SPLITTER 2: Right Preview Dock Resizer -->
+        <div
+          class="splitter"
+          id="splitter-right"
+          role="separator"
+          aria-orientation="vertical"
+          title="Arrastra para redimensionar Vista Previa · Doble clic para plegar/expandir"
+          onmousedown="startSplitDrag(event, 'right')"
+          ondblclick="togglePreviewPane()"
+        >
+          <div class="splitter-grip"></div>
+        </div>
+
+        <!-- PANE 3: Resizable Live File Preview & Cryptographic Inspector -->
+        <aside class="pane-preview" id="pane-preview" oncontextmenu="openContextMenu(event, 'preview', getActiveFile())">
+          <!-- Zone 1: Frozen Header -->
+          <div class="preview-dock-header">
+            <div style="min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <strong id="dock-filename" style="font-family: var(--font-display); font-size: 12.5px; color: var(--fg-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  Arquitectura_Zero_Knowledge_v4.pdf
+                </strong>
+              </div>
+              <div id="dock-submeta" style="font-size: 10.5px; color: var(--muted-fg); font-variant-numeric: tabular-nums;">
+                Documento PDF · 2.40 MB · Sello SHA-256 verificado
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px; flex-shrink: 0;">
+              <button class="icon-btn" style="width: 26px; height: 26px;" onclick="openCinemascopeModal()" title="Abrir en Modal Cinemascope 94vw (Espacio)">
+                <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+              </button>
+              <button class="icon-btn" style="width: 26px; height: 26px;" onclick="togglePreviewPane()" title="Ocultar panel lateral">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Format Switcher Bar -->
+          <div class="preview-format-tabs" role="tablist">
+            <button class="p-tab active" id="ptab-pdf" onclick="selectFileByKey('pdf')">1. PDF</button>
+            <button class="p-tab" id="ptab-image" onclick="selectFileByKey('image')">2. Imagen 4K</button>
+            <button class="p-tab" id="ptab-video" onclick="selectFileByKey('video')">3. Video 64KB</button>
+            <button class="p-tab" id="ptab-code" onclick="selectFileByKey('code')">4. Código</button>
+            <button class="p-tab" id="ptab-sheet" onclick="selectFileByKey('sheet')">5. XLSX</button>
+          </div>
+
+          <!-- Zone 2A: 1-Click Dispatch Deck -->
+          <div class="dispatch-deck">
+            <div style="display: flex; gap: 4px;">
+              <button class="deck-btn deck-btn-primary" onclick="openShareModal()">
+                <span>Enlace #key</span>
+              </button>
+              <button class="deck-btn" onclick="showToast('Abriendo WhatsApp con Enlace #key y Sello SHA-256…')">
+                <span>WhatsApp</span>
+              </button>
+              <button class="deck-btn" onclick="showToast('Firma RSA-PSS local verificada contra clave pública')">
+                <span>Firmar RSA</span>
+              </button>
+            </div>
+            <button class="deck-btn" onclick="copyActiveHash()">
+              <span>SHA-256</span>
+            </button>
+          </div>
+
+          <!-- Zone 2B: Multi-Format Interactive Stage -->
+          <div class="preview-stage-wrap" id="dock-stage-mount"></div>
+
+          <!-- Cryptographic Passport Summary -->
+          <div class="passport-strip">
+            <div class="kv-line">
+              <span class="kv-k">Cifrado en origen</span>
+              <span class="kv-v" style="color: var(--lux-emerald);">AES-256-GCM · 0 bytes en claro</span>
+            </div>
+            <div class="kv-line">
+              <span class="kv-k">Sello SHA-256</span>
+              <span class="kv-v" id="dock-sha">9f86d081884c7d65…f00a08</span>
+            </div>
+            <div class="kv-line">
+              <span class="kv-k">Enlaces #key</span>
+              <span class="kv-v" id="dock-links">1 enlace activo (2/5 descargas)</span>
+            </div>
+          </div>
+
+          <!-- Zone 3: Frozen Bottom Tactical Dock -->
+          <div class="preview-tactical-dock">
+            <button class="btn" onclick="openCinemascopeModal()">Expandir 94vw</button>
+            <button class="btn btn-primary" onclick="showToast('Descargando archivo original descifrado en memoria…')">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Descargar Original</span>
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       RIGHT-CLICK FLOATING CONTEXT MENU (VaultContextMenu.tsx)
+       ======================================================================== -->
+  <div id="ctx-menu" class="ctx-menu hidden" role="menu"></div>
+
+  <!-- ========================================================================
+       FULL CINEMASCOPE EXECUTIVE PREVIEW MODAL (94vw x 88dvh)
+       ======================================================================== -->
+  <div id="cinemascope-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeCinemascopeModal()">
+    <div class="cinemascope-modal" data-ui>
+      <!-- Zone 1 Header -->
+      <div class="preview-dock-header" style="padding: 10px 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <img src="/abrn/abrn-logo.png" alt="ABRN" style="width: 24px; height: 24px; border-radius: 4px;" />
+          <strong id="cinema-filename" style="font-family: var(--font-display); font-size: 15px; color: var(--fg-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Arquitectura_Zero_Knowledge_v4.pdf</strong>
+          <span class="blindado-pill" id="cinema-badge">Descifrado en RAM · AES-256-GCM</span>
+        </div>
+        <button class="btn" onclick="closeCinemascopeModal()">Cerrar (Esc)</button>
+      </div>
+
+      <!-- Format Switcher Bar inside Cinemascope Modal -->
+      <div class="preview-format-tabs" style="padding: 6px 16px; justify-content: space-between;">
+        <div style="display: flex; gap: 4px;">
+          <button class="p-tab active" id="ctab-pdf" onclick="selectFileByKey('pdf')">1. Documento PDF</button>
+          <button class="p-tab" id="ctab-image" onclick="selectFileByKey('image')">2. Imagen 4K</button>
+          <button class="p-tab" id="ctab-video" onclick="selectFileByKey('video')">3. Video Streaming 64KB</button>
+          <button class="p-tab" id="ctab-code" onclick="selectFileByKey('code')">4. Código / Bash</button>
+          <button class="p-tab" id="ctab-sheet" onclick="selectFileByKey('sheet')">5. Hoja de Cálculo XLSX</button>
+        </div>
+        <span style="font-size: 11px; color: var(--muted-fg);">Clic derecho en el lienzo para herramientas de inspección</span>
+      </div>
+
+      <!-- Zone 2 Body: Left Interactive Canvas + Right Security/Share Rail -->
+      <div class="cinema-body">
+        <div class="preview-stage-wrap" id="cinema-stage-mount" style="padding: 20px;" oncontextmenu="openContextMenu(event, 'preview', getActiveFile())"></div>
+        <aside style="border-left: 1px solid var(--border); background: var(--bg-elevated); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto;">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 6px;">PASAPORTE CRIPTOGRÁFICO ABRN</div>
+              <div class="stage-box" style="padding: 12px; gap: 7px;">
+                <div class="kv-line"><span class="kv-k">Algoritmo</span><span class="kv-v">AES-256-GCM (WebCrypto)</span></div>
+                <div class="kv-line"><span class="kv-k">Envoltura de llave</span><span class="kv-v">RSA-OAEP 4096 + PIN</span></div>
+                <div class="kv-line"><span class="kv-k">Firma de autoría</span><span class="kv-v" style="color: var(--lux-emerald);">RSA-PSS Verificada</span></div>
+                <div class="kv-line"><span class="kv-k">Exposición servidor</span><span class="kv-v">0 bytes en claro</span></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 6px;">COMPARTICIÓN ZERO-KNOWLEDGE (#KEY)</div>
+              <div class="stage-box" style="padding: 12px; gap: 8px;">
+                <div style="font-size: 11px; color: var(--muted-fg);">
+                  La llave viaja tras el símbolo <strong>#</strong> del enlace y jamás toca el servidor.
+                </div>
+                <input type="text" readonly value="https://abrndrive.filemonprime.net/s/9xK2mP#k8F9qL2vR7wX4nM1" style="width: 100%; height: 30px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--fg-strong); font-size: 11px; font-variant-numeric: tabular-nums;" />
+                <div style="display: flex; gap: 6px;">
+                  <button class="deck-btn deck-btn-primary" style="flex: 1; justify-content: center;" onclick="showToast('Enlace #key copiado al portapapeles')">Copiar #key</button>
+                  <button class="deck-btn" style="flex: 1; justify-content: center;" onclick="showToast('Enviando Recibo Sagrado por WhatsApp…')">WhatsApp</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border);">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center; height: 38px;" onclick="showToast('Descargando copia descifrada…')">
+              Descargar Archivo Original
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       SHARE (#KEY) & RECIBO SAGRADO MODAL
+       ======================================================================== -->
+  <div id="share-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeShareModal()">
+    <div class="cinemascope-modal" style="max-width: 640px; height: auto; max-height: 86dvh;" data-ui>
+      <div class="preview-dock-header" style="padding: 12px 18px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="/abrn/abrn-logo.png" alt="ABRN" style="width: 22px; height: 22px; border-radius: 4px;" />
+          <strong style="font-family: var(--font-display);">Crear Enlace Zero-Knowledge (#key) · El Recibo Sagrado</strong>
+        </div>
+        <button class="btn" onclick="closeShareModal()">Cerrar</button>
+      </div>
+      <div style="padding: 18px; display: flex; flex-direction: column; gap: 14px;">
+        <div class="stage-box">
+          <div class="kv-line">
+            <span class="kv-k">Archivo protegido</span>
+            <strong id="share-modal-filename" style="color: var(--fg-strong);">Arquitectura_Zero_Knowledge_v4.pdf</strong>
+          </div>
+          <div class="kv-line">
+            <span class="kv-k">Política de caducidad</span>
+            <span class="kv-v">Expira en 24 horas · Máximo 5 descargas</span>
+          </div>
+          <div class="kv-line">
+            <span class="kv-k">Sello criptográfico SHA-256</span>
+            <span class="kv-v" style="color: var(--lux-emerald);">9f86d081884c7d65…f00a08</span>
+          </div>
+        </div>
+        <div>
+          <label style="display: block; font-size: 11.5px; color: var(--muted-fg); margin-bottom: 5px;">
+            Enlace con fragmento #key (el servidor jamás recibe la llave):
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" readonly value="https://abrndrive.filemonprime.net/s/9xK2mP#k8F9qL2vR7wX4nM1pT6yZ0bC5dE3fG" style="flex: 1; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg); color: var(--fg-strong); font-variant-numeric: tabular-nums; font-size: 11.5px;" />
+            <button class="btn btn-primary" onclick="showToast('Enlace #key copiado al portapapeles')">Copiar Enlace</button>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="btn" onclick="showToast('Recibo .TXT descargado')">Descargar Recibo .TXT</button>
+          <button class="btn btn-emerald" onclick="showToast('Abriendo WhatsApp con Recibo Sagrado…')">Enviar por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast-pill hidden">
+    <span class="pulse-dot"></span>
+    <span id="toast-text">Listo</span>
+  </div>
+
+  <script>
+    /* ========================================================================
+       DATA & INTERACTIVE STATE
+       ======================================================================== */
+    const FILES = [
+      {
+        key: "pdf",
+        id: "f-pdf",
+        name: "Arquitectura_Zero_Knowledge_v4.pdf",
+        badgeText: "PDF",
+        badgeClass: "fmt-pdf",
+        folder: "arch",
+        folderLabel: "Expedientes y Docs",
+        originType: "my-upload",
+        originLabel: "Subido por mí",
+        size: "2.40 MB",
+        date: "Hoy, 14:22",
+        starred: true,
+        sha: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        linksText: "1 enlace #key activo (2/5 descargas)",
+        tags: "#arquitectura #zero-knowledge #pdf"
+      },
+      {
+        key: "image",
+        id: "f-img",
+        name: "Prototipo_Hardware_Rev3_4K.png",
+        badgeText: "4K",
+        badgeClass: "fmt-img",
+        folder: "media",
+        folderLabel: "Diseño y Media 4K",
+        originType: "group",
+        originLabel: "Grupo ABRN",
+        size: "6.84 MB",
+        date: "Ayer, 19:05",
+        starred: true,
+        sha: "4a7d1ed414474e4033ac29ccb8653d9b000000000000000000000000a19f4421",
+        linksText: "2 enlaces #key activos (equipo diseño)",
+        tags: "#hardware #4k #render #png"
+      },
+      {
+        key: "video",
+        id: "f-vid",
+        name: "Demo_Producto_Encriptacion_Local.mp4",
+        badgeText: "MP4",
+        badgeClass: "fmt-vid",
+        folder: "media",
+        folderLabel: "Diseño y Media 4K",
+        originType: "drop",
+        originLabel: "Secure Drop",
+        size: "48.20 MB",
+        date: "02 Nov 2026",
+        starred: false,
+        sha: "7c222fb2927d828af22f592134e8932480637c0d000000000000000078b1109c",
+        linksText: "Recibido vía Drop #DRP-88 · Íntegro",
+        tags: "#video #demo #streaming #64kb"
+      },
+      {
+        key: "code",
+        id: "f-cod",
+        name: "deploy-cluster-production.sh",
+        badgeText: "SH",
+        badgeClass: "fmt-cod",
+        folder: "ops",
+        folderLabel: "Infraestructura SSH",
+        originType: "my-upload",
+        originLabel: "Subido por mí",
+        size: "14.20 KB",
+        date: "30 Oct 2026",
+        starred: true,
+        sha: "1d8f99a3c4018b2209e61f33a91c88427b0012c9a114f8d22e90b3176c44910a",
+        linksText: "Privado (0 enlaces externos)",
+        tags: "#bash #deploy #ssh #produccion"
+      },
+      {
+        key: "sheet",
+        id: "f-xls",
+        name: "Roadmap_Lanzamiento_2026.xlsx",
+        badgeText: "XLSX",
+        badgeClass: "fmt-xls",
+        folder: "arch",
+        folderLabel: "Expedientes y Docs",
+        originType: "group",
+        originLabel: "Dirección ABRN",
+        size: "312.00 KB",
+        date: "28 Oct 2026",
+        starred: false,
+        sha: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        linksText: "1 enlace #key activo (lectura)",
+        tags: "#roadmap #presupuesto #xlsx"
+      }
+    ];
+
+    let activeFileKey = "pdf";
+    let selectedKeys = new Set();
+    let currentFolderFilter = "all";
+    let currentFormatFilter = "all";
+    let currentOriginFilter = "all";
+    let starredOnly = false;
+    let searchQuery = "";
+    let pdfZoom = 100;
+    let imgZoom = 100;
+    let imgRotated = 0;
+    let videoProgress = 38;
+    let activeCellFormula = "Hoja1!C5 =SUM(C2:C4) → $135,500.00";
+
+    function getActiveFile() {
+      return FILES.find((f) => f.key === activeFileKey) || FILES[0];
+    }
+
+    /* ========================================================================
+       RENDER FILE GRID
+       ======================================================================== */
+    function renderFileRows() {
+      const mount = document.getElementById("file-rows-mount");
+      const filtered = FILES.filter((f) => {
+        if (currentFolderFilter !== "all" && f.folder !== currentFolderFilter) return false;
+        if (currentFormatFilter !== "all" && f.key !== currentFormatFilter) return false;
+        if (currentOriginFilter !== "all" && f.originType !== currentOriginFilter) return false;
+        if (starredOnly && !f.starred) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return f.name.toLowerCase().includes(q) || f.tags.toLowerCase().includes(q) || f.sha.includes(q);
+        }
+        return true;
+      });
+
+      document.getElementById("stat-file-count").textContent = filtered.length + " visibles";
+
+      mount.innerHTML = filtered.map((f) => {
+        const isAct = f.key === activeFileKey;
+        const isChk = selectedKeys.has(f.key);
+        return `
+          <div class="file-row ${isAct ? "active" : ""} ${isChk ? "checked" : ""}"
+               onclick="selectFileByKey('${f.key}')"
+               ondblclick="selectFileByKey('${f.key}'); openCinemascopeModal();"
+               oncontextmenu="openContextMenu(event, 'file', '${f.key}')">
+            <div onclick="event.stopPropagation()">
+              <input type="checkbox" ${isChk ? "checked" : ""} onchange="toggleSelectFile('${f.key}', this.checked)" aria-label="Seleccionar ${f.name}" />
+            </div>
+            <div class="file-cell-main">
+              <span class="fmt-badge ${f.badgeClass}">${f.badgeText}</span>
+              <div style="min-width: 0;">
+                <div class="file-title">${f.name}</div>
+                <div class="file-submeta">
+                  <span class="origin-tag">${f.originLabel}</span>
+                  <span>·</span>
+                  <span>${f.folderLabel}</span>
+                  <span>·</span>
+                  <span>${f.date}</span>
+                </div>
+              </div>
+            </div>
+            <div class="num-col">${f.size}</div>
+            <div class="row-actions" onclick="event.stopPropagation()">
+              <button class="mini-act" title="Recibo Criptográfico SHA-256" onclick="selectFileByKey('${f.key}'); openShareModal();">
+                <span class="pulse-dot"></span>
+              </button>
+              <button class="mini-act" title="Compartir #key" onclick="selectFileByKey('${f.key}'); openShareModal();">
+                <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </button>
+              <button class="mini-act" title="Menú de acciones (Clic derecho)" onclick="openContextMenu(event, 'file', '${f.key}')">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /* ========================================================================
+       RENDER MULTI-FORMAT INTERACTIVE PREVIEW STAGE
+       ======================================================================== */
+    function buildStageHTML(file) {
+      if (file.key === "pdf") {
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--muted-fg);">Página 1 de 6 · Zoom ${pdfZoom}% · Descifrado en RAM</span>
+            <div style="display: flex; gap: 4px;">
+              <button class="deck-btn" onclick="changePdfZoom(-15)">−</button>
+              <button class="deck-btn" onclick="pdfZoom=100; renderPreviewPanes();">100%</button>
+              <button class="deck-btn" onclick="changePdfZoom(15)">+</button>
+            </div>
+          </div>
+          <div class="stage-box" style="transform: scale(${pdfZoom / 100}); transform-origin: top center; transition: transform 0.15s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 8px; gap: 8px;">
+              <div>
+                <div style="font-size: 10px; letter-spacing: 0.08em; color: var(--primary); font-weight: 700;">ABRN ASESORES · ESPECIFICACIÓN REV 4.2</div>
+                <div style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--fg-strong); margin-top: 2px;">Arquitectura Zero-Knowledge ABRN Drive</div>
+              </div>
+              <span class="blindado-pill">Firma RSA-PSS OK</span>
+            </div>
+            <p style="font-size: 12px; color: var(--fg); line-height: 1.55;">
+              Todo archivo subido a <strong>ABRN Drive</strong> se divide y cifra en tu navegador mediante <strong>AES-256-GCM</strong> en fragmentos de <strong>64 KB</strong> antes de tocar la red. El servidor almacena únicamente bloques opacos y jamás recibe la llave.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+              <div style="padding: 8px; border-radius: 7px; background: var(--bg-elevated); border: 1px solid var(--border);">
+                <div style="font-size: 10.5px; color: var(--muted-fg);">Motor WebCrypto</div>
+                <div style="font-size: 12px; font-weight: 700; color: var(--fg-strong); margin-top: 2px;">AES-256-GCM</div>
+              </div>
+              <div style="padding: 8px; border-radius: 7px; background: var(--bg-elevated); border: 1px solid var(--border);">
+                <div style="font-size: 10.5px; color: var(--muted-fg);">Envoltura Llave</div>
+                <div style="font-size: 12px; font-weight: 700; color: var(--fg-strong); margin-top: 2px;">RSA-OAEP 4096</div>
+              </div>
+              <div style="padding: 8px; border-radius: 7px; background: var(--bg-elevated); border: 1px solid var(--border);">
+                <div style="font-size: 10.5px; color: var(--muted-fg);">Compartición</div>
+                <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-top: 2px;">Fragmento #key</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (file.key === "image") {
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--muted-fg);">3840 × 2160 px · Zoom ${imgZoom}% · Rotación ${imgRotated}° · EXIF Purgado</span>
+            <div style="display: flex; gap: 4px;">
+              <button class="deck-btn" onclick="imgZoom = Math.max(75, imgZoom - 25); renderPreviewPanes();">−</button>
+              <button class="deck-btn" onclick="imgZoom = Math.min(175, imgZoom + 25); renderPreviewPanes();">+</button>
+              <button class="deck-btn" onclick="imgRotated = (imgRotated + 90) % 360; renderPreviewPanes();">Rotar 90°</button>
+            </div>
+          </div>
+          <div class="stage-box" style="align-items: center; justify-content: center; min-height: 220px; overflow: hidden; background: #1e2330;">
+            <svg viewBox="0 0 560 260" style="width: 100%; height: 205px; stroke: none; transform: scale(${imgZoom/100}) rotate(${imgRotated}deg); transition: transform 0.2s ease;">
+              <rect width="560" height="260" rx="10" fill="#1e2330"/>
+              <g stroke="#2c3240" stroke-width="1">
+                <line x1="0" y1="65" x2="560" y2="65"/><line x1="0" y1="130" x2="560" y2="130"/><line x1="0" y1="195" x2="560" y2="195"/>
+                <line x1="140" y1="0" x2="140" y2="260"/><line x1="280" y1="0" x2="280" y2="260"/><line x1="420" y1="0" x2="420" y2="260"/>
+              </g>
+              <rect x="95" y="42" width="370" height="176" rx="16" fill="#2c3240" stroke="#c4999b" stroke-width="2"/>
+              <rect x="125" y="72" width="145" height="116" rx="8" fill="#1e2330" stroke="#e3adae" stroke-width="1.5"/>
+              <circle cx="365" cy="130" r="46" fill="#1e2330" stroke="#2d8a6e" stroke-width="2"/>
+              <circle cx="365" cy="130" r="18" fill="#2d8a6e" fill-opacity="0.28" stroke="#2d8a6e" stroke-width="1.5"/>
+              <text x="150" y="134" fill="#f8e8e8" font-family="sans-serif" font-size="12" font-weight="700">ABRN-HSM-REV3</text>
+              <text x="336" y="134" fill="#34d399" font-family="sans-serif" font-size="11" font-weight="700">OPTIC 4K</text>
+            </svg>
+          </div>
+        `;
+      }
+
+      if (file.key === "video") {
+        const secs = Math.floor(videoProgress * 0.55);
+        const timeStr = secs < 10 ? "00:0" + secs : "00:" + secs;
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--muted-fg);">TransformStream · Bloques de 64 KB en RAM</span>
+            <span class="blindado-pill">60 FPS · H.264</span>
+          </div>
+          <div class="stage-box" style="background: #1e2330; color: #f2f0ed; justify-content: space-between; min-height: 215px;">
+            <div style="text-align: center; padding: 18px 0;">
+              <button class="btn btn-primary" style="height: 38px; padding: 0 16px; border-radius: 999px;" onclick="videoProgress = (videoProgress + 18) % 100; renderPreviewPanes(); showToast('Descifrando siguiente bloque de 64 KB en RAM…');">
+                Reproducir / Avanzar Bloque 64 KB
+              </button>
+              <div style="font-size: 12.5px; font-weight: 600; margin-top: 10px;">${file.name}</div>
+              <div style="font-size: 11px; color: #b8bfcc; margin-top: 2px;">Sin archivos temporales en disco · Buffer en RAM</div>
+            </div>
+            <div>
+              <div style="height: 7px; border-radius: 999px; background: #3d4451; overflow: hidden; margin-bottom: 8px; cursor: pointer;" onclick="videoProgress = 68; renderPreviewPanes();">
+                <div style="width: ${videoProgress}%; height: 100%; background: #c4999b;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-variant-numeric: tabular-nums; color: #b8bfcc;">
+                <span>${timeStr} / 02:14</span>
+                <span>Bloques AES-GCM: ${Math.round(videoProgress * 7.5)} / 753</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (file.key === "code") {
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--muted-fg);">Bash Script · UTF-8 · Auditado por SHA-256</span>
+            <button class="deck-btn" onclick="showToast('Código copiado al portapapeles')">Copiar Script</button>
+          </div>
+          <div class="stage-box" style="font-family: var(--font-code); font-size: 11.5px; line-height: 1.6; background: #1e2330; color: #f2f0ed; overflow-x: auto;">
+<pre>01  #!/usr/bin/env bash
+02  # deploy-cluster-production.sh — Protegido en ABRN Drive
+03  set -euo pipefail
+04
+05  VAULT_HOST="https://abrndrive.filemonprime.net"
+06  BUNDLE_SHA256="1d8f99a3c4018b2209e61f33a91c88427b0012c9"
+07
+08  echo "[1/3] Verificando sello criptográfico SHA-256..."
+09  echo "\${BUNDLE_SHA256}  release.tar.zst" | sha256sum --check
+10
+11  echo "[2/3] Montando llaves en memoria volátil tmpfs..."
+12  install -m 0600 /dev/null /run/user/1000/vault.key
+13  echo "[3/3] Despliegue completado con 0 fugas."</pre>
+          </div>
+        `;
+      }
+
+      return `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 11px; font-variant-numeric: tabular-nums; color: var(--primary); font-weight: 600;" id="formula-bar-text">${activeCellFormula}</span>
+          <span class="blindado-pill">Haz clic en una fila</span>
+        </div>
+        <div class="stage-box" style="padding: 0; overflow: hidden;">
+          <table class="sheet-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>A · Hito ABRN</th>
+                <th>B · Área</th>
+                <th style="text-align: right;">C · Presupuesto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="setFormula('Hoja1!C2 = $45,000.00 (Motor Streaming 64 KB)')">
+                <td class="num-col">2</td>
+                <td><strong>Streaming 64 KB</strong></td>
+                <td>Cripto</td>
+                <td class="num-col">$45,000.00</td>
+              </tr>
+              <tr onclick="setFormula('Hoja1!C3 = $38,500.00 (Omnibar Búsqueda RAM)')">
+                <td class="num-col">3</td>
+                <td><strong>Omnibar RAM</strong></td>
+                <td>Frontend</td>
+                <td class="num-col">$38,500.00</td>
+              </tr>
+              <tr onclick="setFormula('Hoja1!C4 = $52,000.00 (App Nativa Android 13)')">
+                <td class="num-col">4</td>
+                <td><strong>Android 13</strong></td>
+                <td>Mobile</td>
+                <td class="num-col">$52,000.00</td>
+              </tr>
+              <tr onclick="setFormula('Hoja1!C5 =SUM(C2:C4) → $135,500.00')">
+                <td class="num-col">5</td>
+                <td><strong>Total Q4 (=SUM)</strong></td>
+                <td>3 áreas</td>
+                <td class="num-col cell-active" style="color: var(--lux-emerald); font-weight: 700;">$135,500.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderPreviewPanes() {
+      const f = getActiveFile();
+      document.getElementById("dock-filename").textContent = f.name;
+      document.getElementById("dock-submeta").textContent = `${f.badgeText} · ${f.size} · ${f.folderLabel}`;
+      document.getElementById("dock-sha").textContent = f.sha.slice(0, 16) + "…" + f.sha.slice(-6);
+      document.getElementById("dock-links").textContent = f.linksText;
+
+      document.getElementById("cinema-filename").textContent = f.name;
+      document.getElementById("share-modal-filename").textContent = f.name;
+
+      ["pdf", "image", "video", "code", "sheet"].forEach((k) => {
+        document.getElementById("ptab-" + k)?.classList.toggle("active", k === f.key);
+        document.getElementById("ctab-" + k)?.classList.toggle("active", k === f.key);
+      });
+
+      const html = buildStageHTML(f);
+      document.getElementById("dock-stage-mount").innerHTML = html;
+      document.getElementById("cinema-stage-mount").innerHTML = html;
+    }
+
+    function selectFileByKey(key) {
+      activeFileKey = key;
+      renderFileRows();
+      renderPreviewPanes();
+    }
+
+    function changePdfZoom(delta) {
+      pdfZoom = Math.max(70, Math.min(145, pdfZoom + delta));
+      renderPreviewPanes();
+    }
+
+    function setFormula(text) {
+      activeCellFormula = text;
+      renderPreviewPanes();
+    }
+
+    /* ========================================================================
+       IMMUTABLE ABRN MODE SWITCHER (Warm Cream Burgundy vs Slate Rose-Burgundy)
+       ======================================================================== */
+    function setAbrnMode(modeName) {
+      const normalized = modeName === "dark" || modeName === "abrn-dark" ? "abrn-dark" : "abrn-light";
+      document.documentElement.setAttribute("data-theme", normalized);
+      document.querySelectorAll(".mode-chip").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-mode") === normalized);
+      });
+      showToast(normalized === "abrn-dark" ? "ABRN Slate & Rose-Burgundy activo" : "ABRN Warm Cream & Burgundy activo");
+    }
+
+    /* ========================================================================
+       DRAGGABLE VERTICAL SPLITTERS (Left Folder Tree & Right Preview Dock)
+       ======================================================================== */
+    let activeDragSide = null;
+
+    function startSplitDrag(e, side) {
+      e.preventDefault();
+      activeDragSide = side;
+      document.getElementById("splitter-" + side).classList.add("dragging");
+      document.body.style.cursor = "col-resize";
+    }
+
+    window.addEventListener("mousemove", (e) => {
+      if (!activeDragSide) return;
+      const ws = document.getElementById("workspace-split").getBoundingClientRect();
+      if (activeDragSide === "left") {
+        const tree = document.getElementById("pane-tree");
+        tree.classList.remove("collapsed");
+        const newW = Math.max(145, Math.min(330, e.clientX - ws.left));
+        tree.style.width = newW + "px";
+      } else if (activeDragSide === "right") {
+        const prev = document.getElementById("pane-preview");
+        prev.classList.remove("collapsed");
+        const newW = Math.max(270, Math.min(580, ws.right - e.clientX));
+        prev.style.width = newW + "px";
+      }
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (!activeDragSide) return;
+      document.getElementById("splitter-" + activeDragSide)?.classList.remove("dragging");
+      activeDragSide = null;
+      document.body.style.cursor = "";
+    });
+
+    function toggleTreePane() {
+      document.getElementById("pane-tree").classList.toggle("collapsed");
+    }
+
+    function togglePreviewPane() {
+      document.getElementById("pane-preview").classList.toggle("collapsed");
+    }
+
+    function toggleNavRail() {
+      document.getElementById("app-shell").classList.toggle("nav-expanded");
+    }
+
+    /* ========================================================================
+       RIGHT-CLICK CONTEXT MENU (VaultContextMenu.tsx)
+       ======================================================================== */
+    function openContextMenu(e, type, payload) {
+      e.preventDefault();
+      e.stopPropagation();
+      const menu = document.getElementById("ctx-menu");
+
+      if (type === "file") {
+        const f = FILES.find((item) => item.key === payload) || getActiveFile();
+        selectFileByKey(f.key);
+        menu.innerHTML = `
+          <div class="ctx-header">${f.name}</div>
+          <button class="ctx-item" onclick="openCinemascopeModal(); closeContextMenu();">
+            <span class="ctx-item-left">Vista Rápida Cinemascope</span>
+            <span class="kbd-pill">Espacio</span>
+          </button>
+          <button class="ctx-item" onclick="openShareModal(); closeContextMenu();">
+            <span class="ctx-item-left">Crear Enlace #key</span>
+            <span class="kbd-pill">L</span>
+          </button>
+          <button class="ctx-item" onclick="showToast('Enviando por WhatsApp…'); closeContextMenu();">
+            <span class="ctx-item-left">Enviar por WhatsApp</span>
+            <span class="kbd-pill">W</span>
+          </button>
+          <button class="ctx-item" onclick="copyActiveHash(); closeContextMenu();">
+            <span class="ctx-item-left">Copiar Sello SHA-256</span>
+            <span class="kbd-pill">C</span>
+          </button>
+          <button class="ctx-item" onclick="toggleSelectFile('${f.key}', true); closeContextMenu();">
+            <span class="ctx-item-left">Enviar al Staging Dock</span>
+            <span class="kbd-pill">X</span>
+          </button>
+          <div class="ctx-divider"></div>
+          <button class="ctx-item" onclick="showToast('Descargando ${f.name} descifrado…'); closeContextMenu();">
+            <span class="ctx-item-left">Descargar Descifrado</span>
+            <span class="kbd-pill">⌘D</span>
+          </button>
+          <button class="ctx-item danger" onclick="showToast('Archivo movido a papelera cifrada'); closeContextMenu();">
+            <span class="ctx-item-left">Eliminar Archivo</span>
+            <span class="kbd-pill">Supr</span>
+          </button>
+        `;
+      } else if (type === "folder") {
+        menu.innerHTML = `
+          <div class="ctx-header">Carpeta · ${payload.name}</div>
+          <button class="ctx-item" onclick="showToast('Subcarpeta cifrada creada'); closeContextMenu();">
+            <span class="ctx-item-left">Nueva Subcarpeta</span>
+            <span class="kbd-pill">⇧N</span>
+          </button>
+          <button class="ctx-item" onclick="openShareModal(); closeContextMenu();">
+            <span class="ctx-item-left">Compartir Carpeta (#key)</span>
+            <span class="kbd-pill">L</span>
+          </button>
+          <button class="ctx-item" onclick="showToast('Buzón Secure Drop creado para ${payload.name}'); closeContextMenu();">
+            <span class="ctx-item-left">Solicitar Archivos (Drop)</span>
+            <span class="kbd-pill">D</span>
+          </button>
+        `;
+      } else if (type === "preview") {
+        const f = payload || getActiveFile();
+        menu.innerHTML = `
+          <div class="ctx-header">Inspector · ${f.name}</div>
+          <button class="ctx-item" onclick="openCinemascopeModal(); closeContextMenu();">
+            <span class="ctx-item-left">Expandir a Pantalla Completa</span>
+            <span class="kbd-pill">94vw</span>
+          </button>
+          <button class="ctx-item" onclick="showToast('Firma RSA-PSS verificada sin errores'); closeContextMenu();">
+            <span class="ctx-item-left">Verificar Firma RSA-PSS</span>
+            <span class="kbd-pill">OK</span>
+          </button>
+          <button class="ctx-item" onclick="copyActiveHash(); closeContextMenu();">
+            <span class="ctx-item-left">Copiar Sello SHA-256</span>
+            <span class="kbd-pill">C</span>
+          </button>
+        `;
+      } else {
+        menu.innerHTML = `
+          <div class="ctx-header">Bóveda ABRN Drive</div>
+          <button class="ctx-item" onclick="showToast('Selector de subida abierto'); closeContextMenu();">
+            <span class="ctx-item-left">Subir Archivo Cifrado</span>
+            <span class="kbd-pill">⌘U</span>
+          </button>
+          <button class="ctx-item" onclick="showToast('Nueva carpeta creada'); closeContextMenu();">
+            <span class="ctx-item-left">Nueva Carpeta</span>
+            <span class="kbd-pill">⇧N</span>
+          </button>
+          <button class="ctx-item" onclick="toggleSelectAll(true); closeContextMenu();">
+            <span class="ctx-item-left">Seleccionar Todos</span>
+            <span class="kbd-pill">⌘A</span>
+          </button>
+          <button class="ctx-item" onclick="togglePreviewPane(); closeContextMenu();">
+            <span class="ctx-item-left">Alternar Panel Inspector</span>
+            <span class="kbd-pill">⌘I</span>
+          </button>
+        `;
+      }
+
+      menu.classList.remove("hidden");
+      const x = Math.min(e.clientX, window.innerWidth - 250);
+      const y = Math.min(e.clientY, window.innerHeight - 270);
+      menu.style.left = Math.max(8, x) + "px";
+      menu.style.top = Math.max(8, y) + "px";
+    }
+
+    function closeContextMenu() {
+      document.getElementById("ctx-menu").classList.add("hidden");
+    }
+
+    window.addEventListener("click", () => closeContextMenu());
+
+    /* ========================================================================
+       FILTERS, SELECTION & KEYBOARD SHORTCUTS
+       ======================================================================== */
+    function selectFolder(folderKey, title, btnEl) {
+      currentFolderFilter = folderKey;
+      currentOriginFilter = "all";
+      starredOnly = false;
+      document.getElementById("current-folder-title").textContent = title;
+      document.querySelectorAll(".tree-node").forEach((b) => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      renderFileRows();
+    }
+
+    function filterByFormat(fmt, btnEl) {
+      currentFormatFilter = fmt;
+      document.querySelectorAll(".f-pill").forEach((b) => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      if (fmt !== "all") selectFileByKey(fmt);
+      else renderFileRows();
+    }
+
+    function filterByOrigin(origin) {
+      currentOriginFilter = origin;
+      currentFolderFilter = "all";
+      starredOnly = false;
+      document.getElementById("current-folder-title").textContent =
+        origin === "drop" ? "Buzón Secure Drop ABRN" : "Archivos de Grupo ABRN";
+      renderFileRows();
+    }
+
+    function filterByStarred(btnEl) {
+      starredOnly = true;
+      currentFolderFilter = "all";
+      currentOriginFilter = "all";
+      document.getElementById("current-folder-title").textContent = "Archivos Destacados ABRN";
+      document.querySelectorAll(".tree-node").forEach((b) => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      renderFileRows();
+    }
+
+    function filterFilesBySearch(val) {
+      searchQuery = val.trim();
+      renderFileRows();
+    }
+
+    function focusOmnibar() {
+      document.getElementById("omnibar-input").focus();
+    }
+
+    function toggleSelectFile(key, checked) {
+      if (checked) selectedKeys.add(key);
+      else selectedKeys.delete(key);
+      updateStagingDock();
+      renderFileRows();
+    }
+
+    function toggleSelectAll(checked) {
+      if (checked) FILES.forEach((f) => selectedKeys.add(f.key));
+      else selectedKeys.clear();
+      updateStagingDock();
+      renderFileRows();
+    }
+
+    function clearSelection() {
+      selectedKeys.clear();
+      document.getElementById("select-all-cb").checked = false;
+      updateStagingDock();
+      renderFileRows();
+    }
+
+    function updateStagingDock() {
+      const dock = document.getElementById("staging-dock");
+      dock.classList.toggle("hidden", selectedKeys.size === 0);
+      document.getElementById("staging-count").textContent = selectedKeys.size + " en Staging";
+    }
+
+    function openCinemascopeModal() {
+      document.getElementById("cinemascope-backdrop").classList.remove("hidden");
+    }
+
+    function closeCinemascopeModal() {
+      document.getElementById("cinemascope-backdrop").classList.add("hidden");
+    }
+
+    function openShareModal() {
+      document.getElementById("share-backdrop").classList.remove("hidden");
+    }
+
+    function closeShareModal() {
+      document.getElementById("share-backdrop").classList.add("hidden");
+    }
+
+    function copyActiveHash() {
+      const f = getActiveFile();
+      showToast("SHA-256 copiado: " + f.sha.slice(0, 16) + "…");
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      document.getElementById("toast-text").textContent = msg;
+      t.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.add("hidden"), 2200);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT") return;
+      if (e.key === "Escape") {
+        closeContextMenu();
+        closeCinemascopeModal();
+        closeShareModal();
+      } else if (e.key === " ") {
+        e.preventDefault();
+        openCinemascopeModal();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        focusOmnibar();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        toggleNavRail();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "i") {
+        e.preventDefault();
+        togglePreviewPane();
+      }
+    });
+
+    /* Initialize from URL query parameters */
+    const params = new URLSearchParams(window.location.search);
+    const qMode = params.get("mode") || params.get("theme") || params.get("skin");
+    if (qMode === "dark" || qMode === "abrn-dark") {
+      setAbrnMode("abrn-dark");
+    }
+    const rawFormat = params.get("format");
+    const formatAlias = (rawFormat === "spreadsheet" || rawFormat === "xlsx") ? "sheet" : rawFormat;
+    if (["pdf", "image", "video", "code", "sheet"].includes(formatAlias)) {
+      activeFileKey = formatAlias;
+    }
+    renderFileRows();
+    renderPreviewPanes();
+    if (params.get("modal") === "cinema" || params.get("screen") === "2") {
+      openCinemascopeModal();
+    } else if (params.get("modal") === "share" || params.get("screen") === "3") {
+      openShareModal();
+    }
+    if (params.get("ctx") === "1") {
+      openContextMenu({ preventDefault(){}, stopPropagation(){}, clientX: 380, clientY: 230 }, "file", activeFileKey);
+    }
+  </script>
+</body>
+</html>

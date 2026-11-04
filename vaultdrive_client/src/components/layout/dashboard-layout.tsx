@@ -44,7 +44,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { theme } = useTheme();
+  const { theme, skin, setSkin } = useTheme();
   const isDark = theme === "dark";
   const navigate = useTransitionNavigate();
   const location = useLocation();
@@ -56,7 +56,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
     const saved = localStorage.getItem("abrndrive_sidebar_mode");
-    return (saved === "expanded" || saved === "compact" || saved === "hidden") ? saved : "expanded";
+    return (saved === "expanded" || saved === "compact" || saved === "hidden") ? saved : "compact";
   });
 
   const toggleSidebarMode = useCallback(() => {
@@ -423,22 +423,69 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <Menu className="w-5 h-5" />
             </button>
+
+            {branding.logoVariant === "abrn" && (
+              <span
+                style={{ fontFamily: "var(--font-display)" }}
+                className="hidden sm:inline-block font-bold text-sm text-foreground pr-3 border-r border-border whitespace-nowrap"
+              >
+                {branding.companyName}
+              </span>
+            )}
             
             <button 
               type="button"
               onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden sm:flex items-center gap-2 p-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
+              className="hidden sm:flex items-center justify-between gap-3 px-3 py-1.5 rounded-lg text-xs text-muted-foreground bg-background border border-border hover:border-primary/40 hover:text-foreground transition-colors min-w-[180px] lg:min-w-[240px]"
             >
-              <Search className="w-4 h-4" />
-                <span>{t("common:nav.search")}</span>
-                <kbd className="ml-4 px-1.5 py-0.5 text-xs border border-primary/20 rounded-md bg-primary/5 flex items-center gap-1">
-
-                    <Command className="w-2.5 h-2.5" />K
-                </kbd>
+              <span className="inline-flex items-center gap-2 truncate">
+                <Search className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{t("common:nav.search")}</span>
+              </span>
+              <kbd className="px-1.5 py-0.5 text-[10px] border border-border rounded bg-muted text-muted-foreground flex items-center gap-0.5 shrink-0">
+                <Command className="w-2.5 h-2.5" />K
+              </kbd>
             </button>
           </div>
 
-          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1 sm:gap-3">
+          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1 sm:gap-2.5">
+            {branding.logoVariant === "abrn" && (
+              <div
+                data-testid="abrn-mode-bar"
+                role="group"
+                aria-label="Paleta Inmutable ABRN"
+                className="hidden md:flex items-center gap-1 p-1 rounded-lg bg-background border border-border"
+              >
+                <button
+                  type="button"
+                  data-testid="abrn-mode-light"
+                  onClick={(e) => setSkin("light", e)}
+                  className={cn(
+                    "h-6 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer",
+                    skin === "light"
+                      ? "bg-card text-primary border border-primary/30 shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#7a1f2b]" />
+                  <span>ABRN Cream</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="abrn-mode-dark"
+                  onClick={(e) => setSkin("dark", e)}
+                  className={cn(
+                    "h-6 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer",
+                    skin === "dark"
+                      ? "bg-card text-primary border border-primary/30 shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <span>ABRN Slate</span>
+                </button>
+              </div>
+            )}
             {branding.logoVariant === "abrn" && !isOnline && (
               <div 
                 data-testid="offline-badge-abrn"
@@ -600,7 +647,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
         </AnimatePresence>
 
-        <div className="flex-1 overflow-auto p-4 sm:p-6 relative">
+        <div className={cn(
+          "flex-1 overflow-auto relative",
+          location.pathname.startsWith("/files") ? "p-0" : "p-4 sm:p-6"
+        )}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
