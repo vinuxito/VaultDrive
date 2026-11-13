@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { File, Download, Link2, Star, StarOff, Shield, ShieldCheck, Share2, Users, FolderOpen, Trash2, Zap, Clock, Loader2 } from "lucide-react";
+import { File, Download, Link2, Star, StarOff, Shield, ShieldCheck, Share2, Users, FolderOpen, Trash2, Zap, Clock, Loader2, Eye } from "lucide-react";
 import { OriginBadge } from "./OriginBadge";
 import type { FileOrigin } from "./OriginBadge";
 import { RowActionMenu } from "../ui/row-action-menu";
@@ -59,6 +59,7 @@ interface FileGridProps {
   onRowHover?: (file: FileData) => void;
   onPassportClick?: (file: FileData) => void;
   onDoubleClickRow?: (file: FileData) => void;
+  onMobileInspectClick?: (file: FileData) => void;
 }
 
 function getFormatBadgeMeta(filename: string): { label: string; className: string } {
@@ -89,7 +90,7 @@ function getFormatBadgeMeta(filename: string): { label: string; className: strin
   }
   if (["sh", "ts", "tsx", "js", "py", "go", "json", "md", "xml", "sql"].includes(ext)) {
     return {
-      label: ext.toUpperCase().slice(0, 4),
+      label: ext === "xml" ? "CFDI" : ext.toUpperCase().slice(0, 4),
       className: "bg-[#2d8a6e]/12 text-[#2d8a6e] dark:text-[#34d399] border-[#2d8a6e]/30",
     };
   }
@@ -156,6 +157,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
   onRowHover,
   onPassportClick,
   onDoubleClickRow,
+  onMobileInspectClick,
 }) => {
   const { t } = useTranslation(["drive"]);
 
@@ -307,7 +309,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
             </button>
 
             {/* Mobile Sub-line: Visible file size, date, and cryptographic seal */}
-            <div className="w-full sm:hidden flex items-center justify-between text-xs text-muted-foreground pt-1.5 border-t border-border/40 mt-0.5">
+            <div className="order-last w-full sm:hidden flex items-center justify-between text-xs text-muted-foreground pt-1.5 border-t border-border/40 mt-0.5">
               <div className="flex items-center gap-2">
                 <span className="font-mono font-medium text-foreground/80">{formatBytes(file.file_size)}</span>
                 <span className="text-muted-foreground/60">•</span>
@@ -475,6 +477,40 @@ export const FileGrid: React.FC<FileGridProps> = ({
                 </>
               )}
             </div>
+
+            {/* Mobile 1-tap Quick Actions: Share (#key) + Inspect (5-Format RAM Sheet) */}
+            {!isPending && (
+              <div className="flex md:hidden items-center gap-1 ml-auto shrink-0">
+                {file.is_owner !== false && (
+                  <button
+                    type="button"
+                    data-prevent-row-click="true"
+                    data-testid={`mobile-file-share-${file.id}`}
+                    aria-label={`Compartir ${file.filename}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCreateShareLink(file);
+                    }}
+                    className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 inline-flex items-center justify-center cursor-pointer active:scale-95"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  data-prevent-row-click="true"
+                  data-testid={`mobile-file-inspect-${file.id}`}
+                  aria-label={`Inspeccionar ${file.filename}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    (onMobileInspectClick ?? onPreviewClick)(file);
+                  }}
+                  className="w-8 h-8 rounded-lg bg-background border border-border text-foreground hover:bg-muted inline-flex items-center justify-center cursor-pointer active:scale-95"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Unified actions via RowActionMenu */}
             <div className="relative shrink-0">

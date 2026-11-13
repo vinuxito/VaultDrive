@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v21-abrn-mobile-uix-folder-sharing",
+    "environment": "Ubuntu Linux 64-bit · Node/Vite 7.2.4 · Vitest 4.1.0 · Live https://abrndrive.filemonprime.net/abrn/files via bsk Chromium (390x844 & 1440x900)",
+    "report": "docs/reports/2026-11-12-v21-abrn-mobile-uix-folder-sharing-verification.md",
+    "files": [
+      {
+        "path": "vaultdrive_client/src/utils/qr-svg.ts",
+        "sha256": "ff146b871de30367f6b902abad72a4686216331d94647b61866bdd18ff1be605"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileFolderShareSheet.tsx",
+        "sha256": "6703bc36b2f673af01739845a80983916ed11b6908f22a6d8f82a827d473bef7"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileFolderShareSheet.test.tsx",
+        "sha256": "cd2256cc21470be8f0723f28b884a576c548e900883acac68d6cc7160ab1b1f2"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileFolderSheet.tsx",
+        "sha256": "7af649e9dfb378e1ce875222e6207f61863cf9a3b04c50bf9fc3cd859a86d191"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileFolderSheet.test.tsx",
+        "sha256": "57dab8a27cb9f19c2f8a837603374512b1694611205ae250965b4d4f1ba842fa"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileInspectorSheet.tsx",
+        "sha256": "384677051388e5a6c48f897f61ddf38e011b86d2ad688d118c8cb41529977083"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileInspectorSheet.test.tsx",
+        "sha256": "07c32131e6f0310628f1fb6b024051ca727dadc5ef09f31c471f835e537cc2dc"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.tsx",
+        "sha256": "a794e3c693f7ee4ae90258986e98aa5d86f493c696fe173ad5454db67e5bd72b"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.test.tsx",
+        "sha256": "703c28f130b2eee1477c8ea5ba8b9afdabaffd5f2c1a1459ce99ab43df550c87"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileSearch.tsx",
+        "sha256": "6ffded7ae12df39260dbe64227baf10d1d3ac01959ca5c5dbdbe603282d26ead"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/dashboard-layout.tsx",
+        "sha256": "bb01e1c05b8fa25c3550e03bc4716a590798a12bf4cef339de814052c2c67bc9"
+      },
+      {
+        "path": "vaultdrive_client/src/pages/files.tsx",
+        "sha256": "a051957539fe89440799fb2cbc4d545c9d9a2979f2234d097e0276e7092ca83a"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/mobile.html",
+        "sha256": "9ec659ae02da31566dda07fb896abf7481783e31197ac171de5873cbbae9ae6c"
+      },
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "d967bed61b475ab4c02a8f5351f8e3be6fd818c69818ec188d62b16996e4920e"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-01-MOBILE-HERO-AND-PALETTE",
+      "description": "Mobile (<768px) vault header, 1-tap ABRN Cream/Slate mode pill, Active Folder Hero Card (Compartir Carpeta, Pedir Archivos, Equipo), and Subfolder Quick-Share Strip match /abrn/previews/mobile.html above the fold with zero overflow.",
+      "check_ids": ["CHK-TYPECHECK", "CHK-VITEST-95", "CHK-VITE-BUILD", "CHK-LIVE-MOBILE-HERO"]
+    },
+    {
+      "id": "REQ-02-MOBILE-FOLDER-EXPLORER",
+      "description": "MobileFolderSheet renders root folders and indented child subfolders with 1-tap Compartir and Drop/Pedir Drop actions plus a single-line sticky bottom dock in both ABRN Cream and ABRN Slate.",
+      "check_ids": ["CHK-VITEST-95", "CHK-LIVE-FOLDER-EXPLORER"]
+    },
+    {
+      "id": "REQ-03-MOBILE-FOLDER-SHARE-SHEET",
+      "description": "MobileFolderShareSheet unifies Enlace #key (real WebCrypto batch key wrapping, Live Glass Twin, Sovereign QR SVG, active link sync, WhatsApp/Copy/Native), Buzón Drop, and Equipo RSA with Zero Dead-End empty-folder handoff.",
+      "check_ids": ["CHK-VITEST-95", "CHK-LIVE-FOLDER-SHARE"]
+    },
+    {
+      "id": "REQ-04-MOBILE-INSPECTOR-AND-CARDS",
+      "description": "Mobile file cards display format badges (PDF, CFDI, XLSX, 4K, MP4) + 1-tap Share/Inspect buttons, opening the 5-Format MobileInspectorSheet with Sacred SHA-256 Receipt and sticky dock.",
+      "check_ids": ["CHK-VITEST-95", "CHK-LIVE-MOBILE-INSPECTOR"]
+    },
+    {
+      "id": "REQ-05-DESKTOP-ZERO-REGRESSION",
+      "description": "Desktop (>=768px / 1440x900) 3-pane resizable workspace, ABRN Cream/Slate mode bar, telemetry strip, and right VaultInspectorPane suffer zero layout or functional regressions.",
+      "check_ids": ["CHK-TYPECHECK", "CHK-VITE-BUILD", "CHK-LIVE-DESKTOP-REGRESSION"]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-TYPECHECK",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run typecheck",
+      "expected": "tsc -b && tsc -p tsconfig.e2e.json --noEmit exits 0 with 0 errors",
+      "actual": "Exited 0 with 0 TypeScript errors across app and e2e configs",
+      "environment": "Node CLI in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": ["REQ-01-MOBILE-HERO-AND-PALETTE", "REQ-05-DESKTOP-ZERO-REGRESSION"],
+      "evidence": ["docs/reports/2026-11-12-v21-abrn-mobile-uix-folder-sharing-verification.md"]
+    },
+    {
+      "id": "CHK-VITEST-95",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "vitest",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npx vitest run src/components/mobile/MobileFolderShareSheet.test.tsx src/components/mobile/MobileFolderSheet.test.tsx src/components/mobile/MobileInspectorSheet.test.tsx src/components/mobile/MobileShareSheet.test.tsx src/components/vault/FileGrid.test.tsx src/components/vault/VaultInspectorPane.test.tsx src/components/vault/CreateFolderShareLinkModal.empty-folder.test.tsx src/config/skin-contrast.test.ts src/config/brand-theme.test.ts",
+      "expected": "9/9 test files and 95/95 tests pass",
+      "actual": "9 passed (9) test files, 95 passed (95) tests in 3.95s",
+      "environment": "Vitest 4.1.0 jsdom in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-MOBILE-HERO-AND-PALETTE",
+        "REQ-02-MOBILE-FOLDER-EXPLORER",
+        "REQ-03-MOBILE-FOLDER-SHARE-SHEET",
+        "REQ-04-MOBILE-INSPECTOR-AND-CARDS"
+      ],
+      "evidence": ["docs/reports/2026-11-12-v21-abrn-mobile-uix-folder-sharing-verification.md"]
+    },
+    {
+      "id": "CHK-VITE-BUILD",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build",
+      "expected": "Production bundle compiles cleanly into vaultdrive_client/dist/",
+      "actual": "Built 2468 modules in 11.96s with exit code 0",
+      "environment": "Vite 7.2.4 production build (/abrn base)",
+      "requirement_ids": ["REQ-01-MOBILE-HERO-AND-PALETTE", "REQ-05-DESKTOP-ZERO-REGRESSION"],
+      "evidence": [
+        "vaultdrive_client/dist/index.html",
+        "docs/reports/2026-11-12-v21-abrn-mobile-uix-folder-sharing-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-LIVE-MOBILE-HERO",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "bsk-real-browser",
+      "command_or_steps": "Emulate iPhone 14 (390x844) in bsk on https://abrndrive.filemonprime.net/abrn/files inside Expedientes Fiscales 2026 with child subfolder Declaraciones SAT 2026 and 3 encrypted files (XLSX, CFDI, PDF)",
+      "expected": "Single-row ABRN header, full Bóveda ABRN title, Active Folder Hero Card with 44px buttons inside bounds, hidden-scrollbar subfolder strip, and 3 visible file cards above the fold",
+      "actual": "Verified pixel-clean layout above the fold in ABRN Cream mode",
+      "environment": "Live Chromium via bsk at 390x844@3x",
+      "requirement_ids": ["REQ-01-MOBILE-HERO-AND-PALETTE"],
+      "evidence": ["docs/reports/evidence/v21-abrn-mobile-uix-folder-sharing/01-live-mobile-vault-hero-cream.png"]
+    },
+    {
+      "id": "CHK-LIVE-FOLDER-EXPLORER",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "bsk-real-browser",
+      "command_or_steps": "Toggle ABRN Slate mode pill in mobile header and tap Cambiar to open MobileFolderSheet",
+      "expected": "ABRN Slate (#1e2330 / #d4aeb0) explorer sheet renders root folders, indented child subfolder Declaraciones SAT 2026, 1-tap Compartir and Pedir Drop buttons, and single-line sticky dock",
+      "actual": "Verified hierarchical folder rows, 1-tap buttons, and crisp single-line footer dock in ABRN Slate",
+      "environment": "Live Chromium via bsk at 390x844@3x",
+      "requirement_ids": ["REQ-02-MOBILE-FOLDER-EXPLORER"],
+      "evidence": ["docs/reports/evidence/v21-abrn-mobile-uix-folder-sharing/02-live-mobile-folder-explorer-slate.png"]
+    },
+    {
+      "id": "CHK-LIVE-FOLDER-SHARE",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "bsk-real-browser",
+      "command_or_steps": "Tap Compartir Carpeta on Expedientes Fiscales 2026 (3 encrypted files), enter 4-digit PIN 2468, and inspect generated #key URL and Live Glass Twin",
+      "expected": "Wraps 3/3 AES-256 keys client-side (0 Bytes to server), renders live /abrn/folder-share/<token>#<key> URL inside Live Glass Twin, 1d/3d/7d/30d pills, active link sync card, and WhatsApp/Copy/QR/Native dock",
+      "actual": "Generated live #tC+le52rKy8ET8Mq68tqrr6yZH/YYsI2QSQNjiTIwzo= link with 3/3 keys wrapped and rendered full 3-zone sheet cleanly",
+      "environment": "Live Chromium via bsk at 390x844@3x",
+      "requirement_ids": ["REQ-03-MOBILE-FOLDER-SHARE-SHEET"],
+      "evidence": ["docs/reports/evidence/v21-abrn-mobile-uix-folder-sharing/03-live-mobile-folder-share-sheet-cream.png"]
+    },
+    {
+      "id": "CHK-LIVE-MOBILE-INSPECTOR",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "bsk-real-browser",
+      "command_or_steps": "Tap Inspect icon on CFDI_Honorarios_Nov2026.xml card on 390x844 mobile viewport",
+      "expected": "Opens 3-zone MobileInspectorSheet on CFDI tab with high-contrast XML preview, full streaming decrypt CTA, SHA-256 Sacred Receipt (0 B Delta), and sticky dock",
+      "actual": "Rendered crisp #e2e8f0 XML source on #161922 obsidian stage, SHA-256 86cb12b0e4c9...7af3c8f2 receipt, and sticky dock",
+      "environment": "Live Chromium via bsk at 390x844@3x",
+      "requirement_ids": ["REQ-04-MOBILE-INSPECTOR-AND-CARDS"],
+      "evidence": ["docs/reports/evidence/v21-abrn-mobile-uix-folder-sharing/04-live-mobile-inspector-5formats-cream.png"]
+    },
+    {
+      "id": "CHK-LIVE-DESKTOP-REGRESSION",
+      "build_id": "v21-abrn-mobile-uix-folder-sharing",
+      "status": "PASS",
+      "method": "bsk-real-browser",
+      "command_or_steps": "Switch bsk viewport to 1440x900@2x on /abrn/files",
+      "expected": "Desktop 3-pane workspace (VaultTree, FileGrid, VaultInspectorPane), ABRN Cream/Slate mode bar, and telemetry strip render without regressions",
+      "actual": "All 3 desktop resizable panes and desktop header controls verified intact at 1440x900",
+      "environment": "Live Chromium via bsk at 1440x900@2x",
+      "requirement_ids": ["REQ-05-DESKTOP-ZERO-REGRESSION"],
+      "evidence": ["docs/reports/evidence/v21-abrn-mobile-uix-folder-sharing/05-live-desktop-regression-check.png"]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-01-MOBILE-ABOVE-THE-FOLD-STACKING",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "reproduction": "Open /abrn/files at 390x844 prior to fold polish.",
+      "expected": "Single-row header, compact search/filter row, Active Folder Hero Card, and visible file cards above the fold matching /abrn/previews/mobile.html.",
+      "actual": "DashboardLayout header wrapped onto 2 rows and legacy desktop breadcrumb/sort toolbar stacked ~420px above the hero card.",
+      "cause": "flex-wrap on mobile header plus unhidden desktop breadcrumb/sort toolbar and multi-row filter pills on <768px.",
+      "fix": "Made mobile DashboardLayout header flex-nowrap, FileSearch filter pills single-row overflow-x-auto with hidden scrollbar, and desktop breadcrumb/sort bar hidden md:flex while keeping hidden file/camera/folder inputs mounted.",
+      "requirement_ids": ["REQ-01-MOBILE-HERO-AND-PALETTE"],
+      "verification_check_ids": ["CHK-LIVE-MOBILE-HERO"]
+    },
+    {
+      "id": "FND-02-HERO-TEAM-OVERFLOW-AND-SCROLLBAR",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "reproduction": "Inspect mobile-active-folder-hero and mobile-subfolder-strip at 390x844 prior to button geometry polish.",
+      "expected": "All 3 hero action buttons fit inside card borders and subfolder chips scroll without a browser scrollbar track.",
+      "actual": "Full-text Equipo button overflowed the right border on 390px and Chromium drew a horizontal scrollbar bar beneath subfolder chips.",
+      "cause": "Three full text labels exceeded 326px inner card width and overflow-x-auto lacked scrollbar suppression.",
+      "fix": "Styled Equipo as a 44x44px square icon button (aria-label='Equipo', matching Phone 1 of /abrn/previews/mobile.html) and added [scrollbar-width:none] [&::-webkit-scrollbar]:hidden to mobile-subfolder-strip.",
+      "requirement_ids": ["REQ-01-MOBILE-HERO-AND-PALETTE"],
+      "verification_check_ids": ["CHK-LIVE-MOBILE-HERO"]
+    },
+    {
+      "id": "FND-03-INSPECTOR-XML-CONTRAST-AND-DOCK-WRAP",
+      "severity": "LOW",
+      "status": "FIXED",
+      "reproduction": "Open MobileInspectorSheet CFDI tab in ABRN Cream mode and open MobileFolderSheet on a long subfolder name at 390x844.",
+      "expected": "Crisp light text inside dark XML code stage and single-line Nueva Carpeta button in explorer dock.",
+      "actual": "Light-mode CSS dimmed .text-slate-200 inside the dark XML <pre> block, and Nueva Carpeta wrapped onto 2 lines.",
+      "cause": "Global light-theme utility overrides and equal-flex width on Nueva Carpeta.",
+      "fix": "Applied explicit inline #e2e8f0/#161922 dark-stage colors in MobileInspectorSheet, shrink-0 whitespace-nowrap on Nueva Carpeta in MobileFolderSheet, and scrollIntoView on the Sovereign QR card.",
+      "requirement_ids": ["REQ-02-MOBILE-FOLDER-EXPLORER", "REQ-04-MOBILE-INSPECTOR-AND-CARDS"],
+      "verification_check_ids": ["CHK-LIVE-FOLDER-EXPLORER", "CHK-LIVE-MOBILE-INSPECTOR"]
+    }
+  ]
+}

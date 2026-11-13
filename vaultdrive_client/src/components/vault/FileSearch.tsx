@@ -33,8 +33,8 @@ export const FileSearch: React.FC<FileSearchProps> = ({
   };
 
   return (
-    <div className="px-6 py-3 border-b border-border/60 bg-background shrink-0">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+    <div className="px-3.5 sm:px-6 py-2 sm:py-3 border-b border-border/60 bg-background shrink-0">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <div className="flex items-center gap-2 flex-1 max-w-xl">
           <form role="search" autoComplete="off" onSubmit={(event) => event.preventDefault()} className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -51,7 +51,7 @@ export const FileSearch: React.FC<FileSearchProps> = ({
               }}
               placeholder={t("drive:vault.search")}
               aria-label={t("drive:vault.search")}
-              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
+              className="w-full pl-8 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-border bg-muted focus:bg-background focus:border-primary/40 focus:outline-none transition-all"
             />
 
             {searchQuery && (
@@ -84,14 +84,14 @@ export const FileSearch: React.FC<FileSearchProps> = ({
             </button>
           )}
         </div>
-        <div className="flex max-w-full flex-wrap items-center gap-1">
+        <div className="flex max-w-full flex-nowrap sm:flex-wrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden items-center gap-1">
           {(Object.keys(TYPE_FILTER_LABELS) as FileTypeFilter[]).map((type) => (
             <button
               type="button"
               key={type}
               onClick={() => setTypeFilter(type)}
               aria-pressed={typeFilter === type}
-              className={`text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap ${
+              className={`text-[11px] sm:text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap shrink-0 ${
                 typeFilter === type
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"

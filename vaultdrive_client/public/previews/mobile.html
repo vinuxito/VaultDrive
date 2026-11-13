@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="abrn-light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive Mobile UIX — Compartir Carpetas &amp; Bóveda Móvil</title>
+  <link rel="icon" type="image/png" href="/abrn/abrn-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ==========================================================================
+       IMMUTABLE ABRN VIBE — LUXURY FINTECH DESIGN TOKENS
+       Strictly aligned with vaultdrive_client/src/styles/luxury-tokens.css & skins.css
+       ========================================================================== */
+    :root,
+    html[data-theme="abrn-light"] {
+      --lux-burgundy-50:  #fdf5f5;
+      --lux-burgundy-100: #f8e8e8;
+      --lux-burgundy-200: #f0d0d1;
+      --lux-burgundy-300: #e3adae;
+      --lux-burgundy-600: #7d4f50;
+      --lux-burgundy-700: #6b4345;
+      --abrn-crimson:     #7a1f2b;
+
+      --lux-neutral-50:   #fdfcfb;
+      --lux-neutral-100:  #faf8f5;
+      --lux-neutral-200:  #f2efe9;
+      --lux-neutral-300:  #e5e0d8;
+      --lux-neutral-600:  #746d63;
+      --lux-neutral-800:  #332f2a;
+      --lux-neutral-900:  #1c1a17;
+
+      --lux-emerald:      #2d8a6e;
+      --lux-amber:        #b8860b;
+      --lux-ruby:         #c43e3e;
+      --lux-sapphire:     #3d6bb5;
+      --whatsapp-green:   #1fa855;
+
+      /* Active Semantic Surface Map (ABRN Warm Cream & Burgundy) */
+      --bg:               #faf8f5;
+      --bg-elevated:      #f2efe9;
+      --studio-bg:        #efeae1;
+      --card:             #ffffff;
+      --card-hover:       #fdf5f5;
+      --popover:          #ffffff;
+      --fg:               #2c323f;
+      --fg-strong:        #1c1a17;
+      --muted:            #f2efe9;
+      --muted-fg:         #6e665c;
+      --primary:          #7a1f2b;
+      --primary-soft:     #7d4f50;
+      --primary-fg:       #ffffff;
+      --primary-tint:     #f8e8e8;
+      --border:           #e5e0d8;
+      --border-strong:    rgba(122, 31, 43, 0.28);
+      --sheet-backdrop:   rgba(28, 26, 23, 0.54);
+      --phone-bezel:      #262220;
+      --phone-ring:       rgba(122, 31, 43, 0.24);
+      --font-display:     "Libre Baskerville", Baskerville, Georgia, serif;
+      --font-sans:        "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-code:        "SF Mono", "Fira Code", "Cascadia Code", monospace; /* taste-skill-ignore */
+    }
+
+    html[data-theme="abrn-dark"],
+    html[data-theme="abrn-dark"] body {
+      --bg:               #1e2330;
+      --bg-elevated:      #181d2a;
+      --studio-bg:        #121620;
+      --card:             #2c3240;
+      --card-hover:       #353c4d;
+      --popover:          #262c3a;
+      --fg:               #f2f0ed;
+      --fg-strong:        #ffffff;
+      --muted:            #363d4e;
+      --muted-fg:         #b8bfcc;
+      --primary:          #d4aeb0;
+      --primary-soft:     #7d4f50;
+      --primary-fg:       #1e2330;
+      --primary-tint:     rgba(212, 174, 176, 0.16);
+      --border:           rgba(242, 240, 237, 0.12);
+      --border-strong:    rgba(212, 174, 176, 0.38);
+      --sheet-backdrop:   rgba(8, 11, 18, 0.72);
+      --phone-bezel:      #0d1017;
+      --phone-ring:       rgba(212, 174, 176, 0.32);
+      --lux-emerald:      #3eb489;
+      --lux-amber:        #e0a938;
+      --lux-ruby:         #e06c6c;
+      --lux-sapphire:     #6ca0dc;
+      --whatsapp-green:   #24b35c;
+      background-color:   #121620;
+      color:              #f2f0ed;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--studio-bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    button, input {
+      font-family: inherit;
+    }
+
+    svg.ico {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    svg.ico-sm {
+      width: 13px;
+      height: 13px;
+    }
+
+    svg.ico-lg {
+      width: 19px;
+      height: 19px;
+    }
+
+    /* ==========================================================================
+       STUDIO CONTROL DECK (TOP BAR FOR INTERACTIVE PREVIEW EXPLORATION)
+       ========================================================================== */
+    .studio-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 18px -8px rgba(0, 0, 0, 0.14);
+    }
+
+    .studio-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .studio-logo-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--lux-neutral-50);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
+      flex-shrink: 0;
+    }
+
+    .studio-logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .studio-title-wrap h1 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      letter-spacing: -0.01em;
+    }
+
+    .studio-title-wrap p {
+      font-size: 11px;
+      color: var(--muted-fg);
+    }
+
+    .studio-controls {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .pill-group {
+      display: inline-flex;
+      align-items: center;
+      background: var(--muted);
+      padding: 3px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      gap: 2px;
+    }
+
+    .pill-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted-fg);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .pill-btn:hover {
+      color: var(--fg-strong);
+    }
+
+    .pill-btn.active {
+      background: var(--primary);
+      color: var(--primary-fg);
+      box-shadow: 0 2px 6px rgba(122, 31, 43, 0.22);
+    }
+
+    .desktop-link {
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-tint);
+      border: 1px solid var(--border-strong);
+      padding: 6px 11px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       COMPACT RECON DIAGNOSIS STRIP (4 ROOT CAUSES RESOLVED)
+       ========================================================================== */
+    .recon-banner {
+      max-width: 1380px;
+      margin: 8px auto 0;
+      padding: 0 18px;
+    }
+
+    .recon-card {
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .recon-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .recon-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--primary-tint);
+      color: var(--primary);
+      border: 1px solid var(--border-strong);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .recon-text h2 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--fg-strong);
+    }
+
+    .recon-text p {
+      font-size: 10px;
+      color: var(--muted-fg);
+      line-height: 1.3;
+    }
+
+    /* ==========================================================================
+       PHONE STAGE SHOWCASE (DUAL VIEW OR SINGLE PHONE VIEW)
+       ========================================================================== */
+    .stage-container {
+      max-width: 1380px;
+      margin: 10px auto 20px;
+      padding: 0 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(350px, 412px));
+      justify-content: center;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .stage-container[data-layout="single"] {
+      grid-template-columns: minmax(350px, 412px);
+    }
+
+    .stage-container[data-layout="single"] .phone-column[data-phone="secondary"] {
+      display: none;
+    }
+
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .phone-caption {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 11px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--fg-strong);
+    }
+
+    .phone-caption span.tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-tint);
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+    }
+
+    /* Phone Hardware Frame — Sized so 100% of phone + bottom dock fits in 1080p */
+    .phone-frame {
+      width: 100%;
+      max-width: 408px;
+      height: 676px;
+      background: var(--bg);
+      border-radius: 38px;
+      border: 8px solid var(--phone-bezel);
+      box-shadow:
+        0 0 0 2px var(--phone-ring),
+        0 22px 48px -16px rgba(15, 19, 29, 0.45);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar + Dynamic Island */
+    .phone-statusbar {
+      height: 32px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      background: var(--card);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .dynamic-island {
+      width: 88px;
+      height: 18px;
+      background: #0d0f14;
+      border-radius: 999px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 7px;
+    }
+
+    .dynamic-island::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--lux-emerald);
+      box-shadow: 0 0 6px var(--lux-emerald);
+    }
+
+    /* ==========================================================================
+       MOBILE APP TOPBAR & ACTIVE FOLDER HERO COMMAND DECK
+       ========================================================================== */
+    .m-topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .m-brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .m-brand-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .m-logo {
+      width: 31px;
+      height: 31px;
+      border-radius: 8px;
+      background: var(--lux-neutral-50);
+      border: 1px solid var(--border-strong);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .m-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .m-brand-title {
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      line-height: 1.1;
+    }
+
+    .m-brand-sub {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .m-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .m-icon-pill {
+      min-height: 32px;
+      padding: 0 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg-strong);
+      font-size: 10.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .m-icon-pill.seal {
+      background: rgba(45, 138, 110, 0.12);
+      border-color: rgba(45, 138, 110, 0.32);
+      color: var(--lux-emerald);
+    }
+
+    /* Cerebro Ciego Omnibar Mobile Trigger */
+    .m-omnibar {
+      width: 100%;
+      min-height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted-fg);
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+
+    .m-omnibar-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .m-omnibar strong {
+      color: var(--fg-strong);
+      font-weight: 600;
+    }
+
+    .m-omnibar-kbd {
+      font-family: var(--font-code);
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--primary);
+    }
+
+    /* ==========================================================================
+       NEW! ACTIVE FOLDER HERO CARD & 1-TAP FOLDER SHARE STRIP (COUCH-APPROVED)
+       ========================================================================== */
+    .m-folder-hero {
+      margin: 8px 10px 4px;
+      padding: 10px 11px;
+      border-radius: 15px;
+      background: var(--card);
+      border: 1.5px solid var(--border-strong);
+      box-shadow: 0 6px 20px -12px rgba(122, 31, 43, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .m-folder-hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .m-folder-identity {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .m-folder-emblem {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: var(--primary-tint);
+      border: 1px solid var(--border-strong);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .m-folder-meta {
+      min-width: 0;
+    }
+
+    .m-folder-breadcrumb {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .m-folder-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .m-folder-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-folder-telemetry {
+      font-size: 10.5px;
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .m-switch-folder-btn {
+      min-height: 34px;
+      padding: 0 9px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg-strong);
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* 46px Touch Action Deck right inside the Active Folder Card! */
+    .m-folder-action-deck {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr auto;
+      gap: 6px;
+    }
+
+    .m-folder-cta-primary {
+      min-height: 44px;
+      border-radius: 11px;
+      border: 0;
+      background: var(--primary);
+      color: var(--primary-fg);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(122, 31, 43, 0.24);
+    }
+
+    .m-folder-cta-secondary {
+      min-height: 44px;
+      border-radius: 11px;
+      border: 1px solid var(--border-strong);
+      background: var(--primary-tint);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .m-folder-cta-icon {
+      width: 44px;
+      min-height: 44px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .m-collab-count {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--lux-emerald);
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--card);
+    }
+
+    /* Subfolder Quick Chips Strip */
+    .m-subfolder-strip {
+      padding: 2px 10px 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+
+    .m-subfolder-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .m-subchip {
+      min-height: 30px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      font-size: 10.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .m-subchip.active {
+      background: var(--primary-tint);
+      border-color: var(--border-strong);
+      color: var(--primary);
+    }
+
+    .m-subchip-share {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+    }
+
+    /* ==========================================================================
+       MOBILE FILE WORK QUEUE (THUMB-FIRST CARDS WITH FORMAT BADGES & 1-TAP SHARE)
+       ========================================================================== */
+    .m-file-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2px 10px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .m-section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-fg);
+      padding: 2px 4px;
+    }
+
+    .m-file-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    .m-file-card.selected {
+      border-color: var(--primary);
+      background: var(--card-hover);
+    }
+
+    .m-fmt-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+    }
+
+    .m-fmt-badge.pdf {
+      background: rgba(196, 62, 62, 0.12);
+      color: var(--lux-ruby);
+      border-color: rgba(196, 62, 62, 0.28);
+    }
+
+    .m-fmt-badge.img {
+      background: rgba(61, 107, 181, 0.12);
+      color: var(--lux-sapphire);
+      border-color: rgba(61, 107, 181, 0.28);
+    }
+
+    .m-fmt-badge.vid {
+      background: rgba(184, 134, 11, 0.13);
+      color: var(--lux-amber);
+      border-color: rgba(184, 134, 11, 0.3);
+    }
+
+    .m-fmt-badge.xlsx {
+      background: rgba(45, 138, 110, 0.13);
+      color: var(--lux-emerald);
+      border-color: rgba(45, 138, 110, 0.3);
+    }
+
+    .m-fmt-badge.xml {
+      background: var(--primary-tint);
+      color: var(--primary);
+      border-color: var(--border-strong);
+    }
+
+    .m-file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .m-file-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-strong);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-file-sub {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--muted-fg);
+      margin-top: 1px;
+    }
+
+    .m-triage-pill {
+      font-family: var(--font-code);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--primary-tint);
+      color: var(--primary);
+    }
+
+    .m-file-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .m-touch-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .m-touch-btn.share {
+      background: var(--primary-tint);
+      border-color: var(--border-strong);
+      color: var(--primary);
+    }
+
+    /* ==========================================================================
+       BOTTOM NAVIGATION BAR & FLOATING ACTION BUTTON
+       ========================================================================== */
+    .m-fab {
+      position: absolute;
+      right: 14px;
+      bottom: 66px;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      border: 0;
+      font-size: 11.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 20px rgba(122, 31, 43, 0.36);
+      cursor: pointer;
+      z-index: 15;
+    }
+
+    .m-bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 4px 8px 6px;
+      z-index: 20;
+    }
+
+    .m-nav-item {
+      border: 0;
+      background: transparent;
+      color: var(--muted-fg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 9.5px;
+      font-weight: 700;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    .m-nav-item.active {
+      color: var(--primary);
+      background: var(--primary-tint);
+    }
+
+    /* ==========================================================================
+       3-ZONE COUCH-APPROVED BOTTOM SHEETS (FILEMON-MODAL-UIX + BARRIO NIVEL DIOS)
+       ========================================================================== */
+    .m-sheet-backdrop {
+      position: absolute;
+      inset: 32px 0 0 0;
+      background: var(--sheet-backdrop);
+      backdrop-filter: blur(4px);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .m-sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .m-sheet {
+      background: var(--card);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      border-top: 1.5px solid var(--border-strong);
+      max-height: 94%;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    /* Zone 1: Frozen Sheet Header */
+    .m-sheet-header {
+      padding: 7px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      flex-shrink: 0;
+    }
+
+    .m-sheet-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      margin: 0 auto 8px;
+    }
+
+    .m-sheet-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .m-sheet-title-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .m-sheet-title-left h3 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-sheet-title-left p {
+      font-size: 10.5px;
+      color: var(--muted-fg);
+    }
+
+    .m-sheet-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg-strong);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Zone 2: Scrollable Sheet Stage */
+    .m-sheet-body {
+      padding: 10px 12px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    /* Zone 3: Frozen Sticky Bottom Tactical Dock */
+    .m-sheet-dock {
+      padding: 9px 12px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    .m-dock-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .m-btn-whatsapp {
+      flex: 1;
+      min-height: 46px;
+      border-radius: 12px;
+      border: 0;
+      background: var(--whatsapp-green);
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(31, 168, 85, 0.3);
+    }
+
+    .m-btn-burgundy {
+      flex: 1;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 0;
+      background: var(--primary);
+      color: var(--primary-fg);
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .m-btn-outline {
+      min-height: 44px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--fg-strong);
+      font-size: 11.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       UPGRADED MOBILE FOLDER SHEET ROWS (WITH 1-TAP SHARE & ACTION DRAWER)
+       ========================================================================== */
+    .m-folder-tree-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .m-folder-tree-item.active {
+      background: var(--primary-tint);
+      border-color: var(--border-strong);
+    }
+
+    .m-folder-tree-item.child {
+      margin-left: 16px;
+      border-style: dashed;
+    }
+
+    .m-folder-tree-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+      cursor: pointer;
+      color: var(--primary);
+    }
+
+    .m-folder-tree-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--fg-strong);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-folder-tree-sub {
+      font-size: 10px;
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .m-folder-tree-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .m-folder-row-share-btn {
+      min-height: 34px;
+      padding: 0 9px;
+      border-radius: 9px;
+      border: 1px solid var(--border-strong);
+      background: var(--card);
+      color: var(--primary);
+      font-size: 10.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       3-TAB MOBILE FOLDER SHARE SHEET (LINK #KEY / BUZÓN DROP / EQUIPO RSA)
+       ========================================================================== */
+    .m-mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      background: var(--bg);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .m-mode-tab {
+      min-height: 34px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted-fg);
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .m-mode-tab.active {
+      background: var(--primary);
+      color: var(--primary-fg);
+      box-shadow: 0 2px 6px rgba(122, 31, 43, 0.25);
+    }
+
+    /* Live Glass Twin Card (Espejo del Receptor) */
+    .m-glass-twin {
+      background: var(--bg);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .m-twin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+    }
+
+    .m-twin-preview {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .m-twin-url {
+      font-family: var(--font-code);
+      font-size: 10px;
+      color: var(--fg-strong);
+      background: var(--muted);
+      padding: 5px 7px;
+      border-radius: 7px;
+      word-break: break-all;
+      border: 1px solid var(--border);
+    }
+
+    .m-twin-url span.frag {
+      color: var(--lux-emerald);
+      font-weight: 700;
+    }
+
+    .m-expiry-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .m-expiry-pills {
+      display: flex;
+      gap: 4px;
+    }
+
+    .m-exp-pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted-fg);
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .m-exp-pill.active {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+
+    .m-crypto-seal-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 9px;
+      border-radius: 9px;
+      background: rgba(45, 138, 110, 0.11);
+      border: 1px solid rgba(45, 138, 110, 0.3);
+      color: var(--lux-emerald);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* Toast Feedback (<300ms Ley Tola) */
+    .m-toast {
+      position: absolute;
+      top: 40px;
+      left: 14px;
+      right: 14px;
+      background: var(--fg-strong);
+      color: var(--bg);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+      z-index: 60;
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: all 0.18s ease;
+    }
+
+    .m-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 960px) {
+      .recon-card {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .stage-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       STUDIO CONTROL HEADER (SWITCH SCENARIOS, VIEWPORT & ABRN THEME)
+       ======================================================================== -->
+  <header class="studio-header">
+    <div class="studio-brand">
+      <div class="studio-logo-box">
+        <img src="/abrn/abrn-logo.png" alt="ABRN Asesores" />
+      </div>
+      <div class="studio-title-wrap">
+        <h1>ABRN Drive — Mobile UIX &amp; Compartición de Carpetas (Preview Interactivo)</h1>
+        <p>Experiencia de Barrio Nivel Dios · Paleta Inmutable ABRN Cream &amp; Burgundy / Slate · Acciones de Carpeta en 1 Toque</p>
+      </div>
+    </div>
+
+    <div class="studio-controls">
+      <!-- Guided Mobile States -->
+      <div class="pill-group" role="tablist" aria-label="Escenarios Móviles">
+        <button type="button" class="pill-btn active" data-scenario="dual-overview" onclick="setScenario('dual-overview')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>1. Bóveda + Compartir Carpeta</span>
+        </button>
+        <button type="button" class="pill-btn" data-scenario="folder-explorer" onclick="setScenario('folder-explorer')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>2. Gaveta Carpetas (1-Tap Share)</span>
+        </button>
+        <button type="button" class="pill-btn" data-scenario="drop-and-team" onclick="setScenario('drop-and-team')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>3. Buzón Drop &amp; Equipo RSA</span>
+        </button>
+        <button type="button" class="pill-btn" data-scenario="mobile-inspector" onclick="setScenario('mobile-inspector')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>4. Inspector Móvil 5 Formatos</span>
+        </button>
+      </div>
+
+      <!-- Layout Toggle -->
+      <div class="pill-group" aria-label="Modo de Vista">
+        <button type="button" class="pill-btn active" id="layout-dual-btn" onclick="setLayoutMode('dual')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="2" y="3" width="8" height="18" rx="2"/><rect x="14" y="3" width="8" height="18" rx="2"/></svg>
+          <span>Dual (2 Teléfonos)</span>
+        </button>
+        <button type="button" class="pill-btn" id="layout-single-btn" onclick="setLayoutMode('single')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/></svg>
+          <span>1 Teléfono</span>
+        </button>
+      </div>
+
+      <!-- Immutable ABRN Theme Toggle -->
+      <div class="pill-group" aria-label="Tema ABRN">
+        <button type="button" class="pill-btn active" id="theme-light-btn" onclick="setAbrnTheme('abrn-light')">
+          <span style="width:9px;height:9px;border-radius:50%;background:#7a1f2b;display:inline-block;"></span>
+          <span>ABRN Cream</span>
+        </button>
+        <button type="button" class="pill-btn" id="theme-dark-btn" onclick="setAbrnTheme('abrn-dark')">
+          <span style="width:9px;height:9px;border-radius:50%;background:#d4aeb0;display:inline-block;"></span>
+          <span>ABRN Slate</span>
+        </button>
+      </div>
+
+      <a class="desktop-link" href="/abrn/previews/index.html">
+        <svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Desktop 3-Panes</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       RECON SUMMARY BAR: 4 ROOT CAUSES FOUND & SOLVED IN THIS MOBILE DESIGN
+       ======================================================================== -->
+  <section class="recon-banner" aria-label="Diagnóstico Recon Móvil">
+    <div class="recon-card">
+      <div class="recon-item">
+        <span class="recon-badge">Fix #1</span>
+        <div class="recon-text">
+          <h2>Barra Hero de Carpeta Activa (44px)</h2>
+          <p>En móvil solo se veía el nombre sin acciones. Ahora la carpeta abierta tiene <strong>[Compartir Carpeta]</strong>, <strong>[Pedir Archivos]</strong> y <strong>[Equipo]</strong>.</p>
+        </div>
+      </div>
+      <div class="recon-item">
+        <span class="recon-badge">Fix #2</span>
+        <div class="recon-text">
+          <h2>Gaveta MobileFolderSheet con [Compartir]</h2>
+          <p>Antes cada fila en <code>MobileFolderSheet.tsx</code> solo abría la carpeta. Ahora cada fila tiene botón directo <strong>[Compartir]</strong> y <strong>[Drop]</strong>.</p>
+        </div>
+      </div>
+      <div class="recon-item">
+        <span class="recon-badge">Fix #3</span>
+        <div class="recon-text">
+          <h2>MobileFolderShareSheet 3-en-1</h2>
+          <p>Sustituye el modal de escritorio por una hoja móvil con <strong>Enlace #key</strong>, <strong>Buzón Drop</strong>, <strong>Equipo RSA</strong>, <em>Espejo del Receptor</em> y <strong>WhatsApp</strong>.</p>
+        </div>
+      </div>
+      <div class="recon-item">
+        <span class="recon-badge">Fix #4</span>
+        <div class="recon-text">
+          <h2>Inspector Móvil 5 Formatos + Recibo</h2>
+          <p>En pantallas <code>&lt;1280px</code> el panel derecho estaba oculto. Ahora tocar un archivo abre <strong>MobileInspectorSheet</strong> con muelle táctico inferior.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       DUAL INTERACTIVE PHONE STAGE
+       ======================================================================== -->
+  <main class="stage-container" id="stageContainer" data-layout="dual">
+
+    <!-- ======================================================================
+         PHONE 1 (LEFT): UPGRADED MOBILE VAULT + ACTIVE FOLDER HERO + FOLDER SHEET
+         ====================================================================== -->
+    <div class="phone-column" data-phone="primary">
+      <div class="phone-caption">
+        <span style="display:inline-flex;align-items:center;gap:6px;">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/></svg>
+          Teléfono 1 — Bóveda Móvil + Barra de Carpeta Activa
+        </span>
+        <span class="tag" id="phone1StateTag">Carpeta: ABRN Asesores</span>
+      </div>
+
+      <div class="phone-frame" id="phone1">
+        <div class="phone-statusbar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <span>5G · 100%</span>
+        </div>
+
+        <div class="m-toast" id="toastPhone1">
+          <span id="toastPhone1Text">Enlace #key de carpeta copiado</span>
+          <span>SHA-256 OK</span>
+        </div>
+
+        <!-- Compact Mobile Brand Header + Omnibar -->
+        <div class="m-topbar">
+          <div class="m-brand-row">
+            <div class="m-brand-left">
+              <div class="m-logo">
+                <img src="/abrn/abrn-logo.png" alt="ABRN" />
+              </div>
+              <div>
+                <div class="m-brand-title">ABRN Drive</div>
+                <div class="m-brand-sub">Bóveda Soberana</div>
+              </div>
+            </div>
+            <div class="m-top-actions">
+              <button type="button" class="m-icon-pill seal" onclick="triggerToast('phone1', 'Sello AES-256-GCM activo en memoria RAM')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>RAM OK</span>
+              </button>
+              <button type="button" class="m-icon-pill" onclick="toggleFolderExplorerSheet(true)">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span>Carpetas</span>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="m-omnibar" onclick="triggerToast('phone1', 'Cerebro Ciego (/): Busca por RFC, UUID, contrato o #tag')">
+            <span class="m-omnibar-left">
+              <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span>Buscar en <strong>ABRN Asesores</strong> (RFC, CFDI, PDF…)</span>
+            </span>
+            <span class="m-omnibar-kbd">/</span>
+          </button>
+        </div>
+
+        <!-- NEW! ACTIVE FOLDER COMMAND CARD (SOLVES MISSING MOBILE FOLDER SHARE) -->
+        <section class="m-folder-hero" aria-label="Carpeta Activa">
+          <div class="m-folder-hero-top">
+            <div class="m-folder-identity" onclick="toggleFolderExplorerSheet(true)">
+              <div class="m-folder-emblem">
+                <svg class="ico ico-lg" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="m-folder-meta">
+                <div class="m-folder-breadcrumb">
+                  <span>Bóveda</span>
+                  <span>›</span>
+                  <span>Cliente Corporativo</span>
+                </div>
+                <div class="m-folder-title-row">
+                  <span class="m-folder-title" id="activeFolderTitle">ABRN Asesores</span>
+                </div>
+                <div class="m-folder-telemetry" id="activeFolderTelemetry">
+                  <span>36 archivos · 148.4 MB</span>
+                  <span>•</span>
+                  <span style="color: var(--lux-emerald); font-weight: 700;">2 links #key activos</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="m-switch-folder-btn" onclick="toggleFolderExplorerSheet(true)">
+              <span>Cambiar</span>
+              <svg class="ico ico-sm" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+
+          <!-- 1-Tap Couch-Approved Folder Action Deck (44px height) -->
+          <div class="m-folder-action-deck">
+            <button
+              type="button"
+              class="m-folder-cta-primary"
+              data-testid="mobile-share-active-folder-btn"
+              onclick="openFolderShareOnPhone2(currentFolderName, 'link')"
+            >
+              <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span>Compartir Carpeta</span>
+            </button>
+
+            <button
+              type="button"
+              class="m-folder-cta-secondary"
+              data-testid="mobile-drop-active-folder-btn"
+              onclick="openFolderShareOnPhone2(currentFolderName, 'drop')"
+            >
+              <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Pedir Archivos</span>
+            </button>
+
+            <button
+              type="button"
+              class="m-folder-cta-icon"
+              title="Colaboradores RSA de la carpeta"
+              onclick="openFolderShareOnPhone2(currentFolderName, 'team')"
+            >
+              <svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span class="m-collab-count">4</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Subfolders Strip with 1-Tap Share Icon right on each Subfolder Chip -->
+        <div class="m-subfolder-strip" aria-label="Subcarpetas">
+          <div class="m-subchip active" onclick="selectFolder('ABRN Asesores', '36 archivos · 148.4 MB')">
+            <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>Todo ABRN (36)</span>
+          </div>
+          <div class="m-subchip" onclick="selectFolder('Fiscal 2026', '18 archivos · 64.2 MB')">
+            <span>Fiscal 2026 (18)</span>
+            <span class="m-subchip-share" title="Compartir subcarpeta" onclick="event.stopPropagation(); openFolderShareOnPhone2('Fiscal 2026', 'link')">
+              <svg class="ico" style="width:11px;height:11px;" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </span>
+          </div>
+          <div class="m-subchip" onclick="selectFolder('Brenda Ejecutiva', '11 archivos · 52.0 MB')">
+            <span>Brenda (11)</span>
+            <span class="m-subchip-share" title="Compartir subcarpeta" onclick="event.stopPropagation(); openFolderShareOnPhone2('Brenda Ejecutiva', 'link')">
+              <svg class="ico" style="width:11px;height:11px;" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </span>
+          </div>
+          <div class="m-subchip" onclick="selectFolder('Contratos Notaría', '7 archivos · 32.2 MB')">
+            <span>Contratos (7)</span>
+            <span class="m-subchip-share" title="Compartir subcarpeta" onclick="event.stopPropagation(); openFolderShareOnPhone2('Contratos Notaría', 'link')">
+              <svg class="ico" style="width:11px;height:11px;" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- Mobile Work Queue: Files inside the Folder -->
+        <div class="m-file-list">
+          <div class="m-section-label">
+            <span>Archivos en Carpeta · Descifrado RAM</span>
+            <span>Toca para Inspeccionar</span>
+          </div>
+
+          <!-- File 1: PDF -->
+          <div class="m-file-card selected" onclick="openMobileInspector('pdf', 'Dictamen_Fiscal_ABRN_2026_Firmado.pdf', '4.8 MB · PDF · e3b0c44298fc')">
+            <div class="m-fmt-badge pdf">
+              <span>PDF</span>
+              <span style="font-size:7.5px;">14 PÁG</span>
+            </div>
+            <div class="m-file-info">
+              <div class="m-file-name">Dictamen_Fiscal_ABRN_2026_Firmado.pdf</div>
+              <div class="m-file-sub">
+                <span class="m-triage-pill">DICTAMEN SAT</span>
+                <span>4.8 MB · Hace 12m</span>
+              </div>
+            </div>
+            <div class="m-file-actions">
+              <button type="button" class="m-touch-btn share" title="Compartir archivo" onclick="event.stopPropagation(); triggerToast('phone1', 'Abriendo hoja rápida para Dictamen_Fiscal_ABRN_2026.pdf')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </button>
+              <button type="button" class="m-touch-btn" title="Vista previa RAM" onclick="event.stopPropagation(); openMobileInspector('pdf', 'Dictamen_Fiscal_ABRN_2026_Firmado.pdf', '4.8 MB · PDF · e3b0c44298fc')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- File 2: XLSX -->
+          <div class="m-file-card" onclick="openMobileInspector('xlsx', 'Conciliacion_Patrimonial_Q4_ABRN.xlsx', '1.9 MB · XLSX · 9f86d081884c')">
+            <div class="m-fmt-badge xlsx">
+              <span>XLSX</span>
+              <span style="font-size:7.5px;">3 HOJAS</span>
+            </div>
+            <div class="m-file-info">
+              <div class="m-file-name">Conciliacion_Patrimonial_Q4_ABRN.xlsx</div>
+              <div class="m-file-sub">
+                <span class="m-triage-pill">HOJA CÁLCULO</span>
+                <span>1.9 MB · Hoy 11:20</span>
+              </div>
+            </div>
+            <div class="m-file-actions">
+              <button type="button" class="m-touch-btn share" title="Compartir archivo" onclick="event.stopPropagation(); triggerToast('phone1', 'Link #key listo para Conciliacion_Patrimonial_Q4_ABRN.xlsx')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </button>
+              <button type="button" class="m-touch-btn" title="Vista previa RAM" onclick="event.stopPropagation(); openMobileInspector('xlsx', 'Conciliacion_Patrimonial_Q4_ABRN.xlsx', '1.9 MB · XLSX · 9f86d081884c')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- File 3: CFDI XML / Code -->
+          <div class="m-file-card" onclick="openMobileInspector('code', 'CFDI40_ABRN920415K8A_Honorarios.xml', '48 KB · XML · 7c4a8d09ca37')">
+            <div class="m-fmt-badge xml">
+              <span>CFDI</span>
+              <span style="font-size:7.5px;">XML 4.0</span>
+            </div>
+            <div class="m-file-info">
+              <div class="m-file-name">CFDI40_ABRN920415K8A_Honorarios.xml</div>
+              <div class="m-file-sub">
+                <span class="m-triage-pill">RFC: ABRN920415K8A</span>
+                <span>48 KB · Ayer</span>
+              </div>
+            </div>
+            <div class="m-file-actions">
+              <button type="button" class="m-touch-btn share" title="Compartir archivo" onclick="event.stopPropagation(); triggerToast('phone1', 'Link #key listo para CFDI40_ABRN920415K8A.xml')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </button>
+              <button type="button" class="m-touch-btn" title="Vista previa RAM" onclick="event.stopPropagation(); openMobileInspector('code', 'CFDI40_ABRN920415K8A_Honorarios.xml', '48 KB · XML · 7c4a8d09ca37')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- File 4: 4K Image -->
+          <div class="m-file-card" onclick="openMobileInspector('image', 'Escritura_Notarial_Sello_Folio_881.jpg', '8.4 MB · 4K IMG · 4b227777d4dd')">
+            <div class="m-fmt-badge img">
+              <span>4K</span>
+              <span style="font-size:7.5px;">JPG</span>
+            </div>
+            <div class="m-file-info">
+              <div class="m-file-name">Escritura_Notarial_Sello_Folio_881.jpg</div>
+              <div class="m-file-sub">
+                <span class="m-triage-pill">ESCRITURA ID</span>
+                <span>8.4 MB · 10 Nov</span>
+              </div>
+            </div>
+            <div class="m-file-actions">
+              <button type="button" class="m-touch-btn share" title="Compartir archivo" onclick="event.stopPropagation(); triggerToast('phone1', 'Link #key listo para Escritura_Notarial_Sello_Folio_881.jpg')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </button>
+              <button type="button" class="m-touch-btn" title="Vista previa RAM" onclick="event.stopPropagation(); openMobileInspector('image', 'Escritura_Notarial_Sello_Folio_881.jpg', '8.4 MB · 4K IMG · 4b227777d4dd')">
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button type="button" class="m-fab" onclick="triggerToast('phone1', 'Subir archivo cifrado / Escanear documento / Nueva carpeta')">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Subir / Cifrar</span>
+        </button>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="m-bottom-nav" aria-label="Navegación Móvil">
+          <button type="button" class="m-nav-item active" onclick="toggleFolderExplorerSheet(false)">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>Bóveda</span>
+          </button>
+          <button type="button" class="m-nav-item" onclick="toggleFolderExplorerSheet(true)">
+            <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Carpetas</span>
+          </button>
+          <button type="button" class="m-nav-item" onclick="openFolderShareOnPhone2(currentFolderName, 'link')">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>Accesos #key</span>
+          </button>
+          <button type="button" class="m-nav-item" onclick="openFolderShareOnPhone2(currentFolderName, 'team')">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Grupos RSA</span>
+          </button>
+        </nav>
+
+        <!-- ==================================================================
+             SHEET ON PHONE 1: UPGRADED MOBILE FOLDER EXPLORER SHEET
+             Every folder row has its own 1-tap [Compartir] & [Drop] button!
+             ================================================================== -->
+        <div class="m-sheet-backdrop" id="folderExplorerBackdrop">
+          <div class="m-sheet" role="dialog" aria-label="Explorador de Carpetas con Compartición Directa">
+            <!-- Zone 1: Frozen Header -->
+            <div class="m-sheet-header">
+              <div class="m-sheet-handle"></div>
+              <div class="m-sheet-title-row">
+                <div class="m-sheet-title-left">
+                  <div class="m-folder-emblem" style="width:34px;height:34px;">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <div>
+                    <h3>Carpetas de tu Bóveda</h3>
+                    <p>Toca una carpeta para abrir o <strong>Compartir</strong> en 1 toque</p>
+                  </div>
+                </div>
+                <button type="button" class="m-sheet-close" onclick="toggleFolderExplorerSheet(false)" aria-label="Cerrar">✕</button>
+              </div>
+            </div>
+
+            <!-- Zone 2: Folder Hierarchy with Direct Share Buttons -->
+            <div class="m-sheet-body">
+              <div class="m-folder-tree-item" onclick="selectFolderFromSheet('Todos los Archivos', '92 archivos · 410 MB')">
+                <div class="m-folder-tree-left">
+                  <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                  <div>
+                    <div class="m-folder-tree-name">Todos los Archivos (Raíz)</div>
+                    <div class="m-folder-tree-sub">92 archivos · Cifrado AES-256-GCM</div>
+                  </div>
+                </div>
+                <span style="font-size:11px;font-weight:700;color:var(--muted-fg);">92</span>
+              </div>
+
+              <!-- Folder Row 1: ABRN Asesores (Active) -->
+              <div class="m-folder-tree-item active">
+                <div class="m-folder-tree-left" onclick="selectFolderFromSheet('ABRN Asesores', '36 archivos · 148.4 MB')">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <div>
+                    <div class="m-folder-tree-name">ABRN Asesores</div>
+                    <div class="m-folder-tree-sub">36 archivos · <strong style="color:var(--lux-emerald);">2 links #key</strong> · 4 miembros</div>
+                  </div>
+                </div>
+                <div class="m-folder-tree-actions">
+                  <button
+                    type="button"
+                    class="m-folder-row-share-btn"
+                    onclick="openFolderShareOnPhone2('ABRN Asesores', 'link')"
+                  >
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Compartir</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="m-touch-btn"
+                    title="Pedir archivos (Drop)"
+                    onclick="openFolderShareOnPhone2('ABRN Asesores', 'drop')"
+                  >
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Subfolder Row 1A: Fiscal 2026 -->
+              <div class="m-folder-tree-item child">
+                <div class="m-folder-tree-left" onclick="selectFolderFromSheet('Fiscal 2026', '18 archivos · 64.2 MB')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+                  <div>
+                    <div class="m-folder-tree-name">Fiscal 2026</div>
+                    <div class="m-folder-tree-sub">18 archivos · Subcarpeta de ABRN</div>
+                  </div>
+                </div>
+                <div class="m-folder-tree-actions">
+                  <button
+                    type="button"
+                    class="m-folder-row-share-btn"
+                    onclick="openFolderShareOnPhone2('Fiscal 2026', 'link')"
+                  >
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Compartir</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Subfolder Row 1B: Brenda Ejecutiva -->
+              <div class="m-folder-tree-item child">
+                <div class="m-folder-tree-left" onclick="selectFolderFromSheet('Brenda Ejecutiva', '11 archivos · 52.0 MB')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+                  <div>
+                    <div class="m-folder-tree-name">Brenda Ejecutiva</div>
+                    <div class="m-folder-tree-sub">11 archivos · 1 Buzón Drop activo</div>
+                  </div>
+                </div>
+                <div class="m-folder-tree-actions">
+                  <button
+                    type="button"
+                    class="m-folder-row-share-btn"
+                    onclick="openFolderShareOnPhone2('Brenda Ejecutiva', 'link')"
+                  >
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Compartir</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Folder Row 2: Contratos Notaría -->
+              <div class="m-folder-tree-item">
+                <div class="m-folder-tree-left" onclick="selectFolderFromSheet('Contratos Notaría', '7 archivos · 32.2 MB')">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <div>
+                    <div class="m-folder-tree-name">Contratos Notaría</div>
+                    <div class="m-folder-tree-sub">7 archivos · 32.2 MB</div>
+                  </div>
+                </div>
+                <div class="m-folder-tree-actions">
+                  <button
+                    type="button"
+                    class="m-folder-row-share-btn"
+                    onclick="openFolderShareOnPhone2('Contratos Notaría', 'link')"
+                  >
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Compartir</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Folder Row 3: Auditoría Externa (Empty Folder Zero Dead-End Demo!) -->
+              <div class="m-folder-tree-item">
+                <div class="m-folder-tree-left" onclick="selectFolderFromSheet('Auditoría Externa 2026', '0 archivos · Carpeta vacía')">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <div>
+                    <div class="m-folder-tree-name">Auditoría Externa 2026</div>
+                    <div class="m-folder-tree-sub">0 archivos · Toca Pedir Drop para recibir</div>
+                  </div>
+                </div>
+                <div class="m-folder-tree-actions">
+                  <button
+                    type="button"
+                    class="m-folder-row-share-btn"
+                    onclick="openFolderShareOnPhone2('Auditoría Externa 2026', 'drop')"
+                  >
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Pedir Drop</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 3: Sticky Tactical Dock -->
+            <div class="m-sheet-dock">
+              <div class="m-dock-row">
+                <button type="button" class="m-btn-outline" onclick="triggerToast('phone1', 'Creando nueva carpeta cifrada...')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Nueva Carpeta</span>
+                </button>
+                <button type="button" class="m-btn-burgundy" onclick="openFolderShareOnPhone2(currentFolderName, 'link')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  <span>Compartir «<span id="sheetCurrentFolderBtnLabel">ABRN Asesores</span>»</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PHONE 2 (RIGHT): 1-TAP MOBILE FOLDER SHARE SHEET & 5-FORMAT INSPECTOR
+         ====================================================================== -->
+    <div class="phone-column" data-phone="secondary">
+      <div class="phone-caption">
+        <span id="phone2CaptionTitle" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/></svg>
+          Teléfono 2 — Hoja Móvil Compartir Carpeta (3-en-1)
+        </span>
+        <span class="tag" id="phone2StateTag">Modo: Enlace #key + WhatsApp</span>
+      </div>
+
+      <div class="phone-frame" id="phone2">
+        <div class="phone-statusbar">
+          <span>9:41</span>
+          <div class="dynamic-island"></div>
+          <span>5G · 100%</span>
+        </div>
+
+        <div class="m-toast" id="toastPhone2">
+          <span id="toastPhone2Text">Enviando carpeta por WhatsApp con llave #key</span>
+          <span>&lt;300ms</span>
+        </div>
+
+        <!-- Background context inside Phone 2 -->
+        <div class="m-topbar">
+          <div class="m-brand-row">
+            <div class="m-brand-left">
+              <div class="m-logo">
+                <img src="/abrn/abrn-logo.png" alt="ABRN" />
+              </div>
+              <div>
+                <div class="m-brand-title">ABRN Drive</div>
+                <div class="m-brand-sub">Despacho Instantáneo</div>
+              </div>
+            </div>
+            <div class="m-top-actions">
+              <span class="m-icon-pill seal">Zero-Knowledge #key</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================================
+             SHEET A ON PHONE 2: 1-TAP MOBILE FOLDER SHARE SHEET (3-IN-1)
+             ================================================================== -->
+        <div class="m-sheet-backdrop open" id="folderShareSheetBackdrop">
+          <div class="m-sheet" role="dialog" aria-label="Compartir Carpeta en Móvil">
+            <!-- Zone 1: Frozen Hero Header -->
+            <div class="m-sheet-header">
+              <div class="m-sheet-handle"></div>
+              <div class="m-sheet-title-row">
+                <div class="m-sheet-title-left">
+                  <div class="m-folder-emblem" style="width:36px;height:36px;">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <div>
+                    <h3 id="shareSheetFolderTitle">Compartir «ABRN Asesores»</h3>
+                    <p id="shareSheetFolderSub">36 archivos · Llave maestra envuelta en fragmento #key</p>
+                  </div>
+                </div>
+                <button type="button" class="m-sheet-close" onclick="triggerToast('phone2', 'Volviendo a la carpeta con contexto intacto')" aria-label="Cerrar">✕</button>
+              </div>
+
+              <!-- 3-in-1 Folder Share Mode Switcher -->
+              <div class="m-mode-tabs" style="margin-top: 8px;">
+                <button type="button" class="m-mode-tab active" id="tabBtnLink" onclick="switchFolderShareTab('link')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  <span>Enlace #key</span>
+                </button>
+                <button type="button" class="m-mode-tab" id="tabBtnDrop" onclick="switchFolderShareTab('drop')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Buzón Drop</span>
+                </button>
+                <button type="button" class="m-mode-tab" id="tabBtnTeam" onclick="switchFolderShareTab('team')">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <span>Equipo RSA (4)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Zone 2: Scrollable Content Stage -->
+            <div class="m-sheet-body" id="folderShareBody">
+
+              <!-- TAB 1: ZERO-KNOWLEDGE #KEY FOLDER LINK -->
+              <div id="tabContentLink" style="display:flex;flex-direction:column;gap:8px;">
+                <div class="m-crypto-seal-bar">
+                  <span>36/36 llaves AES-256 envueltas con tu PIN de sesión</span>
+                  <span>0 Bytes al Servidor</span>
+                </div>
+
+                <!-- Live Glass Twin ("Espejo del Receptor") -->
+                <div class="m-glass-twin">
+                  <div class="m-twin-header">
+                    <span>Espejo del Receptor (Así lo verá tu cliente)</span>
+                    <span>Solo Lectura</span>
+                  </div>
+                  <div class="m-twin-preview">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <strong style="font-size:11.5px;color:var(--fg-strong);" id="twinFolderName">Carpeta: ABRN Asesores (36 archivos)</strong>
+                      <span style="font-size:10px;color:var(--lux-emerald);font-weight:700;">Vence en <span id="twinExpiryLabel">7 días</span></span>
+                    </div>
+                    <p style="font-size:10.5px;color:var(--muted-fg);">
+                      Tu cliente podrá previsualizar PDFs, CFDIs, imágenes y hojas de cálculo o descargar el ZIP descifrado en su celular sin crear cuenta.
+                    </p>
+                    <div class="m-twin-url" id="shareUrlBox">
+                      https://abrndrive.filemonprime.net/abrn/folder-share/f9a8c2d1<span class="frag">#K9mPq7vR2xL8nBw4zT6yF1jH5sG0dC3eA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Expiry Preset Pills -->
+                <div class="m-expiry-row">
+                  <span style="font-size:11px;font-weight:700;color:var(--fg-strong);">Vigencia del enlace:</span>
+                  <div class="m-expiry-pills">
+                    <button type="button" class="m-exp-pill" onclick="setExpiry(this, '24 horas')">1d</button>
+                    <button type="button" class="m-exp-pill" onclick="setExpiry(this, '3 días')">3d</button>
+                    <button type="button" class="m-exp-pill active" onclick="setExpiry(this, '7 días')">7d</button>
+                    <button type="button" class="m-exp-pill" onclick="setExpiry(this, '30 días')">30d</button>
+                  </div>
+                </div>
+
+                <!-- Active Folder Links Governance Mini-Card -->
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <div>
+                    <div style="font-size:11px;font-weight:700;color:var(--fg-strong);">2 enlaces #key activos en esta carpeta</div>
+                    <div style="font-size:10px;color:var(--muted-fg);">Último acceso: hace 18 min · Auto-sync activo</div>
+                  </div>
+                  <button type="button" class="m-folder-row-share-btn" onclick="triggerToast('phone2', '36 archivos sincronizados con los enlaces activos')">
+                    <span>Sincronizar</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- TAB 2: BUZÓN DROP (RECIBIR ARCHIVOS EN ESTA CARPETA) -->
+              <div id="tabContentDrop" style="display:none;flex-direction:column;gap:8px;">
+                <div class="m-crypto-seal-bar">
+                  <span>Buzón Cifrado para recibir archivos en esta carpeta</span>
+                  <span>Recibo Sagrado SHA-256</span>
+                </div>
+
+                <div class="m-glass-twin">
+                  <div class="m-twin-header">
+                    <span>Link para que tu cliente suba archivos desde su celular</span>
+                    <span>Sin Cuenta</span>
+                  </div>
+                  <div class="m-twin-preview">
+                    <strong style="font-size:11.5px;color:var(--fg-strong);">Destino: <span id="dropFolderTarget">ABRN Asesores</span></strong>
+                    <p style="font-size:10.5px;color:var(--muted-fg);">
+                      Cualquier archivo que tu cliente suba se cifra en su teléfono con tu llave pública RSA antes de tocar el servidor y le entrega un <strong>Recibo Sagrado</strong> con folio y sello SHA-256.
+                    </p>
+                    <div class="m-twin-url">
+                      https://abrndrive.filemonprime.net/abrn/drop/abrn-intake-2026<span class="frag">#pubKey_ABRN_RSA2048</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:7px 9px;">
+                    <div style="font-size:9.5px;color:var(--muted-fg);font-weight:700;">LÍMITE POR ARCHIVO</div>
+                    <div style="font-size:12px;font-weight:700;color:var(--fg-strong);">Hasta 250 MB</div>
+                  </div>
+                  <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:7px 9px;">
+                    <div style="font-size:9.5px;color:var(--muted-fg);font-weight:700;">COMPROBANTE CLIENTE</div>
+                    <div style="font-size:12px;font-weight:700;color:var(--lux-emerald);">Folio + WhatsApp</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: EQUIPO RSA (COLABORADORES INTERNOS DE LA CARPETA) -->
+              <div id="tabContentTeam" style="display:none;flex-direction:column;gap:7px;">
+                <div class="m-crypto-seal-bar">
+                  <span>Acceso RSA Multi-Usuario a la carpeta completa</span>
+                  <span>4 Miembros Activos</span>
+                </div>
+
+                <div class="m-folder-tree-item">
+                  <div class="m-folder-tree-left">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div>
+                      <div class="m-folder-tree-name">Brenda (Dirección Ejecutiva)</div>
+                      <div class="m-folder-tree-sub">Llave RSA sincronizada · Lectura y Subida</div>
+                    </div>
+                  </div>
+                  <span style="font-size:10px;font-weight:700;color:var(--lux-emerald);">Activa</span>
+                </div>
+
+                <div class="m-folder-tree-item">
+                  <div class="m-folder-tree-left">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div>
+                      <div class="m-folder-tree-name">Carlos Méndez (Fiscal SAT)</div>
+                      <div class="m-folder-tree-sub">Llave RSA sincronizada · Lectura y Subida</div>
+                    </div>
+                  </div>
+                  <button type="button" class="m-folder-row-share-btn" onclick="triggerToast('phone2', 'Permiso RSA actualizado para Carlos Méndez')">Rol ▾</button>
+                </div>
+
+                <div class="m-folder-tree-item">
+                  <div class="m-folder-tree-left">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div>
+                      <div class="m-folder-tree-name">Sofía Ruiz (Auditoría Legal)</div>
+                      <div class="m-folder-tree-sub">Llave RSA sincronizada · Solo Lectura</div>
+                    </div>
+                  </div>
+                  <button type="button" class="m-folder-row-share-btn" onclick="triggerToast('phone2', 'Permiso RSA actualizado para Sofía Ruiz')">Rol ▾</button>
+                </div>
+
+                <button type="button" class="m-btn-outline" style="width:100%;min-height:38px;" onclick="triggerToast('phone2', 'Invitando colaborador o grupo RSA a la carpeta...')">
+                  <span>+ Agregar Colaborador o Grupo ABRN</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Zone 3: Frozen Sticky Bottom Tactical Dock (Couch-Approved Targets) -->
+            <div class="m-sheet-dock">
+              <div class="m-dock-row">
+                <button
+                  type="button"
+                  class="m-btn-whatsapp"
+                  data-testid="mobile-folder-whatsapp-cta"
+                  onclick="triggerToast('phone2', 'Abriendo WhatsApp con enlace #key de la carpeta «' + currentFolderName + '»')"
+                >
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  <span>Enviar Carpeta por WhatsApp</span>
+                </button>
+              </div>
+              <div class="m-dock-row">
+                <button
+                  type="button"
+                  class="m-btn-burgundy"
+                  data-testid="mobile-folder-copy-cta"
+                  onclick="triggerToast('phone2', 'Enlace #key copiado al portapapeles (<300ms Ley Tola)')"
+                >
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>Copiar Enlace #key</span>
+                </button>
+                <button
+                  type="button"
+                  class="m-btn-outline"
+                  onclick="triggerToast('phone2', 'Mostrando código QR soberano para escaneo en sala de juntas')"
+                >
+                  <span>QR</span>
+                </button>
+                <button
+                  type="button"
+                  class="m-btn-outline"
+                  onclick="triggerToast('phone2', 'Abriendo hoja nativa de compartir iOS / Android')"
+                >
+                  <span>Nativo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================================
+             SHEET B ON PHONE 2: 5-FORMAT MOBILE INSPECTOR BOTTOM SHEET
+             ================================================================== -->
+        <div class="m-sheet-backdrop" id="mobileInspectorBackdrop">
+          <div class="m-sheet" role="dialog" aria-label="Inspector Móvil 5 Formatos">
+            <!-- Zone 1: Frozen Header -->
+            <div class="m-sheet-header">
+              <div class="m-sheet-handle"></div>
+              <div class="m-sheet-title-row">
+                <div class="m-sheet-title-left">
+                  <div class="m-folder-emblem" style="width:34px;height:34px;">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </div>
+                  <div>
+                    <h3 id="inspectorSheetTitle">Dictamen_Fiscal_ABRN_2026_Firmado.pdf</h3>
+                    <p id="inspectorSheetMeta">4.8 MB · PDF · Sello SHA-256: e3b0c44298fc…</p>
+                  </div>
+                </div>
+                <button type="button" class="m-sheet-close" onclick="closeMobileInspector()" aria-label="Cerrar">✕</button>
+              </div>
+
+              <!-- 5-Format Switcher inside Mobile Inspector -->
+              <div class="m-mode-tabs" style="grid-template-columns:repeat(5,1fr);margin-top:8px;">
+                <button type="button" class="m-mode-tab active" data-fmt="pdf" onclick="switchMobileInspectorFormat('pdf')">PDF</button>
+                <button type="button" class="m-mode-tab" data-fmt="image" onclick="switchMobileInspectorFormat('image')">4K</button>
+                <button type="button" class="m-mode-tab" data-fmt="video" onclick="switchMobileInspectorFormat('video')">MP4</button>
+                <button type="button" class="m-mode-tab" data-fmt="code" onclick="switchMobileInspectorFormat('code')">CFDI</button>
+                <button type="button" class="m-mode-tab" data-fmt="xlsx" onclick="switchMobileInspectorFormat('xlsx')">XLSX</button>
+              </div>
+            </div>
+
+            <!-- Zone 2: 5-Format RAM Preview Stage -->
+            <div class="m-sheet-body">
+              <div id="mobileInspectorStage" style="background:var(--bg);border:1.5px solid var(--border-strong);border-radius:12px;padding:12px;min-height:220px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;">
+                <!-- Dynamic content injected by switchMobileInspectorFormat -->
+              </div>
+
+              <!-- Sacred Cryptographic Receipt Bar -->
+              <div class="m-crypto-seal-bar">
+                <span>Recibo Sagrado · SHA-256: e3b0c44298fc1c149afbf4c8996fb924</span>
+                <span>0 B Delta</span>
+              </div>
+            </div>
+
+            <!-- Zone 3: Sticky Tactical Dock -->
+            <div class="m-sheet-dock">
+              <div class="m-dock-row">
+                <button type="button" class="m-btn-outline" onclick="closeMobileInspector()">
+                  <span>← Carpeta</span>
+                </button>
+                <button type="button" class="m-btn-whatsapp" onclick="triggerToast('phone2', 'Enviando archivo por WhatsApp con enlace #key')">
+                  <span>WhatsApp</span>
+                </button>
+                <button type="button" class="m-btn-burgundy" onclick="triggerToast('phone2', 'Descargando original descifrado en streaming RAM')">
+                  <span>Descargar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentFolderName = "ABRN Asesores";
+
+    function setAbrnTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      document.getElementById("theme-light-btn").classList.toggle("active", theme === "abrn-light");
+      document.getElementById("theme-dark-btn").classList.toggle("active", theme === "abrn-dark");
+    }
+
+    function setLayoutMode(mode) {
+      const stage = document.getElementById("stageContainer");
+      stage.setAttribute("data-layout", mode);
+      document.getElementById("layout-dual-btn").classList.toggle("active", mode === "dual");
+      document.getElementById("layout-single-btn").classList.toggle("active", mode === "single");
+    }
+
+    function triggerToast(phone, message) {
+      const id = phone === "phone1" ? "toastPhone1" : "toastPhone2";
+      const textId = phone === "phone1" ? "toastPhone1Text" : "toastPhone2Text";
+      const el = document.getElementById(id);
+      const txt = document.getElementById(textId);
+      if (!el || !txt) return;
+      txt.textContent = message;
+      el.classList.add("show");
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    function toggleFolderExplorerSheet(open) {
+      const sheet = document.getElementById("folderExplorerBackdrop");
+      if (!sheet) return;
+      sheet.classList.toggle("open", Boolean(open));
+      document.getElementById("phone1StateTag").textContent = open
+        ? "Gaveta de Carpetas (1-Tap Share)"
+        : "Carpeta: " + currentFolderName;
+    }
+
+    function selectFolder(name, telemetry) {
+      currentFolderName = name;
+      document.getElementById("activeFolderTitle").textContent = name;
+      document.getElementById("activeFolderTelemetry").innerHTML =
+        `<span>${telemetry}</span><span>•</span><span style="color: var(--lux-emerald); font-weight: 700;">Listo para compartir</span>`;
+      document.getElementById("sheetCurrentFolderBtnLabel").textContent = name;
+      document.getElementById("phone1StateTag").textContent = "Carpeta: " + name;
+      openFolderShareOnPhone2(name, "link");
+    }
+
+    function selectFolderFromSheet(name, telemetry) {
+      selectFolder(name, telemetry);
+      toggleFolderExplorerSheet(false);
+      triggerToast("phone1", "Carpeta activa: " + name);
+    }
+
+    function openFolderShareOnPhone2(folderName, tabMode) {
+      currentFolderName = folderName || currentFolderName;
+      document.getElementById("mobileInspectorBackdrop").classList.remove("open");
+      document.getElementById("folderShareSheetBackdrop").classList.add("open");
+      document.getElementById("shareSheetFolderTitle").textContent = "Compartir «" + currentFolderName + "»";
+      document.getElementById("twinFolderName").textContent = "Carpeta: " + currentFolderName;
+      document.getElementById("dropFolderTarget").textContent = currentFolderName;
+      document.getElementById("phone2CaptionTitle").textContent =
+        "Teléfono 2 — Hoja Móvil Compartir Carpeta («" + currentFolderName + "»)";
+      switchFolderShareTab(tabMode || "link");
+      triggerToast("phone2", "Hoja de carpeta lista para «" + currentFolderName + "»");
+    }
+
+    function switchFolderShareTab(mode) {
+      document.getElementById("tabBtnLink").classList.toggle("active", mode === "link");
+      document.getElementById("tabBtnDrop").classList.toggle("active", mode === "drop");
+      document.getElementById("tabBtnTeam").classList.toggle("active", mode === "team");
+
+      document.getElementById("tabContentLink").style.display = mode === "link" ? "flex" : "none";
+      document.getElementById("tabContentDrop").style.display = mode === "drop" ? "flex" : "none";
+      document.getElementById("tabContentTeam").style.display = mode === "team" ? "flex" : "none";
+
+      const labels = {
+        link: "Modo: Enlace #key + WhatsApp",
+        drop: "Modo: Buzón Drop (Recibir Archivos)",
+        team: "Modo: Equipo RSA (4 Colaboradores)",
+      };
+      document.getElementById("phone2StateTag").textContent = labels[mode] || labels.link;
+    }
+
+    function setExpiry(btn, label) {
+      btn.parentElement.querySelectorAll(".m-exp-pill").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("twinExpiryLabel").textContent = label;
+    }
+
+    const INSPECTOR_FORMATS = {
+      pdf: {
+        title: "Dictamen_Fiscal_ABRN_2026_Firmado.pdf",
+        meta: "4.8 MB · PDF · Sello SHA-256: e3b0c44298fc…",
+        html: `
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:6px;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--lux-ruby);">VISOR PDF SOBERANO (RAM)</span>
+            <span style="font-size:10.5px;color:var(--muted-fg);">Página 1 / 14 · 100%</span>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px;font-family:var(--font-display);">
+            <div style="font-size:9.5px;color:var(--primary);font-weight:700;letter-spacing:0.06em;">ABRN ASESORES PATRIMONIALES S.C.</div>
+            <div style="font-size:13px;font-weight:700;color:var(--fg-strong);margin:4px 0;">Dictamen de Cumplimiento Fiscal &amp; Blindaje Patrimonial 2026</div>
+            <p style="font-family:var(--font-sans);font-size:10.5px;color:var(--muted-fg);line-height:1.45;">
+              Certificación criptográfica de estados financieros consolidados, anexos SAT y acuse de recepción con sello digital verificado en memoria del navegador.
+            </p>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted-fg);">
+            <span>Folio: ABRN-2026-0891</span>
+            <span style="color:var(--lux-emerald);font-weight:700;">Firma Electrónica Válida</span>
+          </div>
+        `
+      },
+      image: {
+        title: "Escritura_Notarial_Sello_Folio_881.jpg",
+        meta: "8.4 MB · 4K UHD (3840×2160) · Sello SHA-256: 4b227777d4dd…",
+        html: `
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--lux-sapphire);">LIENZO 4K UHD CON ZOOM TÁCTIL</span>
+            <span style="font-size:10.5px;color:var(--muted-fg);">3840×2160 · EXIF Limpio</span>
+          </div>
+          <div style="height:135px;border-radius:10px;background:linear-gradient(135deg, var(--primary) 0%, #2c3240 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:12px;text-align:center;">
+            <div style="font-family:var(--font-display);font-size:13px;font-weight:700;">Testimonio Notarial #88,104 — Sello de Registro</div>
+            <div style="font-size:10.5px;opacity:0.85;margin-top:4px;">Descifrado directo en ArrayBuffer efímero · Pellizca para Zoom 400%</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted-fg);">
+            <span>Color: Display P3</span>
+            <span>URL.revokeObjectURL al cerrar</span>
+          </div>
+        `
+      },
+      video: {
+        title: "Asamblea_Consejo_ABRN_2026_1080p.mp4",
+        meta: "64.2 MB · MP4 H.264 · Streaming TransformStream 64KB",
+        html: `
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--lux-amber);">STREAMING DESCIFRADO POR BLOQUES (64KB)</span>
+            <span style="font-size:10.5px;color:var(--muted-fg);">01:14 / 04:18 · 1080p</span>
+          </div>
+          <div style="height:135px;border-radius:10px;background:#141821;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;">▶</div>
+            <div style="font-size:10.5px;color:#cbd5e1;">Sesión Extraordinaria del Consejo ABRN Asesores</div>
+          </div>
+          <div style="height:5px;border-radius:999px;background:var(--border);overflow:hidden;">
+            <div style="width:34%;height:100%;background:var(--primary);"></div>
+          </div>
+        `
+      },
+      code: {
+        title: "CFDI40_ABRN920415K8A_Honorarios.xml",
+        meta: "48 KB · CFDI 4.0 XML · Triage Fiscal en RAM",
+        html: `
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--primary);">CFDI 4.0 XML + EXTRACTOR FISCAL</span>
+            <span style="font-size:10.5px;color:var(--lux-emerald);font-weight:700;">UUID Verificado</span>
+          </div>
+          <pre style="font-family:var(--font-code);font-size:10px;background:#181d2a;color:#f2f0ed;padding:9px;border-radius:9px;overflow-x:auto;line-height:1.4;">&lt;cfdi:Comprobante Version="4.0" Folio="ABRN-884"
+  Total="145000.00" Moneda="MXN" MetodoPago="PUE"&gt;
+  &lt;cfdi:Emisor Rfc="ABRN920415K8A"
+    Nombre="ABRN ASESORES PATRIMONIALES SC"/&gt;
+  &lt;tfd:TimbreFiscalDigital
+    UUID="8F4C2E10-9A1B-4D3E-A712-9901BC44E210"/&gt;
+&lt;/cfdi:Comprobante&gt;</pre>
+        `
+      },
+      xlsx: {
+        title: "Conciliacion_Patrimonial_Q4_ABRN.xlsx",
+        meta: "1.9 MB · XLSX · 3 Hojas Descifradas en Memoria",
+        html: `
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--lux-emerald);">HOJA DE CÁLCULO SOBERANA (XLSX)</span>
+            <span style="font-size:10.5px;color:var(--muted-fg);">Hoja: Resumen_Q4</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:10.5px;background:var(--card);border-radius:8px;overflow:hidden;">
+            <thead>
+              <tr style="background:var(--primary-tint);color:var(--primary);text-align:left;">
+                <th style="padding:5px 7px;border:1px solid var(--border);">Portafolio</th>
+                <th style="padding:5px 7px;border:1px solid var(--border);">Estado</th>
+                <th style="padding:5px 7px;border:1px solid var(--border);text-align:right;">Saldo Cifrado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:5px 7px;border:1px solid var(--border);font-weight:600;">Fideicomiso A-1</td>
+                <td style="padding:5px 7px;border:1px solid var(--border);color:var(--lux-emerald);font-weight:700;">Auditado</td>
+                <td style="padding:5px 7px;border:1px solid var(--border);text-align:right;font-family:var(--font-code);">$14,820,000</td>
+              </tr>
+              <tr>
+                <td style="padding:5px 7px;border:1px solid var(--border);font-weight:600;">Reserva Fiscal</td>
+                <td style="padding:5px 7px;border:1px solid var(--border);color:var(--lux-emerald);font-weight:700;">Sellado</td>
+                <td style="padding:5px 7px;border:1px solid var(--border);text-align:right;font-family:var(--font-code);">$3,490,500</td>
+              </tr>
+            </tbody>
+          </table>
+        `
+      }
+    };
+
+    function openMobileInspector(fmt, customTitle, customMeta) {
+      document.getElementById("folderShareSheetBackdrop").classList.remove("open");
+      document.getElementById("mobileInspectorBackdrop").classList.add("open");
+      switchMobileInspectorFormat(fmt || "pdf", customTitle, customMeta, true);
+      document.getElementById("phone2CaptionTitle").textContent =
+        "Teléfono 2 — Inspector Móvil 5 Formatos + Recibo Sagrado";
+    }
+
+    function switchMobileInspectorFormat(fmt, customTitle, customMeta, updateTag) {
+      const data = INSPECTOR_FORMATS[fmt] || INSPECTOR_FORMATS.pdf;
+      document.getElementById("inspectorSheetTitle").textContent = customTitle || data.title;
+      document.getElementById("inspectorSheetMeta").textContent = customMeta || data.meta;
+      document.getElementById("mobileInspectorStage").innerHTML = data.html;
+      document.querySelectorAll("#mobileInspectorBackdrop [data-fmt]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-fmt") === fmt);
+      });
+      if (updateTag !== false) {
+        document.getElementById("phone2StateTag").textContent = "Inspector RAM: " + fmt.toUpperCase();
+      }
+    }
+
+    function closeMobileInspector() {
+      document.getElementById("mobileInspectorBackdrop").classList.remove("open");
+      document.getElementById("folderShareSheetBackdrop").classList.add("open");
+      document.getElementById("phone2CaptionTitle").textContent =
+        "Teléfono 2 — Hoja Móvil Compartir Carpeta (3-en-1)";
+      document.getElementById("phone2StateTag").textContent = "Modo: Enlace #key + WhatsApp";
+    }
+
+    function setScenario(scenario) {
+      document.querySelectorAll("[data-scenario]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-scenario") === scenario);
+      });
+
+      if (scenario === "dual-overview") {
+        toggleFolderExplorerSheet(false);
+        openFolderShareOnPhone2(currentFolderName, "link");
+      } else if (scenario === "folder-explorer") {
+        toggleFolderExplorerSheet(true);
+        openFolderShareOnPhone2(currentFolderName, "link");
+      } else if (scenario === "drop-and-team") {
+        toggleFolderExplorerSheet(false);
+        openFolderShareOnPhone2(currentFolderName, "drop");
+      } else if (scenario === "mobile-inspector") {
+        toggleFolderExplorerSheet(false);
+        openMobileInspector("pdf");
+      }
+    }
+
+    // Initialize default inspector stage without clobbering the active Folder Share tag
+    switchMobileInspectorFormat("pdf", null, null, false);
+  </script>
+</body>
+</html>

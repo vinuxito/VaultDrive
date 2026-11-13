@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive — Reporte Ejecutivo de Verificación v21 (Mobile UIX & Compartición de Carpetas)</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --card: #ffffff;
+      --muted: #f3efe9;
+      --ink: #1c1a17;
+      --ink-muted: #686158;
+      --burgundy: #7a1f2b;
+      --burgundy-soft: rgba(122, 31, 43, 0.1);
+      --emerald: #2d8a6e;
+      --emerald-soft: rgba(45, 138, 110, 0.12);
+      --border: #e5dfd5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      padding: 32px 20px 64px;
+    }
+    .container { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+    .hero {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f3ee 100%);
+      border: 1.5px solid rgba(122, 31, 43, 0.28);
+      border-radius: 20px;
+      padding: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      box-shadow: 0 8px 28px rgba(28, 26, 23, 0.05);
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--burgundy);
+      margin-bottom: 6px;
+    }
+    h1, h2 { font-family: Georgia, "Libre Baskerville", serif; color: var(--ink); }
+    h1 { font-size: 26px; line-height: 1.25; margin-bottom: 8px; }
+    h2 { font-size: 19px; margin-bottom: 14px; }
+    .subtitle { color: var(--ink-muted); font-size: 14px; max-width: 720px; }
+    .badge-pass {
+      background: var(--emerald-soft);
+      color: var(--emerald);
+      border: 1px solid rgba(45, 138, 110, 0.35);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); }
+    .kpi-val { font-size: 26px; font-weight: 800; color: var(--burgundy); margin: 4px 0; font-variant-numeric: tabular-nums; }
+    .kpi-note { font-size: 12px; color: var(--ink-muted); }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); background: var(--muted); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11.5px;
+      background: var(--muted);
+      padding: 2px 6px;
+      border-radius: 6px;
+      word-break: break-all;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--emerald-soft);
+      color: var(--emerald);
+    }
+    .pill-fixed {
+      background: var(--burgundy-soft);
+      color: var(--burgundy);
+    }
+    .next-list { padding-left: 18px; color: var(--ink-muted); font-size: 13.5px; display: flex; flex-direction: column; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">ABRN Asesores · Reporte Ejecutivo de Verificación (8K Reality)</div>
+        <h1>v21 — Mobile UIX, Compartición 3-en-1 de Carpetas e Inspector RAM 5 Formatos</h1>
+        <p class="subtitle">
+          Ticket <code>TICKET-2026-11-12-ABRN-MOBILE-UIX-FOLDER-SHARING</code> · Paridad visual y funcional 1:1 con
+          <code>/abrn/previews/mobile.html</code> en <strong>ABRN Cream</strong> (<code>#faf8f5</code> / <code>#7a1f2b</code>) y
+          <strong>ABRN Slate</strong> (<code>#1e2330</code> / <code>#d4aeb0</code>).
+        </p>
+      </div>
+      <div class="badge-pass">✓ VERIFICADO EN PRODUCCIÓN · PASS</div>
+    </header>
+
+    <section class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">TypeScript (Client + E2E)</div>
+        <div class="kpi-val">0 Errores</div>
+        <div class="kpi-note"><code>npm run typecheck</code> · exit 0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Suite Vitest Focalizada</div>
+        <div class="kpi-val">95 / 95</div>
+        <div class="kpi-note">9 archivos · contraste WCAG + hojas móviles (3.95s)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Evidencia Real Browser (bsk)</div>
+        <div class="kpi-val">5 / 5 PNGs</div>
+        <div class="kpi-note">390×844 (Cream &amp; Slate) + 1440×900 Desktop</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Auditoría Post-Build</div>
+        <div class="kpi-val">PASS (0)</div>
+        <div class="kpi-note">3 hallazgos visuales corregidos y sellados con SHA-256</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>1. Matriz de Verificación en Frío</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Alcance</th>
+            <th>Resultado Medido</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CHK-TYPECHECK</code></td>
+            <td>Compilación estricta TS + E2E</td>
+            <td><code>tsc -b &amp;&amp; tsc -p tsconfig.e2e.json --noEmit</code> → <code>0 errors</code></td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-VITEST-95</code></td>
+            <td><code>MobileFolderShareSheet</code>, <code>MobileFolderSheet</code>, <code>MobileInspectorSheet</code>, <code>FileGrid</code>, <code>skin-contrast</code>, <code>brand-theme</code></td>
+            <td><code>9/9</code> suites · <code>95/95</code> tests en verde (<code>3.95s</code>)</td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-VITE-BUILD</code></td>
+            <td>Bundle de producción en <code>vaultdrive_client/dist/</code></td>
+            <td>Compilado en <code>11.96s</code> · <code>dist/index.html</code> SHA-256 <code>d967bed6...96e4920e</code></td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-LIVE-MOBILE-HERO</code></td>
+            <td>Bóveda móvil <code>390×844</code> (<code>ABRN Cream</code>)</td>
+            <td>Header en 1 línea, Hero de Carpeta Activa (<code>Compartir Carpeta</code>, <code>Pedir Archivos</code>, <code>Equipo</code>), chip de subcarpeta y 3 archivos (<code>XLSX</code>, <code>CFDI</code>, <code>PDF</code>) sobre el pliegue</td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-LIVE-FOLDER-EXPLORER</code></td>
+            <td><code>MobileFolderSheet</code> jerárquico en <code>ABRN Slate</code> (<code>390×844</code>)</td>
+            <td>Subcarpeta indentada <code>↳ Declaraciones SAT 2026</code>, <code>[Compartir]</code> directo y <code>[Pedir Drop]</code> en carpetas vacías</td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-LIVE-FOLDER-SHARE</code></td>
+            <td><code>MobileFolderShareSheet</code> 3-en-1 con llaves AES-256 reales</td>
+            <td><code>3/3 llaves AES-256 envueltas con tu PIN · 0 Bytes al Servidor</code>, Espejo del Receptor, QR SVG soberano y muelle WhatsApp</td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-LIVE-MOBILE-INSPECTOR</code></td>
+            <td><code>MobileInspectorSheet</code> 5 formatos + Recibo Sagrado SHA-256</td>
+            <td>Pestañas <code>PDF / 4K / MP4 / CFDI / XLSX</code>, contraste nítido XML en RAM, SHA-256 <code>0 B Delta</code> y muelle inferior</td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-LIVE-DESKTOP-REGRESSION</code></td>
+            <td>Escritorio 3 paneles redimensionables (<code>1440×900</code>)</td>
+            <td>Cero regresiones en <code>VaultTree</code>, tabla central, <code>VaultInspectorPane</code> y barra <code>ABRN Cream / ABRN Slate</code></td>
+            <td><span class="pill">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>2. Antes vs. Después (Experiencia Móvil &lt;768px)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Dimensión</th>
+            <th>Antes (v20)</th>
+            <th>Después (v21)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Compartir Carpeta en Celular</strong></td>
+            <td>Inalcanzable: árbol oculto fuera de pantalla y <code>MobileFolderSheet</code> solo abría y cerraba carpetas.</td>
+            <td><strong>1 Toque en 3 Puntos:</strong> Hero de Carpeta Activa, chips horizontales de subcarpetas y botón <code>[Compartir]</code> / <code>[Pedir Drop]</code> en cada fila del explorador.</td>
+          </tr>
+          <tr>
+            <td><strong>Hoja Móvil 3-en-1 de Carpeta</strong></td>
+            <td>Caía al modal de escritorio sin WhatsApp, QR local ni pestañas unificadas.</td>
+            <td><code>MobileFolderShareSheet</code> con <code>Enlace #key</code>, Espejo del Receptor, QR ISO/IEC 18004 en RAM, <code>Buzón Drop</code> y <code>Equipo RSA</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Presupuesto Visual Sobre el Pliegue</strong></td>
+            <td>4 barras apiladas (~420px) empujaban las tarjetas de archivos fuera de pantalla en <code>390×844</code>.</td>
+            <td>Header ABRN en 1 fila + filtros horizontales limpios + Hero de Carpeta + 3 archivos visibles sin hacer scroll.</td>
+          </tr>
+          <tr>
+            <td><strong>Inspector Móvil 5 Formatos</strong></td>
+            <td>Panel derecho oculto debajo de <code>md</code> sin hoja móvil equivalente.</td>
+            <td><code>MobileInspectorSheet</code> con pestañas <code>PDF / 4K / MP4 / CFDI / XLSX</code>, Recibo Sagrado SHA-256 y muelle inferior táctico.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>3. Hallazgos de Auditoría Visual Post-Build Corregidos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Hallazgo Detectado en 390×844</th>
+            <th>Corrección Aplicada</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>FND-01</code></td>
+            <td>Header superior saltaba a 2 filas y la barra de migas/orden de escritorio duplicaba información sobre el Hero móvil.</td>
+            <td>Header compacto <code>flex-nowrap</code>, píldoras de filtro con scroll horizontal limpio y barra de escritorio marcada <code>hidden md:flex</code> conservando <code>#file-input</code> montado.</td>
+            <td><span class="pill pill-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-02</code></td>
+            <td>Botón <code>Equipo</code> desbordaba el borde derecho del Hero en 390px y los chips mostraban barra de scroll del navegador.</td>
+            <td>Botón cuadrado <code>44×44px</code> con icono de Equipo (igual a Teléfono 1 del preview) y <code>scrollbar-width: none</code> en la tira de carpetas.</td>
+            <td><span class="pill pill-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-03</code></td>
+            <td>Bloque XML oscuro en <code>MobileInspectorSheet</code> heredaba texto tenue en modo claro y <code>Nueva Carpeta</code> partía en 2 líneas.</td>
+            <td>Contraste explícito <code>#e2e8f0</code> sobre <code>#161922</code>, <code>whitespace-nowrap</code> en muelle de carpetas y <code>scrollIntoView</code> automático al abrir QR.</td>
+            <td><span class="pill pill-fixed">FIXED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>4. Siguientes Pasos Recomendados</h2>
+      <ul class="next-list">
+        <li>Monitorear el uso en campo de enlaces <code>/abrn/folder-share/&lt;token&gt;#&lt;key&gt;</code> abiertos desde WhatsApp móvil en iOS Safari y Android Chrome.</li>
+        <li>Opcional: añadir contador en vivo de descargas ZIP de carpetas dentro de la tarjeta de enlaces activos en <code>MobileFolderShareSheet</code>.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

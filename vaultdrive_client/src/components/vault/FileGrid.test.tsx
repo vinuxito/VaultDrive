@@ -162,4 +162,53 @@ describe("FileGrid action labels", () => {
     expect(row.style.contentVisibility).toBe("auto");
     expect(screen.getByText("XLSX")).toBeInTheDocument();
   });
+
+  it("renders mobile 1-tap Share and Inspect actions and CFDI badge without triggering row click", () => {
+    const onCreateShareLink = vi.fn();
+    const onMobileInspectClick = vi.fn();
+    const onPreviewClick = vi.fn();
+
+    render(
+      <FileGrid
+        files={[{
+          id: "file-cfdi-9",
+          filename: "cfdi_timbrado.xml",
+          file_size: 4096,
+          created_at: "2026-11-12T00:00:00Z",
+          metadata: "{}",
+          is_owner: true,
+        }]}
+        selectedFileIds={new Set()}
+        toggleFileSelection={vi.fn()}
+        toggleSelectAllVisible={vi.fn()}
+        allVisibleSelected={false}
+        headerCheckboxRef={createRef<HTMLInputElement>()}
+        onDownload={vi.fn()}
+        onCreateShareLink={onCreateShareLink}
+        onToggleStar={vi.fn()}
+        onAccessPanel={vi.fn()}
+        onShareClick={vi.fn()}
+        onQuickShare={vi.fn()}
+        onManageSharesClick={vi.fn()}
+        onMoveClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+        onPreviewClick={onPreviewClick}
+        onMobileInspectClick={onMobileInspectClick}
+        onContextMenu={vi.fn()}
+        setOpenActionMenu={vi.fn()}
+        openActionMenu={null}
+        onOpenReceipt={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("CFDI")).toBeInTheDocument();
+
+    screen.getByTestId("mobile-file-share-file-cfdi-9").click();
+    expect(onCreateShareLink).toHaveBeenCalledTimes(1);
+    expect(onPreviewClick).not.toHaveBeenCalled();
+
+    screen.getByTestId("mobile-file-inspect-file-cfdi-9").click();
+    expect(onMobileInspectClick).toHaveBeenCalledTimes(1);
+    expect(onPreviewClick).not.toHaveBeenCalled();
+  });
 });

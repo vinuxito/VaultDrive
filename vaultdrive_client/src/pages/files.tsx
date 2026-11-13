@@ -27,6 +27,9 @@ import {
   Folder as FolderIcon,
   Sparkles,
   PanelRight,
+  Share2,
+  Download,
+  Plus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -118,6 +121,11 @@ import { getStagedTransfers, clearStagedTransfers } from "../utils/rescue-ledger
 import { DataState } from "../components/ui/data-state";
 import { readOwnerUploadOutcome } from "../utils/owner-upload-outcome";
 import { MobileShareSheet } from "../components/mobile/MobileShareSheet";
+import {
+  MobileFolderShareSheet,
+  type MobileFolderShareTab,
+} from "../components/mobile/MobileFolderShareSheet";
+import { MobileInspectorSheet } from "../components/mobile/MobileInspectorSheet";
 import { VaultOmnibar } from "../components/vault/VaultOmnibar";
 import { globalVaultSearchIndex, type IndexDocument } from "../utils/vault-search-index";
 import { analyzeDocumentTriage, triageFileObject, type TriageResult } from "../utils/document-triage";
@@ -641,6 +649,8 @@ export default function Files() {
 
   const [showFolderShareModal, setShowFolderShareModal] = useState(false);
   const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
+  const [mobileFolderShareTab, setMobileFolderShareTab] = useState<MobileFolderShareTab>("link");
+  const [mobileInspectorFile, setMobileInspectorFile] = useState<FileData | null>(null);
   const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false);
   const [folderForCollaborators, setFolderForCollaborators] = useState<{ id: string; name: string } | null>(null);
   const [showCreateUploadLinkModal, setShowCreateUploadLinkModal] = useState(false);
@@ -2349,6 +2359,17 @@ export default function Files() {
 
   const handleShareFolder = (folderId: string, folderName: string) => {
     setFolderForShare({ id: folderId, name: folderName });
+    setMobileFolderShareTab("link");
+    setShowFolderShareModal(true);
+  };
+
+  const handleMobileFolderAction = (
+    folderId: string,
+    folderName: string,
+    tab: MobileFolderShareTab = "link"
+  ) => {
+    setFolderForShare({ id: folderId, name: folderName });
+    setMobileFolderShareTab(tab);
     setShowFolderShareModal(true);
   };
 
@@ -2551,27 +2572,27 @@ export default function Files() {
   return (
     <>
       <div className="h-full flex flex-col" inert={bulkDownloadFiles !== null || showPasswordModal}>
-        <div className="px-4 sm:px-5 py-2.5 border-b border-border/60 bg-card/85 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-          <div>
-            <div className="flex items-center gap-2">
+        <div className="px-3.5 sm:px-5 py-2 sm:py-2.5 border-b border-border/60 bg-card/85 backdrop-blur-xs flex flex-row items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <h1
-                className="text-lg sm:text-xl font-bold tracking-tight text-foreground"
+                className="text-[15px] sm:text-xl font-bold tracking-tight text-foreground truncate"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {t("drive:vault.title")}
               </h1>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] sm:text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {t("drive:vault.statusSafe", "Blindado")}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
               {visibleFiles.length > 0
                 ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos blindados en tu chip · Todo en orden" })
                 : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
             </p>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* 1px-Divided Telemetry Strip matching ABRN preview */}
             <div
               data-testid="vault-telemetry-strip"
@@ -2590,6 +2611,16 @@ export default function Files() {
                 <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">100% íntegro</span>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileFolderSheetOpen(true)}
+              aria-label="Explorar carpetas"
+              className="md:hidden inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-card border border-border text-foreground text-[11px] font-semibold shadow-2xs active:scale-95 cursor-pointer"
+            >
+              <FolderIcon className="w-3.5 h-3.5 text-primary" />
+              <span>Carpetas</span>
+            </button>
 
             <button
               type="button"
@@ -2614,7 +2645,7 @@ export default function Files() {
                 setIsVaultLocked(true);
               }}
               title={t("drive:vault.lockVaultTooltip", { defaultValue: "Bloquear Bóveda (⌘L)" })}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-xl border border-border bg-card hover:bg-muted/80 text-foreground shadow-xs transition-all active:scale-95 cursor-pointer"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-xl border border-border bg-card hover:bg-muted/80 text-foreground shadow-xs transition-all active:scale-95 cursor-pointer"
             >
               <Lock className="w-4 h-4 text-amber-500" />
               <span>{t("drive:vault.lockVault", { defaultValue: "Bloquear" })}</span>
@@ -2624,9 +2655,9 @@ export default function Files() {
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="file-input"
-                  className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95 cursor-pointer"
+                  className="cursor-pointer inline-flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{t("drive:vault.upload", "Subir Archivo")}</span>
                 </label>
               </div>
@@ -2783,17 +2814,34 @@ export default function Files() {
               />
             ) : (
             <>
-            <div className="flex flex-col items-stretch gap-3 px-3 py-4 border-b border-border/60 bg-background shrink-0 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            {!isSharedView && (
+              <>
+                <input
+                  id="file-input"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <input
+                  id="camera-input"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <input
+                  id="folder-input"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFolderSelect}
+                  {...{ webkitdirectory: "", directory: "" } as Record<string, string>}
+                />
+              </>
+            )}
+
+            <div className="hidden md:flex flex-col items-stretch gap-3 px-3 py-4 border-b border-border/60 bg-background shrink-0 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div className="flex min-w-0 items-start gap-1.5 sm:items-center sm:gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileFolderSheetOpen(true)}
-                  aria-label="Explorar carpetas"
-                  className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border text-foreground text-xs font-semibold shadow-xs active:scale-95 cursor-pointer min-h-[44px] mr-1"
-                >
-                  <FolderIcon className="w-4 h-4 text-primary" />
-                  <span>Carpetas</span>
-                </button>
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-muted-foreground sm:gap-2">
                   <button
                     type="button"
@@ -2874,43 +2922,19 @@ export default function Files() {
                 </div>
 
                 {!isSharedView && (
-                  <>
-                    <input
-                      id="file-input"
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                    <input
-                      id="camera-input"
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                    <label
-                      htmlFor="folder-input"
-                      className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-border bg-card text-foreground hover:bg-muted/80 shadow-2xs transition-colors active:scale-95"
-                    >
-                      <FolderOpen className="w-3.5 h-3.5 text-primary" />
-                      <span>{t("drive:vault.folder")}</span>
-                    </label>
-
-                    <input
-                      id="folder-input"
-                      type="file"
-                      className="hidden"
-                      onChange={handleFolderSelect}
-                      {...{ webkitdirectory: "", directory: "" } as Record<string, string>}
-                    />
-                  </>
+                  <label
+                    htmlFor="folder-input"
+                    className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-border bg-card text-foreground hover:bg-muted/80 shadow-2xs transition-colors active:scale-95"
+                  >
+                    <FolderOpen className="w-3.5 h-3.5 text-primary" />
+                    <span>{t("drive:vault.folder")}</span>
+                  </label>
                 )}
               </div>
             </div>
 
             {selectedFile && !isSharedView && (
-              <div className="mx-6 mt-4 flex flex-wrap items-center gap-3 p-3 bg-primary/10 border border-primary/40 rounded-xl shrink-0">
+              <div className="mx-3.5 sm:mx-6 mt-3 sm:mt-4 flex flex-wrap items-center gap-3 p-3 bg-primary/10 border border-primary/40 rounded-xl shrink-0">
                 <File className="w-4 h-4 text-primary shrink-0" />
                 <div className="flex-1 min-w-0 flex flex-wrap items-center gap-2">
                   <span className="text-sm text-foreground font-medium truncate">
@@ -2986,7 +3010,7 @@ export default function Files() {
             )}
 
             {error && (
-              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-destructive/10 border border-destructive/20 rounded-xl text-sm shrink-0">
+              <div className="mx-3.5 sm:mx-6 mt-3 sm:mt-4 flex items-center gap-3 p-3.5 bg-destructive/10 border border-destructive/20 rounded-xl text-sm shrink-0">
                 <div className="w-7 h-7 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
                   <AlertCircle className="w-4 h-4 text-destructive" />
                 </div>
@@ -2995,7 +3019,7 @@ export default function Files() {
             )}
 
             {successMessage && (
-              <div className="mx-6 mt-4 flex items-center gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm shrink-0">
+              <div className="mx-3.5 sm:mx-6 mt-3 sm:mt-4 flex items-center gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm shrink-0">
                 <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
@@ -3004,7 +3028,7 @@ export default function Files() {
             )}
 
             {(foldersError || dropTokensError) && (
-              <div className="mx-6 mt-4 space-y-2" role="status">
+              <div className="mx-3.5 sm:mx-6 mt-3 sm:mt-4 space-y-2" role="status">
                 {foldersError && (
                   <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
                     <span>{t("drive:vault.source.foldersStale", { defaultValue: "Folder navigation may be out of date." })} {foldersError}</span>
@@ -3024,7 +3048,7 @@ export default function Files() {
               ref={fileContainerRef}
               onMouseDown={handleMarqueeMouseDown}
               onContextMenu={handleCanvasContextMenu}
-              className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 pb-36 md:pb-8 relative select-none"
+              className="flex-1 overflow-y-auto px-3.5 sm:px-6 py-3 sm:py-4 pb-36 md:pb-8 relative select-none"
             >
               {lassoRect?.isSelecting && (
                 <div
@@ -3054,6 +3078,274 @@ export default function Files() {
                 </div>
               )}
 
+
+              {!activeViewLoading &&
+                !isSharedView &&
+                (selectedNode.type === "all" || selectedNode.type === "folder") && (() => {
+                  const preferredRootFolder =
+                    folders.find(
+                      (f) =>
+                        !f.parentId &&
+                        f.name !== "External Drops" &&
+                        f.name !== "My Vault"
+                    ) ?? folders[0] ?? null;
+                  const heroFolder =
+                    selectedNode.type === "folder"
+                      ? folders.find((f) => f.id === selectedNode.folderId) ?? {
+                          id: selectedNode.folderId,
+                          name: selectedNode.folderName,
+                          parentId: null,
+                        }
+                      : preferredRootFolder;
+
+                  const heroFiles = heroFolder
+                    ? myFiles.filter((f) => f.folder_id === heroFolder.id)
+                    : [];
+                  const heroCount = heroFolder
+                    ? folderFileCounts[heroFolder.id] ?? heroFiles.length
+                    : 0;
+                  const heroBytes = heroFiles.reduce((acc, f) => acc + (f.file_size || 0), 0);
+
+                  const quickStripFolders =
+                    selectedNode.type === "folder"
+                      ? folders.filter((f) => f.parentId === selectedNode.folderId)
+                      : folders;
+
+                  return (
+                    <div className="md:hidden mb-3 space-y-2.5">
+                      {/* Active Folder Hero Card (Matches Phone 1 of /abrn/previews/mobile.html) */}
+                      <div
+                        data-testid="mobile-active-folder-hero"
+                        className="rounded-2xl border-[1.5px] border-primary/30 bg-gradient-to-br from-card to-primary/[0.04] p-3 shadow-sm space-y-2.5"
+                      >
+                        {heroFolder ? (
+                          <>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-start gap-2.5 min-w-0">
+                                <div className="w-9 h-9 rounded-xl bg-primary/12 border border-primary/30 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                                  <FolderIcon className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground truncate">
+                                    {selectedNode.type === "folder"
+                                      ? "Bóveda ABRN › Carpeta Activa"
+                                      : "Bóveda ABRN · Carpeta Destacada"}
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (selectedNode.type !== "folder" || selectedNode.folderId !== heroFolder.id) {
+                                        setSelectedNode({
+                                          type: "folder",
+                                          folderId: heroFolder.id,
+                                          folderName: heroFolder.name,
+                                        });
+                                        setSelectedFileIds(new Set());
+                                      }
+                                    }}
+                                    style={{ fontFamily: "var(--font-display)" }}
+                                    className="text-[15px] font-bold text-foreground leading-tight text-left truncate block max-w-full cursor-pointer"
+                                  >
+                                    {heroFolder.name}
+                                  </button>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 flex flex-wrap items-center gap-1.5">
+                                    <span>
+                                      {heroCount === 1 ? "1 archivo" : `${heroCount} archivos`} · {formatBytes(heroBytes)}
+                                    </span>
+                                    <span className="text-[#2d8a6e] dark:text-[#3eb489] font-semibold">
+                                      · #key Listo
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                data-testid="mobile-hero-switch-folder"
+                                onClick={() => setMobileFolderSheetOpen(true)}
+                                className="min-h-[34px] px-2.5 rounded-lg border border-border bg-background text-[11px] font-bold text-foreground inline-flex items-center gap-1 shrink-0 cursor-pointer active:scale-95"
+                              >
+                                <span>Cambiar</span>
+                                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                data-testid="mobile-hero-share-folder-btn"
+                                onClick={() =>
+                                  handleMobileFolderAction(heroFolder.id, heroFolder.name, "link")
+                                }
+                                className="flex-1 min-w-0 min-h-[44px] px-2.5 rounded-xl bg-primary text-primary-foreground text-[11.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-[0.99]"
+                              >
+                                <Share2 className="w-3.5 h-3.5 shrink-0" />
+                                <span className="truncate">Compartir Carpeta</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                data-testid="mobile-hero-drop-folder-btn"
+                                onClick={() =>
+                                  handleMobileFolderAction(heroFolder.id, heroFolder.name, "drop")
+                                }
+                                className="shrink-0 min-h-[44px] px-2.5 rounded-xl border border-primary/30 bg-background text-foreground text-[11.5px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+                              >
+                                <Download className="w-3.5 h-3.5 text-primary shrink-0" />
+                                <span className="truncate">Pedir Archivos</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                data-testid="mobile-hero-team-folder-btn"
+                                aria-label="Equipo"
+                                title="Equipo RSA"
+                                onClick={() =>
+                                  handleMobileFolderAction(heroFolder.id, heroFolder.name, "team")
+                                }
+                                className="w-11 h-11 shrink-0 rounded-xl border border-primary/30 bg-background text-foreground inline-flex items-center justify-center cursor-pointer active:scale-[0.99]"
+                              >
+                                <Users className="w-4 h-4 text-primary shrink-0" />
+                                <span className="sr-only">Equipo</span>
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-start gap-2.5">
+                              <div className="w-9 h-9 rounded-xl bg-primary/12 border border-primary/30 text-primary flex items-center justify-center shrink-0">
+                                <FolderIcon className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">
+                                  Bóveda ABRN · Carpetas Blindadas
+                                </p>
+                                <h3
+                                  style={{ fontFamily: "var(--font-display)" }}
+                                  className="text-[14.5px] font-bold text-foreground"
+                                >
+                                  Comparte lotes completos en 1 toque
+                                </h3>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                  Crea tu primera carpeta para compartir por WhatsApp (#key) o activar un Buzón Drop.
+                                </p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-[1.4fr_1fr] gap-2">
+                              <button
+                                type="button"
+                                onClick={() => openCreateFolderModal()}
+                                className="min-h-[44px] rounded-xl bg-primary text-primary-foreground text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Crear Carpeta</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setMobileFolderSheetOpen(true)}
+                                className="min-h-[44px] rounded-xl border border-primary/30 bg-background text-foreground text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                              >
+                                <FolderIcon className="w-3.5 h-3.5 text-primary" />
+                                <span>Explorador</span>
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Horizontal Folder / Subfolder Quick-Share Chips */}
+                      {folders.length > 0 && (
+                        <div data-testid="mobile-subfolder-strip" className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-0.5">
+                            <span>
+                              {selectedNode.type === "folder"
+                                ? `Subcarpetas (${quickStripFolders.length}) · 1 toque compartir`
+                                : `Carpetas (${folders.length}) · 1 toque abrir o compartir`}
+                            </span>
+                            {selectedNode.type === "folder" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedNode({ type: "all" });
+                                  setSelectedFileIds(new Set());
+                                }}
+                                className="text-primary font-bold cursor-pointer"
+                              >
+                                Ver todas
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            {quickStripFolders.map((chipFolder) => {
+                              const chipCount = folderFileCounts[chipFolder.id] ?? 0;
+                              const isActiveChip =
+                                selectedNode.type === "folder" && selectedNode.folderId === chipFolder.id;
+                              return (
+                                <div
+                                  key={chipFolder.id}
+                                  className={cn(
+                                    "inline-flex items-center rounded-full border shrink-0 overflow-hidden shadow-2xs",
+                                    isActiveChip
+                                      ? "bg-primary/10 border-primary/50"
+                                      : "bg-card border-border"
+                                  )}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedNode({
+                                        type: "folder",
+                                        folderId: chipFolder.id,
+                                        folderName: chipFolder.name,
+                                      });
+                                      setSelectedFileIds(new Set());
+                                    }}
+                                    className="min-h-[34px] pl-3 pr-2 inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-foreground hover:bg-muted cursor-pointer"
+                                  >
+                                    <FolderIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                                    <span className="max-w-[140px] truncate">{chipFolder.name}</span>
+                                    <span className="text-[10px] text-muted-foreground font-mono">
+                                      · {chipCount}
+                                    </span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    data-testid={`mobile-chip-share-${chipFolder.id}`}
+                                    aria-label={`Compartir carpeta ${chipFolder.name}`}
+                                    onClick={() =>
+                                      handleMobileFolderAction(
+                                        chipFolder.id,
+                                        chipFolder.name,
+                                        chipCount === 0 ? "drop" : "link"
+                                      )
+                                    }
+                                    className="min-h-[34px] px-2.5 border-l border-border bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center cursor-pointer"
+                                  >
+                                    <Share2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openCreateFolderModal(
+                                  selectedNode.type === "folder" ? selectedNode.folderId : null
+                                )
+                              }
+                              className="min-h-[34px] px-3 rounded-full border border-dashed border-primary/40 bg-background text-primary text-[11.5px] font-bold inline-flex items-center gap-1 shrink-0 cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                              <span>{selectedNode.type === "folder" ? "Subcarpeta" : "Carpeta"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
               {!activeViewLoading && selectedNode.type === "shared" && sharedFolders.length > 0 && (
                 <div className="mb-8">
@@ -3135,6 +3427,11 @@ export default function Files() {
                   onManageSharesClick={(file) => handleManageSharesClick(file.id, file.filename)}
                   onMoveClick={(file) => { void handleMoveClick(file); }}
                   onDeleteClick={(file) => handleDeleteClick(file.id, file.filename)}
+                  onMobileInspectClick={(file) => {
+                    setLastInteractedFileId(file.id);
+                    setInspectorFile(file);
+                    setMobileInspectorFile(file);
+                  }}
                   onPreviewClick={(file) => {
                     setLastInteractedFileId(file.id);
                     setInspectorFile(file);
@@ -3837,13 +4134,25 @@ export default function Files() {
       />
 
       {showFolderShareModal && folderForShare && (
-        <CreateFolderShareLinkModal
-          isOpen={showFolderShareModal}
-          onClose={() => { setShowFolderShareModal(false); setFolderForShare(null); }}
-          onCreated={() => setFolderSharePanelVersion((value) => value + 1)}
-          onUseUploadLink={() => handleCreateUploadLinkForFolder(folderForShare.id, folderForShare.name)}
-          folder={folderForShare}
-        />
+        isMobileScreen ? (
+          <MobileFolderShareSheet
+            isOpen={showFolderShareModal}
+            onClose={() => { setShowFolderShareModal(false); setFolderForShare(null); }}
+            folder={folderForShare}
+            initialTab={mobileFolderShareTab}
+            fileCount={folderFileCounts[folderForShare.id] ?? 0}
+            onCreated={() => setFolderSharePanelVersion((value) => value + 1)}
+            onDropCreated={() => void fetchDropTokens()}
+          />
+        ) : (
+          <CreateFolderShareLinkModal
+            isOpen={showFolderShareModal}
+            onClose={() => { setShowFolderShareModal(false); setFolderForShare(null); }}
+            onCreated={() => setFolderSharePanelVersion((value) => value + 1)}
+            onUseUploadLink={() => handleCreateUploadLinkForFolder(folderForShare.id, folderForShare.name)}
+            folder={folderForShare}
+          />
+        )
       )}
       {showCollaboratorsModal && folderForCollaborators && (
         <FolderCollaboratorsModal
@@ -4018,6 +4327,35 @@ export default function Files() {
           setSelectedFileIds(new Set());
         }}
         onCreateFolder={() => openCreateFolderModal()}
+        onShareFolder={(folderId, folderName, tab) =>
+          handleMobileFolderAction(folderId, folderName, tab || "link")
+        }
+      />
+
+      <MobileInspectorSheet
+        isOpen={mobileInspectorFile !== null}
+        file={mobileInspectorFile}
+        folderName={selectedNode.type === "folder" ? selectedNode.folderName : undefined}
+        onClose={() => setMobileInspectorFile(null)}
+        onOpenFullPreview={(file) => {
+          setPreviewFile({
+            ...file,
+            folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+          });
+        }}
+        onWhatsAppShare={(file) => {
+          handleQuickShare(file.id);
+        }}
+        onDownload={(file) => {
+          void handleDownload(
+            file.id,
+            file.filename,
+            file.metadata,
+            file.pin_wrapped_key || undefined,
+            file.is_owner,
+            file.folder_id
+          );
+        }}
       />
 
       {proofPillData && (
