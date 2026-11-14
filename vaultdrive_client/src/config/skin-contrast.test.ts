@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync(new URL("../styles/skins.css", import.meta.url), "utf8");
-const skins = ["quantix", "light", "dark", "cyberpunk", "elegant", "business"];
+const skins = ["quantix", "light", "dark", "oled", "cyberpunk", "elegant", "business"];
 function luminance(value: string) {
   const [h, s, l] = value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
   const a = s / 100 * Math.min(l / 100, 1 - l / 100);

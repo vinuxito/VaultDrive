@@ -1,0 +1,15 @@
+# Implementation Plan — `v23-abrn-sovereign-continuum`
+
+- **Ticket:** [`docs/tickets/2026-11-14-ticket-v23-abrn-sovereign-continuum.md`](file:///lamp/www/ABRN-Drive/docs/tickets/2026-11-14-ticket-v23-abrn-sovereign-continuum.md)
+- **Build ID:** `v23-abrn-sovereign-continuum`
+- **Target:** `https://abrndrive.filemonprime.net/abrn/files` (Desktop `>=768px` + Mobile `<768px` / Android 13 `427×721`)
+
+## Step Index
+
+1. [`01-ticket-and-evidence.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/01-ticket-and-evidence.md) — Bundle approved HTML prototypes (`approved-preview-index.html`, `approved-preview-mobile.html`) and 11 PNG+JPG preview pairs in `docs/tickets/evidence/v23-abrn-sovereign-continuum/`.
+2. [`02-three-skins-and-continuum-bridge.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/02-three-skins-and-continuum-bridge.md) — Add `"oled"` (`#030712`) skin across `theme-context.ts`, `ThemeProvider.tsx`, `skins.css`, `abrn-unified-vault.css`, `skin-contrast.test.ts`; create `continuum-bridge.ts`; upgrade `dashboard-layout.tsx` and `sidebar.tsx`.
+3. [`03-reconcile-cockpit-and-inline-access-center.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/03-reconcile-cockpit-and-inline-access-center.md) — Build `VaultReconcileCockpit.tsx` (+ unit tests, strict `SIN_CFDI_EN_CARPETA` No-False-Zeros + 1-click real `AES-256-GCM` CFDI 4.0 + BBVA upload) and `VaultAccessCenterInline.tsx`.
+4. [`04-dual-live-mirror-and-sacred-receipt.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/04-dual-live-mirror-and-sacred-receipt.md) — Build `ContinuumDockPane.tsx` (`⚡ Dual en Vivo` + `Estudio Móvil` via CSP-safe `srcdoc` hydration, `iPhone 16 Pro` / `Android 13` hardware frame toggle, `⚡ Escanear Cel → PC` real encrypted upload) and `#sacred-receipt-banner`.
+5. [`05-inspector-voice-digest-and-cinemascope.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/05-inspector-voice-digest-and-cinemascope.md) — Upgrade `VaultInspectorPane.tsx` (AI Executive Digest + 14-bar Encrypted RAM Voice Memo), `FileGrid.tsx` (`VOZ` badge), `FilePreviewModal.tsx` (`← Ant` / `Sig →` + AI Digest), `CommandPalette.tsx`, and `VaultPrivacyShutter.tsx`.
+6. [`06-native-mobile-sovereign-app-and-hw-back.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/06-native-mobile-sovereign-app-and-hw-back.md) — Build `MobileSovereignHeaderAndHub.tsx`, `MobileReconcileSheet.tsx` (+ unit tests), `MobileScannerSheet.tsx`, upgrade `BottomNav.tsx` 5-slot Glass Dock, and wire Android 13 hardware `Back` (`popstate`) sheet dismissal.
+7. [`07-verification-and-post-build-audit.md`](file:///lamp/www/ABRN-Drive/docs/plans/v23-abrn-sovereign-continuum/07-verification-and-post-build-audit.md) — Run `typecheck`, focused `vitest`, `npm run build`, cold `bsk` Desktop captures (`live-01..06`), cold physical Android 13 captures (`live-07..09`), `check-post-build-audit.py` (`PASS`), documentation closeout, and `git push origin main`.

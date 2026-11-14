@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useDialogFocus } from "../../hooks/useDialogFocus";
-import { X, Download, Loader2, AlertCircle, Lock, Key, ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
+import { X, Download, Loader2, AlertCircle, Lock, Key, ChevronDown, ChevronRight, ShieldCheck, ArrowLeft, ArrowRight, Sparkles, MessageCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { useSessionVault } from "../../context/SessionVaultContext";
 import { API_URL } from "../../utils/api";
 import { TrustRail } from "./TrustRail";
 import { FileSecurityTimeline } from "./FileSecurityTimeline";
+import { getRamVoiceMemo } from "../../utils/continuum-bridge";
 import {
   decryptPrivateKeyWithPIN,
   importRSAPSSPrivateKey,
@@ -40,6 +41,9 @@ interface FilePreviewModalProps {
   file: FileEntry | null;
   onClose: () => void;
   onDownload: () => void;
+  onPrevFile?: () => void;
+  onNextFile?: () => void;
+  onWhatsAppShare?: () => void;
 }
 
 interface ActivePreview {
@@ -101,10 +105,35 @@ function getCredentialType(file: FileEntry): "password" | "pin" | "drop-pin" {
   return scheme === "folder" ? "pin" : scheme;
 }
 
-export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
+export function FilePreviewModal({
+  file,
+  onClose,
+  onDownload,
+  onPrevFile,
+  onNextFile,
+  onWhatsAppShare,
+}: FilePreviewModalProps) {
   const { t } = useTranslation("drive");
   const panelRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ open: !!file, onClose, containerRef: panelRef });
+
+  useEffect(() => {
+    if (!file || (!onPrevFile && !onNextFile)) return;
+    const handleKeyNav = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || target?.isContentEditable) return;
+      if (e.key === "ArrowLeft" && onPrevFile) {
+        e.preventDefault();
+        onPrevFile();
+      } else if (e.key === "ArrowRight" && onNextFile) {
+        e.preventDefault();
+        onNextFile();
+      }
+    };
+    window.addEventListener("keydown", handleKeyNav);
+    return () => window.removeEventListener("keydown", handleKeyNav);
+  }, [file, onPrevFile, onNextFile]);
   const {
     getFileKey,
     getFolderKey,
@@ -596,6 +625,41 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
             )}
           </div>
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1.5 shrink-0 sm:gap-2">
+            {onPrevFile && (
+              <button
+                type="button"
+                data-testid="cinemascope-prev-btn"
+                onClick={onPrevFile}
+                title="Archivo anterior (←)"
+                className="abrn-btn h-8 px-2.5 text-xs gap-1"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Ant</span>
+              </button>
+            )}
+            {onNextFile && (
+              <button
+                type="button"
+                data-testid="cinemascope-next-btn"
+                onClick={onNextFile}
+                title="Archivo siguiente (→)"
+                className="abrn-btn h-8 px-2.5 text-xs gap-1"
+              >
+                <span className="hidden md:inline">Sig</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onWhatsAppShare && (
+              <button
+                type="button"
+                data-testid="cinemascope-wa-btn"
+                onClick={onWhatsAppShare}
+                className="abrn-btn h-8 px-2.5 text-xs gap-1 text-emerald-700 dark:text-emerald-400"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline">WhatsApp #key</span>
+              </button>
+            )}
             <Button
               size="sm"
               onClick={handleDownloadDecrypted}
@@ -784,6 +848,29 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
           {!showCredentialPrompt && !isLoading && !loadError && (
             <>
+              <div
+                data-testid="cinemascope-ram-digest"
+                className="mb-3 rounded-2xl border border-primary/25 bg-card/80 px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-primary shrink-0">
+                    RESUMEN CONTABLE IA · 100% EN RAM
+                  </span>
+                  <span className="text-xs text-foreground/90 truncate">
+                    {officeDoc?.headline || "Descifrado íntegro en WebCrypto local · 0 bytes transmitidos a servicios externos."}
+                  </span>
+                </div>
+                {(() => {
+                  const memo = getRamVoiceMemo(file.id, file.filename);
+                  if (!memo) return null;
+                  return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/12 text-primary border border-primary/25 abrn-mono">
+                      🎙 VOZ {memo.durationLabel} · {memo.transcriptHint}
+                    </span>
+                  );
+                })()}
+              </div>
               {decryptedSha256 && (
                 <div className="mb-4 rounded-2xl border border-primary/25 bg-primary/5 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                   <div className="flex items-start gap-2.5 min-w-0">

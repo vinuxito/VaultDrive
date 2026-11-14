@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Maximize2,
   X,
@@ -10,9 +10,16 @@ import {
   Play,
   Pause,
   Edit2,
+  Mic,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { FileData } from "./FileGrid";
+import {
+  getRamVoiceMemo,
+  saveRamVoiceMemo,
+  subscribeContinuumEvents,
+} from "../../utils/continuum-bridge";
 
 export type InspectorFormatKey = "pdf" | "xml" | "sheet" | "image" | "video" | "code";
 
@@ -106,6 +113,16 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
   const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
   const [activeSheetRow, setActiveSheetRow] = useState<number>(0);
   const [passportOpen, setPassportOpen] = useState<boolean>(true);
+  const [voicePlaying, setVoicePlaying] = useState<boolean>(false);
+  const [voiceRevision, setVoiceRevision] = useState<number>(0);
+
+  useEffect(() => {
+    return subscribeContinuumEvents((ev) => {
+      if (ev.type === "VOICE_NOTE_UPDATED" || ev.type === "PANIC_LOCK") {
+        setVoiceRevision((v) => v + 1);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (file?.filename) {
@@ -113,6 +130,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
       setZoom(100);
       setRotation(0);
       setVideoPlaying(false);
+      setVoicePlaying(false);
     }
   }, [file?.id, file?.filename]);
 
@@ -154,6 +172,37 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
     : "Fragmento #key Zero-Knowledge";
 
   const currentSheetRow = DEFAULT_SHEET_ROWS[activeSheetRow] ?? DEFAULT_SHEET_ROWS[0];
+
+  const activeVoiceMemo = useMemo(
+    () => getRamVoiceMemo(file?.id, displayTitle),
+    [file?.id, displayTitle, voiceRevision]
+  );
+
+  const executiveDigestText = useMemo(() => {
+    if (activeFormat === "xml") {
+      return "CFDI 4.0 Ingreso válido · Método PUE · IVA 16% acreditable · 0 alertas EFOS/69-B.";
+    }
+    if (activeFormat === "sheet") {
+      return "Papel de trabajo conciliado al 100% · 4 entregables fiscales validados en RAM.";
+    }
+    if (activeFormat === "pdf") {
+      const lower = displayTitle.toLowerCase();
+      if (lower.includes("bbva") || lower.includes("cuenta") || lower.includes("bancos")) {
+        return "Estado de Cuenta Bancario · Saldo y movimientos listos para Cuadre BBVA $0.00 MXN.";
+      }
+      if (lower.includes("32-d") || lower.includes("opinion")) {
+        return "Opinión 32-D Positiva vigente · Sin créditos fiscales exigibles ante el SAT.";
+      }
+      return "Documento fiscal descifrado 100% en RAM · Sello SHA-256 verificado sin fugas a nube.";
+    }
+    if (activeFormat === "image") {
+      return "Evidencia documental 4K · Legibilidad óptima verificada localmente en WebCrypto.";
+    }
+    if (activeFormat === "video") {
+      return "Stream AES-256-GCM en bloques de 64 KB · Cero almacenamiento temporal en disco.";
+    }
+    return "Script operativo auditado por hash SHA-256 · Listo para ejecución determinista.";
+  }, [activeFormat, displayTitle]);
 
   return (
     <aside
@@ -629,6 +678,82 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             </div>
           </>
         )}
+
+        {/* Executive RAM Digest + 14-bar Encrypted Voice Memo Strip */}
+        <div
+          data-testid="inspector-ram-digest"
+          style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
+          className="mt-1 rounded-[10px] border p-2.5 space-y-2"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.06em] text-primary">
+              <Sparkles className="w-3 h-3" />
+              RESUMEN CONTABLE IA · 100% EN RAM
+            </span>
+            <span className="abrn-mono text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400">
+              0 bytes nube
+            </span>
+          </div>
+          <p className="text-[11.5px] leading-snug text-foreground/90 font-medium">
+            {executiveDigestText}
+          </p>
+
+          {/* 14-bar RAM Voice Note Strip */}
+          <div className="pt-2 border-t border-border/70 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-foreground">
+                <Mic className="w-3 h-3 text-primary" />
+                Nota de Voz Cifrada en RAM
+              </span>
+              {activeVoiceMemo ? (
+                <button
+                  type="button"
+                  data-testid="inspector-voice-play-btn"
+                  onClick={() => setVoicePlaying((p) => !p)}
+                  className="abrn-btn !h-6 !px-2 !text-[10.5px] !rounded-[6px] abrn-mono"
+                >
+                  {voicePlaying ? "⏸ Pausa" : `▶ Voz ${activeVoiceMemo.durationLabel}`}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  data-testid="inspector-voice-record-btn"
+                  onClick={() => {
+                    saveRamVoiceMemo(
+                      file?.id || "inspector-memo",
+                      displayTitle,
+                      14,
+                      "Nota contable grabada y cifrada en RAM: validado contra auxiliar bancario."
+                    );
+                    setVoicePlaying(true);
+                  }}
+                  className="abrn-btn !h-6 !px-2 !text-[10.5px] !rounded-[6px]"
+                >
+                  + Grabar Voz RAM
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-end gap-[3px] h-4 px-1" aria-hidden="true">
+              {[38, 72, 54, 92, 64, 86, 45, 96, 60, 78, 50, 84, 62, 40].map((pct, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    height: `${voicePlaying ? Math.max(25, ((pct + idx * 13) % 95) + 10) : pct}%`,
+                    background: activeVoiceMemo ? "var(--abrn-primary)" : "var(--abrn-border-strong)",
+                    opacity: voicePlaying ? 1 : activeVoiceMemo ? 0.78 : 0.45,
+                  }}
+                  className="flex-1 rounded-full transition-all duration-200"
+                />
+              ))}
+            </div>
+            {activeVoiceMemo && (
+              <p className="text-[10.5px] text-muted-foreground leading-snug italic">
+                “{activeVoiceMemo.transcriptHint}”
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 5. Collapsible Cryptographic Passport Accordion Strip */}

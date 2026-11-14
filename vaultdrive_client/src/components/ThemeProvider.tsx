@@ -25,7 +25,7 @@ export function ThemeProvider({
     // Check new key first
     const stored = localStorage.getItem(storageKey) as Skin | null;
     if (storageKey === "abrn-drive-skin") {
-      if (stored === "light" || stored === "dark") return stored;
+      if (stored === "light" || stored === "dark" || stored === "oled") return stored;
       return defaultSkin;
     }
     if (stored && SKINS.some((s) => s.id === stored)) return stored;

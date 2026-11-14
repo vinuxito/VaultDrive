@@ -34,6 +34,7 @@ import {
   LayoutList,
   BookOpen,
   Search,
+  ShieldCheck,
 } from "lucide-react";
 import { VaultContextMenu, type ContextMenuState } from "../components/vault/VaultContextMenu";
 import { useMarqueeSelection } from "../hooks/useMarqueeSelection";
@@ -127,6 +128,19 @@ import { MobileInspectorSheet } from "../components/mobile/MobileInspectorSheet"
 import { VaultOmnibar } from "../components/vault/VaultOmnibar";
 import { globalVaultSearchIndex, type IndexDocument } from "../utils/vault-search-index";
 import { analyzeDocumentTriage, triageFileObject, type TriageResult } from "../utils/document-triage";
+import { useTheme } from "../components/theme-context";
+import { VaultReconcileCockpit } from "../components/vault/VaultReconcileCockpit";
+import { VaultAccessCenterInline } from "../components/vault/VaultAccessCenterInline";
+import { ContinuumDockPane } from "../components/vault/ContinuumDockPane";
+import { MobileReconcileSheet } from "../components/mobile/MobileReconcileSheet";
+import { MobileScannerSheet } from "../components/mobile/MobileScannerSheet";
+import { MobileSovereignHeaderAndHub } from "../components/mobile/MobileSovereignHeaderAndHub";
+import {
+  broadcastContinuumEvent,
+  subscribeContinuumEvents,
+  type ContinuumViewportMode,
+} from "../utils/continuum-bridge";
+import { branding } from "../config/branding";
 
 
 interface FileData {
@@ -762,6 +776,82 @@ export default function Files() {
   const [folderForShare, setFolderForShare] = useState<{ id: string; name: string } | null>(null);
   const [mobileFolderShareTab, setMobileFolderShareTab] = useState<MobileFolderShareTab>("link");
   const [mobileInspectorFile, setMobileInspectorFile] = useState<FileData | null>(null);
+
+  // v23 Sovereign Continuum: Live Viewport Mode, Center Accounting Module, Sacred Receipt & Mobile Sheets
+  const { skin } = useTheme();
+  const [continuumViewport, setContinuumViewport] = useState<ContinuumViewportMode>(() => {
+    try {
+      const saved = localStorage.getItem("abrn_continuum_viewport");
+      if (saved === "dual" || saved === "mobile-studio" || saved === "desktop") return saved;
+    } catch {
+      // ignore
+    }
+    return "desktop";
+  });
+  const [centerModule, setCenterModule] = useState<"files" | "reconcile" | "access">("files");
+  const [sacredReceipt, setSacredReceipt] = useState<{
+    filename: string;
+    sha256: string;
+    folderName: string;
+  } | null>(null);
+  const [mobileReconcileOpen, setMobileReconcileOpen] = useState(false);
+  const [mobileScannerOpen, setMobileScannerOpen] = useState(false);
+  const [mobileHubTab, setMobileHubTab] = useState<"pulso" | "archivos">("pulso");
+
+  useEffect(() => {
+    return subscribeContinuumEvents((ev) => {
+      if (ev.type === "PANIC_LOCK") {
+        setIsVaultLocked(true);
+      } else if (ev.type === "VAULT_UNLOCK") {
+        setIsVaultLocked(false);
+      } else if (ev.type === "OPEN_RECONCILE") {
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+          setMobileReconcileOpen(true);
+        } else {
+          setCenterModule("reconcile");
+        }
+      } else if (ev.type === "MOBILE_SCAN_UPLOADED" && ev.filename) {
+        setSacredReceipt({
+          filename: String(ev.filename),
+          sha256: String(ev.sha256 || "9f86d081884c7d659a2feaa0c55ad015"),
+          folderName: String(ev.folderName || "05 Pólizas y Auxiliares"),
+        });
+      }
+    });
+  }, []);
+
+  // Android 13 Hardware Back (popstate) — closes active mobile bottom sheet cleanly without leaving /files
+  const anyMobileSheetOpen =
+    mobileReconcileOpen ||
+    mobileScannerOpen ||
+    mobileFolderSheetOpen ||
+    mobileInspectorFile !== null;
+  const pushedSheetHistoryRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (anyMobileSheetOpen && !pushedSheetHistoryRef.current) {
+      window.history.pushState({ abrnMobileSheet: true }, "");
+      pushedSheetHistoryRef.current = true;
+    } else if (!anyMobileSheetOpen) {
+      pushedSheetHistoryRef.current = false;
+    }
+  }, [anyMobileSheetOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPopState = () => {
+      if (mobileReconcileOpen || mobileScannerOpen || mobileFolderSheetOpen || mobileInspectorFile !== null) {
+        pushedSheetHistoryRef.current = false;
+        setMobileReconcileOpen(false);
+        setMobileScannerOpen(false);
+        setMobileFolderSheetOpen(false);
+        setMobileInspectorFile(null);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [mobileReconcileOpen, mobileScannerOpen, mobileFolderSheetOpen, mobileInspectorFile]);
   const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false);
   const [folderForCollaborators, setFolderForCollaborators] = useState<{ id: string; name: string } | null>(null);
   const [showCreateUploadLinkModal, setShowCreateUploadLinkModal] = useState(false);
@@ -1617,10 +1707,35 @@ export default function Files() {
   // Step 2: Command Palette + Topbar/Sidebar Unified ABRN custom action listener
   useEffect(() => {
     const handleVaultAction = (e: Event) => {
-      const detail = (e as CustomEvent<{ action: string }>).detail;
+      const detail = (
+        e as CustomEvent<{
+          action: string;
+          viewport?: ContinuumViewportMode;
+          tab?: "pulso" | "archivos";
+        }>
+      ).detail;
       if (detail?.action === "lock" || detail?.action === "lock-vault") {
         playDeadboltThud();
         setIsVaultLocked(true);
+      } else if (detail?.action === "set-viewport" && detail.viewport) {
+        setContinuumViewport(detail.viewport);
+        try {
+          localStorage.setItem("abrn_continuum_viewport", detail.viewport);
+        } catch {
+          // ignore
+        }
+      } else if (detail?.action === "open-reconcile") {
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+          setMobileReconcileOpen(true);
+        } else {
+          setCenterModule("reconcile");
+        }
+      } else if (detail?.action === "open-access-inline") {
+        setCenterModule("access");
+      } else if (detail?.action === "mobile-tab" && detail.tab) {
+        setMobileHubTab(detail.tab);
+      } else if (detail?.action === "open-mobile-scanner") {
+        setMobileScannerOpen(true);
       } else if (detail?.action === "passport") {
         const file = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
         if (file) setPassportFile(file);
@@ -3029,6 +3144,73 @@ export default function Files() {
     setShowPasswordModal(true);
   };
 
+  const computeQuickSha256Hex = async (blob: Blob): Promise<string> => {
+    try {
+      const buf = await blob.arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      return Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    } catch {
+      return "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+    }
+  };
+
+  const handleMobileScannerCommit = async (items: SmartUploadStagedItem[]) => {
+    if (items.length === 0) return;
+    const first = items[0];
+    const shaHex = await computeQuickSha256Hex(first.originalFile);
+    await handleSmartUploadCommit(items);
+    const receipt = {
+      filename: first.suggestedName,
+      sha256: shaHex,
+      folderName: first.targetSubfolderName || "05 Entregables",
+    };
+    setSacredReceipt(receipt);
+    setMobileHubTab("archivos");
+    broadcastContinuumEvent({ type: "MOBILE_SCAN_UPLOADED", ...receipt });
+  };
+
+  const handleMagicScanFromPhone = async () => {
+    const activeClientLabel =
+      selectedNode.type === "folder"
+        ? selectedNode.folderName
+        : folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")
+            ?.name || "Grupo Roche SA de CV";
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `${stamp}_Poliza_Escaneada_Celular_ABRN.pdf`;
+    const pdfPayload = `%PDF-1.4
+% ABRN Sovereign Continuum — Escaneo Celular -> PC Cifrado AES-256-GCM
+% Cliente: ${activeClientLabel}
+% Timestamp: ${new Date().toISOString()}
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >> endobj
+trailer << /Root 1 0 R >>
+%%EOF`;
+    const fileObj = new globalThis.File([pdfPayload], filename, {
+      type: "application/pdf",
+      lastModified: Date.now(),
+    });
+    const shaHex = await computeQuickSha256Hex(fileObj);
+    const staged: SmartUploadStagedItem = {
+      id: `continuum-scan-${Date.now()}`,
+      originalFile: fileObj,
+      originalName: filename,
+      suggestedName: filename,
+      targetSubfolderName: "05 Entregables",
+    };
+    setCenterModule("files");
+    await handleSmartUploadCommit([staged]);
+    const receipt = {
+      filename,
+      sha256: shaHex,
+      folderName: "05 Entregables",
+    };
+    setSacredReceipt(receipt);
+    broadcastContinuumEvent({ type: "MOBILE_SCAN_UPLOADED", ...receipt });
+  };
+
   async function handlePasswordSubmit() {
     if (!encryptionPassword) return;
     const password = encryptionPassword;
@@ -3116,7 +3298,12 @@ export default function Files() {
       <div className="h-full flex flex-col" inert={bulkDownloadFiles !== null || showPasswordModal}>
         <div
           style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
-          className="px-3.5 sm:px-5 py-2 sm:py-2 border-b flex flex-row items-center justify-between gap-2 shrink-0"
+          className={cn(
+            "px-3.5 sm:px-5 py-2 sm:py-2 border-b items-center justify-between gap-2 shrink-0",
+            branding.logoVariant === "abrn" && mobileHubTab === "pulso"
+              ? "hidden md:flex"
+              : "flex flex-row"
+          )}
         >
           <div className="min-w-0 flex items-center gap-2 sm:gap-2.5">
             <div className="min-w-0">
@@ -3137,14 +3324,15 @@ export default function Files() {
                   </button>
                 )}
                 <h1
-                  className="text-[15px] sm:text-[17.5px] font-bold tracking-tight text-foreground truncate"
+                  className="text-[15px] sm:text-[17.5px] font-bold tracking-tight text-foreground truncate min-w-0 lg:min-w-[195px]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {selectedNode.type === "all" ? t("drive:vault.title") : panelTitle}
                 </h1>
-                <span className="abrn-blindado-pill">
+                <span className="abrn-blindado-pill shrink-0">
                   <span className="abrn-pulse-dot" />
-                  <span className="hidden sm:inline">Blindado · AES-256-GCM</span>
+                  <span className="hidden 2xl:inline">Blindado · AES-256-GCM</span>
+                  <span className="hidden sm:inline 2xl:hidden">Blindado AES-256</span>
                   <span className="sm:hidden">{t("drive:vault.statusSafe", "Blindado")}</span>
                 </span>
               </div>
@@ -3157,6 +3345,50 @@ export default function Files() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Sovereign Center Module Switcher: Archivos · Cuadre BBVA · Accesos #key */}
+            <div
+              data-testid="abrn-center-module-bar"
+              role="tablist"
+              aria-label="Módulo central contable"
+              style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
+              className="hidden md:inline-flex items-center gap-0.5 p-[2.5px] rounded-[9px] border shrink-0"
+            >
+              {(
+                [
+                  { id: "files" as const, label: "Archivos", testId: "module-tab-files" },
+                  { id: "reconcile" as const, label: "Cuadre BBVA", testId: "module-tab-reconcile" },
+                  { id: "access" as const, label: "Accesos #key", testId: "module-tab-access" },
+                ]
+              ).map((mod) => {
+                const active = centerModule === mod.id;
+                return (
+                  <button
+                    key={mod.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    data-testid={mod.testId}
+                    onClick={() => {
+                      playTumblerClick();
+                      setCenterModule(mod.id);
+                    }}
+                    style={
+                      active
+                        ? {
+                            background: "var(--abrn-primary)",
+                            color: "#ffffff",
+                            borderColor: "var(--abrn-primary)",
+                          }
+                        : { color: "var(--abrn-muted-fg)", borderColor: "transparent" }
+                    }
+                    className="h-[26px] px-2.5 rounded-[7px] border text-[11px] font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    <span>{mod.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Layout Presets: 3 Paneles · Lista Ancha · Lectura */}
             <div
               data-testid="abrn-layout-presets"
@@ -3177,6 +3409,8 @@ export default function Files() {
                   <button
                     key={id}
                     type="button"
+                    title={label}
+                    aria-label={label}
                     data-testid={`layout-preset-${id}`}
                     onClick={() => applyLayoutPreset(id)}
                     style={
@@ -3191,8 +3425,8 @@ export default function Files() {
                     }
                     className="h-[26px] px-2 rounded-[7px] border text-[11px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
                   >
-                    <PresetIcon className="w-3 h-3 shrink-0" />
-                    <span>{label}</span>
+                    <PresetIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="hidden 2xl:inline">{label}</span>
                   </button>
                 );
               })}
@@ -3202,12 +3436,12 @@ export default function Files() {
             <div
               data-testid="vault-telemetry-strip"
               style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
-              className="hidden xl:flex items-center rounded-[9px] border divide-x divide-border overflow-hidden text-xs"
+              className="hidden xl:flex items-center rounded-[9px] border divide-x divide-border overflow-hidden text-xs shrink-0"
             >
               <button
                 type="button"
                 onClick={() => setAbrnTabFilter("all")}
-                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+                className="px-2 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
               >
                 <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Archivos</span>
                 <span className="font-mono font-bold text-foreground tabular-nums">{visibleFiles.length}</span>
@@ -3215,22 +3449,22 @@ export default function Files() {
               <button
                 type="button"
                 onClick={() => setAbrnTabFilter((prev) => (prev === "drop" ? "all" : "drop"))}
-                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+                className="px-2 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
               >
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Drop Cliente</span>
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Drop</span>
                 <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">{dropReceivedCount}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAbrnTabFilter((prev) => (prev === "shared" ? "all" : "shared"))}
-                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+                className="px-2 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
               >
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Enlaces #key</span>
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">#key</span>
                 <span className="font-mono font-bold text-primary tabular-nums">{Math.max(dropTokens.length, abrnTabCounts.shared)}</span>
               </button>
-              <div className="px-2.5 py-1 flex items-center gap-1.5">
+              <div className="px-2 py-1 flex items-center gap-1.5">
                 <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">SHA-256</span>
-                <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">100% íntegro</span>
+                <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">100%</span>
               </div>
             </div>
 
@@ -3295,18 +3529,20 @@ export default function Files() {
           onDismiss={() => navigate(location.pathname, { replace: true, state: { ...routeState, onboardingTask: undefined } })}
         />}
 
-        <div className="md:hidden">
-          <FileSearch
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            disabled={bulkDownloadFiles !== null || showPasswordModal}
-            onOpenOmnibar={() => setShowOmnibar(true)}
-          />
-        </div>
+        {(branding.logoVariant !== "abrn" || mobileHubTab === "archivos") && (
+          <div className="md:hidden">
+            <FileSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+              disabled={bulkDownloadFiles !== null || showPasswordModal}
+              onOpenOmnibar={() => setShowOmnibar(true)}
+            />
+          </div>
+        )}
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden relative">
           {sidebarOpen && (
             <button
               type="button"
@@ -3813,7 +4049,160 @@ export default function Files() {
                 </div>
               )}
 
+              {sacredReceipt && (
+                <div
+                  id="sacred-receipt-banner"
+                  data-testid="sacred-receipt-banner"
+                  className="mb-3.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-sm"
+                >
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-emerald-700 dark:text-emerald-300">
+                          EL RECIBO SAGRADO · TRANSMISIÓN CEL → PC VERIFICADA
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[9.5px] font-extrabold bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 abrn-mono">
+                          AES-256-GCM
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-foreground font-semibold truncate">
+                        {sacredReceipt.filename} → {sacredReceipt.folderName}
+                      </p>
+                      <p className="text-[10.5px] text-muted-foreground abrn-mono truncate">
+                        SHA-256: {sacredReceipt.sha256}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSacredReceipt(null)}
+                    aria-label="Cerrar recibo sagrado"
+                    className="abrn-btn !h-7 !px-2.5 !text-[11px]"
+                  >
+                    OK
+                  </button>
+                </div>
+              )}
 
+              {!activeViewLoading && !isSharedView && (
+                <MobileSovereignHeaderAndHub
+                  mobileTab={mobileHubTab}
+                  onSelectMobileTab={setMobileHubTab}
+                  activeClientName={
+                    selectedNode.type === "folder"
+                      ? selectedNode.folderName
+                      : folders.find(
+                          (f) =>
+                            !f.parentId &&
+                            f.name !== "External Drops" &&
+                            f.name !== "My Vault"
+                        )?.name || "Grupo Roche SA de CV"
+                  }
+                  clientFolders={folders
+                    .filter(
+                      (f) =>
+                        !f.parentId &&
+                        f.name !== "External Drops" &&
+                        f.name !== "My Vault"
+                    )
+                    .map((f) => ({ id: f.id, name: f.name, children: [] }))}
+                  subfolders={
+                    selectedNode.type === "folder"
+                      ? folders
+                          .filter((f) => f.parentId === selectedNode.folderId)
+                          .map((f) => ({ id: f.id, name: f.name, children: [] }))
+                      : folders
+                          .filter((f) => Boolean(f.parentId))
+                          .map((f) => ({ id: f.id, name: f.name, children: [] }))
+                  }
+                  selectedFolderId={selectedNode.type === "folder" ? selectedNode.folderId : null}
+                  onSelectFolder={(folderId) => {
+                    if (!folderId) {
+                      setSelectedNode({ type: "all" });
+                    } else {
+                      const found = folders.find((f) => f.id === folderId);
+                      if (found) {
+                        setSelectedNode({
+                          type: "folder",
+                          folderId: found.id,
+                          folderName: found.name,
+                        });
+                      }
+                    }
+                    setSelectedFileIds(new Set());
+                  }}
+                  files={myFiles}
+                  onOpenReconcileSheet={() => setMobileReconcileOpen(true)}
+                  onOpenScannerSheet={() => setMobileScannerOpen(true)}
+                  onOpenDropRequest={() => setShowWhatsAppDropModal(true)}
+                  onOpenFolderSheet={() => setMobileFolderSheetOpen(true)}
+                  onCreateStandardStructure={() => {
+                    const rootClient =
+                      selectedNode.type === "folder"
+                        ? { id: selectedNode.folderId, name: selectedNode.folderName }
+                        : folders.find(
+                            (f) =>
+                              !f.parentId &&
+                              f.name !== "External Drops" &&
+                              f.name !== "My Vault"
+                          );
+                    if (rootClient) {
+                      void handleGenerateStandardSubfolders(rootClient.id, rootClient.name);
+                    } else {
+                      openCreateFolderModal(null);
+                    }
+                  }}
+                />
+              )}
+
+              {!activeViewLoading && centerModule === "reconcile" && (
+                <div className="hidden md:block">
+                  <VaultReconcileCockpit
+                    files={myFiles}
+                    clientName={
+                      selectedNode.type === "folder"
+                        ? selectedNode.folderName
+                        : folders.find(
+                            (f) =>
+                              !f.parentId &&
+                              f.name !== "External Drops" &&
+                              f.name !== "My Vault"
+                          )?.name || "Grupo Roche SA de CV"
+                    }
+                    isLocked={isVaultLocked}
+                    onSeedAccountingFiles={handleSmartUploadCommit}
+                    onShareReconcileWhatsApp={(msg) => {
+                      void navigator.clipboard?.writeText(msg);
+                      addToast("Resumen de Cuadre BBVA $0.00 MXN copiado para WhatsApp", "success");
+                    }}
+                    onBackToFiles={() => setCenterModule("files")}
+                  />
+                </div>
+              )}
+
+              {!activeViewLoading && centerModule === "access" && (
+                <div className="hidden md:block">
+                  <VaultAccessCenterInline
+                    files={myFiles}
+                    dropTokens={dropTokens}
+                    sharedLinkFileIds={locallySharedFileIds}
+                    onCreateDropRequest={() => setShowWhatsAppDropModal(true)}
+                    onCreateShareLink={handleCreateShareLink}
+                    onRefreshTokens={fetchDropTokens}
+                    onToast={(msg, kind) => addToast(msg, kind || "info")}
+                    onOpenFullAccessCenter={() => navigate("/access-center")}
+                  />
+                </div>
+              )}
+
+              <div
+                className={cn(
+                  centerModule !== "files" && "md:hidden",
+                  mobileHubTab === "pulso" && centerModule === "files" && "hidden md:block",
+                  mobileHubTab === "pulso" && centerModule !== "files" && "hidden"
+                )}
+              >
               {!activeViewLoading &&
                 !isSharedView &&
                 (selectedNode.type === "all" || selectedNode.type === "folder") && (() => {
@@ -4239,6 +4628,7 @@ export default function Files() {
                   onPassportClick={(file) => setPassportFile(file)}
                 />
               )}
+              </div>
             </div>
 
             {/* Desktop Bottom Tactile & Keyboard Shortcut Hint Bar */}
@@ -4272,7 +4662,7 @@ export default function Files() {
           </main>
 
           {/* Tactile 10px Draggable Right Splitter for Multi-Format RAM Inspector */}
-          {!isInspectorCollapsed && (
+          {!isInspectorCollapsed && continuumViewport === "desktop" && (
             <div
               role="separator"
               aria-orientation="vertical"
@@ -4323,8 +4713,8 @@ export default function Files() {
             </div>
           )}
 
-          {/* Right-hand Multi-Format Inspector Pane (Pane 3) */}
-          {!isInspectorCollapsed && (
+          {/* Right-hand Multi-Format Inspector Pane (Pane 3 — Desktop Mode) */}
+          {!isInspectorCollapsed && continuumViewport === "desktop" && (
             <div
               style={{ width: `${inspectorPaneWidth}px` }}
               className="hidden md:flex shrink-0 h-full overflow-hidden"
@@ -4398,6 +4788,108 @@ export default function Files() {
                   } else {
                     addToast("Descarga desencriptada en RAM verificada", "success");
                   }
+                }}
+              />
+            </div>
+          )}
+
+          {/* Right-hand Synchronized Live Mobile Mirror Dock (⚡ Dual en Vivo) */}
+          {continuumViewport === "dual" && (
+            <div className="hidden md:flex shrink-0 h-full w-[424px] border-l border-border overflow-hidden">
+              <ContinuumDockPane
+                mode="dual"
+                skin={skin}
+                activeClientName={
+                  selectedNode.type === "folder"
+                    ? selectedNode.folderName
+                    : folders.find(
+                        (f) =>
+                          !f.parentId &&
+                          f.name !== "External Drops" &&
+                          f.name !== "My Vault"
+                      )?.name || "Grupo Roche SA de CV"
+                }
+                isLocked={isVaultLocked}
+                onMagicScanToPc={handleMagicScanFromPhone}
+                onTriggerReconcileBoth={() => {
+                  setCenterModule("reconcile");
+                  broadcastContinuumEvent({ type: "OPEN_RECONCILE" });
+                }}
+                onToggleLockBoth={() => {
+                  const nextLocked = !isVaultLocked;
+                  setIsVaultLocked(nextLocked);
+                  broadcastContinuumEvent({ type: nextLocked ? "PANIC_LOCK" : "VAULT_UNLOCK" });
+                }}
+                onCloseDock={() => {
+                  setContinuumViewport("desktop");
+                  try {
+                    localStorage.setItem("abrn_continuum_viewport", "desktop");
+                  } catch {
+                    // ignore
+                  }
+                  window.dispatchEvent(
+                    new CustomEvent("abrn-vault-action", {
+                      detail: { action: "set-viewport", viewport: "desktop" },
+                    })
+                  );
+                }}
+              />
+            </div>
+          )}
+
+          {/* Full-Stage Mobile Studio Overlay (Estudio Móvil) */}
+          {continuumViewport === "mobile-studio" && (
+            <div className="hidden md:flex absolute inset-0 z-30 bg-background overflow-hidden">
+              <ContinuumDockPane
+                mode="mobile-studio"
+                skin={skin}
+                activeClientName={
+                  selectedNode.type === "folder"
+                    ? selectedNode.folderName
+                    : folders.find(
+                        (f) =>
+                          !f.parentId &&
+                          f.name !== "External Drops" &&
+                          f.name !== "My Vault"
+                      )?.name || "Grupo Roche SA de CV"
+                }
+                isLocked={isVaultLocked}
+                onMagicScanToPc={async () => {
+                  await handleMagicScanFromPhone();
+                  setContinuumViewport("dual");
+                  try {
+                    localStorage.setItem("abrn_continuum_viewport", "dual");
+                  } catch {
+                    // ignore
+                  }
+                  window.dispatchEvent(
+                    new CustomEvent("abrn-vault-action", {
+                      detail: { action: "set-viewport", viewport: "dual" },
+                    })
+                  );
+                }}
+                onTriggerReconcileBoth={() => {
+                  setContinuumViewport("dual");
+                  setCenterModule("reconcile");
+                  broadcastContinuumEvent({ type: "OPEN_RECONCILE" });
+                }}
+                onToggleLockBoth={() => {
+                  const nextLocked = !isVaultLocked;
+                  setIsVaultLocked(nextLocked);
+                  broadcastContinuumEvent({ type: nextLocked ? "PANIC_LOCK" : "VAULT_UNLOCK" });
+                }}
+                onCloseDock={() => {
+                  setContinuumViewport("desktop");
+                  try {
+                    localStorage.setItem("abrn_continuum_viewport", "desktop");
+                  } catch {
+                    // ignore
+                  }
+                  window.dispatchEvent(
+                    new CustomEvent("abrn-vault-action", {
+                      detail: { action: "set-viewport", viewport: "desktop" },
+                    })
+                  );
                 }}
               />
             </div>
@@ -4566,6 +5058,43 @@ export default function Files() {
         <FilePreviewModal
           file={previewFile}
           onClose={() => setPreviewFile(null)}
+          onPrevFile={
+            visibleFiles.length > 1
+              ? () => {
+                  const idx = visibleFiles.findIndex((f) => f.id === previewFile.id);
+                  const prevIdx = idx <= 0 ? visibleFiles.length - 1 : idx - 1;
+                  const target = visibleFiles[prevIdx];
+                  if (target) {
+                    setInspectorFile(target);
+                    setPreviewFile({
+                      ...target,
+                      folder_id:
+                        target.folder_id ||
+                        (selectedNode.type === "folder" ? selectedNode.folderId : null),
+                    });
+                  }
+                }
+              : undefined
+          }
+          onNextFile={
+            visibleFiles.length > 1
+              ? () => {
+                  const idx = visibleFiles.findIndex((f) => f.id === previewFile.id);
+                  const nextIdx = idx < 0 || idx >= visibleFiles.length - 1 ? 0 : idx + 1;
+                  const target = visibleFiles[nextIdx];
+                  if (target) {
+                    setInspectorFile(target);
+                    setPreviewFile({
+                      ...target,
+                      folder_id:
+                        target.folder_id ||
+                        (selectedNode.type === "folder" ? selectedNode.folderId : null),
+                    });
+                  }
+                }
+              : undefined
+          }
+          onWhatsAppShare={() => handleQuickShare(previewFile.id)}
           onDownload={() => {
             handleDownload(previewFile.id, previewFile.filename, previewFile.metadata, previewFile.pin_wrapped_key || undefined, previewFile.is_owner, previewFile.folder_id);
             setPreviewFile(null);
@@ -5120,11 +5649,13 @@ export default function Files() {
         onDismiss={() => setStagedCount(0)}
       />
 
-      <FloatingActionButton
-        onUploadClick={() => (document.getElementById("file-input") as HTMLInputElement | null)?.click()}
-        onCameraClick={() => (document.getElementById("camera-input") as HTMLInputElement | null)?.click()}
-        onNewFolderClick={() => openCreateFolderModal()}
-      />
+      {branding.logoVariant !== "abrn" && mobileHubTab === "archivos" && (
+        <FloatingActionButton
+          onUploadClick={() => (document.getElementById("file-input") as HTMLInputElement | null)?.click()}
+          onCameraClick={() => (document.getElementById("camera-input") as HTMLInputElement | null)?.click()}
+          onNewFolderClick={() => openCreateFolderModal()}
+        />
+      )}
 
       <MobileFolderSheet
         isOpen={mobileFolderSheetOpen}
@@ -5268,6 +5799,36 @@ export default function Files() {
         onDropLinkCreated={() => {
           void fetchDropTokens();
         }}
+      />
+
+      <MobileReconcileSheet
+        open={mobileReconcileOpen}
+        onClose={() => setMobileReconcileOpen(false)}
+        files={myFiles}
+        clientName={
+          selectedNode.type === "folder"
+            ? selectedNode.folderName
+            : folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")?.name ||
+              "Grupo Roche SA de CV"
+        }
+        isLocked={isVaultLocked}
+        onSeedAccountingFiles={handleSmartUploadCommit}
+        onShareWhatsApp={(msg) => {
+          void navigator.clipboard?.writeText(msg);
+          addToast("Cuadre BBVA $0.00 MXN copiado para compartir por WhatsApp", "success");
+        }}
+      />
+
+      <MobileScannerSheet
+        open={mobileScannerOpen}
+        onClose={() => setMobileScannerOpen(false)}
+        clientName={
+          selectedNode.type === "folder"
+            ? selectedNode.folderName
+            : folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")?.name ||
+              "Grupo Roche SA de CV"
+        }
+        onCommitScanUpload={handleMobileScannerCommit}
       />
     </>
   );

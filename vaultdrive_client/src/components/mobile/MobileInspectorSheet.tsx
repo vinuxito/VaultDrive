@@ -82,8 +82,13 @@ export function MobileInspectorSheet({
   onWhatsAppShare,
   onDownload,
 }: MobileInspectorSheetProps) {
+  const resolveMobileFormat = (filename?: string): InspectorFormatKey => {
+    const fmt = detectFormatFromFilename(filename);
+    return fmt === "xml" ? "code" : fmt;
+  };
+
   const [activeFormat, setActiveFormat] = useState<InspectorFormatKey>(() =>
-    detectFormatFromFilename(file?.filename)
+    resolveMobileFormat(file?.filename)
   );
   const [zoom, setZoom] = useState(100);
   const [playing, setPlaying] = useState(false);
@@ -92,7 +97,7 @@ export function MobileInspectorSheet({
 
   useEffect(() => {
     if (!isOpen || !file) return;
-    setActiveFormat(detectFormatFromFilename(file.filename));
+    setActiveFormat(resolveMobileFormat(file.filename));
     setZoom(100);
     setPlaying(false);
     setSelectedRow(0);

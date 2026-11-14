@@ -50,15 +50,27 @@ export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps)
   const isCompact = mode ? mode === "compact" : collapsed;
   const isHidden = mode === "hidden";
 
-  const triggerVaultAction = (action: "smart-upload" | "drop-request") => {
+  const triggerVaultAction = (
+    action: "smart-upload" | "drop-request" | "open-reconcile" | "toggle-dual"
+  ) => {
+    const dispatch = () => {
+      if (action === "toggle-dual") {
+        const cur = localStorage.getItem("abrn_continuum_viewport");
+        const next = cur === "dual" ? "desktop" : "dual";
+        localStorage.setItem("abrn_continuum_viewport", next);
+        window.dispatchEvent(
+          new CustomEvent("abrn-vault-action", { detail: { action: "set-viewport", viewport: next } })
+        );
+      } else {
+        window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action } }));
+      }
+    };
     if (!location.pathname.startsWith("/files")) {
       navigate("/files");
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action } }));
-      }, 180);
+      setTimeout(dispatch, 180);
       return;
     }
-    window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action } }));
+    dispatch();
   };
 
   const navItems = [
@@ -213,6 +225,54 @@ export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps)
             {!isCompact && (
               <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-card text-primary border border-border">
                 Auto
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            data-testid="sidebar-reconcile-btn"
+            onClick={() => triggerVaultAction("open-reconcile")}
+            title="Conciliación CFDI 4.0 ↔ Estado de Cuenta en RAM"
+            className={cn(
+              "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer",
+              isCompact ? "justify-center" : "justify-between gap-2"
+            )}
+          >
+            <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+              <svg className="w-[17px] h-[17px] shrink-0 text-emerald-700 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Cuadre BBVA</span>}
+            </span>
+            {!isCompact && (
+              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                RAM
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            data-testid="sidebar-dual-continuum-btn"
+            onClick={() => triggerVaultAction("toggle-dual")}
+            title="Espejo Continuo en Vivo (Escritorio + Celular 0ms)"
+            className={cn(
+              "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer",
+              isCompact ? "justify-center" : "justify-between gap-2"
+            )}
+          >
+            <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+              <svg className="w-[17px] h-[17px] shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="13" height="11" rx="2" />
+                <rect x="16" y="7" width="6" height="14" rx="1.5" />
+                <path d="M6 18h5" />
+              </svg>
+              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Dual en Vivo</span>}
+            </span>
+            {!isCompact && (
+              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-primary/15 text-primary border border-primary/30">
+                0ms
               </span>
             )}
           </button>

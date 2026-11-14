@@ -1,16 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
-import { Files, Share2, User, Lock, Search } from "lucide-react";
+import { Files, Share2, User, Lock, Search, Sparkles, Camera } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useTranslation } from "react-i18next";
 import { useTransitionNavigate } from "../../hooks";
 import { isRouteActive } from "../layout/navigation";
 import { playDeadboltThud } from "../../utils/audioHaptics";
+import { branding } from "../../config/branding";
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useTransitionNavigate();
   const { t } = useTranslation(["common", "drive"]);
   const token = localStorage.getItem("token");
+  const isAbrn = branding.logoVariant === "abrn";
 
   if (!token || location.pathname === "/login") {
     return null;
@@ -37,6 +39,138 @@ export function BottomNav() {
     }
     window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "lock" } }));
   };
+
+  const handleMobileTab = (tab: "pulso" | "archivos") => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(12);
+    }
+    if (location.pathname !== "/files") {
+      navigate("/files");
+      setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent("abrn-vault-action", { detail: { action: "mobile-tab", tab } })
+        );
+      }, 80);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("abrn-vault-action", { detail: { action: "mobile-tab", tab } })
+      );
+    }
+  };
+
+  const handleOpenScanner = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(20);
+    }
+    if (location.pathname !== "/files") {
+      navigate("/files");
+      setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent("abrn-vault-action", { detail: { action: "open-mobile-scanner" } })
+        );
+      }, 90);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("abrn-vault-action", { detail: { action: "open-mobile-scanner" } })
+      );
+    }
+  };
+
+  if (isAbrn) {
+    const onFilesRoute = isRouteActive(location.pathname, "/files");
+    const onSharedRoute = isRouteActive(location.pathname, "/shared");
+
+    return (
+      <nav
+        data-testid="abrn-floating-glass-dock"
+        aria-label={t("common:nav.bottomNavigation", "Bottom navigation")}
+        className="fixed bottom-0 left-0 right-0 z-30 px-2.5 pb-2 pt-1 md:hidden safe-area-bottom pointer-events-none"
+      >
+        <div
+          style={{
+            background: "color-mix(in srgb, var(--abrn-card) 92%, transparent)",
+            borderColor: "var(--abrn-border-strong)",
+          }}
+          className="pointer-events-auto mx-auto max-w-md rounded-[22px] border shadow-2xl backdrop-blur-2xl flex items-center justify-around px-1.5 py-1"
+        >
+          {/* Slot 1: Pulso Fiscal */}
+          <button
+            type="button"
+            data-testid="dock-pulso-btn"
+            onClick={() => handleMobileTab("pulso")}
+            className={cn(
+              "flex min-w-0 flex-1 flex-col items-center justify-center min-h-[48px] px-1 rounded-xl transition-colors cursor-pointer",
+              onFilesRoute ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Sparkles className="w-4 h-4 mb-0.5" />
+            <span className="text-[10.5px] font-extrabold leading-tight truncate">Pulso</span>
+          </button>
+
+          {/* Slot 2: Expediente / Archivos */}
+          <button
+            type="button"
+            data-testid="dock-archivos-btn"
+            onClick={() => handleMobileTab("archivos")}
+            className={cn(
+              "flex min-w-0 flex-1 flex-col items-center justify-center min-h-[48px] px-1 rounded-xl transition-colors cursor-pointer",
+              onFilesRoute ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Files className="w-4 h-4 mb-0.5" />
+            <span className="text-[10.5px] font-bold leading-tight truncate">Archivos</span>
+          </button>
+
+          {/* Slot 3: Center Burgundy + ESCANEAR Orb */}
+          <div className="px-1 shrink-0">
+            <button
+              type="button"
+              data-testid="dock-scanner-orb"
+              onClick={handleOpenScanner}
+              aria-label="Abrir Escáner Fiscal AES-256 en RAM"
+              style={{
+                background: "linear-gradient(135deg, #7a1f2b 0%, #58131d 100%)",
+              }}
+              className="min-h-[48px] px-3.5 rounded-2xl text-white font-extrabold text-[11px] shadow-lg border border-white/20 flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
+            >
+              <Camera className="w-4 h-4 shrink-0" />
+              <span>Escanear</span>
+            </button>
+          </div>
+
+          {/* Slot 4: Compartidos / Entregas */}
+          <Link
+            to="/shared"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/shared");
+            }}
+            className={cn(
+              "flex min-w-0 flex-1 flex-col items-center justify-center min-h-[48px] px-1 rounded-xl transition-colors cursor-pointer",
+              onSharedRoute ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Share2 className="w-4 h-4 mb-0.5" />
+            <span className="text-[10.5px] font-bold leading-tight truncate">Entregas</span>
+          </Link>
+
+          {/* Slot 5: Bloquear RAM Lock */}
+          <button
+            type="button"
+            data-testid="dock-lock-btn"
+            onClick={handleQuickLock}
+            aria-label={t("drive:vault.lockVault", "Bloquear Bóveda")}
+            className="flex min-w-0 flex-1 flex-col items-center justify-center min-h-[48px] px-1 rounded-xl text-amber-600 dark:text-amber-400 active:scale-95 transition-transform cursor-pointer"
+          >
+            <Lock className="w-4 h-4 mb-0.5" />
+            <span className="text-[10.5px] font-extrabold leading-tight truncate">
+              {t("drive:vault.lockNav", "Bloquear")}
+            </span>
+          </button>
+        </div>
+      </nav>
+    );
+  }
 
   const navItems = [
     { path: "/files", icon: Files, label: t("common:nav.files") },
@@ -73,7 +207,6 @@ export function BottomNav() {
           );
         })}
 
-        {/* Telepathic Omnibar Search button */}
         <button
           type="button"
           onClick={handleQuickSearch}
@@ -86,7 +219,6 @@ export function BottomNav() {
           </span>
         </button>
 
-        {/* Sovereign Emergency Lock button in thumb sweep (Bottom 40%) */}
         <button
           type="button"
           onClick={handleQuickLock}

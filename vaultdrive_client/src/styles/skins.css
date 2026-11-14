@@ -211,6 +211,72 @@
 }
 
 
+/* ── 3b. OLED (ABRN Asesores — Pure Sovereign Obsidian #030712) ──── */
+[data-theme="oled"] {
+  --background:             224 71% 4%;    /* #030712 pure sovereign OLED */
+  --foreground:             210 40% 98%;   /* #f8fafc crisp white */
+
+  --card:                   223 39% 7%;    /* #0b0f19 elevated OLED surface */
+  --card-foreground:        210 40% 98%;
+
+  --popover:                223 39% 7%;
+  --popover-foreground:     210 40% 98%;
+
+  --primary:                357 56% 82%;   /* #eab5b8 luminous rose-burgundy */
+  --primary-foreground:     224 71% 4%;
+
+  --secondary:              222 35% 13%;   /* #151c2c deep obsidian secondary */
+  --secondary-foreground:   210 40% 98%;
+
+  --muted:                  222 35% 12%;
+  --muted-foreground:       218 30% 79%;   /* #b8c4d9 high-contrast muted */
+
+  --accent:                 357 56% 82%;
+  --accent-foreground:      224 71% 4%;
+
+  --destructive:            0 86% 78%;     /* #f89898 accessible coral-rose */
+  --destructive-foreground: 224 71% 4%;
+
+  --border:                 210 40% 98% / 0.12;
+  --input:                  222 35% 10%;
+  --ring:                   357 56% 82%;
+
+  --radius:                 0.625rem;
+  --font-display:           "Libre Baskerville", Baskerville, Georgia, serif;
+
+  --glass-bg:               rgba(11, 15, 25, 0.86);
+  --glass-bg-hover:         rgba(18, 24, 39, 0.94);
+  --glass-bg-heavy:         rgba(3, 7, 18, 0.96);
+  --glass-bg-subtle:        rgba(11, 15, 25, 0.62);
+  --glass-border:           1px solid rgba(248, 250, 252, 0.12);
+  --glass-border-subtle:    1px solid rgba(248, 250, 252, 0.06);
+  --glass-border-strong:    1px solid rgba(234, 181, 184, 0.42);
+  --glass-blur-md:          blur(24px);
+  --glass-blur-lg:          blur(32px);
+  --shadow-glow-primary:    0 4px 28px rgba(234, 181, 184, 0.22);
+  --gradient-page:          linear-gradient(180deg, #030712 0%, #050914 100%);
+
+  scrollbar-color: rgba(234, 181, 184, 0.4) transparent;
+}
+
+[data-theme="oled"] body {
+  background-image:
+    radial-gradient(ellipse 70vw 50vh at   5%   5%, rgba(234, 181, 184, 0.06) 0%, transparent 52%),
+    radial-gradient(ellipse 60vw 50vh at  95%  95%, rgba(52, 211, 153, 0.04) 0%, transparent 52%);
+  background-attachment: fixed;
+}
+
+[data-theme="oled"] ::-webkit-scrollbar         { width: 5px; height: 5px; }
+[data-theme="oled"] ::-webkit-scrollbar-track   { background: transparent; }
+[data-theme="oled"] ::-webkit-scrollbar-thumb   {
+  background: rgba(234, 181, 184, 0.36);
+  border-radius: 9999px;
+}
+[data-theme="oled"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 181, 184, 0.65);
+}
+
+
 /* ── 4. Cyberpunk ─────────────────────────────────────────────────── */
 [data-theme="cyberpunk"] {
   --background:             0 0% 5%;       /* #0d0d0d near-black */

@@ -21,6 +21,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { RowActionMenu } from "../ui/row-action-menu";
+import { getRamVoiceMemo, subscribeContinuumEvents } from "../../utils/continuum-bridge";
 
 export interface FileData {
   id: string;
@@ -251,7 +252,16 @@ export const FileGrid: React.FC<FileGridProps> = ({
   const [localRenamingId, setLocalRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState<string>("");
   const [armedDeleteId, setArmedDeleteId] = useState<string | null>(null);
+  const [, setVoiceTick] = useState<number>(0);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    return subscribeContinuumEvents((ev) => {
+      if (ev.type === "VOICE_NOTE_UPDATED" || ev.type === "PANIC_LOCK") {
+        setVoiceTick((v) => v + 1);
+      }
+    });
+  }, []);
 
   const activeRenamingId = controlledRenamingId !== undefined ? controlledRenamingId : localRenamingId;
 
@@ -452,8 +462,23 @@ export const FileGrid: React.FC<FileGridProps> = ({
                 className="h-[27px] px-2 rounded-[6px] border-[1.5px] font-bold text-[12.5px] w-full max-w-[360px] focus:outline-none"
               />
             ) : (
-              <span className="text-[13px] font-bold text-foreground truncate">
-                {file.filename}
+              <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
+                <span className="text-[13px] font-bold text-foreground truncate">
+                  {file.filename}
+                </span>
+                {(() => {
+                  const memo = getRamVoiceMemo(file.id, file.filename);
+                  if (!memo) return null;
+                  return (
+                    <span
+                      data-testid={`voice-pill-${file.id}`}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold tracking-tight bg-primary/12 text-primary border border-primary/25 shrink-0 abrn-mono"
+                      title={`Nota de voz cifrada en RAM: ${memo.transcriptHint}`}
+                    >
+                      🎙 VOZ {memo.durationLabel}
+                    </span>
+                  );
+                })()}
               </span>
             )}
           </div>

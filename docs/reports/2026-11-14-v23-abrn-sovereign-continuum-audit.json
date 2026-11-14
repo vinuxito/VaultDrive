@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v23-abrn-sovereign-continuum",
+    "environment": "Ubuntu Linux 64-bit · Node/Vite Production Bundle (/abrn/) · Live HTTPS https://abrndrive.filemonprime.net/abrn/files · Real Chromium via bsk (1632x940@2x) + Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+    "report": "docs/reports/2026-11-14-v23-abrn-sovereign-continuum-verification.md",
+    "files": [
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "ea8a1b16383df32984671421552d5d28eab4890f2c6e5f76737bb8f2384b05b8"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/index.html",
+        "sha256": "f38adf916f93cb3d6ec92b9a791e823fa07e4023760a726435607622d73bb8b0"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/mobile.html",
+        "sha256": "ebb821b01709d0828ab8fc3c6aeb2ff338e65e0f71a74146dbd96bf021f1d03d"
+      },
+      {
+        "path": "vaultdrive_client/src/components/theme-context.ts",
+        "sha256": "d1813d84bfe4b97cc4afba2a1cb84a699da4501742622e7578e21f5ed0355740"
+      },
+      {
+        "path": "vaultdrive_client/src/components/ThemeProvider.tsx",
+        "sha256": "5338ec4a6c5aab8a48f7b9d25afed4ba523cc9c26720ffa4c003594e35847a8c"
+      },
+      {
+        "path": "vaultdrive_client/src/styles/skins.css",
+        "sha256": "aa24d5ed82f9ffd83db0e3b05b9f374a8f1e07c53256b23568fb296f882f4c41"
+      },
+      {
+        "path": "vaultdrive_client/src/styles/abrn-unified-vault.css",
+        "sha256": "1dcadba5b2f435b002cb129550cce714f0a4b4733d735bdbe3ff74f80fb64dbb"
+      },
+      {
+        "path": "vaultdrive_client/src/config/skin-contrast.test.ts",
+        "sha256": "b3d4d0892b8598e6969d0f28a4ee70fb4fc971e986e98f3cc33abfab0bac6d4d"
+      },
+      {
+        "path": "vaultdrive_client/src/utils/continuum-bridge.ts",
+        "sha256": "522e927b8e398dd418f4e7a46b625f45578990fff9b1596c05b5fd86fdde3d9f"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/ContinuumDockPane.tsx",
+        "sha256": "bfe20bcf3e038b0b5ce136f605e983ab41eefe366a011be65ce25228cf99f7a2"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/dashboard-layout.tsx",
+        "sha256": "9fdbc7e84f6137eb1dc658609513bd16f008f2104166028b107d5972edf7a2d4"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/sidebar.tsx",
+        "sha256": "456081f75ff5a628f972ba70f83896bc3fc73485e6c2ab1e7708f2cffbd85793"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultReconcileCockpit.tsx",
+        "sha256": "38867d954fb569dee9c327364f5d1aef74d8a753e49060706e14943994dd6085"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultReconcileCockpit.test.tsx",
+        "sha256": "b9bfd0dfbfe9afb81b378ee241ce4eacb2d1be711d7849d39206bee254d9a0a6"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultAccessCenterInline.tsx",
+        "sha256": "a27e5350f04fe24a0bd8de1b69b41eeae5c2648f207711bcd6ff255150a51bfa"
+      },
+      {
+        "path": "vaultdrive_client/src/components/ui/command-palette.tsx",
+        "sha256": "73264a7dc8d263d9ab8e11bab80a1884bd838b95dee32d90f218610f8ed54307"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultPrivacyShutter.tsx",
+        "sha256": "742b37bb1ecaac00052f5272160311767e5e7cb9eb54ba91acd444346ce58a55"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultInspectorPane.tsx",
+        "sha256": "d7e55ae3e3866b4a94a0eaf4357f12bf7cca73959785830244008959f37968a7"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.tsx",
+        "sha256": "9a0c4968b049d27433d357d8c41b905b41fdd79ca899a68b5d286acba53414e9"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilePreviewModal.tsx",
+        "sha256": "4252db5ea597b788aebb0063e82acb38290347f7c22feb6b861b34e06db11432"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileSovereignHeaderAndHub.tsx",
+        "sha256": "a498c18d6fb088b3f840b6a51dc4e8bfc7f2ae934dcead4911cfc68a1a39e01b"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileReconcileSheet.tsx",
+        "sha256": "c5a801d120666df82b5d8ed23669553bdf2625b4c776aecf79362ef9b938a268"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileReconcileSheet.test.tsx",
+        "sha256": "8ba31a74e52859c6d461441cd0d80b06ae26d21e2961b2c4b297c937dd9fd629"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileScannerSheet.tsx",
+        "sha256": "3555e9372ca34ecb4530ca9ea3609ff97fe83f770fc7a01f6d037143439ec675"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileInspectorSheet.tsx",
+        "sha256": "3ba4e569fc90c2fd5a84d99b822761cbdc100fac3c1097ba84ac09ef394110fd"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/bottom-nav.tsx",
+        "sha256": "acba2587592e341a5a4bc8efa7a794aac6a21f9ce448ff3de3456afb89780d62"
+      },
+      {
+        "path": "vaultdrive_client/src/pages/files.tsx",
+        "sha256": "dc8b248e134525568c1fea4b8897a5bba08edfb83a35981a1a759e07f690c6a9"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+      "description": "3 immutable ABRN skins (Cream, Slate, Pure Sovereign OLED #030712) passing WCAG >=4.5:1 across all 7 skins, Ecosystem Viewport Bar (Escritorio | Dual en Vivo | Estudio Móvil), and 0ms BroadcastChannel + postMessage Continuum bridge.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-06", "CHK-12"]
+    },
+    {
+      "id": "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+      "description": "Center Module Switcher (Archivos | Cuadre BBVA | Accesos #key), deterministic in-RAM CFDI 4.0 <-> BBVA reconciliation ($0.00 MXN seal, No False Zeros SIN_CFDI_EN_CARPETA / LOCKED, CSV export, WhatsApp Cuadre #key), and inline #key & Secure Drop governance panel.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-06", "CHK-07"]
+    },
+    {
+      "id": "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT",
+      "description": "Synchronized Dual en Vivo phone chassis (iPhone 16 Pro / Android 13) + Estudio Móvil hydrated via CSP-safe fetch + srcDoc + window.__ABRN_BOOT, and Escanear Cel -> PC encrypting a real AES-256-GCM PDF into 05 Entregables with #sacred-receipt-banner.",
+      "check_ids": ["CHK-01", "CHK-03", "CHK-05", "CHK-06"]
+    },
+    {
+      "id": "REQ-04-INSPECTOR-AI-DIGEST-VOICE-MEMO-AND-GRID-PILL",
+      "description": "Inspector RESUMEN CONTABLE IA · 100% EN RAM, interactive 14-bar encrypted RAM Voice Memo (Voz 0:12), and VOZ 0:12 row badges in FileGrid.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-04", "CHK-08"]
+    },
+    {
+      "id": "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+      "description": "Native <768px Mobile Sovereign App with AES-256 RAM Dynamic Island, #7a1f2b Apple-Wallet Client Pass, Cola de Trabajo Hoy, Sheet 4 Conciliación CFDI 4.0 <-> BBVA, AI Scanner Sheet, 5-slot Floating Sovereign Glass Dock, and physical Android 13 hardware Back (popstate) dismissal.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-10", "CHK-11", "CHK-12"]
+    },
+    {
+      "id": "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM",
+      "description": "94vw Cinemascope Prev/Next navigation + SAT CFDI 4.0 Glass Twin, portaled z-[70] CommandPalette Sovereign Continuum (ABRN) group, and VaultPrivacyShutter 0.0 MB en RAM · Llaves Purgadas · Continuum Sync.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-07", "CHK-08", "CHK-09"]
+    },
+    {
+      "id": "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT",
+      "description": "Cold TypeScript, 18-suite Vitest, Vite build, live Chromium (bsk), and physical Android 13 (filemon_mobile_client.py) verification with 0px horizontal overflow, untouched abrndrive.service, and released mobile lease.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-05", "CHK-06", "CHK-07", "CHK-08", "CHK-09", "CHK-10", "CHK-11", "CHK-12"]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-01",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run typecheck",
+      "expected": "tsc -b && tsc -p tsconfig.e2e.json --noEmit exits 0 with 0 TypeScript errors.",
+      "actual": "Exited 0 with 0 errors across application and E2E TypeScript configurations.",
+      "environment": "Node.js / TypeScript CLI in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT",
+        "REQ-04-INSPECTOR-AI-DIGEST-VOICE-MEMO-AND-GRID-PILL",
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-14-v23-abrn-sovereign-continuum-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-02",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npx vitest run src/config/skin-contrast.test.ts src/config/brand-theme.test.ts src/components/vault/VaultReconcileCockpit.test.tsx src/components/vault/VaultPrivacyShutter.test.tsx src/components/vault/VaultInspectorPane.test.tsx src/components/vault/FileGrid.test.tsx src/components/vault/FilePreviewModal.test.tsx src/components/vault/FilemonOfficeStage.test.tsx src/components/vault/SmartUploadOrderModal.test.tsx src/components/vault/SovereignPinPad.test.tsx src/components/vault/VaultOmnibar.test.tsx src/components/vault/VaultTreeContrast.test.tsx src/components/vault/VaultTrustContrast.test.tsx src/components/mobile/MobileReconcileSheet.test.tsx src/components/mobile/MobileInspectorSheet.test.tsx src/components/mobile/MobileProofPill.test.tsx src/components/mobile/floating-action-button.test.tsx src/components/ui/command-palette.test.tsx",
+      "expected": "All 18 focused test suites including 7-skin WCAG >=4.5:1 contrast, VaultReconcileCockpit, MobileReconcileSheet, CommandPalette, and VaultPrivacyShutter pass with exit code 0.",
+      "actual": "18/18 test files passed, 140/140 tests passed (91/91 7-skin WCAG contrast assertions passed, 0 failed).",
+      "environment": "Vitest v4.1.0 jsdom in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-04-INSPECTOR-AI-DIGEST-VOICE-MEMO-AND-GRID-PILL",
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-14-v23-abrn-sovereign-continuum-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-03",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build && sha256sum dist/index.html",
+      "expected": "Vite production bundle compiles cleanly with exit code 0 under /abrn base path without restarting abrndrive.service.",
+      "actual": "Built cleanly in 13.41s; dist/index.html SHA-256 ea8a1b16383df32984671421552d5d28eab4890f2c6e5f76737bb8f2384b05b8.",
+      "environment": "Vite v7.2.4 production build in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "vaultdrive_client/dist/index.html",
+        "docs/reports/2026-11-14-v23-abrn-sovereign-continuum-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-04",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Open https://abrndrive.filemonprime.net/abrn/files in Chromium via bsk at 1632x940@2x (ABRN Cream), select Grupo Roche SA de CV, and inspect Ecosystem bar, 3-skin selector, AI Digest, 14-bar RAM Voice Memo, and VOZ 0:12 grid badges.",
+      "expected": "Topbar Ecosystem Switcher, 3-skin bar, Omnibar, Grupo Roche breadcrumb, RESUMEN CONTABLE IA, Nota de Voz Cifrada en RAM (0:12), and VOZ 0:12 row pills render cleanly with zero clipping.",
+      "actual": "Verified 100% crisp layout, typography, and interactive RAM voice memo equalizer on live HTTPS.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-04-INSPECTOR-AI-DIGEST-VOICE-MEMO-AND-GRID-PILL",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-01-desktop-workstation-cream.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-01-desktop-workstation-cream.jpg"
+      ]
+    },
+    {
+      "id": "CHK-05",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Switch Ecosystem bar to Dual en Vivo on https://abrndrive.filemonprime.net/abrn/files and click Escanear Cel -> PC ([data-testid=\"btn-magic-cross\"]).",
+      "expected": "Synchronized mobile mirror renders cleanly despite X-Frame-Options: DENY, encrypts Poliza_Egresos_Escaneada_Android13_Nov2026.pdf via AES-256-GCM into 05 Entregables, and illuminates #sacred-receipt-banner with SHA-256 proof.",
+      "actual": "Real encrypted PDF uploaded to 05 Entregables, #sacred-receipt-banner illuminated with SHA-256 seal, and live phone mirror synchronized in 0ms.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-02-dual-continuum-magic-scan.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-02-dual-continuum-magic-scan.jpg"
+      ]
+    },
+    {
+      "id": "CHK-06",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Switch Center Module to Cuadre BBVA, seed encrypted CFDI 4.0 XML + BBVA files into Grupo Roche SA de CV, switch skin to ◆ OLED, and toggle bezel to Android 13 in Dual en Vivo.",
+      "expected": "Both Desktop and embedded Android 13 live mirror render pure #030712 Obsidian OLED simultaneously while VaultReconcileCockpit proves $418,200.00 MXN CFDI <-> $418,200.00 MXN BBVA = $0.00 MXN.",
+      "actual": "Simultaneous #030712 OLED across Desktop and Android 13 mirror confirmed with $0.00 MXN exact reconciliation across all 3 SPEI lines.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-03-reconcile-oled-dual.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-03-reconcile-oled-dual.jpg"
+      ]
+    },
+    {
+      "id": "CHK-07",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Open Center Module Accesos #key and press Cmd+K to open CommandPalette on https://abrndrive.filemonprime.net/abrn/files.",
+      "expected": "VaultAccessCenterInline renders live #key and Secure Drop governance controls, and portaled z-[70] CommandPalette renders Sovereign Continuum (ABRN) commands over an even full-screen frosted backdrop.",
+      "actual": "Inline #key governance table and full-viewport z-[70] CommandPalette verified cleanly.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-04-access-inline-and-cmdk.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-04-access-inline-and-cmdk.jpg"
+      ]
+    },
+    {
+      "id": "CHK-08",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Open CFDI_40_Grupo_Roche_Folio4644_Oct2026.xml in the 94vw Cinemascope FilePreviewModal on https://abrndrive.filemonprime.net/abrn/files.",
+      "expected": "94vw Cinemascope modal renders <- Ant / Sig -> navigation, RESUMEN CONTABLE IA · 100% EN RAM, VOZ 0:12 badge, full SAT CFDI 4.0 Executive Glass Twin ($245,000.00 MXN), and sticky SHA-256 tactical dock.",
+      "actual": "Full SAT CFDI 4.0 Glass Twin, AI executive strip, voice badge, and Prev/Next buttons rendered cleanly.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-04-INSPECTOR-AI-DIGEST-VOICE-MEMO-AND-GRID-PILL",
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-05-cinemascope-94vw-voice-cfdi.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-05-cinemascope-94vw-voice-cfdi.jpg"
+      ]
+    },
+    {
+      "id": "CHK-09",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Trigger Bloquear Bóveda (Cmd+L) on https://abrndrive.filemonprime.net/abrn/files.",
+      "expected": "VaultPrivacyShutter scrubs decrypted keys and RAM voice memos, broadcasts PANIC_LOCK across Continuum, and displays 0.0 MB en RAM · Llaves Purgadas · Continuum Sync with tactile 4x3 SovereignPinPad.",
+      "actual": "Verified 0.0 MB en RAM · Llaves Purgadas · Continuum Sync pill and 4x3 SovereignPinPad over frosted obsidian curtain.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-06-sovereign-pin-curtain.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-06-sovereign-pin-curtain.jpg"
+      ]
+    },
+    {
+      "id": "CHK-10",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "mobile",
+      "command_or_steps": "Open https://abrndrive.filemonprime.net/abrn/files on physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py in ABRN Cream ('light').",
+      "expected": "AES-256 RAM Dynamic Island, ☀ Cream pill, Pulso Fiscal segmented hub, #7a1f2b Grupo Roche SA de CV Apple-Wallet Pass (100% AL DÍA), Cola de Trabajo Hoy ($0.00 MXN), and 5-slot Floating Sovereign Glass Dock render above the fold with overflowPx: 0.",
+      "actual": "Measured innerWidth 427, scrollWidth 427 (overflowPx: 0), dataTheme 'light', bgColor rgb(250, 248, 245), and unobstructed above-the-fold Wallet Pass + Floating Glass Dock.",
+      "environment": "Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+      "requirement_ids": [
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-07-android13-pulso-wallet-cream.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-07-android13-pulso-wallet-cream.jpg"
+      ]
+    },
+    {
+      "id": "CHK-11",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "mobile",
+      "command_or_steps": "Physically tap [data-testid=\"open-reconcile-btn\"] via adb_input on Android 13 to open Sheet 4, verify $0.00 MXN delta, and press physical Android hardware BACK key.",
+      "expected": "MobileReconcileSheet opens showing $418,200.00 <-> $418,200.00 = $0.00 MXN (3/3 SPEI OK), and hardware BACK closes the sheet via popstate while keeping location.pathname === '/abrn/files'.",
+      "actual": "Sheet opened via physical tap (x=239, y=495) with deltaText 'Diferencia$0.00'; hardware key 'back' closed sheet cleanly (sheetStillOpen: false, path: '/abrn/files').",
+      "environment": "Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+      "requirement_ids": [
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-08-android13-reconcile-sheet4.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-08-android13-reconcile-sheet4.jpg"
+      ]
+    },
+    {
+      "id": "CHK-12",
+      "build_id": "v23-abrn-sovereign-continuum",
+      "status": "PASS",
+      "method": "mobile",
+      "command_or_steps": "Physically tap [data-testid=\"abrn-mobile-mode-toggle\"] twice (Cream -> Slate -> OLED), tap [data-testid=\"dock-archivos-btn\"], run autonomous_audit, and release phone lease.",
+      "expected": "Phone switches to dataTheme 'oled' (rgb(3, 7, 17)), renders encrypted AES-256 file cards and Floating Glass Dock with hasLegacyFab: false, passes autonomous_audit, and releases lease (held: false).",
+      "actual": "Measured dataTheme 'oled', bgColor 'rgb(3, 7, 17)', overflowPx 0, hasLegacyFab false, autonomous_audit PASSED (nav_bar_clearance_px: 27), and coordination held: false.",
+      "environment": "Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-09-android13-oled-archivos.png",
+        "docs/tickets/evidence/v23-abrn-sovereign-continuum/live-09-android13-oled-archivos.jpg"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-01",
+      "severity": "MEDIUM",
+      "reproduction": "Run MobileInspectorSheet.test.tsx when opening an XML CFDI file in MobileInspectorSheet.",
+      "expected": "XML files resolve to the canonical 'code' format key labeled 'CFDI'.",
+      "actual": "resolveMobileFormat returned 'cfdi' instead of 'code', leaving the CFDI tab inactive in MobileInspectorSheet.test.tsx.",
+      "cause": "Format alias mismatch between desktop and mobile inspector format keys.",
+      "status": "FIXED",
+      "fix": "Mapped 'xml' to 'code' in MobileInspectorSheet.tsx while preserving the 'CFDI' display label.",
+      "requirement_ids": [
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK",
+        "REQ-07-ZERO-REGRESSION-LIVE-DESKTOP-ANDROID13-AUDIT"
+      ],
+      "verification_check_ids": ["CHK-02"]
+    },
+    {
+      "id": "FND-02",
+      "severity": "LOW",
+      "reproduction": "Open /abrn/files at 1632x940 desktop width with Ecosystem Switcher and 3-skin selector in the topbar.",
+      "expected": "VaultOmnibar retains >=210px width without truncation.",
+      "actual": "Duplicate md: ABRN Asesores wordmark and Enviar Carpeta topbar CTA compressed VaultOmnibar at 1632px.",
+      "cause": "Horizontal flex competition in dashboard-layout.tsx topbar.",
+      "status": "FIXED",
+      "fix": "Hid duplicate md: topbar wordmark (already shown in sidebar crest), moved Enviar Carpeta to min-[1800px]:inline-flex, and enforced min-w-[210px] on Omnibar.",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE"
+      ],
+      "verification_check_ids": ["CHK-04", "CHK-06"]
+    },
+    {
+      "id": "FND-03",
+      "severity": "LOW",
+      "reproduction": "Select Grupo Roche SA de CV on /abrn/files at 1632x940 with Center Module Switcher + Layout Presets + Telemetry Strip.",
+      "expected": "Client folder h1 displays 'Grupo Roche SA de CV' cleanly without truncating to 'Gr...'.",
+      "actual": "Subheader controls squeezed the client title below 120px.",
+      "cause": "Text labels on Layout Presets competed with the new Center Module Switcher below 2xl.",
+      "status": "FIXED",
+      "fix": "Set lg:min-w-[195px] on the folder h1 and hid Layout Preset text labels until 2xl while keeping crisp icons and tooltips.",
+      "requirement_ids": [
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS"
+      ],
+      "verification_check_ids": ["CHK-06", "CHK-07"]
+    },
+    {
+      "id": "FND-04",
+      "severity": "MEDIUM",
+      "reproduction": "Seed real CFDI XMLs in VaultReconcileCockpit or scan a PDF via Escanear Cel -> PC into a client folder created with FolderModal's 5-subfolder template.",
+      "expected": "CFDI XMLs route to '04 Facturas XML' and scanned PDFs route to '05 Entregables' matching FolderModal's canonical subfolder names.",
+      "actual": "Initial subfolder strings targeted '04 CFDI y Facturas XML' and '05 Entregables y Reportes', falling back to parent folder root.",
+      "cause": "Naming drift against FolderModal.tsx standard subfolder array.",
+      "status": "FIXED",
+      "fix": "Aligned VaultReconcileCockpit.tsx ('04 Facturas XML') and MobileScannerSheet.tsx / files.tsx ('05 Entregables') with FolderModal.tsx.",
+      "requirement_ids": [
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT"
+      ],
+      "verification_check_ids": ["CHK-02", "CHK-05", "CHK-06"]
+    },
+    {
+      "id": "FND-05",
+      "severity": "MEDIUM",
+      "reproduction": "Switch Desktop skin to ◆ OLED while Dual en Vivo phone mirror is open.",
+      "expected": "Embedded phone mirror switches to #030712 OLED in 0ms alongside Desktop.",
+      "actual": "Phone mirror remained in Cream because mobile.html listens for type 'SKIN_CHANGE' with 'abrn-oled' rather than 'THEME_SYNC' with 'oled'.",
+      "cause": "Event payload schema difference between React skin IDs ('light'|'dark'|'oled') and mobile.html skin IDs ('abrn-light'|'abrn-dark'|'abrn-oled').",
+      "status": "FIXED",
+      "fix": "Added skinToMobilePreviewId and bidirectional SKIN_CHANGE packet forwarding in continuum-bridge.ts and ContinuumDockPane.tsx.",
+      "requirement_ids": [
+        "REQ-01-THREE-SKINS-ECOSYSTEM-AND-BRIDGE",
+        "REQ-03-LIVE-CONTINUUM-DOCK-AND-SACRED-RECEIPT"
+      ],
+      "verification_check_ids": ["CHK-06"]
+    },
+    {
+      "id": "FND-06",
+      "severity": "LOW",
+      "reproduction": "Press Cmd+K on /abrn/files while VaultTree (z-50) is visible.",
+      "expected": "CommandPalette backdrop blurs the entire viewport including Sidebar and VaultTree evenly.",
+      "actual": "VaultTree rendered unblurred at the same z-50 stacking level as CommandPalette.",
+      "cause": "CommandPalette rendered inline at z-50 instead of portaling above layout panes.",
+      "status": "FIXED",
+      "fix": "Portaled CommandPalette into document.body via createPortal at z-[70].",
+      "requirement_ids": [
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM"
+      ],
+      "verification_check_ids": ["CHK-02", "CHK-07"]
+    },
+    {
+      "id": "FND-07",
+      "severity": "LOW",
+      "reproduction": "Open a CFDI XML seeded by VaultReconcileCockpit inside the 94vw FilePreviewModal.",
+      "expected": "FilemonOfficeStage parses the XML into the full SAT CFDI 4.0 Executive Glass Twin.",
+      "actual": "Strict XML DOMParser reported unbound cfdi: and tfd: namespace prefixes and fell back to raw source view.",
+      "cause": "buildRealAccountingSeedBatch omitted xmlns:cfdi and xmlns:tfd root attributes.",
+      "status": "FIXED",
+      "fix": "Added canonical SAT xmlns:cfdi and xmlns:tfd declarations to buildRealAccountingSeedBatch in VaultReconcileCockpit.tsx.",
+      "requirement_ids": [
+        "REQ-02-CENTER-MODULES-RECONCILE-AND-INLINE-ACCESS",
+        "REQ-06-CINEMASCOPE-CMDK-AND-SHUTTER-CONTINUUM"
+      ],
+      "verification_check_ids": ["CHK-02", "CHK-08"]
+    },
+    {
+      "id": "FND-08",
+      "severity": "MEDIUM",
+      "reproduction": "Open /abrn/files on physical Android 13 (427x721) across Pulso Fiscal and Expediente tabs.",
+      "expected": "Pulso Fiscal shows the #7a1f2b Apple-Wallet Client Pass + Cola de Trabajo Hoy + Floating Glass Dock cleanly above the fold, and Expediente has zero FAB overlap with the bottom dock.",
+      "actual": "Mobile FileSearch and file-list subheader pushed Pulso Fiscal down ~120px, and legacy FloatingActionButton overlapped the right side of abrn-floating-glass-dock on Expediente.",
+      "cause": "Legacy mobile subheader, FileSearch, and FloatingActionButton rendered unconditionally across ABRN mobile tabs.",
+      "status": "FIXED",
+      "fix": "Scoped mobile subheader and FileSearch to mobileHubTab === 'archivos' and gated FloatingActionButton to branding.logoVariant !== 'abrn' in files.tsx.",
+      "requirement_ids": [
+        "REQ-05-NATIVE-MOBILE-SOVEREIGN-APP-AND-ANDROID13-BACK"
+      ],
+      "verification_check_ids": ["CHK-10", "CHK-12"]
+    }
+  ]
+}

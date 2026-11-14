@@ -37,6 +37,13 @@ import { OfflineQueueReview } from "../offline/OfflineQueueReview";
 import { branding } from "../../config/branding";
 import { mutate } from "swr";
 import { WifiOff, RefreshCw } from "lucide-react";
+import {
+  broadcastContinuumEvent,
+  previewThemeToSkin,
+  skinToPreviewTheme,
+  subscribeContinuumEvents,
+  type ContinuumViewportMode,
+} from "../../utils/continuum-bridge";
 
 interface DashboardLayoutProps {
 
@@ -53,6 +60,52 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { toasts, addToast, dismissToast } = useToast();
   const user = getStoredUserFromLocalStorage() ?? {};
   const currentOwnerId = typeof user.id === "string" ? user.id : null;
+
+  const [continuumViewport, setContinuumViewport] = useState<ContinuumViewportMode>(() => {
+    const saved = localStorage.getItem("abrn_continuum_viewport");
+    return saved === "dual" || saved === "mobile-studio" ? saved : "desktop";
+  });
+
+  useEffect(() => {
+    const onVaultAction = (e: Event) => {
+      const detail = (e as CustomEvent<{ action?: string; viewport?: ContinuumViewportMode }>).detail;
+      if (detail?.action === "set-viewport" && detail.viewport) {
+        setContinuumViewport(detail.viewport);
+        localStorage.setItem("abrn_continuum_viewport", detail.viewport);
+      }
+    };
+    window.addEventListener("abrn-vault-action", onVaultAction);
+    const unsub = subscribeContinuumEvents((ev) => {
+      if (ev.type === "THEME_CHANGE" && ev.theme) {
+        const nextSkin = previewThemeToSkin(ev.theme);
+        if (nextSkin !== skin) {
+          setSkin(nextSkin);
+        }
+      }
+    });
+    return () => {
+      window.removeEventListener("abrn-vault-action", onVaultAction);
+      unsub();
+    };
+  }, [skin, setSkin]);
+
+  const applySkinWithContinuum = (nextSkin: "light" | "dark" | "oled", e?: React.MouseEvent) => {
+    setSkin(nextSkin, e);
+    broadcastContinuumEvent({
+      type: "THEME_CHANGE",
+      skin: nextSkin,
+      theme: skinToPreviewTheme(nextSkin),
+      source: "desktop",
+    });
+  };
+
+  const selectContinuumViewport = (mode: ContinuumViewportMode) => {
+    setContinuumViewport(mode);
+    localStorage.setItem("abrn_continuum_viewport", mode);
+    window.dispatchEvent(
+      new CustomEvent("abrn-vault-action", { detail: { action: "set-viewport", viewport: mode } })
+    );
+  };
 
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
     const saved = localStorage.getItem("abrndrive_sidebar_mode");
@@ -430,7 +483,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </button>
 
             {branding.logoVariant === "abrn" && (
-              <div className="inline-flex items-center gap-1.5 sm:pr-3 sm:border-r sm:border-border min-w-0 shrink-0">
+              <div className="inline-flex md:hidden items-center gap-1.5 sm:pr-3 sm:border-r sm:border-border min-w-0 shrink-0">
                 <img
                   src={`${BASE_PATH}/abrn-logo.png`}
                   alt=""
@@ -448,7 +501,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button 
               type="button"
               onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden sm:flex items-center justify-between gap-2.5 px-2.5 h-[35px] rounded-[9px] text-[12.5px] text-muted-foreground bg-background border border-border hover:border-primary/40 hover:text-foreground transition-colors flex-1 min-w-[160px] max-w-[390px] cursor-pointer"
+              className="hidden sm:flex items-center justify-between gap-2.5 px-2.5 h-[35px] rounded-[9px] text-[12.5px] text-muted-foreground bg-background border border-border hover:border-primary/40 hover:text-foreground transition-colors flex-1 min-w-[210px] max-w-[390px] cursor-pointer"
             >
               <span className="inline-flex items-center gap-2 truncate">
                 <Search className="w-3.5 h-3.5 shrink-0" />
@@ -467,21 +520,73 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="ml-auto flex max-w-full flex-nowrap items-center justify-end gap-1 sm:gap-2 shrink-0">
             {branding.logoVariant === "abrn" && (
               <>
+                {location.pathname.startsWith("/files") && (
+                  <div
+                    data-testid="abrn-mobile-dynamic-island"
+                    className="md:hidden h-6 px-2 rounded-full bg-[#090d16] text-emerald-300 border border-emerald-500/35 text-[9.5px] abrn-mono font-bold inline-flex items-center gap-1 shadow-xs shrink-0"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <span>AES-256 RAM</span>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   data-testid="abrn-mobile-mode-toggle"
-                  onClick={(e) => setSkin(skin === "dark" ? "light" : "dark", e)}
-                  aria-label="Cambiar modo ABRN Cream o Slate"
+                  onClick={(e) => {
+                    const nextSkin = skin === "light" ? "dark" : skin === "dark" ? "oled" : "light";
+                    applySkinWithContinuum(nextSkin, e);
+                  }}
+                  aria-label="Cambiar modo ABRN Cream, Slate u OLED"
                   className="md:hidden h-7 px-2 rounded-full bg-card border border-primary/30 text-[10.5px] font-bold text-foreground inline-flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95 shrink-0"
                 >
                   <span
                     className={cn(
                       "w-2 h-2 rounded-full shrink-0",
-                      skin === "dark" ? "bg-primary" : "bg-[#7a1f2b]"
+                      skin === "oled"
+                        ? "bg-emerald-400"
+                        : skin === "dark"
+                          ? "bg-[#d4aeb0]"
+                          : "bg-[#7a1f2b]"
                     )}
                   />
-                  <span>{skin === "dark" ? "Slate" : "Cream"}</span>
+                  <span>{skin === "oled" ? "◆ OLED" : skin === "dark" ? "☾ Slate" : "☀ Cream"}</span>
                 </button>
+
+                {location.pathname.startsWith("/files") && (
+                  <div
+                    data-testid="abrn-ecosystem-bar"
+                    role="group"
+                    aria-label="Ecosistema Soberano ABRN"
+                    className="hidden md:flex items-center gap-0.5 p-[3px] rounded-[10px] bg-background border border-border shrink-0"
+                  >
+                    {(
+                      [
+                        { id: "desktop", label: "Escritorio" },
+                        { id: "dual", label: "⚡ Dual en Vivo" },
+                        { id: "mobile-studio", label: "Estudio Móvil" },
+                      ] as const
+                    ).map((vp) => {
+                      const active = continuumViewport === vp.id;
+                      return (
+                        <button
+                          key={vp.id}
+                          type="button"
+                          data-testid={`ecosystem-vp-${vp.id}`}
+                          onClick={() => selectContinuumViewport(vp.id)}
+                          className={cn(
+                            "h-7 px-2 rounded-[7px] text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap",
+                            active
+                              ? "bg-primary text-primary-foreground shadow-2xs"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          <span>{vp.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div
                   data-testid="abrn-mode-bar"
@@ -492,30 +597,44 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <button
                     type="button"
                     data-testid="abrn-mode-light"
-                    onClick={(e) => setSkin("light", e)}
+                    onClick={(e) => applySkinWithContinuum("light", e)}
                     className={cn(
-                      "h-7 px-2.5 rounded-[7px] text-[11.5px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
+                      "h-7 px-2 rounded-[7px] text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap",
                       skin === "light"
                         ? "bg-card text-primary border border-primary/30 shadow-2xs"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <span className="w-2 h-2 rounded-full bg-[#7a1f2b] shrink-0" />
-                    <span>ABRN Cream</span>
+                    <span>☀ Cream</span>
                   </button>
                   <button
                     type="button"
                     data-testid="abrn-mode-dark"
-                    onClick={(e) => setSkin("dark", e)}
+                    onClick={(e) => applySkinWithContinuum("dark", e)}
                     className={cn(
-                      "h-7 px-2.5 rounded-[7px] text-[11.5px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
+                      "h-7 px-2 rounded-[7px] text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap",
                       skin === "dark"
                         ? "bg-card text-primary border border-primary/30 shadow-2xs"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <span className="w-2 h-2 rounded-full bg-[#d4aeb0] shrink-0" />
-                    <span>ABRN Slate</span>
+                    <span>☾ Slate</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="abrn-mode-oled"
+                    onClick={(e) => applySkinWithContinuum("oled", e)}
+                    className={cn(
+                      "h-7 px-2 rounded-[7px] text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap",
+                      skin === "oled"
+                        ? "bg-card text-primary border border-primary/30 shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-[#030712] ring-1 ring-emerald-400/70 shrink-0" />
+                    <span>◆ OLED</span>
                   </button>
                 </div>
 
@@ -540,7 +659,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       data-testid="topbar-share-folder-btn"
                       onClick={() => window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "share-folder" } }))}
                       title="Compartir toda la carpeta activa con enlace #key"
-                      className="abrn-btn abrn-btn-soft"
+                      className="abrn-btn abrn-btn-soft hidden min-[1800px]:inline-flex"
                     >
                       <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="18" cy="5" r="3" />

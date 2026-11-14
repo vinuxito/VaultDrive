@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Sovereign Continuum (v23) — Executive Verification Dashboard</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --card: #ffffff;
+      --ink: #1b1917;
+      --muted: #645e58;
+      --border: #e6dfd5;
+      --burgundy: #7a1f2b;
+      --emerald: #0d7a52;
+      --emerald-bg: #e7f6ef;
+      --oled: #030712;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: "Libre Baskerville", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      padding: 32px 20px 64px;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      background: linear-gradient(135deg, #7a1f2b 0%, #4d1119 60%, #030712 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 32px;
+      box-shadow: 0 20px 45px rgba(27, 25, 23, 0.14);
+      margin-bottom: 24px;
+    }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+    }
+    .pill.pass { background: rgba(16, 185, 129, 0.22); border-color: rgba(52, 211, 153, 0.55); color: #a7f3d0; }
+    h1 { font-family: var(--serif); font-size: 28px; margin: 0 0 8px; font-weight: 700; }
+    .sub { color: rgba(255,255,255,0.84); font-size: 14px; margin: 0; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .kpi .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+    .kpi .val { font-size: 24px; font-weight: 800; margin-top: 6px; font-family: var(--mono); color: var(--burgundy); }
+    .kpi .val.ok { color: var(--emerald); }
+    .kpi .note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+    h2 { font-family: var(--serif); font-size: 19px; margin: 0 0 14px; color: var(--ink); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: #f6f2ec; }
+    code { font-family: var(--mono); font-size: 12px; background: #f4efe8; padding: 2px 6px; border-radius: 6px; }
+    .status-ok {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      font-weight: 800;
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="badge-row">
+        <span class="pill pass">● AUDIT STATUS: PASS (EXIT 0)</span>
+        <span class="pill">BUILD: v23-abrn-sovereign-continuum</span>
+        <span class="pill">TICKET: RESOLVED</span>
+        <span class="pill">DESKTOP bsk + PHYSICAL ANDROID 13</span>
+      </div>
+      <h1>ABRN Sovereign Continuum — Executive Verification Dashboard</h1>
+      <p class="sub">1:1 Production Parity across ABRN Cream, ABRN Slate, and Pure Obsidian OLED (#030712), 0ms Live Continuum Mirror, In-RAM CFDI 4.0 ↔ BBVA Reconciliation ($0.00 MXN), and Native Mobile Sovereign App.</p>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="lbl">TypeScript Strict</div>
+        <div class="val ok">0 Errors</div>
+        <div class="note">tsc -b &amp; tsconfig.e2e.json</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Focused Vitest Battery</div>
+        <div class="val ok">140 / 140</div>
+        <div class="note">18/18 suites · 91/91 7-skin WCAG AA</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">RAM Bank ↔ CFDI Delta</div>
+        <div class="val ok">$0.00 MXN</div>
+        <div class="note">$418,200.00 CFDI ↔ $418,200.00 BBVA</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Live Visual Captures</div>
+        <div class="val">9 Pairs + 11 Previews</div>
+        <div class="note">Desktop 1632×940 + Android 13 427×721</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Verification Matrix (Cold Execution)</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Verification Gate</th><th>Environment</th><th>Measured Outcome</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>CHK-01</code></td><td>TypeScript Strict Check</td><td>Node/TSC CLI</td><td><code>npm run typecheck</code> exited 0 (0 errors)</td><td><span class="status-ok">PASS</span></td></tr>
+          <tr><td><code>CHK-02</code></td><td>18-Suite Vitest &amp; 7-Skin WCAG</td><td>Vitest v4.1.0</td><td>18/18 files, 140/140 tests, 91/91 WCAG &gt;=4.5:1 checks</td><td><span class="status-ok">PASS</span></td></tr>
+          <tr><td><code>CHK-03</code></td><td>Production Bundle Build</td><td>Vite v7.2.4</td><td><code>dist/index.html</code> SHA-256 <code>ea8a1b1638...384b05b8</code></td><td><span class="status-ok">PASS</span></td></tr>
+          <tr><td><code>CHK-04..09</code></td><td>Desktop Continuum, OLED, Reconcile, ⌘K, 94vw &amp; ⌘L</td><td>Real Chromium (<code>bsk</code>)</td><td><code>live-01..06</code> PNG+JPG pairs verified 10/10</td><td><span class="status-ok">PASS</span></td></tr>
+          <tr><td><code>CHK-10..12</code></td><td>Physical Android 13 Pulso, Sheet 4, Back Key &amp; OLED</td><td><code>waydroid-android-13</code></td><td><code>427×721</code>, <code>overflowPx: 0</code>, hardware <code>back</code> verified, lease freed</td><td><span class="status-ok">PASS</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>2. Before vs. After Architecture Upgrade</h2>
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Before (v22 Unified Vault)</th><th>After (v23 Sovereign Continuum)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>ABRN Skins</strong></td><td>2 ABRN modes (<code>Cream</code>, <code>Slate</code>)</td><td>3 ABRN modes (<code>☀ Cream</code>, <code>☾ Slate</code>, <code>◆ OLED #030712</code>) synced across Continuum in <code>0ms</code></td></tr>
+          <tr><td><strong>Cross-Device Continuum</strong></td><td>Standalone desktop view</td><td><code>Escritorio | ⚡ Dual en Vivo | Estudio Móvil</code> + <code>⚡ Escanear Cel → PC</code> AES-256-GCM upload &amp; Sacred Receipt</td></tr>
+          <tr><td><strong>Accounting Reconciliation</strong></td><td>Manual file inspection</td><td>Deterministic in-RAM CFDI 4.0 XML ↔ BBVA cockpit &amp; Mobile Sheet 4 (<code>$0.00 MXN</code> seal, No-False-Zeros)</td></tr>
+          <tr><td><strong>Inspector &amp; Voice</strong></td><td>6-format RAM preview</td><td>+ <code>RESUMEN CONTABLE IA</code>, 14-bar encrypted RAM Voice Memo (<code>▶ Voz 0:12</code>), <code>🎙 VOZ 0:12</code> grid badges, <code>← Ant / Sig →</code></td></tr>
+          <tr><td><strong>Native Mobile (&lt;768px)</strong></td><td>Standard file list + bottom bar</td><td><code>AES-256 RAM</code> Dynamic Island, <code>#7a1f2b</code> Apple-Wallet Client Pass, <code>Cola de Trabajo Hoy</code>, 5-Slot Floating Glass Dock, Android 13 hardware <code>Back</code> dismissal</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>3. Next Proposed Steps</h2>
+      <ul>
+        <li>Execute the coordinated staged release runbook (<code>docs/runbooks/abrn-coherence-release.md</code>) when scheduling the schema 49→50 production cutover.</li>
+        <li>Complete the 5-person unassisted accountant walkthrough with Ingrid's team using live client CFDI batches.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

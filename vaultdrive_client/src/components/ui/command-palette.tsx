@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Command } from "cmdk";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -83,10 +84,10 @@ export function CommandPalette() {
   };
 
 
-  return (
+  const paletteNode = (
     <AnimatePresence>
       {authenticated && open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-2 pt-[min(15vh,5rem)] sm:p-4 sm:pt-[15vh]">
+        <div className="fixed inset-0 z-[70] flex items-start justify-center p-2 pt-[min(15vh,5rem)] sm:p-4 sm:pt-[15vh]">
           {/* Backdrop with framer-motion blur fade */}
           <motion.div
             initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
@@ -210,6 +211,62 @@ export function CommandPalette() {
                   </Command.Item>
                 </Command.Group>
 
+                {branding.logoVariant === "abrn" && (
+                  <Command.Group heading="Sovereign Continuum (ABRN)" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                    <Command.Item
+                      value="continuum dual en vivo espejo celular android iphone 0ms"
+                      onSelect={() => runCommand(() => {
+                        navigate("/files");
+                        setTimeout(() => {
+                          localStorage.setItem("abrn_continuum_viewport", "dual");
+                          window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "set-viewport", viewport: "dual" } }));
+                        }, 60);
+                      })}
+                      className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                    >
+                      <div className="flex items-center">
+                        <ShieldCheck className="mr-3 h-4 w-4 text-primary" />
+                        <span>⚡ Activar Espejo Continuo Dual (PC + Celular 0ms)</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-mono">0ms</span>
+                    </Command.Item>
+
+                    <Command.Item
+                      value="cuadre bbva conciliacion cfdi xml banco ram $0"
+                      onSelect={() => runCommand(() => {
+                        navigate("/files");
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "open-reconcile" } }));
+                        }, 60);
+                      })}
+                      className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                    >
+                      <div className="flex items-center">
+                        <FileText className="mr-3 h-4 w-4 text-emerald-500" />
+                        <span>Conciliación CFDI 4.0 ↔ BBVA en RAM ($0.00)</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-mono">RAM</span>
+                    </Command.Item>
+
+                    <Command.Item
+                      value="modo oled puro negro #030712 abrn theme"
+                      onSelect={() => runCommand(() => {
+                        localStorage.setItem("abrn-drive-skin", "oled");
+                        document.documentElement.setAttribute("data-theme", "oled");
+                        document.documentElement.classList.add("dark");
+                        window.dispatchEvent(new CustomEvent("abrn-continuum-local", { detail: { type: "THEME_CHANGE", theme: "abrn-oled", skin: "oled" } }));
+                      })}
+                      className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-2.5 text-sm transition-colors text-foreground hover:bg-muted aria-selected:bg-muted"
+                    >
+                      <div className="flex items-center">
+                        <File className="mr-3 h-4 w-4 text-primary" />
+                        <span>◆ Cambiar a Modo Puro OLED Soberano (#030712)</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-mono">OLED</span>
+                    </Command.Item>
+                  </Command.Group>
+                )}
+
                 <Command.Group heading={t("common:commandPalette.navigationGroup")} className="px-2 text-xs font-medium py-2 text-muted-foreground">
                   <Command.Item
                     onSelect={() => runCommand(() => navigate("/dashboard"))}
@@ -296,6 +353,8 @@ export function CommandPalette() {
       )}
     </AnimatePresence>
   );
+
+  return typeof document !== "undefined" ? createPortal(paletteNode, document.body) : paletteNode;
 }
 
 function FileTypeIcon({ filename, className }: { filename: string; className?: string }) {
