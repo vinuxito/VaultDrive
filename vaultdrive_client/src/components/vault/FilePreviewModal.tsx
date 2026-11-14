@@ -545,12 +545,33 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="preview-title" tabIndex={-1} className="bg-card text-card-foreground border border-border rounded-2xl w-full min-w-0 max-w-[94vw] xl:max-w-6xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl overflow-hidden">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="preview-title"
+        tabIndex={-1}
+        style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+        className="bg-card text-card-foreground border rounded-2xl w-full min-w-0 md:w-[94vw] max-w-[94vw] xl:max-w-[1440px] md:h-[88dvh] max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl overflow-hidden"
+      >
         {/* Zone 1: Frozen Top Executive Hero Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 border-b border-border shrink-0 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-3.5 bg-surface-subtle/50">
+        <div
+          style={{ borderColor: "var(--abrn-border)", background: "var(--abrn-bg)" }}
+          className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-3 border-b shrink-0 sm:flex-nowrap sm:gap-3 sm:px-5 sm:py-3.5"
+        >
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 id="preview-title" className="min-w-0 text-foreground font-semibold truncate text-sm sm:text-base">{file.filename}</h2>
+              <h2
+                id="preview-title"
+                style={{ fontFamily: "var(--font-display)" }}
+                className="min-w-0 text-foreground font-bold truncate text-sm sm:text-[16.5px]"
+              >
+                {file.filename}
+              </h2>
+              <span className="abrn-blindado-pill hidden sm:inline-flex">
+                <span className="abrn-pulse-dot" />
+                Descifrado en RAM · 0 rastros en disco
+              </span>
               {isOfficeSupported && (
                 <>
                   <span
@@ -561,7 +582,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
                   </span>
                   <span
                     data-testid="filemon-office-suite-pill"
-                    className="hidden md:inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 border border-indigo-500/25"
+                    className="hidden lg:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary border border-primary/25"
                   >
                     {t("office.pluginSuiteBadge", { defaultValue: "Quantix ABRN SAT • Amarre Fiscal (Roche)" })}
                   </span>
@@ -579,7 +600,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               size="sm"
               onClick={handleDownloadDecrypted}
               disabled={!decryptedBlob}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 border border-primary h-8 px-3 text-xs gap-1.5"
+              className="abrn-btn abrn-btn-primary h-8 px-3 text-xs gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               {t("coherence.preview.download", { defaultValue: "Download" })}
@@ -588,9 +609,10 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               type="button"
               onClick={onClose}
               aria-label={t("coherence.preview.close", { defaultValue: "Close preview" })}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="abrn-btn h-8 px-2.5 text-xs"
             >
               <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Cerrar</span>
             </button>
           </div>
         </div>

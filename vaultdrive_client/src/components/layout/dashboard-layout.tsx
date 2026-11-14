@@ -61,13 +61,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const toggleSidebarMode = useCallback(() => {
     setSidebarMode((prev) => {
-      const next: SidebarMode = prev === "expanded" ? "compact" : prev === "compact" ? "hidden" : "expanded";
+      const next: SidebarMode = prev === "expanded" ? "compact" : "expanded";
       localStorage.setItem("abrndrive_sidebar_mode", next);
       return next;
     });
   }, []);
 
-  // Keyboard shortcut: ⌘B / Ctrl+B to toggle sidebar visibility
+  // Keyboard shortcut: ⌘B / Ctrl+B to toggle sidebar compact <-> expanded
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
@@ -77,7 +77,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         }
         e.preventDefault();
         setSidebarMode((prev) => {
-          const next: SidebarMode = prev === "hidden" ? "expanded" : "hidden";
+          const next: SidebarMode = prev === "expanded" ? "compact" : "expanded";
           localStorage.setItem("abrndrive_sidebar_mode", next);
           return next;
         });
@@ -374,6 +374,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <Sidebar
         mode={sidebarMode}
         collapsed={sidebarMode !== "expanded"}
+        onToggleMode={toggleSidebarMode}
       />
 
       {sidebarMode === "hidden" && (
@@ -401,19 +402,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <MobileNav isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} />
 
       <main className={cn(
-        "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 md:pb-0",
-        sidebarMode === "expanded" ? "md:ml-64" : sidebarMode === "compact" ? "md:ml-[68px]" : "md:ml-0"
+        "flex-1 flex flex-col min-w-0 transition-all duration-200 ease-in-out pb-16 md:pb-0",
+        location.pathname.startsWith("/files") && "md:h-screen md:overflow-hidden",
+        sidebarMode === "expanded" ? "md:ml-[238px]" : sidebarMode === "compact" ? "md:ml-[68px]" : "md:ml-0"
       )}>
-        <header className="sticky top-0 z-30 lux-navbar px-2.5 sm:px-6 py-2 sm:py-3 flex flex-nowrap sm:flex-wrap items-center justify-between gap-1.5 sm:gap-3 shadow-sm shadow-primary/5">
-          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+        <header
+          style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+          className="sticky top-0 z-30 border-b px-2.5 sm:px-4 h-[52px] sm:h-[54px] flex flex-nowrap items-center justify-between gap-1.5 sm:gap-3 shrink-0"
+        >
+          <div className="flex flex-1 min-w-0 items-center gap-1.5 sm:gap-3">
             <button
               type="button"
               onClick={toggleSidebarMode}
-              className="p-2 rounded-lg hover:bg-primary/10 transition-colors hidden md:block"
+              className="w-8 h-8 rounded-lg border border-border bg-background hover:border-primary/40 hover:text-primary transition-colors hidden md:inline-flex items-center justify-center shrink-0 cursor-pointer"
               aria-label="Toggle sidebar"
-              title={`Sidebar: ${sidebarMode} (⌘B to toggle)`}
+              title={`Sidebar: ${sidebarMode} (⌘B)`}
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
             <button
               type="button"
@@ -425,7 +430,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </button>
 
             {branding.logoVariant === "abrn" && (
-              <div className="inline-flex items-center gap-1.5 sm:pr-3 sm:border-r sm:border-border min-w-0">
+              <div className="inline-flex items-center gap-1.5 sm:pr-3 sm:border-r sm:border-border min-w-0 shrink-0">
                 <img
                   src={`${BASE_PATH}/abrn-logo.png`}
                   alt=""
@@ -433,7 +438,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 />
                 <span
                   style={{ fontFamily: "var(--font-display)" }}
-                  className="inline-block font-bold text-xs sm:text-sm text-foreground truncate max-w-[112px] sm:max-w-none whitespace-nowrap"
+                  className="inline-block font-bold text-xs sm:text-[14.5px] text-foreground truncate max-w-[112px] sm:max-w-none whitespace-nowrap"
                 >
                   {branding.companyName}
                 </span>
@@ -443,19 +448,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button 
               type="button"
               onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden sm:flex items-center justify-between gap-3 px-3 py-1.5 rounded-lg text-xs text-muted-foreground bg-background border border-border hover:border-primary/40 hover:text-foreground transition-colors min-w-[180px] lg:min-w-[240px]"
+              className="hidden sm:flex items-center justify-between gap-2.5 px-2.5 h-[35px] rounded-[9px] text-[12.5px] text-muted-foreground bg-background border border-border hover:border-primary/40 hover:text-foreground transition-colors flex-1 min-w-[160px] max-w-[390px] cursor-pointer"
             >
               <span className="inline-flex items-center gap-2 truncate">
                 <Search className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{t("common:nav.search")}</span>
+                <span className="truncate">
+                  {branding.logoVariant === "abrn"
+                    ? "Busca por cliente, banco, RFC, #etiqueta o sello SHA-256…"
+                    : t("common:nav.search")}
+                </span>
               </span>
-              <kbd className="px-1.5 py-0.5 text-[10px] border border-border rounded bg-muted text-muted-foreground flex items-center gap-0.5 shrink-0">
+              <kbd className="abrn-kbd-pill flex items-center gap-0.5 shrink-0">
                 <Command className="w-2.5 h-2.5" />K
               </kbd>
             </button>
           </div>
 
-          <div className="ml-auto flex max-w-full flex-nowrap sm:flex-wrap items-center justify-end gap-1 sm:gap-2.5 shrink-0">
+          <div className="ml-auto flex max-w-full flex-nowrap items-center justify-end gap-1 sm:gap-2 shrink-0">
             {branding.logoVariant === "abrn" && (
               <>
                 <button
@@ -478,20 +487,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   data-testid="abrn-mode-bar"
                   role="group"
                   aria-label="Paleta Inmutable ABRN"
-                  className="hidden md:flex items-center gap-1 p-1 rounded-lg bg-background border border-border"
+                  className="hidden md:flex items-center gap-0.5 p-[3px] rounded-[10px] bg-background border border-border shrink-0"
                 >
                   <button
                     type="button"
                     data-testid="abrn-mode-light"
                     onClick={(e) => setSkin("light", e)}
                     className={cn(
-                      "h-6 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer",
+                      "h-7 px-2.5 rounded-[7px] text-[11.5px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
                       skin === "light"
                         ? "bg-card text-primary border border-primary/30 shadow-2xs"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <span className="w-2 h-2 rounded-full bg-[#7a1f2b]" />
+                    <span className="w-2 h-2 rounded-full bg-[#7a1f2b] shrink-0" />
                     <span>ABRN Cream</span>
                   </button>
                   <button
@@ -499,16 +508,80 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     data-testid="abrn-mode-dark"
                     onClick={(e) => setSkin("dark", e)}
                     className={cn(
-                      "h-6 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer",
+                      "h-7 px-2.5 rounded-[7px] text-[11.5px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap",
                       skin === "dark"
                         ? "bg-card text-primary border border-primary/30 shadow-2xs"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    <span className="w-2 h-2 rounded-full bg-[#d4aeb0] shrink-0" />
                     <span>ABRN Slate</span>
                   </button>
                 </div>
+
+                {location.pathname.startsWith("/files") && (
+                  <div className="hidden lg:flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      data-testid="topbar-drop-request-btn"
+                      onClick={() => window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "drop-request" } }))}
+                      title="Solicitar documentos faltantes por WhatsApp sin contraseña"
+                      className="abrn-btn"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--abrn-emerald)" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+                        <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                      </svg>
+                      <span>Pedir Docs</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      data-testid="topbar-share-folder-btn"
+                      onClick={() => window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "share-folder" } }))}
+                      title="Compartir toda la carpeta activa con enlace #key"
+                      className="abrn-btn abrn-btn-soft"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                      </svg>
+                      <span>Enviar Carpeta</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      data-testid="topbar-lock-vault-btn"
+                      onClick={() => window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "lock-vault" } }))}
+                      title="Bloquear Bóveda (⌘L)"
+                      className="abrn-btn hidden xl:inline-flex"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--abrn-amber)" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      <span>Bloquear</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      data-testid="topbar-smart-upload-btn"
+                      onClick={() => window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action: "smart-upload" } }))}
+                      title="Subir y Ordenar Archivos Sueltos (Auto-Orden + AES-256-GCM)"
+                      className="abrn-btn abrn-btn-primary"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      <span>Subir y Ordenar</span>
+                    </button>
+                  </div>
+                )}
               </>
             )}
             {branding.logoVariant === "abrn" && !isOnline && (
@@ -538,25 +611,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button
               type="button"
               onClick={() => { setActivityFeedOpen(true); setUnreadCount(0); }}
-              className="p-1.5 sm:p-2 rounded-full hover:bg-primary/10 transition-colors relative shrink-0"
+              className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors relative shrink-0"
               aria-label="Notifications"
             >
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-700 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-0.5 right-0.5 min-w-[15px] h-3.5 px-0.5 bg-red-700 rounded-full text-white text-[9.5px] font-bold flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
 
-            <LanguageToggle />
+            <div className="hidden 2xl:block shrink-0">
+              <LanguageToggle />
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button type="button" className="flex items-center gap-2 shrink-0" aria-label="Account menu">
-                <Avatar className="w-7 h-7 sm:w-8 sm:h-8">
+                <button type="button" className="flex items-center gap-2 shrink-0 cursor-pointer" aria-label="Account menu">
+                <Avatar className="w-7 h-7 sm:w-8 sm:h-8 border border-primary/25">
                   <AvatarImage src={typeof user.avatar_url === "string" ? user.avatar_url : undefined} />
-                  <AvatarFallback className="bg-primary/20 text-foreground font-semibold text-xs sm:text-sm">
+                  <AvatarFallback className="bg-primary/15 text-foreground font-bold text-xs">
                     {getInitials(user.first_name) || "?"}
                   </AvatarFallback>
                 </Avatar>

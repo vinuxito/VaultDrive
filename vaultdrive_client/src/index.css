@@ -1,8 +1,8 @@
 /* Brand - Custom Font Imports */
 /* Libre Baskerville: display/headings — luxury serif with presence */
 @import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap");
-/* Inter: body text — clean sans-serif with optical sizing for readability */
-@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap");
+/* Plus Jakarta Sans + Inter + JetBrains Mono */
+@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 @import "tailwindcss";
 
@@ -52,6 +52,7 @@
 @import "./styles/luxury-tokens.css";
 @import "./styles/skins.css";
 @import "./styles/elegant-complete.css";
+@import "./styles/abrn-unified-vault.css";
 
 
 @layer base {

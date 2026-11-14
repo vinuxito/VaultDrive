@@ -5,16 +5,16 @@ import {
   Download,
   Link2,
   MessageCircle,
-  ShieldCheck,
   Copy,
   RotateCw,
   Play,
   Pause,
+  Edit2,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { FileData } from "./FileGrid";
 
-export type InspectorFormatKey = "pdf" | "image" | "video" | "code" | "sheet";
+export type InspectorFormatKey = "pdf" | "xml" | "sheet" | "image" | "video" | "code";
 
 interface SheetRowItem {
   cell: string;
@@ -25,29 +25,32 @@ interface SheetRowItem {
 const DEFAULT_SHEET_ROWS: SheetRowItem[] = [
   {
     cell: "C2",
-    formula: "=INDEX(Avance_Q4!C2:C5, 1) // 100% Completado",
-    values: ["Módulo Zero-Knowledge", "Criptografía", "100%", "Auditado"],
+    formula: "Hoja1!C2 = Constancia Fiscal Nov 2026 (Validada)",
+    values: ["Constancia Fiscal", "02 Constancia", "100%", "Completo"],
   },
   {
     cell: "C3",
-    formula: "=INDEX(Avance_Q4!C2:C5, 2) // 100% Completado",
-    values: ["Paneles Redimensionables", "UI Desktop", "100%", "En Producción"],
+    formula: "Hoja1!C3 = Estado de Cuenta BBVA Octubre (Recibido Drop)",
+    values: ["Edo. Cuenta BBVA", "03 Bancos", "100%", "Completo"],
   },
   {
     cell: "C4",
-    formula: "=INDEX(Avance_Q4!C2:C5, 3) // 100% Completado",
-    values: ["Visor Multi-Formato RAM", "Filemón Office", "100%", "Verificado"],
+    formula: "Hoja1!C4 = Factura CFDI $48,500.00 (Enlace #key activo)",
+    values: ["CFDI Noviembre", "04 XML", "100%", "Enviado"],
   },
   {
     cell: "C5",
-    formula: "=AVERAGE(C2:C4) // 100.0% Cumplimiento Global",
-    values: ["Total Lanzamiento Q4", "Consolidado ABRN", "100%", "Listo"],
+    formula: "Hoja1!D5 =SUM(D2:D4) → 4 documentos validados (100%)",
+    values: ["Cierre Expediente", "Resumen ABRN", "100%", "100% OK"],
   },
 ];
 
 export function detectFormatFromFilename(filename?: string): InspectorFormatKey {
   if (!filename) return "pdf";
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "xml") {
+    return "xml";
+  }
   if (["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp", "avif"].includes(ext)) {
     return "image";
   }
@@ -57,26 +60,28 @@ export function detectFormatFromFilename(filename?: string): InspectorFormatKey 
   if (["xlsx", "xls", "csv", "tsv", "ods"].includes(ext)) {
     return "sheet";
   }
-  if (["sh", "ts", "tsx", "js", "jsx", "py", "go", "json", "md", "xml", "yaml", "yml", "sql", "txt"].includes(ext)) {
+  if (["sh", "ts", "tsx", "js", "jsx", "py", "go", "json", "md", "yaml", "yml", "sql", "txt"].includes(ext)) {
     return "code";
   }
   return "pdf";
 }
 
 function formatBytesCompact(bytes?: number): string {
-  if (!bytes || bytes <= 0) return "2.40 MB";
+  if (!bytes || bytes <= 0) return "420.4 KB";
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
 export interface VaultInspectorPaneProps {
   file: FileData | null;
+  folderName?: string;
   onExpandCinemascope?: (file: FileData | null) => void;
   onClose?: () => void;
   onShareLink?: (file: FileData | null) => void;
   onWhatsAppShare?: (file: FileData | null) => void;
+  onRenameInline?: (file: FileData | null) => void;
   onPassport?: (file: FileData | null) => void;
   onCopyHash?: (file: FileData | null, shaPreview: string) => void;
   onDownload?: (file: FileData | null) => void;
@@ -84,11 +89,12 @@ export interface VaultInspectorPaneProps {
 
 export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
   file,
+  folderName,
   onExpandCinemascope,
   onClose,
   onShareLink,
   onWhatsAppShare,
-  onPassport,
+  onRenameInline,
   onCopyHash,
   onDownload,
 }) => {
@@ -99,6 +105,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
   const [rotation, setRotation] = useState<number>(0);
   const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
   const [activeSheetRow, setActiveSheetRow] = useState<number>(0);
+  const [passportOpen, setPassportOpen] = useState<boolean>(true);
 
   useEffect(() => {
     if (file?.filename) {
@@ -112,30 +119,39 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
   const displayTitle =
     file?.filename ||
     (activeFormat === "pdf"
-      ? "Arquitectura_Zero_Knowledge_v4.pdf"
+      ? "Constancia_Situacion_Fiscal_Roche_Nov2026.pdf"
+      : activeFormat === "xml"
+        ? "2026-11_Factura_Grupo_Roche_$48,500.xml"
+        : activeFormat === "sheet"
+          ? "Relacion_Documentos_Entregados_Nov2026.xlsx"
+          : activeFormat === "image"
+            ? "INE_Representante_Legal_Frente_4K.png"
+            : activeFormat === "video"
+              ? "Recorrido_Bodega_Activo_Fijo_64KB.mp4"
+              : "respaldo-automatico-boveda-abrn.sh");
+
+  const resolvedFolder = folderName || file?.drop_folder_name || file?.group_name || "Bóveda ABRN";
+
+  const formatShortLabel =
+    activeFormat === "sheet"
+      ? "XLSX"
       : activeFormat === "image"
-        ? "Prototipo_Hardware_Rev3_4K.png"
-        : activeFormat === "video"
-          ? "Demo_Producto_Encriptado_1080p.mp4"
-          : activeFormat === "code"
-            ? "deploy-cluster-prod.sh"
-            : "Roadmap_Lanzamiento_Q4.xlsx");
+        ? "4K"
+        : activeFormat === "xml"
+          ? "XML"
+          : activeFormat.toUpperCase();
 
   const displaySub = file
-    ? `${activeFormat.toUpperCase()} · ${formatBytesCompact(file.file_size)} · ${file.group_name || file.drop_folder_name || "Bóveda Principal ABRN"}`
-    : activeFormat === "pdf"
-      ? "PDF · 2.40 MB · Expedientes y Docs"
-      : activeFormat === "image"
-        ? "4K · 6.84 MB · Diseño y Media 4K"
-        : activeFormat === "video"
-          ? "MP4 · 48.20 MB · Streaming 64 KB"
-          : activeFormat === "code"
-            ? "SH · 14.20 KB · Infraestructura SSH"
-            : "XLSX · 312.00 KB · Dirección ABRN";
+    ? `${formatShortLabel} · ${formatBytesCompact(file.file_size)} · ${resolvedFolder}`
+    : `${formatShortLabel} · 420.4 KB · 02 Constancia y 32-D`;
 
   const deterministicSha = file?.parent_hash
     ? `${file.parent_hash.slice(0, 16)}…${file.parent_hash.slice(-6)}`
     : "9f86d081884c7d65…f00a08";
+
+  const linkStatusText = file?.drop_token
+    ? "Recibido vía Drop · Íntegro"
+    : "Fragmento #key Zero-Knowledge";
 
   const currentSheetRow = DEFAULT_SHEET_ROWS[activeSheetRow] ?? DEFAULT_SHEET_ROWS[0];
 
@@ -143,19 +159,28 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
     <aside
       data-testid="vault-inspector-pane"
       aria-label="Inspector y Vista Previa en RAM"
-      className="h-full w-full bg-card border-l border-border flex flex-col overflow-hidden select-none"
+      style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+      className="h-full w-full flex flex-col overflow-hidden select-none"
     >
       {/* 1. Inspector Header */}
-      <div className="px-3.5 py-2.5 border-b border-border flex items-start justify-between gap-2 shrink-0">
+      <div
+        style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
+        className="px-3.5 py-2.5 border-b flex items-center justify-between gap-2 shrink-0"
+      >
         <div className="min-w-0 flex-1">
+          <div
+            style={{ color: "var(--abrn-emerald)" }}
+            className="text-[9.5px] font-extrabold uppercase tracking-[0.07em] mb-0.5"
+          >
+            VISTA RÁPIDA EN RAM · SIN DESCARGAR
+          </div>
           <h2
-            style={{ fontFamily: "var(--font-display)" }}
-            className="text-[13.5px] font-bold text-foreground truncate"
+            className="abrn-serif text-[13px] font-bold text-foreground truncate"
             title={displayTitle}
           >
             {displayTitle}
           </h2>
-          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+          <p className="abrn-mono text-[10.5px] text-muted-foreground truncate mt-0.5">
             {displaySub}
           </p>
         </div>
@@ -164,9 +189,9 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             type="button"
             data-testid="inspector-expand-94vw"
             onClick={() => onExpandCinemascope?.(file)}
-            title="Expandir en Modal Cinemascope 94vw (Espacio)"
+            title="Abrir en Modal Cinemascope 94vw (Enter)"
             aria-label="Expandir vista previa Cinemascope"
-            className="w-7 h-7 rounded-md border border-border bg-background hover:bg-primary/10 hover:border-primary/40 text-foreground flex items-center justify-center transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-[7px] border border-border bg-card hover:bg-primary/10 hover:border-primary/40 text-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </button>
@@ -175,9 +200,9 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
               type="button"
               data-testid="inspector-close-btn"
               onClick={onClose}
-              title="Ocultar Inspector (⌘I)"
+              title="Ocultar inspector lateral"
               aria-label="Ocultar panel inspector"
-              className="w-7 h-7 rounded-md border border-border bg-background hover:bg-primary/10 hover:border-primary/40 text-foreground flex items-center justify-center transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-[7px] border border-border bg-card hover:bg-primary/10 hover:border-primary/40 text-foreground flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -185,19 +210,21 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
         </div>
       </div>
 
-      {/* 2. Interactive 5-Format Switcher Tabs */}
+      {/* 2. Interactive 6-Format Switcher Tabs */}
       <div
         role="tablist"
         aria-label="Formatos de vista previa en RAM"
-        className="px-2.5 py-1.5 bg-muted/60 border-b border-border grid grid-cols-5 gap-1 shrink-0"
+        style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+        className="px-2.5 py-1.5 border-b grid grid-cols-6 gap-1 shrink-0"
       >
         {(
           [
-            { key: "pdf", label: "1. PDF" },
-            { key: "image", label: "2. 4K" },
-            { key: "video", label: "3. Video" },
-            { key: "code", label: "4. Código" },
-            { key: "sheet", label: "5. XLSX" },
+            { key: "pdf", label: "PDF" },
+            { key: "xml", label: "CFDI" },
+            { key: "sheet", label: "XLSX" },
+            { key: "image", label: "4K" },
+            { key: "video", label: "Video" },
+            { key: "code", label: "Código" },
           ] as const
         ).map((tab) => {
           const isActive = activeFormat === tab.key;
@@ -213,10 +240,19 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
                 setZoom(100);
                 setRotation(0);
               }}
-              className={cn(
-                "h-6 px-1 rounded-md text-[10.5px] font-semibold truncate text-center transition-colors cursor-pointer border",
+              style={
                 isActive
-                  ? "bg-primary/15 text-primary border-primary/35"
+                  ? {
+                      background: "var(--abrn-primary-tint)",
+                      color: "var(--abrn-primary)",
+                      borderColor: "var(--abrn-border-strong)",
+                    }
+                  : undefined
+              }
+              className={cn(
+                "h-[25px] px-0.5 rounded-[6px] text-[10.5px] font-bold whitespace-nowrap text-center transition-colors cursor-pointer border",
+                isActive
+                  ? ""
                   : "bg-transparent text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
@@ -226,74 +262,83 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
         })}
       </div>
 
-      {/* 3. 1-Click Cryptographic Dispatch Bar */}
-      <div className="px-2.5 py-1.5 border-b border-border bg-card flex items-center justify-between gap-1 shrink-0">
-        <div className="flex items-center gap-1 min-w-0">
+      {/* 3. 1-Click Dispatch Deck */}
+      <div
+        style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
+        className="px-3 py-2 border-b grid grid-cols-2 gap-1.5 shrink-0"
+      >
+        <button
+          type="button"
+          data-testid="inspector-whatsapp-btn"
+          onClick={() => onWhatsAppShare?.(file)}
+          className="abrn-btn abrn-btn-whatsapp !h-7 !px-2 !text-[11px] !rounded-[7px] w-full justify-center"
+        >
+          <MessageCircle className="w-3 h-3 shrink-0" />
+          <span>WhatsApp</span>
+        </button>
+        <button
+          type="button"
+          data-testid="inspector-share-key-btn"
+          onClick={() => onShareLink?.(file)}
+          className="abrn-btn abrn-btn-primary !h-7 !px-2 !text-[11px] !rounded-[7px] w-full justify-center"
+        >
+          <Link2 className="w-3 h-3 shrink-0" />
+          <span>Enlace #key</span>
+        </button>
+        {onRenameInline && (
           <button
             type="button"
-            data-testid="inspector-share-key-btn"
-            onClick={() => onShareLink?.(file)}
-            className="h-6 px-2 rounded-md bg-[#7a1f2b] hover:bg-primary/90 text-white text-[10.5px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+            data-testid="inspector-rename-btn"
+            onClick={() => onRenameInline(file)}
+            className="abrn-btn !h-7 !px-2 !text-[11px] !rounded-[7px] w-full justify-center"
           >
-            <Link2 className="w-3 h-3" />
-            <span>#key</span>
+            <Edit2 className="w-3 h-3 shrink-0" />
+            <span>Renombrar (F2)</span>
           </button>
-          <button
-            type="button"
-            data-testid="inspector-whatsapp-btn"
-            onClick={() => onWhatsAppShare?.(file)}
-            className="h-6 px-2 rounded-md border border-border bg-background hover:border-primary/40 text-foreground text-[10.5px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-          >
-            <MessageCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-            <span>WhatsApp</span>
-          </button>
-          <button
-            type="button"
-            data-testid="inspector-rsa-btn"
-            onClick={() => onPassport?.(file)}
-            className="h-6 px-2 rounded-md border border-border bg-background hover:border-primary/40 text-foreground text-[10.5px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-          >
-            <ShieldCheck className="w-3 h-3 text-primary" />
-            <span>RSA</span>
-          </button>
-        </div>
+        )}
         <button
           type="button"
           data-testid="inspector-copy-sha-btn"
           onClick={() => onCopyHash?.(file, deterministicSha)}
-          className="h-6 px-2 rounded-md border border-border bg-background hover:border-primary/40 text-foreground text-[10.5px] font-mono font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-          title="Copiar sello SHA-256"
+          className={cn(
+            "abrn-btn abrn-mono !h-7 !px-2 !text-[10.5px] !rounded-[7px] w-full justify-center",
+            !onRenameInline && "col-span-2"
+          )}
+          title="Copiar huella criptográfica SHA-256"
         >
-          <Copy className="w-2.5 h-2.5 text-primary" />
-          <span>SHA-256</span>
+          <Copy className="w-3 h-3 text-primary shrink-0" />
+          <span>Copiar SHA-256</span>
         </button>
       </div>
 
       {/* 4. Live Decrypted Preview Stage */}
-      <div className="flex-1 bg-muted/50 p-3 overflow-y-auto flex flex-col gap-2.5">
+      <div
+        style={{ background: "var(--abrn-stage-canvas)" }}
+        className="flex-1 p-3 overflow-y-auto flex flex-col gap-2.5 min-h-0"
+      >
         {activeFormat === "pdf" && (
           <>
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Página 1 de 6 · Zoom {zoom}% · RAM</span>
+              <span>Página 1 de 2 · Zoom {zoom}% · Lectura directa en RAM</span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setZoom((z) => Math.max(75, z - 15))}
-                  className="h-6 px-2 rounded border border-border bg-card text-foreground font-semibold cursor-pointer"
+                  className="abrn-btn !h-6 !px-2 !text-[11px] !rounded-[6px]"
                 >
-                  -
+                  −
                 </button>
                 <button
                   type="button"
                   onClick={() => setZoom(100)}
-                  className="h-6 px-2 rounded border border-border bg-card text-foreground font-semibold cursor-pointer"
+                  className="abrn-btn !h-6 !px-2 !text-[11px] !rounded-[6px]"
                 >
                   100%
                 </button>
                 <button
                   type="button"
-                  onClick={() => setZoom((z) => Math.min(145, z + 15))}
-                  className="h-6 px-2 rounded border border-border bg-card text-foreground font-semibold cursor-pointer"
+                  onClick={() => setZoom((z) => Math.min(135, z + 15))}
+                  className="abrn-btn !h-6 !px-2 !text-[11px] !rounded-[6px]"
                 >
                   +
                 </button>
@@ -301,238 +346,98 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             </div>
             <div
               style={{
+                background: "#ffffff",
+                color: "#1c1a17",
+                borderColor: "#e5e0d8",
                 transform: `scale(${zoom / 100})`,
                 transformOrigin: "top center",
               }}
-              className="bg-card border border-border rounded-xl p-3 text-foreground flex flex-col gap-2.5 transition-transform shadow-2xs overflow-hidden"
+              className="border rounded-[10px] p-3.5 flex flex-col gap-2.5 transition-transform shadow-xs"
             >
-              <div className="flex items-start justify-between gap-2 pb-2 border-b border-border min-w-0">
-                <div className="min-w-0 flex-1">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-primary truncate">
-                    ABRN ASESORES · ESPECIFICACIÓN REV 4.2
+              <div
+                style={{ borderColor: "#7a1f2b" }}
+                className="flex items-start justify-between gap-2 pb-2 border-b-2"
+              >
+                <div className="min-w-0">
+                  <div style={{ color: "#7a1f2b" }} className="text-[9.5px] font-extrabold uppercase tracking-[0.08em]">
+                    CÉDULA FISCAL · DESCIFRADO EN MEMORIA
                   </div>
-                  <div
-                    style={{ fontFamily: "var(--font-display)" }}
-                    className="text-sm font-bold text-foreground mt-0.5 leading-snug truncate"
-                  >
-                    {file ? file.filename : "Arquitectura Zero-Knowledge ABRN Drive"}
+                  <div className="abrn-serif text-[13.5px] font-bold mt-0.5 truncate">
+                    {file?.filename ? file.filename.replace(/\.[^.]+$/, "").replace(/_/g, " ") : "CONSTANCIA DE SITUACIÓN FISCAL"}
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 whitespace-nowrap shrink-0">
-                  Firma RSA-PSS OK
+                <span
+                  style={{ background: "#e6f4ef", color: "#1f7a5c" }}
+                  className="text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0"
+                >
+                  VIGENTE
                 </span>
               </div>
-              <p className="text-[11.5px] leading-relaxed text-foreground/90">
-                Todo archivo subido a <strong>ABRN Drive</strong> se divide y cifra en tu navegador mediante{" "}
-                <strong>AES-256-GCM</strong> en fragmentos de <strong>64 KB</strong> antes de tocar la red. El servidor
-                almacena únicamente bloques opacos y jamás recibe la llave.
-              </p>
-              <div className="grid grid-cols-3 gap-1.5">
-                <div className="p-2 rounded-lg bg-muted border border-border">
-                  <div className="text-[9.5px] text-muted-foreground">Motor WebCrypto</div>
-                  <div className="text-[11px] font-bold text-foreground mt-0.5">AES-256-GCM</div>
+              <div className="grid grid-cols-2 gap-2 text-[11.5px]">
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Carpeta / Expediente</div>
+                  <strong className="truncate block">{resolvedFolder}</strong>
                 </div>
-                <div className="p-2 rounded-lg bg-muted border border-border">
-                  <div className="text-[9.5px] text-muted-foreground">Envoltura Llave</div>
-                  <div className="text-[11px] font-bold text-foreground mt-0.5">RSA-OAEP 4096</div>
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Integridad SHA-256</div>
+                  <strong className="abrn-mono text-[10.5px]">{deterministicSha.slice(0, 12)}</strong>
                 </div>
-                <div className="p-2 rounded-lg bg-muted border border-border">
-                  <div className="text-[9.5px] text-muted-foreground">Compartición</div>
-                  <div className="text-[11px] font-bold text-primary mt-0.5">Fragmento #key</div>
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Motor Criptográfico</div>
+                  <strong>AES-256-GCM (64 KB)</strong>
+                </div>
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Estatus Bóveda</div>
+                  <strong style={{ color: "#1f7a5c" }}>0 bytes en disco</strong>
                 </div>
               </div>
             </div>
           </>
         )}
 
-        {activeFormat === "image" && (
+        {activeFormat === "xml" && (
           <>
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>
-                3840 × 2160 px · Zoom {zoom}% · Rotación {rotation}° · EXIF Purgado
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.max(75, z - 15))}
-                  className="h-6 px-2 rounded border border-border bg-card text-foreground font-semibold cursor-pointer"
-                >
-                  -
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.min(145, z + 15))}
-                  className="h-6 px-2 rounded border border-border bg-card text-foreground font-semibold cursor-pointer"
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  data-testid="inspector-rotate-btn"
-                  onClick={() => setRotation((r) => (r + 90) % 360)}
-                  className="h-6 px-2 rounded border border-border bg-card text-foreground font-semibold inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <RotateCw className="w-3 h-3" />
-                  <span>Rotar 90°</span>
-                </button>
-              </div>
+              <span>Vista Humana CFDI 4.0 · Sin código crudo</span>
+              <span className="abrn-blindado-pill !h-5 !text-[10px]">UUID Validado</span>
             </div>
-            <div className="min-h-[210px] rounded-xl border border-border bg-[#181d2a] flex items-center justify-center p-3 overflow-hidden">
-              <svg
-                viewBox="0 0 360 190"
-                style={{
-                  width: "100%",
-                  maxHeight: "190px",
-                  transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                  transition: "transform 0.2s ease",
-                }}
+            <div
+              style={{ background: "#ffffff", color: "#1c1a17", borderColor: "#e5e0d8" }}
+              className="border rounded-[10px] p-3.5 flex flex-col gap-2.5 shadow-xs"
+            >
+              <div
+                style={{ borderColor: "#e5e0d8" }}
+                className="flex items-center justify-between border-b pb-2"
               >
-                <defs>
-                  <linearGradient id="abrnImgGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#c4999b" stopOpacity="0.32" />
-                    <stop offset="100%" stopColor="#7a1f2b" stopOpacity="0.28" />
-                  </linearGradient>
-                </defs>
-                <rect
-                  x="16"
-                  y="16"
-                  width="328"
-                  height="158"
-                  rx="10"
-                  fill="url(#abrnImgGrad)"
-                  stroke="#c4999b"
-                  strokeOpacity="0.45"
-                />
-                <circle
-                  cx="180"
-                  cy="95"
-                  r="44"
-                  fill="none"
-                  stroke="#34d399"
-                  strokeWidth="1.8"
-                  strokeDasharray="5 4"
-                />
-                <rect
-                  x="76"
-                  y="54"
-                  width="208"
-                  height="82"
-                  rx="8"
-                  fill="#1e2330"
-                  stroke="#c4999b"
-                  strokeWidth="1.5"
-                />
-                <text x="94" y="88" fill="#f2f0ed" fontSize="11" fontFamily="monospace" fontWeight="700">
-                  ABRN-VAULT-4K-RENDER
-                </text>
-                <text x="94" y="108" fill="#34d399" fontSize="10" fontFamily="monospace">
-                  SHA-256 VERIFIED · ZERO EXIF
-                </text>
-              </svg>
-            </div>
-          </>
-        )}
-
-        {activeFormat === "video" && (
-          <>
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>MP4 · 1080p 60fps · Bloques AES-GCM de 64 KB</span>
-              <button
-                type="button"
-                data-testid="inspector-video-toggle"
-                onClick={() => setVideoPlaying((p) => !p)}
-                className="h-6 px-2.5 rounded border border-border bg-card text-foreground font-semibold inline-flex items-center gap-1 cursor-pointer"
-              >
-                {videoPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                <span>{videoPlaying ? "Pausar" : "Reproducir"}</span>
-              </button>
-            </div>
-            <div className="min-h-[210px] rounded-xl border border-border bg-[#181d2a] text-[#f2f0ed] p-3.5 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  STREAMING RAM · 64 KB CHUNKS
-                </span>
-                <span>Bloque #182 / 768 OK</span>
-              </div>
-              <div className="my-auto flex flex-col items-center gap-2 py-4">
-                <button
-                  type="button"
-                  onClick={() => setVideoPlaying((p) => !p)}
-                  className="w-11 h-11 rounded-full bg-[#7a1f2b] hover:bg-primary/90 text-white border border-white/25 flex items-center justify-center font-bold cursor-pointer"
+                <strong style={{ color: "#1f7a5c" }} className="text-[11.5px]">
+                  COMPROBANTE FISCAL DIGITAL (CFDI 4.0)
+                </strong>
+                <span
+                  style={{ background: "#f2efe9" }}
+                  className="abrn-mono text-[10px] px-2 py-0.5 rounded font-bold"
                 >
-                  {videoPlaying ? "❚❚" : "▶"}
-                </button>
-                <span className="text-xs font-semibold">
-                  {videoPlaying
-                    ? "Reproduciendo stream AES-GCM en RAM…"
-                    : "Stream pausado · 0 bytes en disco"}
+                  PUE · Ingreso
                 </span>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: videoPlaying ? "68%" : "38%" }}
-                  />
+              <div className="grid grid-cols-2 gap-2 text-[11.5px]">
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Emisor</div>
+                  <strong>ABRN Asesores SC</strong>
                 </div>
-                <div className="flex justify-between text-[10.5px] font-mono text-white/75">
-                  <span>{videoPlaying ? "01:42 / 02:30" : "00:58 / 02:30"}</span>
-                  <span>AES-256-GCM · 12.4 MB/s</span>
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Receptor</div>
+                  <strong className="truncate block">{resolvedFolder}</strong>
                 </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeFormat === "code" && (
-          <>
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Bash · UTF-8 · 48 líneas · Verificado SHA-256</span>
-              <button
-                type="button"
-                onClick={() => onCopyHash?.(file, deterministicSha)}
-                className="h-6 px-2.5 rounded border border-border bg-card text-foreground font-semibold cursor-pointer"
-              >
-                Copiar Código
-              </button>
-            </div>
-            <div className="rounded-xl border border-border bg-[#1e2330] text-[#f2f0ed] p-3 font-mono text-[11.5px] leading-relaxed overflow-x-auto">
-              <div>
-                <span className="text-white/40 mr-2">01</span>
-                <span className="text-[#9e968a]">#!/usr/bin/env bash</span>
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">02</span>
-                <span className="text-[#9e968a]"># ABRN Drive Zero-Knowledge Cluster Verification</span>
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">03</span>
-                <span className="text-primary">set</span> -euo pipefail
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">04</span>
-                <span className="text-primary">export</span> VAULT_CIPHER=
-                <span className="text-[#34d399]">&quot;AES-256-GCM-64KB&quot;</span>
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">05</span>
-                <span className="text-primary">export</span> ABRN_NODE=
-                <span className="text-[#34d399]">&quot;https://abrndrive.filemonprime.net&quot;</span>
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">06</span>
-                <span className="text-[#e0b034]">verify_envelope</span>() &#123;
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">07</span>
-                {"  "}openssl dgst -sha256 -verify abrn_pub.pem &quot;$1&quot;
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">08</span>&#125;
-              </div>
-              <div>
-                <span className="text-white/40 mr-2">09</span>
-                echo <span className="text-[#34d399]">&quot;[OK] Sello SHA-256 verificado en RAM&quot;</span>
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Folio Fiscal UUID</div>
+                  <span className="abrn-mono text-[10.5px]">A89F22C1-77B4-40E2</span>
+                </div>
+                <div>
+                  <div style={{ color: "#6b6359" }} className="text-[10px]">Total Facturado</div>
+                  <strong style={{ color: "#7a1f2b" }} className="abrn-mono text-[13px]">
+                    $48,500.00 MXN
+                  </strong>
+                </div>
               </div>
             </div>
           </>
@@ -540,7 +445,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
 
         {activeFormat === "sheet" && (
           <>
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-card border border-border text-[11.5px] font-mono">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-card border border-border text-[11px] abrn-mono">
               <span className="font-bold text-primary">fx</span>
               <span
                 data-testid="inspector-sheet-cell"
@@ -555,15 +460,14 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
                 {currentSheetRow.formula}
               </span>
             </div>
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <table className="w-full border-collapse text-[11.5px]">
+            <div className="rounded-[10px] border border-border bg-card overflow-hidden shadow-2xs">
+              <table className="w-full border-collapse text-[11px]">
                 <thead>
-                  <tr className="bg-muted text-muted-foreground border-b border-border">
+                  <tr style={{ background: "var(--abrn-bg-elevated)" }} className="text-muted-foreground border-b border-border">
                     <th className="py-1.5 px-2 text-left font-bold">#</th>
-                    <th className="py-1.5 px-2 text-left font-bold">A · Entregable</th>
-                    <th className="py-1.5 px-2 text-left font-bold">B · Área</th>
-                    <th className="py-1.5 px-2 text-right font-bold">C · Avance</th>
-                    <th className="py-1.5 px-2 text-left font-bold">D · Estado</th>
+                    <th className="py-1.5 px-2 text-left font-bold">Entregable</th>
+                    <th className="py-1.5 px-2 text-left font-bold">Carpeta</th>
+                    <th className="py-1.5 px-2 text-left font-bold">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -574,14 +478,16 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
                       onClick={() => setActiveSheetRow(idx)}
                       className={cn(
                         "border-b border-border last:border-b-0 cursor-pointer transition-colors",
-                        activeSheetRow === idx ? "bg-primary/15 font-semibold" : "hover:bg-muted/50"
+                        activeSheetRow === idx ? "bg-primary/12 font-bold" : "hover:bg-muted/50"
                       )}
                     >
-                      <td className="py-1.5 px-2 font-mono text-muted-foreground">{idx + 2}</td>
-                      <td className="py-1.5 px-2 text-foreground">{row.values[0]}</td>
+                      <td className="py-1.5 px-2 abrn-mono text-muted-foreground">{idx + 2}</td>
+                      <td className="py-1.5 px-2 text-foreground font-semibold">{row.values[0]}</td>
                       <td className="py-1.5 px-2 text-muted-foreground">{row.values[1]}</td>
-                      <td className="py-1.5 px-2 text-right font-mono text-foreground">{row.values[2]}</td>
-                      <td className="py-1.5 px-2 text-emerald-700 dark:text-emerald-400 font-semibold">
+                      <td
+                        style={{ color: "var(--abrn-emerald)" }}
+                        className="py-1.5 px-2 font-bold"
+                      >
                         {row.values[3]}
                       </td>
                     </tr>
@@ -591,34 +497,191 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             </div>
           </>
         )}
+
+        {activeFormat === "image" && (
+          <>
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>
+                3840×2160 · Zoom {zoom}% · Rotación {rotation}° · EXIF Purgado
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.max(75, z - 15))}
+                  className="abrn-btn !h-6 !px-2 !text-[11px] !rounded-[6px]"
+                >
+                  −
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.min(145, z + 15))}
+                  className="abrn-btn !h-6 !px-2 !text-[11px] !rounded-[6px]"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  data-testid="inspector-rotate-btn"
+                  onClick={() => setRotation((r) => (r + 90) % 360)}
+                  className="abrn-btn !h-6 !px-2 !text-[11px] !rounded-[6px]"
+                >
+                  <RotateCw className="w-3 h-3" />
+                  <span>Rotar 90°</span>
+                </button>
+              </div>
+            </div>
+            <div className="min-h-[195px] rounded-[10px] border border-border bg-[#1e2330] flex items-center justify-center p-3 overflow-hidden">
+              <svg
+                viewBox="0 0 420 210"
+                style={{
+                  width: "100%",
+                  maxHeight: "175px",
+                  transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                  transition: "transform 0.2s ease",
+                }}
+              >
+                <rect width="420" height="210" rx="12" fill="#262c3b" stroke="#d4aeb0" strokeWidth="2" />
+                <rect x="26" y="34" width="96" height="122" rx="10" fill="#1e2330" stroke="#45c496" strokeWidth="1.5" />
+                <circle cx="74" cy="80" r="22" fill="#32394b" />
+                <rect x="44" y="114" width="60" height="24" rx="6" fill="#32394b" />
+                <rect x="144" y="42" width="246" height="14" rx="4" fill="#d4aeb0" />
+                <rect x="144" y="70" width="190" height="10" rx="4" fill="#b6bfd0" opacity="0.65" />
+                <rect x="144" y="92" width="215" height="10" rx="4" fill="#b6bfd0" opacity="0.45" />
+                <text x="144" y="146" fill="#45c496" fontFamily="monospace" fontSize="11" fontWeight="700">
+                  IDENTIFICACIÓN OFICIAL · 4K ZERO EXIF
+                </text>
+              </svg>
+            </div>
+          </>
+        )}
+
+        {activeFormat === "video" && (
+          <>
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>TransformStream · Bloques AES-GCM de 64 KB</span>
+              <button
+                type="button"
+                data-testid="inspector-video-toggle"
+                onClick={() => setVideoPlaying((p) => !p)}
+                className="abrn-btn !h-6 !px-2.5 !text-[11px] !rounded-[6px]"
+              >
+                {videoPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                <span>{videoPlaying ? "Pausar" : "Reproducir"}</span>
+              </button>
+            </div>
+            <div className="min-h-[195px] rounded-[10px] border border-border bg-[#1e2330] text-[#f2f0ed] p-3.5 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[10.5px] abrn-mono">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  STREAMING RAM · 64 KB CHUNKS
+                </span>
+                <span>60 FPS · RAM</span>
+              </div>
+              <div className="my-auto flex flex-col items-center gap-2 py-3">
+                <button
+                  type="button"
+                  onClick={() => setVideoPlaying((p) => !p)}
+                  className="abrn-btn abrn-btn-primary !rounded-full !px-4 !h-8"
+                >
+                  {videoPlaying ? "❚❚ Pausar Bloque" : "▶ Reproducir Stream"}
+                </button>
+                <span className="text-xs font-semibold">
+                  {videoPlaying
+                    ? "Reproduciendo stream AES-GCM en RAM…"
+                    : "Sin archivos temporales en disco"}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
+                  <div
+                    className="h-full bg-[#d4aeb0] transition-all duration-300"
+                    style={{ width: videoPlaying ? "68%" : "42%" }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10.5px] abrn-mono text-[#b6bfd0]">
+                  <span>{videoPlaying ? "01:12 / 01:48" : "00:45 / 01:48"}</span>
+                  <span>Bloques: {videoPlaying ? "418" : "258"} / 614</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeFormat === "code" && (
+          <>
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>Bash Script · UTF-8 · Auditado por SHA-256</span>
+              <button
+                type="button"
+                onClick={() => onCopyHash?.(file, deterministicSha)}
+                className="abrn-btn !h-6 !px-2.5 !text-[11px] !rounded-[6px]"
+              >
+                Copiar
+              </button>
+            </div>
+            <div className="rounded-[10px] border border-border bg-[#1e2330] text-[#f2f0ed] p-3 abrn-mono text-[11px] leading-relaxed overflow-x-auto">
+              <pre className="m-0 whitespace-pre">{`01  #!/usr/bin/env bash
+02  # respaldo-automatico-boveda-abrn.sh
+03  set -euo pipefail
+04  VAULT="https://abrndrive.filemonprime.net"
+05  SHA256="${deterministicSha.slice(0, 16)}"
+06  echo "[ABRN] Verificando sello SHA-256..."
+07  echo "[OK] Respaldo íntegro con 0 bytes en claro."`}</pre>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* 5. Cryptographic Lineage Footer */}
-      <div className="px-3.5 py-2.5 border-t border-border bg-card flex flex-col gap-1 text-[11.5px] shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">Cifrado en origen</span>
-          <span className="font-mono font-semibold text-emerald-700 dark:text-emerald-400">
-            AES-256-GCM · 0 bytes en claro
+      {/* 5. Collapsible Cryptographic Passport Accordion Strip */}
+      <div
+        style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
+        className="px-3 py-2 border-t flex flex-col gap-1.5 shrink-0"
+      >
+        <button
+          type="button"
+          onClick={() => setPassportOpen((prev) => !prev)}
+          className="w-full flex items-center justify-between text-[11px] font-bold text-foreground cursor-pointer"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <span className="abrn-pulse-dot" />
+            <span>Pasaporte Criptográfico ABRN</span>
           </span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">Sello SHA-256</span>
-          <span className="font-mono font-semibold text-foreground">{deterministicSha}</span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">Enlaces #key</span>
-          <span className="font-mono font-semibold text-foreground">
-            Fragmento #key Zero-Knowledge
+          <span className="abrn-mono text-[10px] text-primary">
+            AES-256-GCM {passportOpen ? "▾" : "▸"}
           </span>
-        </div>
+        </button>
+
+        {passportOpen && (
+          <div
+            style={{ borderColor: "var(--abrn-border)" }}
+            className="flex flex-col gap-1 pt-1 border-t border-dashed text-[10.5px]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Cifrado en navegador</span>
+              <span style={{ color: "var(--abrn-emerald)" }} className="abrn-mono font-bold">
+                AES-256-GCM · 0 bytes en claro
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Sello SHA-256</span>
+              <span className="abrn-mono font-bold text-foreground">{deterministicSha}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Estado de enlace</span>
+              <span className="abrn-mono font-bold text-foreground truncate">{linkStatusText}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 6. Bottom Tactical Dock */}
-      <div className="px-3.5 py-2.5 border-t border-border bg-muted/50 flex items-center justify-between gap-2 shrink-0">
+      {/* 6. Sticky Bottom Tactical Dock */}
+      <div
+        style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+        className="px-3 py-2 border-t flex items-center justify-between gap-2 shrink-0"
+      >
         <button
           type="button"
           onClick={() => onExpandCinemascope?.(file)}
-          className="h-8 px-3 rounded-lg border border-border bg-card hover:border-primary/40 text-foreground text-xs font-semibold transition-colors cursor-pointer"
+          className="abrn-btn !h-[30px] !px-2.5 !text-[11.5px] !rounded-[7px]"
         >
           Expandir 94vw
         </button>
@@ -626,7 +689,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
           type="button"
           data-testid="inspector-download-btn"
           onClick={() => onDownload?.(file)}
-          className="h-8 px-3.5 rounded-lg bg-[#7a1f2b] hover:bg-primary/90 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+          className="abrn-btn abrn-btn-primary !h-[30px] !px-3 !text-[11.5px] !rounded-[7px]"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Descargar Original</span>

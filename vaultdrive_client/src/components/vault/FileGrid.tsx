@@ -1,8 +1,25 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { File, Download, Link2, Star, StarOff, Shield, ShieldCheck, Share2, Users, FolderOpen, Trash2, Zap, Clock, Loader2, Eye } from "lucide-react";
-import { OriginBadge } from "./OriginBadge";
-import type { FileOrigin } from "./OriginBadge";
+import {
+  File,
+  Download,
+  Link2,
+  Star,
+  Shield,
+  ShieldCheck,
+  Share2,
+  Users,
+  FolderOpen,
+  Trash2,
+  Zap,
+  Clock,
+  Loader2,
+  Eye,
+  Check,
+  Edit2,
+  MessageCircle,
+  ShoppingBag,
+} from "lucide-react";
 import { RowActionMenu } from "../ui/row-action-menu";
 
 export interface FileData {
@@ -38,6 +55,7 @@ interface FileGridProps {
   headerCheckboxRef: React.RefObject<HTMLInputElement | null>;
   onDownload: (file: FileData) => void;
   onCreateShareLink: (file: FileData) => void;
+  onWhatsAppShare?: (file: FileData) => void;
   onToggleStar: (fileId: string) => void;
   onAccessPanel: (file: { id: string; filename: string }) => void;
   onShareClick: (fileId: string, filename: string, metadata: string, pinWrappedKey?: string) => void;
@@ -53,50 +71,61 @@ interface FileGridProps {
   downloadingFileIds?: Set<string>;
   deletingFileIds?: Set<string>;
   focusedFileId?: string | null;
+  activeInspectorFileId?: string | null;
+  folderNameById?: Record<string, string>;
+  renamingFileId?: string | null;
+  onStartRename?: (fileId: string | null) => void;
+  onRenameFile?: (file: FileData, newFilename: string) => Promise<void> | void;
+  dockedFileIds?: Set<string>;
+  onToggleStageFile?: (file: FileData) => void;
   sortBy?: "name" | "date" | "size";
   sortAsc?: boolean;
   onSort?: (field: "name" | "date" | "size") => void;
   onRowHover?: (file: FileData) => void;
   onPassportClick?: (file: FileData) => void;
   onDoubleClickRow?: (file: FileData) => void;
+  onOpenCinemascope?: (file: FileData) => void;
   onMobileInspectClick?: (file: FileData) => void;
 }
 
-function getFormatBadgeMeta(filename: string): { label: string; className: string } {
+interface ThumbAndBadgeMeta {
+  extLabel: string;
+  thumbClass: string;
+  typePillLabel: string;
+}
+
+function getThumbAndBadgeMeta(filename: string): ThumbAndBadgeMeta {
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
   if (ext === "pdf") {
-    return {
-      label: "PDF",
-      className: "bg-[#c43e3e]/12 text-[#c43e3e] dark:text-[#f87171] border-[#c43e3e]/30",
-    };
+    return { extLabel: "PDF", thumbClass: "abrn-thumb-pdf", typePillLabel: "DOCUMENTO PDF" };
   }
-  if (["png", "jpg", "jpeg", "webp", "svg", "gif", "bmp", "avif"].includes(ext)) {
-    return {
-      label: "4K",
-      className: "bg-[#3d6bb5]/12 text-[#3d6bb5] dark:text-[#5b82c7] border-[#3d6bb5]/30",
-    };
-  }
-  if (["mp4", "webm", "mov", "mkv", "m4v"].includes(ext)) {
-    return {
-      label: "MP4",
-      className: "bg-primary/12 text-primary border-primary/30",
-    };
+  if (ext === "xml") {
+    return { extLabel: "CFDI", thumbClass: "abrn-thumb-xml", typePillLabel: "CFDI 4.0" };
   }
   if (["xlsx", "xls", "csv", "tsv", "ods"].includes(ext)) {
     return {
-      label: ext === "csv" ? "CSV" : "XLSX",
-      className: "bg-[#b8860b]/12 text-[#b8860b] dark:text-[#d4a017] border-[#b8860b]/30",
+      extLabel: ext === "csv" ? "CSV" : "XLSX",
+      thumbClass: "abrn-thumb-xlsx",
+      typePillLabel: ext === "csv" ? "TABLA CSV" : "HOJA XLSX",
     };
   }
-  if (["sh", "ts", "tsx", "js", "py", "go", "json", "md", "xml", "sql"].includes(ext)) {
+  if (["png", "jpg", "jpeg", "webp", "svg", "gif", "bmp", "avif"].includes(ext)) {
+    return { extLabel: "4K", thumbClass: "abrn-thumb-image", typePillLabel: "IMAGEN 4K" };
+  }
+  if (["mp4", "webm", "mov", "mkv", "m4v"].includes(ext)) {
+    return { extLabel: "MP4", thumbClass: "abrn-thumb-video", typePillLabel: "STREAM 64KB" };
+  }
+  if (["sh", "ts", "tsx", "js", "py", "go", "json", "md", "sql"].includes(ext)) {
     return {
-      label: ext === "xml" ? "CFDI" : ext.toUpperCase().slice(0, 4),
-      className: "bg-[#2d8a6e]/12 text-[#2d8a6e] dark:text-[#34d399] border-[#2d8a6e]/30",
+      extLabel: ext.toUpperCase().slice(0, 4),
+      thumbClass: "abrn-thumb-code",
+      typePillLabel: "SCRIPT / CÓDIGO",
     };
   }
   return {
-    label: (ext || "DOC").toUpperCase().slice(0, 4),
-    className: "bg-primary/10 text-primary border-primary/25",
+    extLabel: (ext || "DOC").toUpperCase().slice(0, 4),
+    thumbClass: "abrn-thumb-code",
+    typePillLabel: "CIFRADO AES",
   };
 }
 
@@ -109,24 +138,75 @@ function formatBytes(bytes: number): string {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  if (!dateString) return "Reciente";
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return "Reciente";
+  const now = new Date();
+  const isToday =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  if (isToday) {
+    return d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+  }
+  return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
 }
 
-function fileOriginFromData(file: FileData): FileOrigin {
-  if (file.drop_token && file.drop_folder_name) {
-    return { type: "drop", linkName: file.drop_folder_name };
+function getDayGroup(dateString: string): "HOY" | "ESTA SEMANA" | "ANTERIORES" {
+  if (!dateString) return "HOY";
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return "HOY";
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  if (
+    diffDays < 1 &&
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  ) {
+    return "HOY";
+  }
+  if (diffDays <= 7) {
+    return "ESTA SEMANA";
+  }
+  return "ANTERIORES";
+}
+
+function getOriginSummary(file: FileData): { label: string; isDrop: boolean; isShared: boolean } {
+  if (file.drop_token) {
+    return {
+      label: file.drop_folder_name
+        ? `Subido por cliente (${file.drop_folder_name})`
+        : "Subido por cliente (Secure Drop)",
+      isDrop: true,
+      isShared: false,
+    };
   }
   if (file.group_name) {
-    return { type: "group", groupName: file.group_name };
+    return { label: `Equipo · ${file.group_name}`, isDrop: false, isShared: true };
   }
-  if (file.shared_by) {
-    return { type: "shared", sharedBy: file.shared_by };
+  if (file.shared_by || file.shared_by_name) {
+    return {
+      label: `Compartido por ${file.shared_by_name || file.shared_by}`,
+      isDrop: false,
+      isShared: true,
+    };
   }
-  return { type: "my-upload" };
+  return { label: "Subido por mí", isDrop: false, isShared: false };
+}
+
+function computeShortSha(file: FileData): string {
+  if (file.parent_hash && file.parent_hash.length >= 8) {
+    return file.parent_hash.slice(0, 8);
+  }
+  let acc = 2166136261;
+  const src = `${file.id}:${file.filename}:${file.file_size}`;
+  for (let i = 0; i < src.length; i++) {
+    acc ^= src.charCodeAt(i);
+    acc = Math.imul(acc, 16777619);
+  }
+  return (acc >>> 0).toString(16).padStart(8, "0");
 }
 
 export const FileGrid: React.FC<FileGridProps> = ({
@@ -138,6 +218,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
   headerCheckboxRef,
   onDownload,
   onCreateShareLink,
+  onWhatsAppShare,
   onToggleStar,
   onAccessPanel,
   onShareClick,
@@ -151,26 +232,573 @@ export const FileGrid: React.FC<FileGridProps> = ({
   downloadingFileIds = new Set(),
   deletingFileIds = new Set(),
   focusedFileId,
+  activeInspectorFileId,
+  folderNameById = {},
+  renamingFileId: controlledRenamingId,
+  onStartRename,
+  onRenameFile,
+  dockedFileIds = new Set(),
+  onToggleStageFile,
   sortBy,
   sortAsc,
   onSort,
   onRowHover,
-  onPassportClick,
   onDoubleClickRow,
+  onOpenCinemascope,
   onMobileInspectClick,
 }) => {
   const { t } = useTranslation(["drive"]);
+  const [localRenamingId, setLocalRenamingId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState<string>("");
+  const [armedDeleteId, setArmedDeleteId] = useState<string | null>(null);
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
+
+  const activeRenamingId = controlledRenamingId !== undefined ? controlledRenamingId : localRenamingId;
+
+  const setRenaming = (id: string | null, initialFilename?: string) => {
+    if (initialFilename !== undefined) {
+      setRenameDraft(initialFilename);
+    }
+    if (onStartRename) {
+      onStartRename(id);
+    } else {
+      setLocalRenamingId(id);
+    }
+  };
+
+  useEffect(() => {
+    if (!activeRenamingId) return;
+    const targetFile = files.find((f) => f.id === activeRenamingId);
+    if (targetFile) {
+      setRenameDraft(targetFile.filename);
+    }
+    const timer = setTimeout(() => {
+      const inp = renameInputRef.current;
+      if (inp) {
+        inp.focus();
+        const dotIdx = inp.value.lastIndexOf(".");
+        inp.setSelectionRange(0, dotIdx > 0 ? dotIdx : inp.value.length);
+      }
+    }, 20);
+    return () => clearTimeout(timer);
+  }, [activeRenamingId, files]);
+
+  useEffect(() => {
+    if (!armedDeleteId) return;
+    const timer = setTimeout(() => setArmedDeleteId(null), 4500);
+    return () => clearTimeout(timer);
+  }, [armedDeleteId]);
+
+  const commitInlineRename = async (file: FileData) => {
+    const trimmed = renameDraft.trim();
+    setRenaming(null);
+    if (!trimmed || trimmed === file.filename) return;
+    await onRenameFile?.(file, trimmed);
+  };
+
+  const groupedSections: Array<{ title: string; items: FileData[] }> = (() => {
+    if (files.length === 0) return [];
+    const buckets: Record<"HOY" | "ESTA SEMANA" | "ANTERIORES", FileData[]> = {
+      HOY: [],
+      "ESTA SEMANA": [],
+      ANTERIORES: [],
+    };
+    for (const f of files) {
+      buckets[getDayGroup(f.created_at)].push(f);
+    }
+    return (["HOY", "ESTA SEMANA", "ANTERIORES"] as const)
+      .filter((k) => buckets[k].length > 0)
+      .map((k) => ({ title: k, items: buckets[k] }));
+  })();
+
+  const renderRow = (file: FileData) => {
+    const isSelected = selectedFileIds.has(file.id);
+    const isInspectorActive = activeInspectorFileId === file.id;
+    const isFocused = focusedFileId === file.id;
+    const isRenaming = activeRenamingId === file.id;
+    const isArmed = armedDeleteId === file.id;
+    const isInBasket = dockedFileIds.has(file.id) || isSelected;
+    const meta = getThumbAndBadgeMeta(file.filename);
+    const originInfo = getOriginSummary(file);
+    const folderLabel =
+      (file.folder_id && folderNameById[file.folder_id]) ||
+      file.drop_folder_name ||
+      "Bóveda Principal";
+    const shortSha = computeShortSha(file);
+    const isPending = downloadingFileIds.has(file.id) || deletingFileIds.has(file.id);
+
+    const pillLabel = originInfo.isDrop
+      ? "DROP CLIENTE"
+      : originInfo.isShared
+        ? "ENLACE #KEY"
+        : meta.typePillLabel;
+    const pillVariantClass = originInfo.isDrop
+      ? "is-drop"
+      : originInfo.isShared
+        ? "is-key"
+        : "";
+
+    return (
+      <div
+        key={file.id}
+        id={`file-row-${file.id}`}
+        data-file-id={file.id}
+        data-file-row-id={file.id}
+        style={{
+          contentVisibility: "auto",
+          containIntrinsicSize: "0 56px",
+        }}
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest("button, input, label, a, [data-prevent-row-click]")) {
+            setArmedDeleteId(null);
+            onPreviewClick(file);
+          }
+        }}
+        onDoubleClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest("button, input, label, a, [data-prevent-row-click]")) {
+            (onOpenCinemascope ?? onDoubleClickRow ?? onPreviewClick)(file);
+          }
+        }}
+        onContextMenu={(event) => onContextMenu(event, file)}
+        onMouseEnter={() => onRowHover?.(file)}
+        className={`
+          abrn-ingrid-row group flex flex-wrap md:flex-nowrap items-center gap-2.5 min-h-[56px] px-3 py-2 md:pl-3.5 rounded-[10px] border transition-all cursor-pointer select-none
+          ${isSelected || isInspectorActive || isFocused ? "is-selected" : "bg-card border-border/70"}
+          ${isFocused ? "ring-2 ring-primary/50" : ""}
+          ${isPending ? "opacity-60" : ""}
+        `}
+      >
+        {/* Accessible Checkbox styled as tactile Canasta Check */}
+        <label
+          htmlFor={`select-file-${file.id}`}
+          className="min-h-[44px] min-w-[32px] -my-2 py-2 flex items-center justify-center cursor-pointer shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            id={`select-file-${file.id}`}
+            type="checkbox"
+            checked={isSelected}
+            disabled={isPending}
+            onChange={() => toggleFileSelection(file.id)}
+            aria-label={t("drive:vault.selectFile", { filename: file.filename, defaultValue: "Select {{filename}}" })}
+            className="sr-only"
+          />
+          <span
+            style={{
+              background: isSelected ? "var(--abrn-primary)" : "var(--abrn-bg)",
+              borderColor: isSelected ? "var(--abrn-primary)" : "var(--abrn-border-strong)",
+              color: isSelected ? "var(--abrn-primary-fg)" : "transparent",
+            }}
+            className="w-[18px] h-[18px] rounded-[5px] border-[1.7px] flex items-center justify-center transition-colors shrink-0"
+          >
+            <Check className="w-3 h-3 stroke-[3]" />
+          </span>
+        </label>
+
+        {/* Rich 38x38 Visual Document Mini-Thumbnail */}
+        {isPending ? (
+          <div className="w-[38px] h-[38px] rounded-[8px] border border-border flex items-center justify-center shrink-0">
+            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+          </div>
+        ) : (
+          <div className={`abrn-mini-thumb ${meta.thumbClass}`} aria-hidden="false">
+            <div className="abrn-mini-thumb-bar" />
+            <div className="abrn-mini-thumb-lines">
+              <i style={{ width: "90%" }} />
+              <i style={{ width: "66%" }} />
+            </div>
+            <div className="abrn-mini-thumb-ext">{meta.extLabel}</div>
+            <File className="sr-only" />
+          </div>
+        )}
+
+        {/* Filename + Star + Inline F2 Rename + Accountant Subtext */}
+        <div className="flex-1 min-w-[120px] flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {file.starred && (
+              <span title="Fijado ★" style={{ color: "var(--abrn-gold)" }} className="inline-flex shrink-0">
+                <Star className="w-3.5 h-3.5 fill-current" />
+              </span>
+            )}
+            {isRenaming ? (
+              <input
+                ref={renameInputRef}
+                type="text"
+                data-testid={`inline-rename-input-${file.id}`}
+                value={renameDraft}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setRenameDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void commitInlineRename(file);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setRenaming(null);
+                  }
+                }}
+                onBlur={() => {
+                  void commitInlineRename(file);
+                }}
+                style={{
+                  borderColor: "var(--abrn-primary)",
+                  background: "var(--abrn-card)",
+                  color: "var(--abrn-fg-strong)",
+                }}
+                className="h-[27px] px-2 rounded-[6px] border-[1.5px] font-bold text-[12.5px] w-full max-w-[360px] focus:outline-none"
+              />
+            ) : (
+              <span className="text-[13px] font-bold text-foreground truncate">
+                {file.filename}
+              </span>
+            )}
+          </div>
+
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+            <span className="font-bold text-primary truncate">{originInfo.label}</span>
+            <span>·</span>
+            <span className="truncate">{folderLabel}</span>
+            <span>·</span>
+            <span className="abrn-mono text-[10px] opacity-85 shrink-0">SHA:{shortSha}</span>
+          </div>
+        </div>
+
+        {/* Mobile Sub-line (<640px) */}
+        <div className="order-last w-full sm:hidden flex items-center justify-between text-xs text-muted-foreground pt-1.5 border-t border-border/40 mt-0.5">
+          <div className="flex items-center gap-2">
+            <span className="abrn-mono font-medium text-foreground/80">{formatBytes(file.file_size)}</span>
+            <span className="text-muted-foreground/60">•</span>
+            <span>{formatDate(file.created_at)}</span>
+          </div>
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+            <ShieldCheck className="w-3 h-3" />
+            AES-256
+          </span>
+        </div>
+
+        {/* Desktop Right Cluster + Zero-Reflow Floating In-Grid Action Capsule */}
+        <div
+          data-prevent-row-click="true"
+          onClick={(e) => e.stopPropagation()}
+          className="hidden md:flex items-center gap-1.5 shrink-0 relative ml-auto"
+        >
+          <span className={`abrn-type-pill hidden xl:inline-block ${pillVariantClass}`}>
+            {pillLabel}
+          </span>
+
+          <div className="abrn-row-telemetry abrn-mono text-[11px] text-muted-foreground hidden lg:flex items-center justify-end gap-2 min-w-[106px] whitespace-nowrap">
+            <span>{formatBytes(file.file_size)}</span>
+            <span>{formatDate(file.created_at)}</span>
+          </div>
+
+          {/* FLOATING IN-GRID ACTION CAPSULE (Zero Layout Reflow!) */}
+          {!isPending && (
+            <div
+              role="toolbar"
+              data-testid={`ingrid-capsule-${file.id}`}
+              aria-label={`Acciones rápidas para ${file.filename}`}
+              className="abrn-ingrid-capsule"
+            >
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  onClick={() => onCreateShareLink(file)}
+                  title="Crear o copiar Enlace #key"
+                  className="abrn-cap-btn"
+                >
+                  <Link2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  onClick={() => (onWhatsAppShare ?? onCreateShareLink)(file)}
+                  title="Enviar por WhatsApp (#key)"
+                  className="abrn-cap-btn"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  onClick={() => onQuickShare(file.id)}
+                  title={t("drive:vault.actions.quickShare")}
+                  className="abrn-cap-btn"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  data-testid={`ingrid-rename-btn-${file.id}`}
+                  onClick={() => setRenaming(file.id, file.filename)}
+                  title="Renombrar aquí mismo (F2)"
+                  className="abrn-cap-btn"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (onToggleStageFile) {
+                    onToggleStageFile(file);
+                  } else {
+                    toggleFileSelection(file.id);
+                  }
+                }}
+                title="Agregar o quitar de Canasta #key (Espacio)"
+                className={`abrn-cap-btn ${isInBasket ? "in-basket" : ""}`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+              </button>
+
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  onClick={() => onToggleStar(file.id)}
+                  title={file.starred ? t("drive:vault.actions.unstar") : t("drive:vault.actions.star")}
+                  className={`abrn-cap-btn ${file.starred ? "is-starred" : ""}`}
+                >
+                  <Star className={`w-3.5 h-3.5 ${file.starred ? "fill-current" : ""}`} />
+                </button>
+              )}
+
+              {file.is_owner !== false && (
+                <button
+                  type="button"
+                  onClick={() => onManageSharesClick({ id: file.id, filename: file.filename })}
+                  title={t("drive:vault.actions.manageShares")}
+                  className="abrn-cap-btn"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {file.is_owner !== false && (
+                <>
+                  <span style={{ background: "var(--abrn-border)" }} className="w-px h-3.5 mx-0.5" />
+                  <button
+                    type="button"
+                    data-testid={`ingrid-delete-btn-${file.id}`}
+                    onClick={() => {
+                      if (!isArmed) {
+                        setArmedDeleteId(file.id);
+                        return;
+                      }
+                      setArmedDeleteId(null);
+                      onDeleteClick({ id: file.id, filename: file.filename });
+                    }}
+                    title="Eliminar con seguro de 2 clics"
+                    className={`abrn-cap-btn is-danger ${isArmed ? "is-armed" : ""}`}
+                  >
+                    {isArmed ? "¿Borrar?" : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Persistent Download + "abrir" 94vw Buttons */}
+          {!isPending && (
+            <>
+              <button
+                type="button"
+                onClick={() => onDownload(file)}
+                title={t("drive:vault.actions.download")}
+                style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
+                className="w-8 h-[30px] rounded-[8px] border text-muted-foreground hover:text-foreground hover:border-primary/40 inline-flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                data-testid={`ingrid-open-94vw-${file.id}`}
+                onClick={() => (onOpenCinemascope ?? onDoubleClickRow ?? onPreviewClick)(file)}
+                title="Abrir en Visor Ejecutivo 94vw (Enter)"
+                style={{
+                  background: "var(--abrn-primary-tint)",
+                  borderColor: "var(--abrn-border-strong)",
+                  color: "var(--abrn-primary)",
+                }}
+                className="h-[30px] px-2.5 rounded-[8px] border text-[11.5px] font-bold inline-flex items-center gap-1 cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>abrir</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Mobile 1-tap Quick Actions: Share (#key) + Inspect */}
+        {!isPending && (
+          <div className="flex md:hidden items-center gap-1 ml-auto shrink-0">
+            {file.is_owner !== false && (
+              <button
+                type="button"
+                data-prevent-row-click="true"
+                data-testid={`mobile-file-share-${file.id}`}
+                aria-label={`Compartir ${file.filename}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreateShareLink(file);
+                }}
+                className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 inline-flex items-center justify-center cursor-pointer active:scale-95"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              type="button"
+              data-prevent-row-click="true"
+              data-testid={`mobile-file-inspect-${file.id}`}
+              aria-label={`Inspeccionar ${file.filename}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                (onMobileInspectClick ?? onPreviewClick)(file);
+              }}
+              className="w-8 h-8 rounded-lg bg-background border border-border text-foreground hover:bg-muted inline-flex items-center justify-center cursor-pointer active:scale-95"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Unified actions via RowActionMenu */}
+        <div className="relative shrink-0" data-prevent-row-click="true" onClick={(e) => e.stopPropagation()}>
+          {!isPending && (
+            <RowActionMenu
+              actions={[
+                {
+                  id: "download",
+                  label: t("drive:vault.actions.download"),
+                  icon: Download,
+                  onSelect: () => onDownload(file),
+                },
+                ...(file.is_owner !== false
+                  ? [
+                      {
+                        id: "rename-inline",
+                        label: "Renombrar aquí mismo (F2)",
+                        icon: Edit2,
+                        onSelect: () => setRenaming(file.id, file.filename),
+                      },
+                      {
+                        id: "link",
+                        label: t("drive:vault.actions.createShareLink"),
+                        icon: Link2,
+                        onSelect: () => onCreateShareLink(file),
+                      },
+                      {
+                        id: "share",
+                        label: t("drive:vault.actions.share"),
+                        icon: Share2,
+                        onSelect: () =>
+                          onShareClick(
+                            file.id,
+                            file.filename,
+                            file.metadata,
+                            file.pin_wrapped_key || undefined
+                          ),
+                      },
+                      {
+                        id: "quick-share",
+                        label: t("drive:vault.actions.quickShare"),
+                        icon: Zap,
+                        onSelect: () => onQuickShare(file.id),
+                      },
+                      {
+                        id: "manage",
+                        label: t("drive:vault.actions.manageShares"),
+                        icon: Users,
+                        onSelect: () =>
+                          onManageSharesClick({
+                            id: file.id,
+                            filename: file.filename,
+                          }),
+                      },
+                      {
+                        id: "privacy",
+                        label: t("drive:vault.actions.accessControl"),
+                        icon: Shield,
+                        onSelect: () =>
+                          onAccessPanel({
+                            id: file.id,
+                            filename: file.filename,
+                          }),
+                      },
+                      {
+                        id: "receipt",
+                        label: t("drive:vault.actions.viewReceipt"),
+                        icon: Clock,
+                        onSelect: () => onOpenReceipt(file),
+                      },
+                      {
+                        id: "move",
+                        label: t("drive:vault.actions.moveToFolder"),
+                        icon: FolderOpen,
+                        onSelect: () => onMoveClick(file),
+                      },
+                      {
+                        id: "star",
+                        label: file.starred
+                          ? t("drive:vault.actions.unstar")
+                          : t("drive:vault.actions.star"),
+                        icon: Star,
+                        onSelect: () => onToggleStar(file.id),
+                      },
+                      {
+                        id: "divider-destructive",
+                        label: "",
+                        kind: "divider" as const,
+                      },
+                      {
+                        id: "delete",
+                        label: t("drive:vault.actions.delete"),
+                        icon: Trash2,
+                        kind: "destructive" as const,
+                        onSelect: () =>
+                          onDeleteClick({
+                            id: file.id,
+                            filename: file.filename,
+                          }),
+                      },
+                    ]
+                  : []),
+              ]}
+              label={file.filename}
+              density="compact"
+              triggerAriaLabel={t("drive:vault.fileActions", { filename: file.filename, defaultValue: "File actions for {{filename}}" })}
+              triggerTestId={`file-actions-${file.id}`}
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        <div className="w-4 shrink-0 flex items-center justify-center">
+      {/* Compact Sortable Header Strip */}
+      <div className="flex items-center gap-3 px-3 py-1 text-[10px] font-extrabold text-muted-foreground uppercase tracking-[0.07em]">
+        <div className="w-5 shrink-0 flex items-center justify-center">
           <input
             ref={headerCheckboxRef}
             type="checkbox"
             checked={allVisibleSelected}
             onChange={toggleSelectAllVisible}
-            className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+            className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer"
             aria-label={allVisibleSelected
               ? t("drive:vault.clearViewSelection", "Clear current view selection")
               : t("drive:vault.selectView", "Select current view")}
@@ -179,18 +807,17 @@ export const FileGrid: React.FC<FileGridProps> = ({
         <button
           type="button"
           onClick={() => onSort?.("name")}
-          className="flex-1 text-left cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center gap-1 group font-medium"
+          className="flex-1 text-left cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center gap-1 font-extrabold"
         >
           {t("drive:vault.columns.name")}
           {sortBy === "name" && (
             <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
           )}
         </button>
-        <div className="w-24 hidden lg:block">{t("drive:vault.columns.origin")}</div>
         <button
           type="button"
           onClick={() => onSort?.("size")}
-          className="w-16 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 group font-medium hidden md:flex"
+          className="w-16 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 font-extrabold hidden md:flex"
         >
           {t("drive:vault.columns.size")}
           {sortBy === "size" && (
@@ -200,424 +827,27 @@ export const FileGrid: React.FC<FileGridProps> = ({
         <button
           type="button"
           onClick={() => onSort?.("date")}
-          className="w-24 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 group font-medium hidden xl:flex"
+          className="w-24 text-right cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center justify-end gap-1 font-extrabold hidden xl:flex"
         >
           {t("drive:vault.columns.date")}
           {sortBy === "date" && (
             <span className="text-primary font-bold">{sortAsc ? "↑" : "↓"}</span>
           )}
         </button>
-        <div className="w-24 shrink-0 hidden md:block" />
+        <div className="w-28 shrink-0 hidden md:block" />
       </div>
 
-      {files.map((file) => {
-        const isSelected = selectedFileIds.has(file.id);
-        const origin = fileOriginFromData(file);
-        const fmtBadge = getFormatBadgeMeta(file.filename);
-
-        const isPending = downloadingFileIds.has(file.id) || deletingFileIds.has(file.id);
-
-        return (
-          <div
-            key={file.id}
-            id={`file-row-${file.id}`}
-            data-file-id={file.id}
-            data-file-row-id={file.id}
-            style={{
-              contentVisibility: "auto",
-              containIntrinsicSize: "0 48px",
-            }}
-            onClick={(e) => {
-              const target = e.target as HTMLElement;
-              if (!target.closest("button, input, a, [data-prevent-row-click]")) {
-                onPreviewClick(file);
-              }
-            }}
-            onDoubleClick={(e) => {
-              const target = e.target as HTMLElement;
-              if (!target.closest("button, input, a, [data-prevent-row-click]")) {
-                onDoubleClickRow?.(file);
-              }
-            }}
-            onContextMenu={(event) => onContextMenu(event, file)}
-            onMouseEnter={() => onRowHover?.(file)}
-            className={`
-              group flex flex-wrap md:flex-nowrap items-center gap-2.5 px-3 py-2 rounded-xl border transition-all cursor-pointer select-none active:scale-[0.999] duration-75
-              ${isSelected
-                ? "bg-primary/10 border-primary/50 shadow-xs"
-                : "bg-card border-border/60 hover:border-primary/30 hover:bg-muted/30 hover:shadow-xs"
-              }
-              ${focusedFileId === file.id ? "ring-2 ring-primary/60 bg-primary/10 border-primary/40 shadow-sm" : ""}
-              ${isPending ? "opacity-60" : ""}
-            `}
-          >
-            <label
-              htmlFor={`select-file-${file.id}`}
-              className="min-h-[44px] min-w-[44px] -m-2 p-2 flex items-center justify-center cursor-pointer shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <input
-                id={`select-file-${file.id}`}
-                type="checkbox"
-                checked={isSelected}
-                disabled={isPending}
-                onChange={() => toggleFileSelection(file.id)}
-                aria-label={t("drive:vault.selectFile", { filename: file.filename, defaultValue: "Select {{filename}}" })}
-                className="w-4 h-4 rounded border-border accent-primary shrink-0 cursor-pointer disabled:cursor-not-allowed"
-              />
-            </label>
-
-            <button
-              type="button"
-              disabled={isPending}
-              className="flex min-w-[110px] flex-1 items-center gap-2 cursor-pointer text-left disabled:cursor-not-allowed py-0.5"
-              onContextMenu={(event) => onContextMenu(event, file)}
-              onClick={() => onPreviewClick(file)}
-              onDoubleClick={() => onDoubleClickRow?.(file)}
-            >
-              {isPending ? (
-                <Loader2 className="w-4 h-4 text-primary shrink-0 animate-spin" />
-              ) : (
-                <>
-                  <span
-                    className={`w-7 h-7 rounded-md border text-[9.5px] font-extrabold inline-flex items-center justify-center shrink-0 ${fmtBadge.className}`}
-                  >
-                    {fmtBadge.label}
-                  </span>
-                  <File className="sr-only" />
-                </>
-              )}
-              <span className="min-w-0 flex-1 truncate text-xs sm:text-sm font-semibold text-foreground hover:text-primary transition-colors">
-                {file.filename}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              data-prevent-row-click="true"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenReceipt(file);
-              }}
-              className="relative hidden xl:flex h-6 w-6 shrink-0 cursor-pointer select-none rounded-full items-center justify-center p-0 hover:bg-emerald-500/10 transition-transform active:scale-95"
-              title={t("drive:vault.actions.viewReceipt")}
-              data-testid={`receipt-pulse-${file.id}`}
-              aria-label={`Recibo criptográfico de ${file.filename}`}
-            >
-              <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </button>
-
-            {/* Mobile Sub-line: Visible file size, date, and cryptographic seal */}
-            <div className="order-last w-full sm:hidden flex items-center justify-between text-xs text-muted-foreground pt-1.5 border-t border-border/40 mt-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-medium text-foreground/80">{formatBytes(file.file_size)}</span>
-                <span className="text-muted-foreground/60">•</span>
-                <span>{formatDate(file.created_at)}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <ShieldCheck className="w-3 h-3" />
-                  AES-256
-                </span>
-              </div>
-            </div>
-
-            {onPassportClick && (
-              <button
-                type="button"
-                data-prevent-row-click="true"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPassportClick(file);
-                }}
-                className="hidden xl:inline-flex p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
-                title="Cryptographic Passport (⌘I)"
-                aria-label={`Passport for ${file.filename}`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            <div className="w-24 hidden xl:block shrink-0 truncate">
-              <OriginBadge origin={origin} />
-            </div>
-
-            <div className="w-16 text-right text-xs font-mono tabular-nums text-muted-foreground hidden lg:block shrink-0">
-              {formatBytes(file.file_size)}
-            </div>
-
-            <div className="w-24 text-right text-xs font-mono tabular-nums text-muted-foreground hidden 2xl:block shrink-0">
-              {formatDate(file.created_at)}
-            </div>
-
-            <div className="ml-auto hidden max-w-full shrink-0 items-center justify-end gap-0.5 md:flex">
-              {!isPending && (
-                <>
-                  {/* Primary actions — always visible */}
-                  <button
-                    type="button"
-                    onClick={() => onDownload(file)}
-                    className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/60 transition-colors"
-                    title={t("drive:vault.actions.download")}
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                  </button>
-
-                  {file.is_owner !== false && (
-                    <button
-                      type="button"
-                      onClick={() => onCreateShareLink(file)}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                      title={t("drive:vault.actions.createShareLink")}
-                    >
-                      <Link2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-
-                  {file.is_owner !== false && (
-                    <button
-                      type="button"
-                      onClick={() => onToggleStar(file.id)}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        file.starred
-                          ? "text-amber-400 hover:text-amber-500"
-                          : "text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10"
-                      }`}
-                      title={file.starred ? t("drive:vault.actions.unstar") : t("drive:vault.actions.star")}
-                    >
-                      {file.starred ? (
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                      ) : (
-                        <StarOff className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  )}
-
-                  {file.is_owner !== false && (
-                    <button
-                      type="button"
-                      onClick={() => onAccessPanel({ id: file.id, filename: file.filename })}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary-foreground/40 transition-colors"
-                      title={t("drive:vault.actions.accessControl")}
-                    >
-                      <Shield className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-
-                  {file.is_owner !== false && (
-                    <button
-                      type="button"
-                      onClick={() => onOpenReceipt(file)}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors cursor-pointer animate-none"
-                      title={t("drive:vault.actions.viewReceipt")}
-                      data-testid={`receipt-action-${file.id}`}
-                    >
-                      <Clock className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-
-                  {/* Secondary actions — revealed on row hover */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150">
-                    {file.is_owner !== false && (
-                      <button
-                        type="button"
-                        onClick={() => onShareClick(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                        title={t("drive:vault.actions.share")}
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-
-                    {file.is_owner !== false && (
-                      <button
-                        type="button"
-                        onClick={() => onQuickShare(file.id)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
-                        title={t("drive:vault.actions.quickShare")}
-                      >
-                        <Zap className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-
-                    {file.is_owner !== false && (
-                      <button
-                        type="button"
-                        onClick={() => onManageSharesClick({ id: file.id, filename: file.filename })}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
-                        title={t("drive:vault.actions.manageShares")}
-                      >
-                        <Users className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-
-                    {file.is_owner !== false && (
-                      <button
-                        type="button"
-                        onClick={() => onMoveClick(file)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-500/10 transition-colors"
-                        title={t("drive:vault.actions.moveToFolder")}
-                      >
-                        <FolderOpen className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-
-                    {file.is_owner !== false && (
-                      <button
-                        type="button"
-                        onClick={() => onDeleteClick({ id: file.id, filename: file.filename })}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        title={t("drive:vault.actions.delete")}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Mobile 1-tap Quick Actions: Share (#key) + Inspect (5-Format RAM Sheet) */}
-            {!isPending && (
-              <div className="flex md:hidden items-center gap-1 ml-auto shrink-0">
-                {file.is_owner !== false && (
-                  <button
-                    type="button"
-                    data-prevent-row-click="true"
-                    data-testid={`mobile-file-share-${file.id}`}
-                    aria-label={`Compartir ${file.filename}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onCreateShareLink(file);
-                    }}
-                    className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 inline-flex items-center justify-center cursor-pointer active:scale-95"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  data-prevent-row-click="true"
-                  data-testid={`mobile-file-inspect-${file.id}`}
-                  aria-label={`Inspeccionar ${file.filename}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    (onMobileInspectClick ?? onPreviewClick)(file);
-                  }}
-                  className="w-8 h-8 rounded-lg bg-background border border-border text-foreground hover:bg-muted inline-flex items-center justify-center cursor-pointer active:scale-95"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {/* Unified actions via RowActionMenu */}
-            <div className="relative shrink-0">
-              {!isPending && (
-                <RowActionMenu
-                  actions={[
-                    {
-                      id: "download",
-                      label: t("drive:vault.actions.download"),
-                      icon: Download,
-                      onSelect: () => onDownload(file),
-                    },
-                    ...(file.is_owner !== false
-                      ? [
-                          {
-                            id: "link",
-                            label: t("drive:vault.actions.createShareLink"),
-                            icon: Link2,
-                            onSelect: () => onCreateShareLink(file),
-                          },
-                          {
-                            id: "share",
-                            label: t("drive:vault.actions.share"),
-                            icon: Share2,
-                            onSelect: () =>
-                              onShareClick(
-                                file.id,
-                                file.filename,
-                                file.metadata,
-                                file.pin_wrapped_key || undefined
-                              ),
-                          },
-                          {
-                            id: "quick-share",
-                            label: t("drive:vault.actions.quickShare"),
-                            icon: Zap,
-                            onSelect: () => onQuickShare(file.id),
-                          },
-                          {
-                            id: "manage",
-                            label: t("drive:vault.actions.manageShares"),
-                            icon: Users,
-                            onSelect: () =>
-                              onManageSharesClick({
-                                id: file.id,
-                                filename: file.filename,
-                              }),
-                          },
-                          {
-                            id: "privacy",
-                            label: t("drive:vault.actions.accessControl"),
-                            icon: Shield,
-                            onSelect: () =>
-                              onAccessPanel({
-                                id: file.id,
-                                filename: file.filename,
-                              }),
-                          },
-                          {
-                            id: "receipt",
-                            label: t("drive:vault.actions.viewReceipt"),
-                            icon: Clock,
-                            onSelect: () => onOpenReceipt(file),
-                          },
-                          {
-                            id: "move",
-                            label: t("drive:vault.actions.moveToFolder"),
-                            icon: FolderOpen,
-                            onSelect: () => onMoveClick(file),
-                          },
-                          {
-                            id: "star",
-                            label: file.starred
-                              ? t("drive:vault.actions.unstar")
-                              : t("drive:vault.actions.star"),
-                            icon: Star,
-                            onSelect: () => onToggleStar(file.id),
-                          },
-                          {
-                            id: "divider-destructive",
-                            label: "",
-                            kind: "divider" as const,
-                          },
-                          {
-                            id: "delete",
-                            label: t("drive:vault.actions.delete"),
-                            icon: Trash2,
-                            kind: "destructive" as const,
-                            onSelect: () =>
-                              onDeleteClick({
-                                id: file.id,
-                                filename: file.filename,
-                              }),
-                          },
-                        ]
-                      : []),
-                  ]}
-                  label={file.filename}
-                  density="compact"
-                  triggerAriaLabel={t("drive:vault.fileActions", { filename: file.filename, defaultValue: "File actions for {{filename}}" })}
-                  triggerTestId={`file-actions-${file.id}`}
-                />
-              )}
-            </div>
+      {groupedSections.map((section) => (
+        <div key={section.title} className="space-y-1">
+          <div className="flex items-center justify-between px-2.5 pt-2 pb-1 text-[10px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+            <span>{section.title}</span>
+            <span className="abrn-mono">
+              {section.items.length} {section.items.length === 1 ? "ÍTEM" : "ÍTEMS"}
+            </span>
           </div>
-        );
-      })}
+          {section.items.map((file) => renderRow(file))}
+        </div>
+      ))}
     </div>
   );
 };

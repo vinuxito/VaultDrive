@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v22-abrn-unified-vault-ingrid-uix",
+    "environment": "Ubuntu Linux 64-bit · Node/Vite Production Bundle (/abrn/) · Live HTTPS https://abrndrive.filemonprime.net/abrn/files · Real Chromium via bsk (1440x900@2x and 390x844@3x)",
+    "report": "docs/reports/2026-11-14-v22-abrn-unified-vault-ingrid-uix-verification.md",
+    "files": [
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "da0e8cffc664cb58385dff6a89b30af01a3c4d7dc904abdab07f4e15fecabe48"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/index.html",
+        "sha256": "f265484ea1e6ae186e96c3ec06a34569ce9f1fbe164902d012bb5a66bdc113d3"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/easy.html",
+        "sha256": "5a2b244b33cca9987d263f26be9f329a3212b9c42969a22ba996fe652169c7da"
+      },
+      {
+        "path": "vaultdrive_client/src/styles/abrn-unified-vault.css",
+        "sha256": "d34e2474d39a2b3e00cdd50a5cfc6bb20b072341e97a85c52919907009adab97"
+      },
+      {
+        "path": "vaultdrive_client/src/index.css",
+        "sha256": "c573f5f8f4b14bf3cdd23657c9e29ffcdeb9bce7a34c830b95bf775e8e3aeeee"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/sidebar.tsx",
+        "sha256": "3e08fa08fcd694734e882772f730ed2a677e36bb57b0f2b0d1a1743affc50675"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/dashboard-layout.tsx",
+        "sha256": "575e4b9e5bce0a21185cff5414834f8f5fd1d7f88165eb05668abd5ef6227268"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultTree.tsx",
+        "sha256": "31b82a79176ba34c0c8357a594bd7769a96188223a902fe08c1b2c5eec0c896c"
+      },
+      {
+        "path": "vaultdrive_client/src/components/folders/FolderModal.tsx",
+        "sha256": "35fca29d162deb16253d1e525efec6818bc249223f11f0f92bfd558e12939b35"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultContextMenu.tsx",
+        "sha256": "7fafb13a01c354ad17222a6efaf7fefd1e57e4a955b0a97306a5c4adfb03ece9"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.tsx",
+        "sha256": "aa47228d69ff53fda66392fa85a1acc68bfccc13759e46df88147de911c20ce9"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/StagingDock.tsx",
+        "sha256": "6526fb02df02832c1b4d9eea7e8bb0d939ad5a99911665eab7515441edd24646"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultInspectorPane.tsx",
+        "sha256": "88116e790fe733b7ea86814ca838b341a0c697f38a7ba098c318188db8206141"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/SmartUploadOrderModal.tsx",
+        "sha256": "d3b29c45f65fbe7ddbca6c38bd20625cb5f9bebfadff03d88edcdf750a3998ea"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/WhatsAppDropRequestModal.tsx",
+        "sha256": "f89c4e8f27ac33debc9b211ac7f66ecc51bf71ae22e6877cbc56aa5af0dab914"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilePreviewModal.tsx",
+        "sha256": "52decaaae43bc1c34b4d8b7211bbf254af7d5f02821fdfedeff5c2ee6366c453"
+      },
+      {
+        "path": "vaultdrive_client/src/pages/files.tsx",
+        "sha256": "ad5675b428190de60a91450d4c09ed5eb9be99405233ce8f64fe904ffa2cd9ea"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/SmartUploadOrderModal.test.tsx",
+        "sha256": "58e66b68828927b33ba02db6256a74eef7a7b580ad27cb06d48ea6334dc9fd2a"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/WhatsAppDropRequestModal.test.tsx",
+        "sha256": "9c0f121aa61e1ef856050c78cf6f2d8e2802a905cbbfb92a24a88f2be50c6dad"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-01-UNIFIED-SHELL-AND-PALETTE",
+      "description": "Immutable ABRN Cream (#faf8f5 / #7a1f2b) and ABRN Slate (#1e2330 / #262c3b / #d4aeb0) 1-click topbar switcher, Libre Baskerville serif identity, 62px-238px collapsible rail with ABRN Drive crest and FLUJO CONTABLE actions, and contextual topbar accountant buttons on /files.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-05"]
+    },
+    {
+      "id": "REQ-02-SUBHEADER-PRESETS-AND-SPLITTERS",
+      "description": "Unified subheader with Bóveda ABRN breadcrumb, Blindado · AES-256-GCM emerald pulse pill, 1-click Layout Presets (3 Paneles, Lista Ancha, Lectura), 1px-divided clickable Telemetry Strip, and tactile 10px 4-dot vertical splitters with live px HUD.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04"]
+    },
+    {
+      "id": "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+      "description": "CLIENTES Y CARPETAS left pane with + Carpeta, instant client filter input, FIJADOS section, 1-click 5-Subfolder Accountant Standard Template in FolderModal, and folder right-click context actions.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-05", "CHK-06"]
+    },
+    {
+      "id": "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+      "description": "Horizontal subfolder quick-pills, 9 live-count underline filter tabs, day-grouped headers (HOY / ESTA SEMANA / ANTERIORES), 38x38 format thumbnails, inline F2 rename persisted via POST /api/v1/files/sync, zero-reflow Floating In-Grid Action Capsule, persistent Download/Abrir buttons, and Canasta #key StagingDock.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-05"]
+    },
+    {
+      "id": "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS",
+      "description": "6-format RAM Inspector (PDF, CFDI, XLSX, 4K, Video, Código) with 2x2 Dispatch Deck, Cryptographic Passport, Smart Upload & Auto-Order Modal (triageFileObject + AES-256-GCM subfolder upload), WhatsApp Secure Drop Checklist Modal (POST /api/drop/create + Ya recibido detection), and 94vw Cinemascope FilePreviewModal.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-05", "CHK-06", "CHK-07", "CHK-08"]
+    },
+    {
+      "id": "REQ-06-MOBILE-AND-CRYPTO-ZERO-REGRESSION",
+      "description": "Mobile 390x844 layout, Active Folder Hero, Subfolder Strip, and thumb-first AES-256 cards remain 100% intact with zero overflow, client-side AES-256-GCM and #fragment keys remain preserved, and abrndrive.service is untouched.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-09"]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-01",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run typecheck",
+      "expected": "tsc -b && tsc -p tsconfig.e2e.json --noEmit exits 0 with 0 TypeScript errors.",
+      "actual": "Exited 0 with 0 errors across all application and E2E TypeScript configurations.",
+      "environment": "Node.js / TypeScript CLI in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-UNIFIED-SHELL-AND-PALETTE",
+        "REQ-02-SUBHEADER-PRESETS-AND-SPLITTERS",
+        "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+        "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS",
+        "REQ-06-MOBILE-AND-CRYPTO-ZERO-REGRESSION"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-14-v22-abrn-unified-vault-ingrid-uix-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-02",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npx vitest run src/config/skin-contrast.test.ts src/config/brand-theme.test.ts src/components/layout/sidebar.test.tsx src/components/layout/dashboard-layout.test.tsx src/components/vault/VaultTreeContrast.test.tsx src/components/vault/FileGrid.test.tsx src/components/vault/StagingDock.test.tsx src/components/vault/VaultInspectorPane.test.tsx src/components/vault/VaultContextMenu.test.tsx src/components/vault/FileSearch.test.tsx src/components/vault/SmartUploadOrderModal.test.tsx src/components/vault/WhatsAppDropRequestModal.test.tsx",
+      "expected": "All 12 test suites and 108 unit/contrast tests pass with exit code 0.",
+      "actual": "12/12 test files passed, 108/108 tests passed (0 failed).",
+      "environment": "Vitest v4.1.0 jsdom in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-UNIFIED-SHELL-AND-PALETTE",
+        "REQ-02-SUBHEADER-PRESETS-AND-SPLITTERS",
+        "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+        "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS",
+        "REQ-06-MOBILE-AND-CRYPTO-ZERO-REGRESSION"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-14-v22-abrn-unified-vault-ingrid-uix-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-03",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build && sha256sum dist/index.html",
+      "expected": "Vite production bundle compiles cleanly with exit code 0 under /abrn base path.",
+      "actual": "2470 modules transformed, built in 12.57s; dist/index.html SHA-256 da0e8cffc664cb58385dff6a89b30af01a3c4d7dc904abdab07f4e15fecabe48.",
+      "environment": "Vite v7.2.4 production build in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-UNIFIED-SHELL-AND-PALETTE",
+        "REQ-02-SUBHEADER-PRESETS-AND-SPLITTERS",
+        "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+        "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS",
+        "REQ-06-MOBILE-AND-CRYPTO-ZERO-REGRESSION"
+      ],
+      "evidence": [
+        "vaultdrive_client/dist/index.html",
+        "docs/reports/2026-11-14-v22-abrn-unified-vault-ingrid-uix-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-04",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Open https://abrndrive.filemonprime.net/abrn/files in bsk at 1440x900@2x (ABRN Cream), trigger inline F2 rename to Banorte_Estado_de_Cuenta_Nov2026.pdf, stage 2 files to Canasta #key dock, hover Row 1 to display Floating In-Grid Action Capsule, and inspect 6-format RAM inspector.",
+      "expected": "Rename persists via POST /api/v1/files/sync, capsule renders without row reflow, StagingDock sits cleanly at z-[45], and VaultInspectorPane renders all 6 tabs and 2x2 dispatch deck without clipping.",
+      "actual": "Persisted rename confirmed by toast and reload, zero layout shift on capsule hover, crisp 6-tab + 2x2 inspector layout, and clean z-[45] StagingDock.",
+      "environment": "Live Chromium via bsk (1440x900@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-UNIFIED-SHELL-AND-PALETTE",
+        "REQ-02-SUBHEADER-PRESETS-AND-SPLITTERS",
+        "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+        "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-01-unified-vault-cream.png",
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-01-unified-vault-cream.jpg"
+      ]
+    },
+    {
+      "id": "CHK-05",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Click ABRN Slate in topbar, click Toggle sidebar to expand 238px navigation rail, and right-click file row to open VaultContextMenu while StagingDock is active.",
+      "expected": "ABRN Slate (#1e2330 / #262c3b / #d4aeb0) renders with crisp WCAG AA contrast, expanded sidebar shows ABRN Drive crest + FLUJO CONTABLE items, and VaultContextMenu (z-[60]) floats cleanly above StagingDock (z-[45]).",
+      "actual": "Verified cleanly across expanded rail, 3-pane explorer, and z-[60] right-click VaultContextMenu.",
+      "environment": "Live Chromium via bsk (1440x900@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-UNIFIED-SHELL-AND-PALETTE",
+        "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+        "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-02-unified-slate-context.png",
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-02-unified-slate-context.jpg"
+      ]
+    },
+    {
+      "id": "CHK-06",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Create Grupo Roche SA de CV with 5-subfolder template enabled in FolderModal, open Subir y Ordenar, triage 4 chaotic files in RAM, and click Cifrar y Guardar.",
+      "expected": "5 standard subfolders (01..05) are created automatically; SmartUploadOrderModal suggests clean accountant names and encrypts/uploads files into their target subfolders in 1 click.",
+      "actual": "All 5 subfolders created and all 4 files encrypted with AES-256-GCM and stored inside their respective 01..04 subfolders.",
+      "environment": "Live Chromium via bsk (1440x900@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-03-CLIENT-TREE-AND-5-FOLDER-TEMPLATE",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-03-smart-upload-modal.png",
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-03-smart-upload-modal.jpg"
+      ]
+    },
+    {
+      "id": "CHK-07",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Click Pedir Docs on Grupo Roche SA de CV, inspect Ya recibido vs Pendiente checklist and live WhatsApp message preview, and click Copiar Link Drop with PIN 2486.",
+      "expected": "Estado de Cuenta Bancario del mes shows Ya recibido (unchecked), missing items show Pendiente (checked), StagingDock remains behind modal backdrop, and /api/drop/create returns a real Secure Drop URL.",
+      "actual": "Ya recibido item unchecked automatically, modal cleanly overlays z-[45] dock, and real /abrn/drop/89805c0e... token generated and copied.",
+      "environment": "Live Chromium via bsk (1440x900@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-04-whatsapp-drop-modal.png",
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-04-whatsapp-drop-modal.jpg"
+      ]
+    },
+    {
+      "id": "CHK-08",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Select CFDI_40_Proveedor_Logistica_Folio4821_Nov2026.xml and click Expandir 94vw to open Cinemascope FilePreviewModal.",
+      "expected": "94vw x 88dvh Cinemascope modal opens cleanly above background UI, decrypts XML in RAM (0 rastros en disco), displays SHA-256 seal, and renders Filemón Office SAT CFDI 4.0 Glass Twin.",
+      "actual": "Rendered full SAT CFDI 4.0 Glass Twin ($19,200.00 MXN, Serie/Folio A-4821, UUID A89F22C1-77B4-40E2-9104-88C019F44A10, SHA-256 30ec6d3126b09b0f...) with sticky bottom tactical dock.",
+      "environment": "Live Chromium via bsk (1440x900@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-05-cinemascope-94vw.png",
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-05-cinemascope-94vw.jpg"
+      ]
+    },
+    {
+      "id": "CHK-09",
+      "build_id": "v22-abrn-unified-vault-ingrid-uix",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Emulate iPhone 14 (390x844@3x) in bsk and reload https://abrndrive.filemonprime.net/abrn/files.",
+      "expected": "Mobile header, subheader (Bóveda ABRN, Blindado, Carpetas, Subir), Active Folder Hero, Subfolder Strip, and thumb-first AES-256 file cards render with zero horizontal overflow and desktop splitters hidden.",
+      "actual": "Verified cleanly at 390x844@3x with zero overlap, zero stray splitters, and full mobile functionality intact.",
+      "environment": "Live Chromium via bsk (iPhone 14 390x844@3x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-06-MOBILE-AND-CRYPTO-ZERO-REGRESSION"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-06-mobile-390x844.png",
+        "docs/tickets/evidence/v22-abrn-unified-vault-ingrid-uix/live-06-mobile-390x844.jpg"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-01",
+      "severity": "MEDIUM",
+      "reproduction": "Stage 2 files in Canasta #key dock on /files and open either VaultContextMenu or a Radix modal dialog.",
+      "expected": "StagingDock sits above the left sidebar (z-40) without left-edge clipping, while staying underneath Radix modal dialogs (z-50) and VaultContextMenu.",
+      "actual": "At z-40 StagingDock clipped behind the sidebar; at z-[55] it stacked above Radix modal backdrops (z-50).",
+      "cause": "Stacking order between sidebar (z-40), StagingDock, Radix Dialog (z-50), and VaultContextMenu needed intermediate layer calibration.",
+      "status": "FIXED",
+      "fix": "Set StagingDock to z-[45] and VaultContextMenu to z-[60].",
+      "requirement_ids": [
+        "REQ-04-INGRID-CAPSULE-TABS-AND-DAY-GROUPS",
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "verification_check_ids": ["CHK-04", "CHK-05", "CHK-07", "CHK-08"]
+    },
+    {
+      "id": "FND-02",
+      "severity": "LOW",
+      "reproduction": "Open /files at 1440x900 with default 368px VaultInspectorPane width.",
+      "expected": "All 6 format tabs and all 4 quick dispatch actions in VaultInspectorPane display their full labels without clipping.",
+      "actual": "XML CFDI truncated to XM... and the 4th single-row dispatch button clipped at 368px width.",
+      "cause": "Single-row 4-button flex layout and 2-word tab label exceeded 344px inner width.",
+      "status": "FIXED",
+      "fix": "Shortened tab label to CFDI with whitespace-nowrap and arranged the 4 quick dispatch buttons into a 2x2 grid-cols-2 deck in VaultInspectorPane.tsx.",
+      "requirement_ids": [
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "verification_check_ids": ["CHK-04", "CHK-05"]
+    },
+    {
+      "id": "FND-03",
+      "severity": "LOW",
+      "reproduction": "Open Pedir Docs (WhatsAppDropRequestModal) on a client folder that already contains a bank statement PDF.",
+      "expected": "Items detected as Ya recibido start unchecked so the checklist checkboxes match the filtered WhatsApp message preview.",
+      "actual": "Estado de Cuenta Bancario del mes displayed the green Ya recibido badge while its checkbox remained checked on initial open.",
+      "cause": "selectedIds initialized statically before filtering against receivedMap.",
+      "status": "FIXED",
+      "fix": "Added useEffect in WhatsAppDropRequestModal.tsx syncing selectedIds on open to exclude items where receivedMap[d.id] is true.",
+      "requirement_ids": [
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "verification_check_ids": ["CHK-07"]
+    },
+    {
+      "id": "FND-04",
+      "severity": "MEDIUM",
+      "reproduction": "Emulate 390x844 mobile viewport on /files.",
+      "expected": "Desktop-only .abrn-btn and .abrn-splitter elements with Tailwind hidden class do not render on mobile viewports.",
+      "actual": "Desktop Subir y Ordenar button and tiny splitter handles remained visible on 390x844 mobile.",
+      "cause": "Unlayered .abrn-btn and .abrn-splitter display rules in abrn-unified-vault.css had higher CSS cascade priority than Tailwind v4 @layer utilities .hidden.",
+      "status": "FIXED",
+      "fix": "Wrapped all .abrn-* component classes in abrn-unified-vault.css inside @layer components so Tailwind v4 utility classes win cleanly.",
+      "requirement_ids": [
+        "REQ-06-MOBILE-AND-CRYPTO-ZERO-REGRESSION"
+      ],
+      "verification_check_ids": ["CHK-09"]
+    },
+    {
+      "id": "FND-05",
+      "severity": "LOW",
+      "reproduction": "Load the 4 sample files in SmartUploadOrderModal, upload the sample CFDI XML, and open it in the 94vw FilePreviewModal.",
+      "expected": "FilemonOfficeStage parses the sample XML as a full SAT CFDI 4.0 tree and renders the Executive Glass Twin.",
+      "actual": "Strict XML DOMParser reported unbound cfdi: namespace prefix and fell back to safe escaped source view.",
+      "cause": "Synthetic sample XML omitted xmlns:cfdi and xmlns:tfd namespace declarations.",
+      "status": "FIXED",
+      "fix": "Added xmlns:cfdi, xmlns:tfd, Conceptos, and TimbreFiscalDigital UUID attributes to the sample XML in SmartUploadOrderModal.tsx.",
+      "requirement_ids": [
+        "REQ-05-6FORMAT-INSPECTOR-AND-ACCOUNTANT-MODALS"
+      ],
+      "verification_check_ids": ["CHK-08"]
+    }
+  ]
+}

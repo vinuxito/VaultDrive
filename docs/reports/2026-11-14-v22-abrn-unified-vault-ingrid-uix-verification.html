@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive — v22 Unified Vault &amp; In-Grid UIX Executive Verification Dashboard</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --bg-elevated: #f2efe9;
+      --card: #ffffff;
+      --fg: #2f3542;
+      --fg-strong: #1c1a17;
+      --muted: #6b6359;
+      --crimson: #7a1f2b;
+      --crimson-tint: #f8e8e8;
+      --border: #e5e0d8;
+      --emerald: #1f7a5c;
+      --emerald-bg: rgba(31, 122, 92, 0.11);
+      --gold: #9a6700;
+      --gold-bg: rgba(184, 134, 11, 0.13);
+      --shadow: 0 8px 24px rgba(28, 26, 23, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.55;
+    }
+    .wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 36px 24px 64px;
+    }
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--crimson);
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      font-weight: 800;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 122, 92, 0.28);
+    }
+    h1, h2, h3 {
+      font-family: Georgia, "Libre Baskerville", serif;
+      color: var(--fg-strong);
+      margin: 0;
+    }
+    h1 { font-size: 26px; margin-top: 12px; }
+    .sub { color: var(--muted); font-size: 14px; margin-top: 8px; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(28, 26, 23, 0.04);
+    }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .kpi-val {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--crimson);
+      margin-top: 6px;
+      font-family: "SF Mono", "JetBrains Mono", monospace;
+    }
+    .kpi-note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 22px;
+      box-shadow: 0 2px 10px rgba(28, 26, 23, 0.04);
+    }
+    section h2 { font-size: 19px; margin-bottom: 14px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      background: var(--bg-elevated);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .pill-pass {
+      display: inline-block;
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 122, 92, 0.3);
+    }
+    .pill-fixed {
+      display: inline-block;
+      background: var(--crimson-tint);
+      color: var(--crimson);
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    code {
+      font-family: "SF Mono", "JetBrains Mono", monospace;
+      font-size: 12px;
+      background: var(--bg-elevated);
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+    .ba-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .ba-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .ba-card h3 { font-size: 15px; margin-bottom: 8px; }
+    ul { margin: 8px 0 0; padding-left: 18px; font-size: 13.5px; }
+    li { margin-bottom: 6px; }
+    @media (max-width: 768px) { .ba-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="eyebrow">● 8K Reality Verified · SEGURO CONTINUAR · Audit PASS</span>
+      <h1>ABRN Drive — v22 Unified Vault, In-Grid Capsule &amp; Accountant Auto-Order</h1>
+      <p class="sub">
+        Ticket: <code>TICKET-2026-11-14-ABRN-UNIFIED-VAULT-INGRID-UIX</code> · Build ID: <code>v22-abrn-unified-vault-ingrid-uix</code> · Date: <code>2026-11-14</code><br/>
+        Final <code>dist/index.html</code> SHA-256: <code>da0e8cffc664cb58385dff6a89b30af01a3c4d7dc904abdab07f4e15fecabe48</code>
+      </p>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">TypeScript Strict</div>
+        <div class="kpi-val">0 Errors</div>
+        <div class="kpi-note"><code>tsc -b</code> &amp; <code>tsconfig.e2e.json</code></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Vitest Suites</div>
+        <div class="kpi-val">108 / 108</div>
+        <div class="kpi-note">12/12 suites passing (100%)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Vite Production Build</div>
+        <div class="kpi-val">12.57 s</div>
+        <div class="kpi-note"><code>/abrn/</code> live zero-restart serve</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Live Browser Journeys</div>
+        <div class="kpi-val">6 / 6 PASS</div>
+        <div class="kpi-note"><code>bsk</code> 1440×900@2x &amp; 390×844@3x</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Post-Build Audit</div>
+        <div class="kpi-val" style="color:var(--emerald)">PASS (0)</div>
+        <div class="kpi-note">5/5 visual polish findings fixed</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>1. Before vs. After Architectural Summary</h2>
+      <div class="ba-grid">
+        <div class="ba-card">
+          <h3>Before (v21 Baseline)</h3>
+          <ul>
+            <li>Separate upload and Secure Drop modals required manual file naming and manual subfolder navigation for chaotic client files (<code>scan_0019(2).pdf</code>, <code>a89f22c1.xml</code>).</li>
+            <li>Row actions required opening overflow menus or navigating away from the file row; no inline <code>F2</code> rename or zero-reflow floating action capsule.</li>
+            <li>Client onboarding lacked a 1-click Mexican accountant 5-subfolder expediente standard.</li>
+          </ul>
+        </div>
+        <div class="ba-card">
+          <h3>After (v22 Unified ABRN Vault &amp; In-Grid UIX)</h3>
+          <ul>
+            <li><strong>One Unified ABRN Drive:</strong> Warm <strong>ABRN Cream</strong> (<code>#faf8f5</code> / <code>#7a1f2b</code>) &amp; <strong>ABRN Slate</strong> (<code>#1e2330</code> / <code>#d4aeb0</code>) with <code>Libre Baskerville</code> serif authority, tactile 4-dot splitters + live <code>px</code> HUD, and <code>3 Paneles</code> / <code>Lista Ancha</code> / <code>Lectura</code> presets.</li>
+            <li><strong>Zero-Reflow Floating In-Grid Action Capsule &amp; Inline <code>F2</code> Rename:</strong> 1-click <code>#key</code>, <code>WhatsApp</code>, <code>Renombrar (F2)</code> (persisted via <code>POST /api/v1/files/sync</code>), <code>Canasta #key</code>, <code>★</code>, and 2-click armed <code>¿Borrar?</code>.</li>
+            <li><strong>Accountant Velocity Built-In:</strong> 5-Subfolder Standard Template, <strong>Smart Upload &amp; Auto-Order</strong> (in-RAM <code>triageFileObject</code> + 1-click AES-256-GCM subfolder routing), <strong>WhatsApp Secure Drop Checklist</strong> (<code>Ya recibido</code> auto-detection + real <code>/api/drop/create</code>), and 6-Format RAM Inspector + <code>94vw</code> SAT CFDI 4.0 Glass Twin.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Cold Verification Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Requirement Coverage</th>
+            <th>Verification Method &amp; Evidence</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CHK-01</code></td>
+            <td><code>REQ-01</code>–<code>REQ-06</code></td>
+            <td><code>npm run typecheck</code> — strict <code>tsc -b</code> + <code>tsconfig.e2e.json</code> (0 errors)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-02</code></td>
+            <td><code>REQ-01</code>–<code>REQ-06</code></td>
+            <td>12 Vitest suites (108/108 tests passing, including 78 WCAG contrast assertions + new SmartUpload &amp; WhatsAppDrop suites)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-03</code></td>
+            <td><code>REQ-01</code>–<code>REQ-06</code></td>
+            <td><code>npm run build</code> — 2,470 modules compiled in 12.57s (<code>dist/index.html</code> SHA-256 verified)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-04</code></td>
+            <td><code>REQ-01</code>, <code>REQ-02</code>, <code>REQ-03</code>, <code>REQ-04</code>, <code>REQ-05</code></td>
+            <td>Live <code>bsk</code> 1440×900 <strong>ABRN Cream</strong>: inline <code>F2</code> rename persisted, 2 files staged in <code>Canasta #key</code>, Floating In-Grid Capsule hovered, 6-format RAM inspector verified (<code>live-01-unified-vault-cream.png</code>)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-05</code></td>
+            <td><code>REQ-01</code>, <code>REQ-03</code>, <code>REQ-04</code></td>
+            <td>Live <code>bsk</code> 1440×900 <strong>ABRN Slate</strong>: expanded 238px rail + right-click <code>VaultContextMenu</code> at <code>z-[60]</code> (<code>live-02-unified-slate-context.png</code>)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-06</code></td>
+            <td><code>REQ-03</code>, <code>REQ-05</code></td>
+            <td>Live <code>bsk</code>: 5-subfolder client template + <code>SmartUploadOrderModal</code> auto-naming &amp; encrypting 4 files into target subfolders (<code>live-03-smart-upload-modal.png</code>)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-07</code></td>
+            <td><code>REQ-05</code></td>
+            <td>Live <code>bsk</code>: <code>WhatsAppDropRequestModal</code> auto-detecting <code>Ya recibido</code> vs <code>Pendiente</code> + real <code>/api/drop/create</code> token generation (<code>live-04-whatsapp-drop-modal.png</code>)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-08</code></td>
+            <td><code>REQ-05</code></td>
+            <td>Live <code>bsk</code>: <code>94vw × 88dvh</code> Cinemascope <code>FilePreviewModal</code> rendering full SAT CFDI 4.0 Glass Twin in RAM (<code>live-05-cinemascope-94vw.png</code>)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-09</code></td>
+            <td><code>REQ-06</code></td>
+            <td>Live <code>bsk</code> iPhone 14 (<code>390×844@3x</code>): zero horizontal overflow, clean mobile subheader &amp; thumb-first <code>AES-256</code> cards (<code>live-06-mobile-390x844.png</code>)</td>
+            <td><span class="pill-pass">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>3. Post-Build Audit Findings &amp; Remediations</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Finding</th>
+            <th>Conservative Fix</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>FND-01</code></td>
+            <td><code>StagingDock</code> layer collision with sidebar (<code>z-40</code>) / modals (<code>z-50</code>)</td>
+            <td>Calibrated <code>StagingDock</code> to <code>z-[45]</code> and <code>VaultContextMenu</code> to <code>z-[60]</code></td>
+            <td><span class="pill-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-02</code></td>
+            <td><code>VaultInspectorPane</code> tab &amp; 4th dispatch button clipped at <code>368px</code></td>
+            <td>Compact <code>CFDI</code> tab label + <code>2×2</code> <code>grid-cols-2</code> quick action deck</td>
+            <td><span class="pill-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-03</code></td>
+            <td><code>Ya recibido</code> item stayed checked by default in <code>WhatsAppDropRequestModal</code></td>
+            <td>Synced <code>selectedIds</code> on open to uncheck items already present in vault</td>
+            <td><span class="pill-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-04</code></td>
+            <td>Unlayered <code>.abrn-btn</code> / <code>.abrn-splitter</code> overrode Tailwind v4 <code>.hidden</code> on mobile</td>
+            <td>Wrapped component rules in <code>@layer components</code> inside <code>abrn-unified-vault.css</code></td>
+            <td><span class="pill-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-05</code></td>
+            <td>Sample CFDI XML lacked SAT <code>xmlns:cfdi</code> / <code>xmlns:tfd</code> namespaces</td>
+            <td>Added full CFDI 4.0 &amp; <code>TimbreFiscalDigital</code> namespaces to sample generator</td>
+            <td><span class="pill-fixed">FIXED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. Next Proposed Steps</h2>
+      <ul>
+        <li>Conduct 5-person unassisted accountant &amp; auxiliary observation sessions using real monthly SAT closing batches (CFDI XML + bank statements + 32-D PDFs).</li>
+        <li>Optional future code-splitting of <code>files.tsx</code> modal chunks via dynamic <code>React.lazy</code> to trim initial <code>files</code> chunk gzip size below 100 KB without altering runtime behavior.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

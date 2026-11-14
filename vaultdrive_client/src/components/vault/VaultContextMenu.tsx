@@ -14,6 +14,8 @@ import {
   Layers,
   Edit2,
   MessageCircle,
+  Inbox,
+  Sparkles,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
@@ -37,6 +39,7 @@ interface VaultContextMenuProps {
   onWhatsAppShare?: (file: any) => void;
   onPassport?: (file: any) => void;
   onMove?: (file: any) => void;
+  onRenameInline?: (file: any) => void;
   onToggleStar?: (fileId: string) => void;
   onCopyHash?: (file: any) => void;
   onStageFile?: (file: any) => void;
@@ -48,6 +51,12 @@ interface VaultContextMenuProps {
   onCreateFolder?: () => void;
   onCreateSubfolder?: (folderId: string) => void;
   onUploadHere?: (folderId?: string) => void;
+  onSmartUpload?: () => void;
+  onRequestDrop?: () => void;
+  onRequestDropForFolder?: (folderId: string, name: string) => void;
+  onTogglePinFolder?: (folderId: string, name: string) => void;
+  isFolderPinned?: (folderId: string) => boolean;
+  onGenerateStandardSubfolders?: (folderId: string, name: string) => void;
   onRenameFolder?: (folderId: string, name: string) => void;
   onShareFolder?: (folderId: string, name: string) => void;
   onDeleteFolder?: (folderId: string, name: string) => void;
@@ -63,6 +72,7 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
   onWhatsAppShare,
   onPassport,
   onMove,
+  onRenameInline,
   onToggleStar,
   onCopyHash,
   onStageFile,
@@ -74,6 +84,12 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
   onCreateFolder,
   onCreateSubfolder,
   onUploadHere,
+  onSmartUpload,
+  onRequestDrop,
+  onRequestDropForFolder,
+  onTogglePinFolder,
+  isFolderPinned,
+  onGenerateStandardSubfolders,
   onRenameFolder,
   onShareFolder,
   onDeleteFolder,
@@ -83,13 +99,12 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [coords, setCoords] = useState<{ x: number; y: number }>({ x: state.x, y: state.y });
 
-  // Boundary clamping to keep menu inside viewport
   useEffect(() => {
     if (!state.isOpen) return;
 
-    const MENU_WIDTH = 230;
-    const MENU_HEIGHT = 320;
-    const padding = 12;
+    const MENU_WIDTH = 272;
+    const MENU_HEIGHT = 360;
+    const padding = 10;
 
     const clampedX = Math.max(padding, Math.min(state.x, Math.max(padding, window.innerWidth - MENU_WIDTH - padding)));
     const clampedY = Math.max(padding, Math.min(state.y, Math.max(padding, window.innerHeight - MENU_HEIGHT - padding)));
@@ -97,7 +112,6 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
     setCoords({ x: clampedX, y: clampedY });
   }, [state.isOpen, state.x, state.y]);
 
-  // Click outside and escape dismissal
   useEffect(() => {
     if (!state.isOpen) return;
 
@@ -146,54 +160,57 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
         onClose();
       }}
       className={cn(
-        "w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer select-none",
+        "w-full h-[33px] flex items-center justify-between px-2.5 rounded-[8px] text-left text-[12px] font-semibold transition-colors cursor-pointer select-none",
         destructive
           ? "text-destructive hover:bg-destructive/10"
-          : "text-foreground hover:bg-primary/10 hover:text-primary"
+          : "text-foreground hover:bg-primary/12 hover:text-primary"
       )}
     >
-      <div className="flex items-center gap-2.5 min-w-0">
-        <Icon className={cn("w-4 h-4 shrink-0", destructive ? "text-destructive" : "text-muted-foreground")} />
-        <span className="truncate font-medium">{label}</span>
+      <div className="flex items-center gap-2 min-w-0">
+        <Icon className={cn("w-3.5 h-3.5 shrink-0", destructive ? "text-destructive" : "text-muted-foreground")} />
+        <span className="truncate">{label}</span>
       </div>
-      {shortcut && (
-        <kbd className="ml-3 px-1.5 py-0.5 text-[10px] font-mono rounded bg-muted/60 text-muted-foreground border border-border/40">
-          {shortcut}
-        </kbd>
-      )}
+      {shortcut && <kbd className="abrn-kbd-pill ml-3 shrink-0">{shortcut}</kbd>}
     </button>
   );
 
-  const Divider = () => <div className="h-px bg-border/60 my-1 mx-2" />;
+  const Divider = () => <div style={{ background: "var(--abrn-border)" }} className="h-px my-1 mx-1.5" />;
 
   return (
     <div
       ref={menuRef}
       role="menu"
+      data-testid="vault-context-menu"
       aria-orientation="vertical"
       style={{
         left: `${coords.x}px`,
         top: `${coords.y}px`,
+        background: "var(--abrn-popover)",
+        borderColor: "var(--abrn-border-strong)",
+        boxShadow: "var(--abrn-shadow-lg)",
       }}
-      className="fixed z-50 min-w-[210px] max-w-[280px] p-1.5 rounded-xl bg-card/95 backdrop-blur-xl border border-border/80 shadow-2xl ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95 duration-100 select-none"
+      className="fixed z-[60] min-w-[262px] max-w-[300px] p-1.5 rounded-[12px] border animate-in fade-in-0 zoom-in-95 duration-100 select-none"
     >
       {targetType === "file" && targetData && (
         <>
-          <div className="px-3 py-1.5 text-[11px] font-bold text-primary truncate border-b border-border/60 mb-1">
+          <div
+            style={{ borderColor: "var(--abrn-border)" }}
+            className="px-2.5 py-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.04em] text-primary truncate border-b mb-1"
+          >
             {targetData.filename || targetData.name || "Archivo"}
           </div>
           {onPreview && (
             <MenuItem
               icon={Eye}
-              label={t("common:actions.preview", "Vista Rápida")}
-              shortcut="Espacio"
+              label={t("common:actions.preview", "Abrir en Visor 94vw")}
+              shortcut="Enter"
               onClick={() => onPreview(targetData)}
             />
           )}
           {onShare && (
             <MenuItem
               icon={Share2}
-              label={t("common:actions.share", "Compartir Enlace")}
+              label={t("common:actions.share", "Crear Enlace #key")}
               shortcut="L"
               onClick={() => onShare(targetData)}
             />
@@ -206,14 +223,6 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               onClick={() => onWhatsAppShare(targetData)}
             />
           )}
-          {onPassport && (
-            <MenuItem
-              icon={Shield}
-              label={t("drive:actions.cryptoPassport", "Pasaporte Criptográfico")}
-              shortcut="P"
-              onClick={() => onPassport(targetData)}
-            />
-          )}
           {onCopyHash && (
             <MenuItem
               icon={Copy}
@@ -222,11 +231,36 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               onClick={() => onCopyHash(targetData)}
             />
           )}
+          {onPassport && (
+            <MenuItem
+              icon={Shield}
+              label={t("drive:actions.cryptoPassport", "Pasaporte Criptográfico")}
+              shortcut="P"
+              onClick={() => onPassport(targetData)}
+            />
+          )}
+          <Divider />
+          {onRenameInline && (
+            <MenuItem
+              icon={Edit2}
+              label="Renombrar aquí mismo"
+              shortcut="F2"
+              onClick={() => onRenameInline(targetData)}
+            />
+          )}
+          {onToggleStar && (
+            <MenuItem
+              icon={Star}
+              label={targetData.is_starred ? t("drive:actions.unstar", "Quitar de Fijados") : t("drive:actions.star", "Fijar archivo arriba ★")}
+              shortcut="S"
+              onClick={() => onToggleStar(targetData.id)}
+            />
+          )}
           {onStageFile && (
             <MenuItem
               icon={Layers}
               label={t("drive:actions.addToDock", "Enviar al Staging Dock")}
-              shortcut="X"
+              shortcut="Espacio"
               onClick={() => onStageFile(targetData)}
             />
           )}
@@ -236,14 +270,6 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               label={t("common:actions.move", "Mover a Carpeta...")}
               shortcut="M"
               onClick={() => onMove(targetData)}
-            />
-          )}
-          {onToggleStar && (
-            <MenuItem
-              icon={Star}
-              label={targetData.is_starred ? t("drive:actions.unstar", "Quitar Destacado") : t("drive:actions.star", "Destacar")}
-              shortcut="S"
-              onClick={() => onToggleStar(targetData.id)}
             />
           )}
           {onDownload && (
@@ -258,7 +284,7 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
           {onDelete && (
             <MenuItem
               icon={Trash2}
-              label={t("common:actions.delete", "Eliminar Archivo")}
+              label={t("common:actions.delete", "Enviar a papelera cifrada")}
               shortcut="Supr"
               destructive
               onClick={() => onDelete(targetData)}
@@ -269,7 +295,10 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
 
       {targetType === "multi-file" && Array.isArray(targetData) && (
         <>
-          <div className="px-3 py-1 text-[11px] font-semibold text-muted-foreground truncate border-b border-border/40 mb-1">
+          <div
+            style={{ borderColor: "var(--abrn-border)" }}
+            className="px-2.5 py-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.04em] text-primary truncate border-b mb-1"
+          >
             {targetData.length} archivos seleccionados
           </div>
           {onBatchDownload && (
@@ -292,7 +321,7 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
             <MenuItem
               icon={Layers}
               label={t("drive:actions.addToDock", "Enviar al Staging Dock")}
-              shortcut="X"
+              shortcut="Espacio"
               onClick={() => onBatchStage(targetData)}
             />
           )}
@@ -311,9 +340,43 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
 
       {targetType === "folder" && targetData && (
         <>
-          <div className="px-3 py-1 text-[11px] font-semibold text-muted-foreground truncate border-b border-border/40 mb-1">
-            📁 {targetData.name || "Carpeta"}
+          <div
+            style={{ borderColor: "var(--abrn-border)" }}
+            className="px-2.5 py-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.04em] text-primary truncate border-b mb-1"
+          >
+            Carpeta · {targetData.name || "Carpeta"}
           </div>
+          {onShareFolder && (
+            <MenuItem
+              icon={Share2}
+              label={t("drive:actions.shareFolder", "Compartir Carpeta")}
+              shortcut="#key"
+              onClick={() => onShareFolder(targetData.id, targetData.name)}
+            />
+          )}
+          {onRequestDropForFolder && (
+            <MenuItem
+              icon={Inbox}
+              label="Solicitar Docs (Buzón Secure Drop)"
+              shortcut="Drop"
+              onClick={() => onRequestDropForFolder(targetData.id, targetData.name)}
+            />
+          )}
+          {onTogglePinFolder && (
+            <MenuItem
+              icon={Star}
+              label={isFolderPinned?.(targetData.id) ? "Quitar de Fijados" : "Fijar Carpeta Arriba ★"}
+              onClick={() => onTogglePinFolder(targetData.id, targetData.name)}
+            />
+          )}
+          {onGenerateStandardSubfolders && (
+            <MenuItem
+              icon={Sparkles}
+              label="Generar 5 Subcarpetas Base"
+              onClick={() => onGenerateStandardSubfolders(targetData.id, targetData.name)}
+            />
+          )}
+          <Divider />
           {onCreateSubfolder && (
             <MenuItem
               icon={FolderPlus}
@@ -328,14 +391,6 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
               label={t("drive:actions.uploadHere", "Subir Archivo Aquí")}
               shortcut="U"
               onClick={() => onUploadHere(targetData.id)}
-            />
-          )}
-          {onShareFolder && (
-            <MenuItem
-              icon={Share2}
-              label={t("drive:actions.shareFolder", "Compartir Carpeta")}
-              shortcut="L"
-              onClick={() => onShareFolder(targetData.id, targetData.name)}
             />
           )}
           {onRenameFolder && (
@@ -361,11 +416,33 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
 
       {targetType === "canvas" && (
         <>
+          <div
+            style={{ borderColor: "var(--abrn-border)" }}
+            className="px-2.5 py-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.04em] text-primary truncate border-b mb-1"
+          >
+            Acciones Rápidas Bóveda ABRN
+          </div>
+          {onSmartUpload && (
+            <MenuItem
+              icon={Sparkles}
+              label="Subir y Auto-Ordenar Archivos"
+              shortcut="⌘U"
+              onClick={onSmartUpload}
+            />
+          )}
+          {onRequestDrop && (
+            <MenuItem
+              icon={Inbox}
+              label="Solicitar Docs al Cliente (Drop)"
+              shortcut="D"
+              onClick={onRequestDrop}
+            />
+          )}
           {onCreateFolder && (
             <MenuItem
               icon={FolderPlus}
-              label={t("drive:actions.newFolder", "Nueva Carpeta")}
-              shortcut="N"
+              label={t("drive:actions.newFolder", "Nueva Carpeta con Plantilla")}
+              shortcut="⇧N"
               onClick={onCreateFolder}
             />
           )}

@@ -37,9 +37,10 @@ export type SidebarMode = "expanded" | "compact" | "hidden";
 interface SidebarProps {
   mode?: SidebarMode;
   collapsed?: boolean;
+  onToggleMode?: () => void;
 }
 
-export function Sidebar({ mode, collapsed = false }: SidebarProps) {
+export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps) {
   const navigate = useTransitionNavigate();
   const logout = useLogout();
   const location = useLocation();
@@ -49,12 +50,23 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
   const isCompact = mode ? mode === "compact" : collapsed;
   const isHidden = mode === "hidden";
 
+  const triggerVaultAction = (action: "smart-upload" | "drop-request") => {
+    if (!location.pathname.startsWith("/files")) {
+      navigate("/files");
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action } }));
+      }, 180);
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("abrn-vault-action", { detail: { action } }));
+  };
+
   const navItems = [
-    { icon: LayoutDashboard, label: t("common:nav.dashboard"), path: "/dashboard" },
-    { icon: FolderOpen, label: t("common:nav.files"), path: "/files" },
+    { icon: FolderOpen, label: t("common:nav.files"), path: "/files", badge: "AES" },
+    { icon: Link2, label: t("common:nav.shared"), path: "/shared", badge: "#key" },
     { icon: Users, label: t("common:nav.groups"), path: "/groups" },
-    { icon: Link2, label: t("common:nav.shared"), path: "/shared" },
-    { icon: ShieldCheck, label: t("common:nav.accessCenter"), path: "/access-center" },
+    { icon: ShieldCheck, label: t("common:nav.accessCenter"), path: "/access-center", badge: "OK", emerald: true },
+    { icon: LayoutDashboard, label: t("common:nav.dashboard"), path: "/dashboard" },
     ...(isAdmin ? [{ icon: Shield, label: t("common:nav.admin"), path: "/admin" }] : []),
   ];
 
@@ -63,22 +75,50 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
       <aside
         role="navigation"
         aria-label={t("common:nav.mainNavigation")}
+        style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
         className={cn(
-          "fixed inset-y-0 left-0 z-40 elegant-overlay border-r border-primary/15 flex-col transition-all duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-40 border-r flex-col transition-all duration-200 ease-in-out",
           isHidden
             ? "-translate-x-full opacity-0 pointer-events-none w-0"
             : isCompact
               ? "w-[68px] translate-x-0 opacity-100"
-              : "w-64 translate-x-0 opacity-100",
+              : "w-[238px] translate-x-0 opacity-100",
           "hidden md:flex"
         )}
       >
-        <div className="flex-1 flex flex-col overflow-y-auto">
-          <div className={cn("flex items-center h-16 px-4 shrink-0 transition-all duration-300", isCompact ? 'justify-center' : 'justify-between')}>
-              <BrandLogo className="h-9 w-9 rounded-lg object-contain transition-transform duration-300" />
+        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+          <div
+            style={{ borderColor: "var(--abrn-border)" }}
+            className={cn(
+              "flex items-center h-[54px] px-3 border-b shrink-0 transition-all duration-200",
+              isCompact ? "justify-center" : "justify-start"
+            )}
+          >
+            <div
+              onClick={onToggleMode}
+              title="Expandir o compactar menú lateral (⌘B)"
+              className={cn("flex items-center gap-2.5 min-w-0", onToggleMode && "cursor-pointer")}
+            >
+              <BrandLogo className="h-9 w-9 rounded-lg object-contain border border-primary/25 bg-card p-0.5 shrink-0 shadow-2xs" />
+              {!isCompact && (
+                <div className="min-w-0">
+                  <div className="abrn-serif text-[13.5px] font-bold text-foreground leading-tight truncate">
+                    ABRN Drive
+                  </div>
+                  <div className="text-[10.5px] font-bold text-primary leading-tight truncate">
+                    ABRN Asesores
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
 
-        <nav className="flex-1 p-3 space-y-2">
+        <nav className="flex-1 p-2.5 space-y-1">
+          {!isCompact && (
+            <div className="px-2 pt-1 pb-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+              Bóveda ABRN
+            </div>
+          )}
           {navItems.map((item) => {
             const isActive = isRouteActive(location.pathname, item.path);
             const btn = (
@@ -87,7 +127,6 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
                 key={item.label}
                 onClick={() => navigate(item.path)}
                 onMouseEnter={() => {
-                  // Prefetch the lazy chunk on hover so navigation feels instant
                   const prefetchMap: Record<string, () => Promise<unknown>> = {
                     "/dashboard": () => import("../../pages/dashboard"),
                     "/files": () => import("../../pages/files"),
@@ -97,7 +136,6 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
                   };
                   prefetchMap[item.path]?.();
 
-                  // Preload data aggressively
                   if (item.path === "/files") {
                     preload(`${API_URL}/files`, fetcher);
                     preload(`${API_URL}/folders`, fetcher);
@@ -106,18 +144,32 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
                   }
                 }}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-foreground/80",
-                  "hover:bg-primary/10 hover:text-foreground",
-                  isActive && "bg-primary/20 text-foreground font-semibold border border-primary/40",
+                  "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent",
+                  "hover:bg-card hover:text-foreground hover:border-border",
+                  isActive && "bg-primary/15 text-primary font-bold border-primary/35",
                   "text-left",
-                  isCompact && "justify-center"
+                  isCompact ? "justify-center" : "justify-between gap-2"
                 )}
                 title={item.label}
                 aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
               >
-                <item.icon className="w-5 h-5 shrink-0" />
-                {!isCompact && <span className="font-medium text-sm">{item.label}</span>}
+                <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+                  <item.icon className="w-[17px] h-[17px] shrink-0" />
+                  {!isCompact && <span className="font-semibold text-[12.5px] truncate">{item.label}</span>}
+                </span>
+                {!isCompact && item.badge && (
+                  <span
+                    className={cn(
+                      "abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 border",
+                      item.emerald
+                        ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                        : "bg-card text-primary border-border"
+                    )}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </button>
             );
 
@@ -133,6 +185,64 @@ export function Sidebar({ mode, collapsed = false }: SidebarProps) {
             }
             return btn;
           })}
+
+          {!isCompact && (
+            <div className="px-2 pt-3 pb-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+              Flujo Contable
+            </div>
+          )}
+
+          <button
+            type="button"
+            data-testid="sidebar-smart-upload-btn"
+            onClick={() => triggerVaultAction("smart-upload")}
+            title="Subir y Ordenar Archivos Sueltos"
+            className={cn(
+              "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer",
+              isCompact ? "justify-center" : "justify-between gap-2"
+            )}
+          >
+            <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+              <svg className="w-[17px] h-[17px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Subir y Ordenar</span>}
+            </span>
+            {!isCompact && (
+              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-card text-primary border border-border">
+                Auto
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            data-testid="sidebar-drop-request-btn"
+            onClick={() => triggerVaultAction("drop-request")}
+            title="Pedir Documentos por WhatsApp (Buzón Secure Drop)"
+            className={cn(
+              "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer relative",
+              isCompact ? "justify-center" : "justify-between gap-2"
+            )}
+          >
+            {isCompact && (
+              <span className="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+            )}
+            <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+              <svg className="w-[17px] h-[17px] shrink-0 text-emerald-700 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+                <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+              </svg>
+              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Buzón Drop</span>}
+            </span>
+            {!isCompact && (
+              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                Drop
+              </span>
+            )}
+          </button>
         </nav>
       </div>
 

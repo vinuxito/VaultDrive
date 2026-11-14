@@ -30,15 +30,11 @@ import {
   Share2,
   Download,
   Plus,
+  Columns3,
+  LayoutList,
+  BookOpen,
+  Search,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
 import { VaultContextMenu, type ContextMenuState } from "../components/vault/VaultContextMenu";
 import { useMarqueeSelection } from "../hooks/useMarqueeSelection";
 import { FirstTaskGuide, type FirstTask } from "../components/onboarding/FirstTaskGuide";
@@ -65,7 +61,7 @@ import ShareModal from "../components/share-modal";
 import { CreateShareLinkModal } from "../components/vault/CreateShareLinkModal";
 import { CreateFolderShareLinkModal } from "../components/vault/CreateFolderShareLinkModal";
 import { AccessPanel } from "../components/vault/AccessPanel";
-import FolderModal from "../components/folders/FolderModal";
+import FolderModal, { STANDARD_ACCOUNTANT_SUBFOLDERS } from "../components/folders/FolderModal";
 import { FolderCollaboratorsModal } from "../components/folders/FolderCollaboratorsModal";
 import DeleteFolderModal from "../components/folders/DeleteFolderModal";
 import { MoveFileModal } from "../components/files/MoveFileModal";
@@ -83,6 +79,8 @@ import { VaultInspectorPane } from "../components/vault/VaultInspectorPane";
 import { CryptoPassportDrawer } from "../components/vault/CryptoPassportDrawer";
 import { StagingDock } from "../components/vault/StagingDock";
 import { VaultPrivacyShutter } from "../components/vault/VaultPrivacyShutter";
+import { SmartUploadOrderModal, type SmartUploadStagedItem } from "../components/vault/SmartUploadOrderModal";
+import { WhatsAppDropRequestModal } from "../components/vault/WhatsAppDropRequestModal";
 import { downloadTransferSlip, downloadBatchTransferSlip } from "../utils/transferSlip";
 import { playTumblerClick, playDeadboltThud } from "../utils/audioHaptics";
 import { useToast } from "../context/ToastContext";
@@ -241,6 +239,45 @@ function hasSomeFilesSelected(files: FileData[], selectedIds: Set<string>): bool
   return files.some((file) => selectedIds.has(file.id));
 }
 
+type AbrnTabFilter =
+  | "all"
+  | "starred"
+  | "drop"
+  | "pdf"
+  | "xml"
+  | "xlsx"
+  | "media"
+  | "code"
+  | "shared";
+
+function isDropReceivedFile(file: FileData): boolean {
+  return Boolean(file.drop_token || file.drop_folder_id || file.pin_wrapped_key);
+}
+
+function matchesAbrnTabFilter(
+  file: FileData,
+  tab: AbrnTabFilter,
+  sharedLinkFileIds: Set<string>
+): boolean {
+  if (tab === "all") return true;
+  if (tab === "starred") return Boolean(file.starred);
+  if (tab === "drop") return isDropReceivedFile(file);
+  const ext = getFileExtension(file.filename);
+  if (tab === "pdf") return ext === "pdf";
+  if (tab === "xml") return ext === "xml";
+  if (tab === "xlsx") return ["xlsx", "xls", "csv", "ods"].includes(ext);
+  if (tab === "media") {
+    return FILE_TYPE_EXTENSIONS.images.includes(ext) || FILE_TYPE_EXTENSIONS.video.includes(ext);
+  }
+  if (tab === "code") {
+    return ["sh", "ts", "tsx", "js", "jsx", "py", "go", "json", "md", "yaml", "yml", "sql", "txt"].includes(ext);
+  }
+  if (tab === "shared") {
+    return Boolean(file.shared_by || file.shared_at || file.group_id || sharedLinkFileIds.has(file.id));
+  }
+  return true;
+}
+
 export default function Files() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -336,7 +373,7 @@ export default function Files() {
   const [encryptionPassword, setEncryptionPassword] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [credentialModeOverride, setCredentialModeOverride] = useState<"pin" | "password" | null>(null);
-  const [passwordAction, setPasswordAction] = useState<"upload" | "download" | "drop-upload" | "decrypt-folder" | null>(null);
+  const [passwordAction, setPasswordAction] = useState<"upload" | "download" | "drop-upload" | "decrypt-folder" | "smart-upload" | null>(null);
   const [pendingDownload, setPendingDownload] = useState<{
     fileId: string;
     filename: string;
@@ -388,6 +425,8 @@ export default function Files() {
   const [uploadTray, setUploadTray] = useState<UploadTrayItem[]>([]);
   const dragCounter = useRef(0);
   const droppedFilesRef = useRef<globalThis.File[] | null>(null);
+  const pendingSmartUploadItemsRef = useRef<SmartUploadStagedItem[] | null>(null);
+  const parentHashByFileIdRef = useRef<Record<string, string>>({});
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
 
   const [previewFile, setPreviewFile] = useState<FileData | null>(null);
@@ -398,6 +437,50 @@ export default function Files() {
   const [sortBy, setSortBy] = useState<"name" | "date" | "size">("date");
   const [sortAsc, setSortAsc] = useState(false);
   const [typeFilter, setTypeFilter] = useState<FileTypeFilter>("all");
+  const [abrnTabFilter, setAbrnTabFilter] = useState<AbrnTabFilter>("all");
+  const [activeSubfolderFilterId, setActiveSubfolderFilterId] = useState<string | null>(null);
+  const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
+  const [showSmartUploadModal, setShowSmartUploadModal] = useState(false);
+  const [showWhatsAppDropModal, setShowWhatsAppDropModal] = useState(false);
+
+  const [pinnedFolderIds, setPinnedFolderIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("abrndrive_pinned_folders");
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [locallySharedFileIds, setLocallySharedFileIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem("abrndrive_shared_link_files");
+      if (!saved) return new Set();
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? new Set(parsed.filter((x): x is string => typeof x === "string")) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  const handleTogglePinFolder = useCallback((folderId: string, folderName: string) => {
+    setPinnedFolderIds((prev) => {
+      const exists = prev.includes(folderId);
+      const next = exists ? prev.filter((id) => id !== folderId) : [...prev, folderId];
+      try {
+        localStorage.setItem("abrndrive_pinned_folders", JSON.stringify(next));
+      } catch {
+        // ignore storage quota errors
+      }
+      addToast(
+        exists ? `"${folderName}" quitada de Fijados ★` : `"${folderName}" fijada arriba ★`,
+        "success"
+      );
+      return next;
+    });
+  }, [addToast]);
 
   // Step 1: Scroll ref & return-scroll anchoring
   const fileContainerRef = useRef<HTMLDivElement | null>(null);
@@ -430,11 +513,11 @@ export default function Files() {
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [fileContextMenu, setFileContextMenu] = useState<{ file: FileData; x: number; y: number } | null>(null);
 
-  // v12 Step 2: Resizable Tree Splitter with Auto-Fit
-  const DEFAULT_TREE_WIDTH = 200;
-  const MIN_TREE_WIDTH = 150;
-  const MAX_TREE_WIDTH = 520;
-  const SNAP_COLLAPSE_THRESHOLD = 130;
+  // v22 Unified ABRN: Resizable Tree Splitter (185..390px, default 248px)
+  const DEFAULT_TREE_WIDTH = 248;
+  const MIN_TREE_WIDTH = 185;
+  const MAX_TREE_WIDTH = 390;
+  const SNAP_COLLAPSE_THRESHOLD = 140;
 
   const [treePaneWidth, setTreePaneWidth] = useState<number>(() => {
     const saved = localStorage.getItem("abrndrive_tree_pane_width");
@@ -446,9 +529,9 @@ export default function Files() {
   const [isDraggingSplitter, setIsDraggingSplitter] = useState(false);
   const treeAsideRef = useRef<HTMLElement | null>(null);
 
-  // v20 Step 2: Resizable Right-Hand Multi-Format Inspector Pane
-  const DEFAULT_INSPECTOR_WIDTH = 340;
-  const MIN_INSPECTOR_WIDTH = 265;
+  // v22 Unified ABRN: Resizable Right-Hand Multi-Format RAM Inspector Pane (285..560px, default 368px)
+  const DEFAULT_INSPECTOR_WIDTH = 368;
+  const MIN_INSPECTOR_WIDTH = 285;
   const MAX_INSPECTOR_WIDTH = 560;
   const [inspectorPaneWidth, setInspectorPaneWidth] = useState<number>(() => {
     const saved = localStorage.getItem("abrndrive_inspector_pane_width");
@@ -461,6 +544,34 @@ export default function Files() {
   const [isInspectorCollapsed, setIsInspectorCollapsed] = useState(false);
   const [isDraggingInspectorSplitter, setIsDraggingInspectorSplitter] = useState(false);
   const [inspectorFile, setInspectorFile] = useState<FileData | null>(null);
+
+  const activeLayoutPreset: "balanced" | "wide-list" | "reader" = isTreeCollapsed && !isInspectorCollapsed
+    ? "reader"
+    : !isTreeCollapsed && isInspectorCollapsed
+      ? "wide-list"
+      : "balanced";
+
+  const applyLayoutPreset = useCallback((preset: "balanced" | "wide-list" | "reader") => {
+    playTumblerClick();
+    if (preset === "balanced") {
+      setIsTreeCollapsed(false);
+      setTreePaneWidth(248);
+      localStorage.setItem("abrndrive_tree_pane_width", "248");
+      setIsInspectorCollapsed(false);
+      setInspectorPaneWidth(368);
+      localStorage.setItem("abrndrive_inspector_pane_width", "368");
+    } else if (preset === "wide-list") {
+      setIsTreeCollapsed(false);
+      setTreePaneWidth(236);
+      localStorage.setItem("abrndrive_tree_pane_width", "236");
+      setIsInspectorCollapsed(true);
+    } else {
+      setIsTreeCollapsed(true);
+      setIsInspectorCollapsed(false);
+      setInspectorPaneWidth(490);
+      localStorage.setItem("abrndrive_inspector_pane_width", "490");
+    }
+  }, []);
 
   const handleInspectorSplitterPointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
@@ -986,7 +1097,7 @@ export default function Files() {
     }));
   }, [sharedFiles]);
 
-  const visibleFiles = useMemo<FileData[]>(() => {
+  const scopedBaseFiles = useMemo<FileData[]>(() => {
     const q = searchQuery.trim().toLowerCase();
 
     if (q) {
@@ -996,7 +1107,7 @@ export default function Files() {
       const filtered = allFiles.filter(
         (file) => file.filename.toLowerCase().includes(q) || matchedIds.has(file.id)
       );
-      return applySort(applyTypeFilter(filtered));
+      return applyTypeFilter(filtered);
     }
 
     let list: FileData[] = [];
@@ -1013,7 +1124,8 @@ export default function Files() {
         if (isShared) {
           list = sharedFolderFiles;
         } else {
-          const descendantIds = collectFolderDescendantIds(folders, selectedNode.folderId);
+          const targetFolderId = activeSubfolderFilterId || selectedNode.folderId;
+          const descendantIds = collectFolderDescendantIds(folders, targetFolderId);
           list = myFiles.filter((file) =>
             (file.drop_folder_id && descendantIds.has(file.drop_folder_id)) ||
             (file.folder_id && descendantIds.has(file.folder_id))
@@ -1029,8 +1141,74 @@ export default function Files() {
         break;
     }
 
-    return applySort(applyTypeFilter(list));
-  }, [applySort, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles, sharedFolders, sharedFolderFiles]);
+    if (selectedNode.type === "all" && activeSubfolderFilterId) {
+      const descendantIds = collectFolderDescendantIds(folders, activeSubfolderFilterId);
+      list = list.filter((file) =>
+        (file.drop_folder_id && descendantIds.has(file.drop_folder_id)) ||
+        (file.folder_id && descendantIds.has(file.folder_id))
+      );
+    }
+
+    return applyTypeFilter(list);
+  }, [activeSubfolderFilterId, applyTypeFilter, dropLinkFiles, folders, myFiles, searchQuery, selectedNode, sharedAsFiles, sharedFolders, sharedFolderFiles]);
+
+  const abrnTabCounts = useMemo<Record<AbrnTabFilter, number>>(() => {
+    const counts: Record<AbrnTabFilter, number> = {
+      all: scopedBaseFiles.length,
+      starred: 0,
+      drop: 0,
+      pdf: 0,
+      xml: 0,
+      xlsx: 0,
+      media: 0,
+      code: 0,
+      shared: 0,
+    };
+    for (const file of scopedBaseFiles) {
+      if (matchesAbrnTabFilter(file, "starred", locallySharedFileIds)) counts.starred++;
+      if (matchesAbrnTabFilter(file, "drop", locallySharedFileIds)) counts.drop++;
+      if (matchesAbrnTabFilter(file, "pdf", locallySharedFileIds)) counts.pdf++;
+      if (matchesAbrnTabFilter(file, "xml", locallySharedFileIds)) counts.xml++;
+      if (matchesAbrnTabFilter(file, "xlsx", locallySharedFileIds)) counts.xlsx++;
+      if (matchesAbrnTabFilter(file, "media", locallySharedFileIds)) counts.media++;
+      if (matchesAbrnTabFilter(file, "code", locallySharedFileIds)) counts.code++;
+      if (matchesAbrnTabFilter(file, "shared", locallySharedFileIds)) counts.shared++;
+    }
+    return counts;
+  }, [locallySharedFileIds, scopedBaseFiles]);
+
+  const visibleFiles = useMemo<FileData[]>(() => {
+    const tabFiltered = abrnTabFilter === "all"
+      ? scopedBaseFiles
+      : scopedBaseFiles.filter((file) => matchesAbrnTabFilter(file, abrnTabFilter, locallySharedFileIds));
+    return applySort(tabFiltered);
+  }, [abrnTabFilter, applySort, locallySharedFileIds, scopedBaseFiles]);
+
+  const folderNameById = useMemo<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    for (const f of folders) {
+      map[f.id] = f.name;
+    }
+    for (const sf of sharedFolders) {
+      map[sf.id] = sf.name;
+    }
+    return map;
+  }, [folders, sharedFolders]);
+
+  const totalBytesUsed = useMemo(
+    () => myFiles.reduce((acc, f) => acc + (f.file_size || 0), 0),
+    [myFiles]
+  );
+
+  const dropReceivedCount = useMemo(
+    () => myFiles.filter((f) => isDropReceivedFile(f)).length,
+    [myFiles]
+  );
+
+  const dockedFileIds = useMemo(
+    () => new Set(stagedFiles.map((f) => f.id)),
+    [stagedFiles]
+  );
 
   useEffect(() => {
     if (isVaultLocked) {
@@ -1178,6 +1356,7 @@ export default function Files() {
       fileContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
     setFocusedFileIndex(-1);
+    setActiveSubfolderFilterId(null);
   }, [selectedNode]);
 
   // Guard: keep focusedFileIndex strictly within bounds when visible files change
@@ -1212,7 +1391,7 @@ export default function Files() {
     }, 70);
   }, [sessionVault]);
 
-  // Step 2 & 5 & 6: Keyboard Traversal, Space Quick Look, Staging Dock & Hotkeys
+  // Step 2 & 5 & 6: Keyboard Traversal, Space Quick Look, F2 Rename, Staging Dock & Hotkeys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -1246,7 +1425,21 @@ export default function Files() {
         }
       }
 
-      if (isVaultLocked || bulkDownloadFiles !== null || showPasswordModal) return;
+      if (isVaultLocked || bulkDownloadFiles !== null || showPasswordModal || showSmartUploadModal || showWhatsAppDropModal) return;
+
+      // Hotkey: F2 -> In-Grid Inline Rename on focused or active file
+      if (e.key === "F2") {
+        const targetFile =
+          focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]
+            ? visibleFiles[focusedFileIndex]
+            : inspectorFile || visibleFiles[0];
+        if (targetFile && targetFile.is_owner !== false) {
+          e.preventDefault();
+          playTumblerClick();
+          setRenamingFileId(targetFile.id);
+        }
+        return;
+      }
 
       // If Cryptographic Passport drawer is open, only allow dismissal keys
       if (passportFile !== null) {
@@ -1286,12 +1479,12 @@ export default function Files() {
       // Spacebar: Open Quick Look preview for focused file
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
-        if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
-          const file = visibleFiles[focusedFileIndex];
-          setLastInteractedFileId(file.id);
+        const targetFile = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : inspectorFile || visibleFiles[0];
+        if (targetFile) {
+          setLastInteractedFileId(targetFile.id);
           setPreviewFile({
-            ...file,
-            folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+            ...targetFile,
+            folder_id: targetFile.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
           });
         }
         return;
@@ -1305,6 +1498,7 @@ export default function Files() {
           const next = Math.min(prev + 1, visibleFiles.length - 1);
           const file = visibleFiles[next];
           if (file) {
+            setInspectorFile(file);
             const el = document.getElementById(`file-row-${file.id}`);
             el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
           }
@@ -1321,6 +1515,7 @@ export default function Files() {
           const next = Math.max(prev - 1, 0);
           const file = visibleFiles[next];
           if (file) {
+            setInspectorFile(file);
             const el = document.getElementById(`file-row-${file.id}`);
             el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
           }
@@ -1329,7 +1524,7 @@ export default function Files() {
         return;
       }
 
-      // Enter: Drill in or Preview focused file
+      // Enter: Drill in or Preview focused file (94vw Cinemascope)
       if (e.key === "Enter") {
         if (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]) {
           e.preventDefault();
@@ -1385,13 +1580,17 @@ export default function Files() {
   }, [
     visibleFiles,
     focusedFileIndex,
+    inspectorFile,
     previewFile,
+    passportFile,
     isVaultLocked,
     selectedNode,
     folders,
     undoAction,
     bulkDownloadFiles,
     showPasswordModal,
+    showSmartUploadModal,
+    showWhatsAppDropModal,
   ]);
 
   // Step 6: 3-Minute Inactivity Auto-Lock
@@ -1415,17 +1614,44 @@ export default function Files() {
     };
   }, []);
 
-  // Step 2: Command Palette custom action listener
+  // Step 2: Command Palette + Topbar/Sidebar Unified ABRN custom action listener
   useEffect(() => {
     const handleVaultAction = (e: Event) => {
       const detail = (e as CustomEvent<{ action: string }>).detail;
-      if (detail?.action === "lock") {
+      if (detail?.action === "lock" || detail?.action === "lock-vault") {
+        playDeadboltThud();
         setIsVaultLocked(true);
       } else if (detail?.action === "passport") {
         const file = focusedFileIndex >= 0 && visibleFiles[focusedFileIndex] ? visibleFiles[focusedFileIndex] : visibleFiles[0];
         if (file) setPassportFile(file);
       } else if (detail?.action === "search") {
         setShowOmnibar(true);
+      } else if (detail?.action === "smart-upload") {
+        setShowSmartUploadModal(true);
+      } else if (detail?.action === "drop-request") {
+        setShowWhatsAppDropModal(true);
+      } else if (detail?.action === "share-folder") {
+        if (selectedNode.type === "folder") {
+          setFolderForShare({ id: selectedNode.folderId, name: selectedNode.folderName });
+          setMobileFolderShareTab("link");
+          setShowFolderShareModal(true);
+        } else {
+          const firstRootFolder =
+            folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault") ??
+            folders[0] ??
+            null;
+          if (firstRootFolder) {
+            setFolderForShare({ id: firstRootFolder.id, name: firstRootFolder.name });
+            setMobileFolderShareTab("link");
+            setShowFolderShareModal(true);
+          } else {
+            setFolderModalMode("create");
+            setFolderModalParentId(null);
+            setFolderToEdit(null);
+            setShowFolderModal(true);
+            addToast("Crea primero el expediente del cliente para compartirlo con enlace #key", "info");
+          }
+        }
       }
     };
     const handleProofPill = (e: Event) => {
@@ -1441,12 +1667,14 @@ export default function Files() {
       }
     };
     window.addEventListener("vault-action", handleVaultAction);
+    window.addEventListener("abrn-vault-action", handleVaultAction);
     window.addEventListener("proof-pill", handleProofPill);
     return () => {
       window.removeEventListener("vault-action", handleVaultAction);
+      window.removeEventListener("abrn-vault-action", handleVaultAction);
       window.removeEventListener("proof-pill", handleProofPill);
     };
-  }, [focusedFileIndex, visibleFiles]);
+  }, [addToast, focusedFileIndex, folders, selectedNode, visibleFiles]);
 
   const toggleStar = async (fileId: string) => {
     const token = localStorage.getItem("token");
@@ -2302,6 +2530,17 @@ export default function Files() {
   };
 
   const handleCreateShareLink = (file: FileData) => {
+    setLocallySharedFileIds((prev) => {
+      if (prev.has(file.id)) return prev;
+      const next = new Set(prev);
+      next.add(file.id);
+      try {
+        localStorage.setItem("abrndrive_shared_link_files", JSON.stringify(Array.from(next)));
+      } catch {
+        // ignore storage quota errors
+      }
+      return next;
+    });
     setFileForShareLink({
       id: file.id,
       filename: file.filename,
@@ -2310,6 +2549,136 @@ export default function Files() {
       folder_id: file.folder_id,
     });
     setShowShareLinkModal(true);
+  };
+
+  const handleInlineRenameFile = async (file: FileData, rawNewName: string) => {
+    const trimmed = rawNewName.trim();
+    setRenamingFileId(null);
+    if (!trimmed || trimmed === file.filename) return;
+    if (file.is_owner === false) {
+      addToast("Solo el propietario puede renombrar este archivo", "error");
+      return;
+    }
+
+    const previousFilename = file.filename;
+    const knownParentHash = parentHashByFileIdRef.current[file.id] ?? file.parent_hash ?? "";
+
+    const computeRenameHash = async (actionId: string): Promise<string> => {
+      const bytes = new TextEncoder().encode(`rename:${file.id}:${trimmed}:${actionId}`);
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    };
+
+    // Optimistic in-grid update
+    mutateMyFiles(
+      (prev = []) => prev.map((f) => (f.id === file.id ? { ...f, filename: trimmed } : f)),
+      { revalidate: false }
+    );
+    setInspectorFile((prev) => (prev && prev.id === file.id ? { ...prev, filename: trimmed } : prev));
+    setStagedFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, filename: trimmed } : f)));
+
+    if (!navigator.onLine) {
+      const ownerId = getStoredUserFromLocalStorage()?.id;
+      if (ownerId) {
+        const offlineActionId = crypto.randomUUID();
+        const offlineNewHash = await computeRenameHash(offlineActionId);
+        await queueOfflineAction({
+          type: "rename",
+          owner_id: ownerId,
+          file_id: file.id,
+          filename: trimmed,
+          new_filename: trimmed,
+          parent_hash: knownParentHash,
+          new_hash: offlineNewHash,
+          updated_at: new Date().toISOString(),
+        });
+        window.dispatchEvent(new Event("offline-action-queued"));
+        addToast(`Cambio de nombre en cola sin conexión: ${trimmed}`, "info");
+      }
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const sendSyncRename = async (parentHashToUse: string) => {
+        const actionId = crypto.randomUUID();
+        const newHash = await computeRenameHash(actionId);
+        const res = await fetch(`${API_URL}/v1/files/sync`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            actions: [
+              {
+                action_id: actionId,
+                type: "rename",
+                file_id: file.id,
+                filename: trimmed,
+                parent_hash: parentHashToUse,
+                new_hash: newHash,
+                updated_at: new Date().toISOString(),
+              },
+            ],
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`No se pudo renombrar (${res.status})`);
+        }
+        const payload = (await res.json()) as {
+          results?: Array<{
+            success?: boolean;
+            conflict?: boolean;
+            filename?: string;
+            parent_hash?: string;
+            error?: string;
+          }>;
+        };
+        return { firstResult: payload.results?.[0], newHash };
+      };
+
+      let { firstResult, newHash } = await sendSyncRename(knownParentHash);
+
+      // GET /api/files omits parent_hash; if server reports version_conflict with identical filename,
+      // hydrate parent_hash and confirm deterministically in one retry.
+      if (
+        firstResult?.conflict &&
+        firstResult.parent_hash &&
+        (!firstResult.filename || firstResult.filename === previousFilename)
+      ) {
+        const retried = await sendSyncRename(firstResult.parent_hash);
+        firstResult = retried.firstResult;
+        newHash = retried.newHash;
+      }
+
+      if (!firstResult?.success) {
+        throw new Error(firstResult?.error || "No se pudo guardar el nuevo nombre");
+      }
+
+      parentHashByFileIdRef.current[file.id] = newHash;
+      mutateMyFiles(
+        (prev = []) =>
+          prev.map((f) => (f.id === file.id ? { ...f, filename: trimmed, parent_hash: newHash } : f)),
+        { revalidate: false }
+      );
+      void mutateMyFiles();
+      addToast(`Renombrado a "${trimmed}"`, "success");
+    } catch (renameErr) {
+      mutateMyFiles(
+        (prev = []) => prev.map((f) => (f.id === file.id ? { ...f, filename: previousFilename } : f)),
+        { revalidate: false }
+      );
+      setInspectorFile((prev) =>
+        prev && prev.id === file.id ? { ...prev, filename: previousFilename } : prev
+      );
+      addToast(
+        renameErr instanceof Error ? renameErr.message : "No se pudo renombrar el archivo",
+        "error"
+      );
+    }
   };
 
   const handleManageSharesClick = async (fileId: string, filename: string) => {
@@ -2413,7 +2782,43 @@ export default function Files() {
     setShowDeleteFolderModal(true);
   };
 
-  const handleFolderModalSubmit = async (name: string) => {
+  const handleGenerateStandardSubfolders = async (parentFolderId: string, parentFolderName: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    const existingNames = new Set(
+      folders
+        .filter((f) => f.parentId === parentFolderId)
+        .map((f) => f.name.trim().toLowerCase())
+    );
+    let createdCount = 0;
+    for (const subName of STANDARD_ACCOUNTANT_SUBFOLDERS) {
+      if (existingNames.has(subName.toLowerCase())) continue;
+      const res = await fetch(`${API_URL}/folders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: subName, parentId: parentFolderId }),
+      });
+      if (res.ok) createdCount++;
+    }
+    await fetchFolders();
+    addToast(
+      createdCount > 0
+        ? `${createdCount} subcarpetas contables creadas en "${parentFolderName}"`
+        : `"${parentFolderName}" ya cuenta con las 5 subcarpetas contables base`,
+      "success"
+    );
+  };
+
+  const handleFolderModalSubmit = async (
+    name: string,
+    options?: { withStandardSubfolders?: boolean }
+  ) => {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
     if (folderModalMode === "create") {
@@ -2424,6 +2829,16 @@ export default function Files() {
       });
       if (!response.ok) { const e = await response.json(); throw new Error(e.error || "Failed to create folder"); }
       const createdFolder = await response.json();
+      if (createdFolder?.id && options?.withStandardSubfolders) {
+        for (const subName of STANDARD_ACCOUNTANT_SUBFOLDERS) {
+          await fetch(`${API_URL}/folders`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ name: subName, parentId: createdFolder.id }),
+          }).catch(() => undefined);
+        }
+        addToast(`Expediente "${name}" creado con sus 5 subcarpetas contables`, "success");
+      }
       if (createdFolder?.id && createdFolder?.name) {
         setSelectedNode({ type: "folder", folderId: createdFolder.id, folderName: createdFolder.name });
       }
@@ -2500,6 +2915,120 @@ export default function Files() {
   const currentUser = getStoredUserFromLocalStorage();
   const ownerUsesPin = Boolean(currentUser?.pin_set);
 
+  const performSmartUploadItems = async (items: SmartUploadStagedItem[], password: string) => {
+    if (items.length === 0) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    // Determine parent client folder so subfolders nest cleanly under the active client
+    let parentRootId: string | null = null;
+    if (selectedNode.type === "folder") {
+      const activeFol = folders.find((f) => f.id === selectedNode.folderId);
+      parentRootId = activeFol?.parentId ? activeFol.parentId : selectedNode.folderId;
+    } else {
+      const firstRoot = folders.find(
+        (f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault"
+      );
+      parentRootId = firstRoot?.id ?? null;
+    }
+
+    const latestFolders = await fetchFolders();
+    const folderLookup = new Map<string, string>();
+    for (const fol of latestFolders) {
+      if ((fol.parentId ?? null) === (parentRootId ?? null)) {
+        folderLookup.set(fol.name.trim().toLowerCase(), fol.id);
+      }
+    }
+
+    for (const item of items) {
+      const desiredSub = item.targetSubfolderName.trim();
+      if (!desiredSub) continue;
+      const key = desiredSub.toLowerCase();
+      if (!folderLookup.has(key)) {
+        try {
+          const res = await fetch(`${API_URL}/folders`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: desiredSub,
+              parentId: parentRootId || undefined,
+            }),
+          });
+          if (res.ok) {
+            const created = (await res.json()) as { id?: string };
+            if (created?.id) {
+              folderLookup.set(key, created.id);
+            }
+          }
+        } catch {
+          // fallback to parentRootId if subfolder creation fails
+        }
+      }
+    }
+    await fetchFolders();
+
+    const trayEntries: UploadTrayItem[] = items.map((it) => ({
+      id: Math.random().toString(36).slice(2),
+      name: `${it.targetSubfolderName} / ${it.suggestedName}`,
+      progress: 0,
+      status: "uploading",
+    }));
+    setUploadTray((prev) => [...prev, ...trayEntries]);
+
+    let okCount = 0;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const cleanName = item.suggestedName.trim() || item.originalFile.name;
+      const renamedFile = new globalThis.File([item.originalFile], cleanName, {
+        type: item.originalFile.type,
+        lastModified: item.originalFile.lastModified,
+      });
+      const targetSubfolderId =
+        folderLookup.get(item.targetSubfolderName.trim().toLowerCase()) ?? parentRootId;
+      const uploaded = await performUploadFileToFolder(
+        renamedFile,
+        password,
+        trayEntries[i].id,
+        targetSubfolderId
+      );
+      if (uploaded) okCount++;
+    }
+
+    await fetchFiles();
+    if (parentRootId) {
+      await syncExistingFolderShares(parentRootId);
+    }
+    if (okCount > 0) {
+      addToast(
+        `${okCount} archivo${okCount === 1 ? "" : "s"} ordenado${okCount === 1 ? "" : "s"} y blindado${okCount === 1 ? "" : "s"} con AES-256-GCM`,
+        "success"
+      );
+    }
+  };
+
+  const handleSmartUploadCommit = async (items: SmartUploadStagedItem[]) => {
+    if (items.length === 0) return;
+    const cached = sessionVault.getCredential();
+    if (
+      cached &&
+      ((ownerUsesPin && cached.type === "pin") || (!ownerUsesPin && cached.type === "password"))
+    ) {
+      setShowSmartUploadModal(false);
+      await performSmartUploadItems(items, cached.value);
+      return;
+    }
+    pendingSmartUploadItemsRef.current = items;
+    setShowSmartUploadModal(false);
+    setPasswordAction("smart-upload");
+    setShowPasswordModal(true);
+  };
+
   async function handlePasswordSubmit() {
     if (!encryptionPassword) return;
     const password = encryptionPassword;
@@ -2513,7 +3042,20 @@ export default function Files() {
       setEncryptionPassword("");
       setCredentialModeOverride(null);
       setPasswordAction(null);
+      sessionVault.setCredential(password, ownerUsesPin ? "pin" : "password");
       await performDropUploads(password);
+      return;
+    } else if (passwordAction === "smart-upload") {
+      const staged = pendingSmartUploadItemsRef.current;
+      pendingSmartUploadItemsRef.current = null;
+      setShowPasswordModal(false);
+      setEncryptionPassword("");
+      setCredentialModeOverride(null);
+      setPasswordAction(null);
+      sessionVault.setCredential(password, ownerUsesPin ? "pin" : "password");
+      if (staged && staged.length > 0) {
+        await performSmartUploadItems(staged, password);
+      }
       return;
     } else if (passwordAction === "decrypt-folder") {
       if (currentUser?.private_key_pin_encrypted && pendingSharedFolder) {
@@ -2572,43 +3114,123 @@ export default function Files() {
   return (
     <>
       <div className="h-full flex flex-col" inert={bulkDownloadFiles !== null || showPasswordModal}>
-        <div className="px-3.5 sm:px-5 py-2 sm:py-2.5 border-b border-border/60 bg-card/85 backdrop-blur-xs flex flex-row items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1
-                className="text-[15px] sm:text-xl font-bold tracking-tight text-foreground truncate"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {t("drive:vault.title")}
-              </h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] sm:text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                {t("drive:vault.statusSafe", "Blindado")}
-              </span>
+        <div
+          style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+          className="px-3.5 sm:px-5 py-2 sm:py-2 border-b flex flex-row items-center justify-between gap-2 shrink-0"
+        >
+          <div className="min-w-0 flex items-center gap-2 sm:gap-2.5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                {selectedNode.type !== "all" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedNode({ type: "all" });
+                      setActiveSubfolderFilterId(null);
+                      setAbrnTabFilter("all");
+                      setSelectedFileIds(new Set());
+                    }}
+                    className="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer shrink-0"
+                  >
+                    <span>{t("drive:vault.title")}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <h1
+                  className="text-[15px] sm:text-[17.5px] font-bold tracking-tight text-foreground truncate"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {selectedNode.type === "all" ? t("drive:vault.title") : panelTitle}
+                </h1>
+                <span className="abrn-blindado-pill">
+                  <span className="abrn-pulse-dot" />
+                  <span className="hidden sm:inline">Blindado · AES-256-GCM</span>
+                  <span className="sm:hidden">{t("drive:vault.statusSafe", "Blindado")}</span>
+                </span>
+              </div>
+              <p className="hidden sm:block md:hidden text-xs text-muted-foreground mt-0.5">
+                {visibleFiles.length > 0
+                  ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos blindados en tu chip · Todo en orden" })
+                  : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
+              </p>
             </div>
-            <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
-              {visibleFiles.length > 0
-                ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos blindados en tu chip · Todo en orden" })
-                : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
-            </p>
           </div>
+
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* 1px-Divided Telemetry Strip matching ABRN preview */}
+            {/* Layout Presets: 3 Paneles · Lista Ancha · Lectura */}
+            <div
+              data-testid="abrn-layout-presets"
+              role="group"
+              aria-label="Distribución de paneles"
+              style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
+              className="hidden lg:inline-flex items-center gap-0.5 p-[2.5px] rounded-[9px] border shrink-0"
+            >
+              {(
+                [
+                  { id: "balanced", label: "3 Paneles", icon: Columns3 },
+                  { id: "wide-list", label: "Lista Ancha", icon: LayoutList },
+                  { id: "reader", label: "Lectura", icon: BookOpen },
+                ] as const
+              ).map(({ id, label, icon: PresetIcon }) => {
+                const isActive = activeLayoutPreset === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    data-testid={`layout-preset-${id}`}
+                    onClick={() => applyLayoutPreset(id)}
+                    style={
+                      isActive
+                        ? {
+                            background: "var(--abrn-card)",
+                            color: "var(--abrn-primary)",
+                            borderColor: "var(--abrn-border-strong)",
+                            boxShadow: "var(--abrn-shadow-sm)",
+                          }
+                        : { color: "var(--abrn-muted-fg)", borderColor: "transparent" }
+                    }
+                    className="h-[26px] px-2 rounded-[7px] border text-[11px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    <PresetIcon className="w-3 h-3 shrink-0" />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 1px-Divided Telemetry Strip matching ABRN unified preview */}
             <div
               data-testid="vault-telemetry-strip"
-              className="hidden xl:flex items-center rounded-lg border border-border bg-card divide-x divide-border overflow-hidden text-xs shadow-2xs"
+              style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
+              className="hidden xl:flex items-center rounded-[9px] border divide-x divide-border overflow-hidden text-xs"
             >
-              <div className="px-2.5 py-1.5 flex items-center gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Archivos</span>
-                <span className="font-mono font-bold text-foreground tabular-nums">{visibleFiles.length} visibles</span>
-              </div>
-              <div className="px-2.5 py-1.5 flex items-center gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enlaces #key</span>
-                <span className="font-mono font-bold text-primary tabular-nums">{dropTokens.length} activos</span>
-              </div>
-              <div className="px-2.5 py-1.5 flex items-center gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">SHA-256</span>
-                <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">100% íntegro</span>
+              <button
+                type="button"
+                onClick={() => setAbrnTabFilter("all")}
+                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+              >
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Archivos</span>
+                <span className="font-mono font-bold text-foreground tabular-nums">{visibleFiles.length}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAbrnTabFilter((prev) => (prev === "drop" ? "all" : "drop"))}
+                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+              >
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Drop Cliente</span>
+                <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">{dropReceivedCount}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAbrnTabFilter((prev) => (prev === "shared" ? "all" : "shared"))}
+                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+              >
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Enlaces #key</span>
+                <span className="font-mono font-bold text-primary tabular-nums">{Math.max(dropTokens.length, abrnTabCounts.shared)}</span>
+              </button>
+              <div className="px-2.5 py-1 flex items-center gap-1.5">
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">SHA-256</span>
+                <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">100% íntegro</span>
               </div>
             </div>
 
@@ -2628,7 +3250,7 @@ export default function Files() {
               onClick={() => setIsInspectorCollapsed((prev) => !prev)}
               title="Mostrar/ocultar panel inspector derecho"
               className={cn(
-                "hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl border transition-all active:scale-95 cursor-pointer",
+                "hidden md:inline-flex lg:hidden items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl border transition-all active:scale-95 cursor-pointer",
                 !isInspectorCollapsed
                   ? "border-primary/40 bg-primary/10 text-primary"
                   : "border-border bg-card hover:bg-muted/80 text-foreground"
@@ -2638,26 +3260,21 @@ export default function Files() {
               <span>Inspector</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                playDeadboltThud();
-                setIsVaultLocked(true);
-              }}
-              title={t("drive:vault.lockVaultTooltip", { defaultValue: "Bloquear Bóveda (⌘L)" })}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-xl border border-border bg-card hover:bg-muted/80 text-foreground shadow-xs transition-all active:scale-95 cursor-pointer"
-            >
-              <Lock className="w-4 h-4 text-amber-500" />
-              <span>{t("drive:vault.lockVault", { defaultValue: "Bloquear" })}</span>
-              <kbd className="hidden lg:inline text-[10px] font-mono px-1 py-0.5 rounded bg-muted border border-border/80 text-muted-foreground">⌘L</kbd>
-            </button>
             {!isSharedView && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowSmartUploadModal(true)}
+                  className="hidden md:inline-flex lg:hidden abrn-btn abrn-btn-primary"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Subir y Ordenar</span>
+                </button>
                 <label
                   htmlFor="file-input"
-                  className="cursor-pointer inline-flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
+                  className="md:hidden cursor-pointer inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all active:scale-95"
                 >
-                  <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Upload className="w-3.5 h-3.5" />
                   <span>{t("drive:vault.upload", "Subir Archivo")}</span>
                 </label>
               </div>
@@ -2678,14 +3295,16 @@ export default function Files() {
           onDismiss={() => navigate(location.pathname, { replace: true, state: { ...routeState, onboardingTask: undefined } })}
         />}
 
-        <FileSearch
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          typeFilter={typeFilter}
-          setTypeFilter={setTypeFilter}
-          disabled={bulkDownloadFiles !== null || showPasswordModal}
-          onOpenOmnibar={() => setShowOmnibar(true)}
-        />
+        <div className="md:hidden">
+          <FileSearch
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+            disabled={bulkDownloadFiles !== null || showPasswordModal}
+            onOpenOmnibar={() => setShowOmnibar(true)}
+          />
+        </div>
 
         <div className="flex flex-1 overflow-hidden">
           {sidebarOpen && (
@@ -2699,9 +3318,9 @@ export default function Files() {
 
           <aside
             ref={treeAsideRef}
-            style={{ width: isTreeCollapsed ? 0 : `${treePaneWidth}px` }}
+            style={{ width: isTreeCollapsed ? 0 : `${treePaneWidth}px`, background: "var(--abrn-card)" }}
             className={`
-              shrink-0 border-r border-border/60 bg-card overflow-y-auto
+              shrink-0 overflow-y-auto
               md:relative md:translate-x-0
               fixed inset-y-0 left-0 z-50 transition-all duration-150
               ${isTreeCollapsed ? "hidden md:hidden" : ""}
@@ -2712,6 +3331,7 @@ export default function Files() {
               selected={selectedNode}
               onSelect={(node) => {
                 setSelectedNode(node);
+                setAbrnTabFilter("all");
                 setSelectedFileIds(new Set());
                 setSidebarOpen(false);
               }}
@@ -2720,6 +3340,16 @@ export default function Files() {
               allFilesCount={myFiles.length}
               starredCount={starredCount}
               sharedCount={sharedFiles.length}
+              dropReceivedCount={dropReceivedCount}
+              totalBytesUsed={totalBytesUsed}
+              pinnedFolderIds={pinnedFolderIds}
+              isDropFilterActive={abrnTabFilter === "drop"}
+              onFilterDropReceived={() => {
+                if (selectedNode.type !== "all" && selectedNode.type !== "folder") {
+                  setSelectedNode({ type: "all" });
+                }
+                setAbrnTabFilter((prev) => (prev === "drop" ? "all" : "drop"));
+              }}
               fileCountsByFolderId={folderFileCounts}
               onCreateFolder={() => openCreateFolderModal()}
               onCreateSubfolder={(parentId) => openCreateFolderModal(parentId)}
@@ -2742,56 +3372,75 @@ export default function Files() {
             />
           </aside>
 
-          {/* Draggable vertical splitter with auto-fit on double click */}
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-valuenow={isTreeCollapsed ? 0 : treePaneWidth}
-            aria-valuemin={MIN_TREE_WIDTH}
-            aria-valuemax={MAX_TREE_WIDTH}
-            aria-label="Resize folder tree pane"
-            tabIndex={0}
-            onPointerDown={handleSplitterPointerDown}
-            onDoubleClick={handleAutoFitWidth}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft") {
-                setTreePaneWidth((w) => {
-                  const nw = Math.max(MIN_TREE_WIDTH, w - (e.shiftKey ? 48 : 16));
-                  localStorage.setItem("abrndrive_tree_pane_width", String(nw));
-                  return nw;
-                });
-              } else if (e.key === "ArrowRight") {
-                setTreePaneWidth((w) => {
-                  const nw = Math.min(MAX_TREE_WIDTH, w + (e.shiftKey ? 48 : 16));
-                  localStorage.setItem("abrndrive_tree_pane_width", String(nw));
-                  return nw;
-                });
-              } else if (e.key === "Enter" || e.key === " ") {
-                setIsTreeCollapsed((c) => !c);
-              }
-            }}
-            className={cn(
-              "w-1.5 relative z-20 cursor-col-resize select-none transition-colors duration-150 group hidden md:block",
-              "hover:bg-primary/50 active:bg-primary",
-              isDraggingSplitter ? "bg-primary" : "bg-border/60"
-            )}
-            title="Arrastra para redimensionar, doble clic para auto-ajustar"
-          >
-            <div className="absolute top-1/2 -translate-y-1/2 -left-1 w-3.5 h-8 rounded-full bg-card border border-border group-hover:border-primary/60 opacity-85 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none shadow-2xs">
-              <div className="w-0.5 h-3.5 bg-primary/70 group-hover:bg-primary rounded-full" />
+          {/* Tactile 10px Draggable Left Splitter with 4-Dot Grip & Live px HUD */}
+          {!isTreeCollapsed && (
+            <div
+              role="separator"
+              data-testid="tree-splitter"
+              aria-orientation="vertical"
+              aria-valuenow={treePaneWidth}
+              aria-valuemin={MIN_TREE_WIDTH}
+              aria-valuemax={MAX_TREE_WIDTH}
+              aria-label="Resize folder tree pane"
+              tabIndex={0}
+              onPointerDown={handleSplitterPointerDown}
+              onDoubleClick={(e) => {
+                if (e.shiftKey || e.altKey) {
+                  handleAutoFitWidth();
+                  return;
+                }
+                setTreePaneWidth(DEFAULT_TREE_WIDTH);
+                localStorage.setItem("abrndrive_tree_pane_width", String(DEFAULT_TREE_WIDTH));
+                playTumblerClick();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") {
+                  setTreePaneWidth((w) => {
+                    const nw = Math.max(MIN_TREE_WIDTH, w - (e.shiftKey ? 48 : 16));
+                    localStorage.setItem("abrndrive_tree_pane_width", String(nw));
+                    return nw;
+                  });
+                } else if (e.key === "ArrowRight") {
+                  setTreePaneWidth((w) => {
+                    const nw = Math.min(MAX_TREE_WIDTH, w + (e.shiftKey ? 48 : 16));
+                    localStorage.setItem("abrndrive_tree_pane_width", String(nw));
+                    return nw;
+                  });
+                } else if (e.key === "Enter" || e.key === " ") {
+                  setIsTreeCollapsed((c) => !c);
+                }
+              }}
+              className={cn(
+                "abrn-splitter hidden md:flex select-none",
+                isDraggingSplitter && "is-dragging"
+              )}
+              title="Arrastra para redimensionar clientes/carpetas · Doble clic para restaurar (248px)"
+            >
+              {isDraggingSplitter && (
+                <span className="abrn-splitter-hud">{treePaneWidth} px</span>
+              )}
+              <span className="abrn-splitter-grip" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
             </div>
-          </div>
+          )}
 
-          <main className="flex-1 flex flex-col overflow-hidden bg-muted relative">
+          <main
+            style={{ background: "var(--abrn-bg)" }}
+            className="flex-1 flex flex-col overflow-hidden relative min-w-0"
+          >
             {isTreeCollapsed && (
               <button
                 type="button"
                 onClick={() => setIsTreeCollapsed(false)}
-                className="absolute top-3 left-3 z-30 px-2 py-1 rounded-md bg-card border border-border shadow-md hover:bg-primary/10 text-xs flex items-center gap-1.5 transition-colors hidden md:flex cursor-pointer select-none"
-                title="Expandir árbol de carpetas"
+                className="abrn-btn absolute top-2.5 left-3 z-30 hidden md:inline-flex shadow-sm"
+                title="Expandir árbol de clientes y carpetas"
               >
                 <FolderIcon className="w-3.5 h-3.5 text-primary" />
-                <span className="font-medium text-[11px]">Carpetas</span>
+                <span>Carpetas</span>
               </button>
             )}
             {selectedNode.type === "manage-drops" ? (
@@ -2840,96 +3489,182 @@ export default function Files() {
               </>
             )}
 
-            <div className="hidden md:flex flex-col items-stretch gap-3 px-3 py-4 border-b border-border/60 bg-background shrink-0 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <div className="flex min-w-0 items-start gap-1.5 sm:items-center sm:gap-2">
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-muted-foreground sm:gap-2">
+            {/* Desktop 2-Tier Unified ABRN Center Header: Subfolder Quick Strip + 9 Live-Count Underline Tabs */}
+            <div
+              style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
+              className="hidden md:flex flex-col px-4 pt-2.5 pb-0 border-b shrink-0 gap-2"
+            >
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <div
+                  data-testid="abrn-subfolder-quick-strip"
+                  className="flex items-center gap-1.5 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-w-0 flex-1"
+                >
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedNode({ type: "all" });
-                      setSelectedFileIds(new Set());
-                    }}
-                    className="break-words text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    onClick={() => setActiveSubfolderFilterId(null)}
+                    className={cn("abrn-sub-pill", !activeSubfolderFilterId && "active")}
                   >
-                    {t("drive:vault.title")}
+                    <span>Todas</span>
+                    <span className="font-mono text-[10px] opacity-75">{myFiles.length}</span>
                   </button>
-                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                  <span className="min-w-0 break-words font-medium text-foreground">{panelTitle}</span>
 
-                  {selectedNode.type === "folder" && (() => {
-                    const currentFolder = folders.find((f) => f.id === selectedNode.folderId);
-                    const siblings = folders.filter(
-                      (f) => f.parentId === currentFolder?.parentId && f.id !== currentFolder?.id
-                    );
-                    if (siblings.length === 0) return null;
+                  {(() => {
+                    const currentFol =
+                      selectedNode.type === "folder"
+                        ? folders.find((f) => f.id === selectedNode.folderId)
+                        : null;
+                    const stripFolders =
+                      selectedNode.type === "folder"
+                        ? currentFol?.parentId
+                          ? folders.filter((f) => f.parentId === currentFol.parentId)
+                          : folders.filter((f) => f.parentId === selectedNode.folderId)
+                        : folders
+                            .filter((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")
+                            .slice(0, 6);
+
                     return (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                      <>
+                        {stripFolders.map((sf) => {
+                          const subCount = folderFileCounts[sf.id] ?? 0;
+                          const isSubActive =
+                            activeSubfolderFilterId === sf.id ||
+                            (selectedNode.type === "folder" && selectedNode.folderId === sf.id && Boolean(sf.parentId));
+                          return (
+                            <button
+                              key={sf.id}
+                              type="button"
+                              onClick={() => {
+                                if (selectedNode.type === "folder" && currentFol?.parentId) {
+                                  setSelectedNode({ type: "folder", folderId: sf.id, folderName: sf.name });
+                                } else {
+                                  setActiveSubfolderFilterId((prev) => (prev === sf.id ? null : sf.id));
+                                }
+                              }}
+                              onDoubleClick={() => {
+                                setSelectedNode({ type: "folder", folderId: sf.id, folderName: sf.name });
+                              }}
+                              className={cn("abrn-sub-pill", isSubActive && "active")}
+                              title={`Clic para filtrar "${sf.name}" · Doble clic para entrar`}
+                            >
+                              <FolderIcon className="w-3 h-3 text-primary shrink-0" />
+                              <span className="max-w-[160px] truncate">{sf.name}</span>
+                              {subCount > 0 && (
+                                <span className="font-mono text-[10px] opacity-75">{subCount}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+
+                        {selectedNode.type === "folder" && !currentFol?.parentId && stripFolders.length === 0 && (
                           <button
                             type="button"
-                            aria-label="Carpetas hermanas"
-                            className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            onClick={() => {
+                              void handleGenerateStandardSubfolders(selectedNode.folderId, selectedNode.folderName);
+                            }}
+                            className="abrn-sub-pill"
+                            style={{ borderStyle: "dashed", color: "var(--abrn-primary)" }}
+                            title="Generar las 5 subcarpetas contables estándar en este cliente"
                           >
-                            <ChevronDown className="w-3.5 h-3.5" />
+                            <Sparkles className="w-3 h-3 shrink-0" />
+                            <span>+ 5 Subcarpetas Base</span>
                           </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-[190px] bg-card/95 backdrop-blur-md">
-                          <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold">
-                            {t("drive:nav.siblingFolders", "Carpetas hermanas")}
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {siblings.map((sibling) => (
-                            <DropdownMenuItem
-                              key={sibling.id}
-                              onClick={() => {
-                                setSelectedNode({ type: "folder", folderId: sibling.id, folderName: sibling.name });
-                                setSelectedFileIds(new Set());
-                              }}
-                              className="cursor-pointer flex items-center gap-2 text-xs"
-                            >
-                              <FolderIcon className="w-3.5 h-3.5 text-primary" />
-                              <span className="truncate">{sibling.name}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        )}
+                      </>
                     );
                   })()}
 
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    ({visibleFiles.length})
-                  </span>
+                  {!isSharedView && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openCreateFolderModal(
+                          selectedNode.type === "folder" ? selectedNode.folderId : null
+                        )
+                      }
+                      className="abrn-sub-pill"
+                      style={{ borderStyle: "dashed" }}
+                    >
+                      <Plus className="w-3 h-3 text-primary shrink-0" />
+                      <span>{selectedNode.type === "folder" ? "Subcarpeta" : "Carpeta"}</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div
+                    style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
+                    className="flex items-center gap-1.5 h-[28px] px-2.5 rounded-[8px] border w-[176px] xl:w-[210px]"
+                  >
+                    <Search className="w-3 h-3 text-muted-foreground shrink-0" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Filtrar lista o #tag…"
+                      aria-label="Filtrar archivos en vista actual"
+                      className="bg-transparent border-0 outline-none text-[11.5px] text-foreground placeholder:text-muted-foreground w-full min-w-0"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        aria-label="Limpiar filtro"
+                        className="text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {!isSharedView && (
+                    <label
+                      htmlFor="folder-input"
+                      title="Subir carpeta completa cifrada"
+                      className="abrn-btn h-[28px] px-2.5 text-[11px]"
+                    >
+                      <FolderOpen className="w-3 h-3 text-primary" />
+                      <span className="hidden xl:inline">{t("drive:vault.folder")}</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <div className="flex min-w-0 flex-wrap items-center gap-1">
-                  {(["name", "date", "size"] as const).map((field) => (
+              {/* Row 2: 9 Live-Count Underline Filter Tabs */}
+              <div
+                data-testid="abrn-underline-tabs"
+                role="tablist"
+                aria-label="Filtros por tipo de documento contable"
+                className="flex items-center gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mb-px"
+              >
+                {(
+                  [
+                    { id: "all", label: "Todos" },
+                    { id: "starred", label: "Fijados ★" },
+                    { id: "drop", label: "Recibidos Drop" },
+                    { id: "pdf", label: "PDF" },
+                    { id: "xml", label: "XML CFDI" },
+                    { id: "xlsx", label: "XLSX" },
+                    { id: "media", label: "4K y Video" },
+                    { id: "code", label: "Código" },
+                    { id: "shared", label: "Enlaces #key" },
+                  ] as const
+                ).map((tab) => {
+                  const isTabActive = abrnTabFilter === tab.id;
+                  return (
                     <button
+                      key={tab.id}
                       type="button"
-                      key={field}
-                      onClick={() => handleSort(field)}
-                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${
-                        sortBy === field
-                          ? "bg-primary/10 border-primary/30 text-primary"
-                          : "border-border text-muted-foreground hover:border-border"
-                      }`}
+                      role="tab"
+                      aria-selected={isTabActive}
+                      data-testid={`abrn-tab-${tab.id}`}
+                      onClick={() => setAbrnTabFilter(tab.id)}
+                      className={cn("abrn-u-tab", isTabActive && "active")}
                     >
-                      {field.charAt(0).toUpperCase() + field.slice(1)}{" "}
-                      {sortBy === field ? (sortAsc ? "↑" : "↓") : ""}
+                      <span>{tab.label}</span>
+                      <span className="abrn-u-tab-num">{abrnTabCounts[tab.id]}</span>
                     </button>
-                  ))}
-                </div>
-
-                {!isSharedView && (
-                  <label
-                    htmlFor="folder-input"
-                    className="cursor-pointer inline-flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-border bg-card text-foreground hover:bg-muted/80 shadow-2xs transition-colors active:scale-95"
-                  >
-                    <FolderOpen className="w-3.5 h-3.5 text-primary" />
-                    <span>{t("drive:vault.folder")}</span>
-                  </label>
-                )}
+                  );
+                })}
               </div>
             </div>
 
@@ -3414,6 +4149,7 @@ export default function Files() {
                   headerCheckboxRef={headerCheckboxRef}
                   onDownload={(file) => handleDownload(file.id, file.filename, file.metadata, file.pin_wrapped_key || undefined, file.is_owner, file.folder_id)}
                   onCreateShareLink={handleCreateShareLink}
+                  onWhatsAppShare={(file) => handleQuickShare(file.id)}
                   onToggleStar={toggleStar}
                   onAccessPanel={(file) => {
                     setLastInteractedFileId(file.id);
@@ -3433,6 +4169,16 @@ export default function Files() {
                     setMobileInspectorFile(file);
                   }}
                   onPreviewClick={(file) => {
+                    setLastInteractedFileId(file.id);
+                    setInspectorFile(file);
+                    if (isInspectorCollapsed || isMobileScreen) {
+                      setPreviewFile({
+                        ...file,
+                        folder_id: file.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
+                      });
+                    }
+                  }}
+                  onOpenCinemascope={(file) => {
                     setLastInteractedFileId(file.id);
                     setInspectorFile(file);
                     setPreviewFile({
@@ -3472,6 +4218,20 @@ export default function Files() {
                   focusedFileId={
                     focusedRowFileId || (focusedFileIndex >= 0 && visibleFiles[focusedFileIndex]?.id ? visibleFiles[focusedFileIndex].id : null)
                   }
+                  activeInspectorFileId={(inspectorFile || visibleFiles[0])?.id ?? null}
+                  folderNameById={folderNameById}
+                  renamingFileId={renamingFileId}
+                  onStartRename={setRenamingFileId}
+                  onRenameFile={handleInlineRenameFile}
+                  dockedFileIds={dockedFileIds}
+                  onToggleStageFile={(file) => {
+                    playTumblerClick();
+                    setStagedFiles((prev) =>
+                      prev.some((f) => f.id === file.id)
+                        ? prev.filter((f) => f.id !== file.id)
+                        : [...prev, file]
+                    );
+                  }}
                   sortBy={sortBy}
                   sortAsc={sortAsc}
                   onSort={handleSort}
@@ -3480,11 +4240,38 @@ export default function Files() {
                 />
               )}
             </div>
+
+            {/* Desktop Bottom Tactile & Keyboard Shortcut Hint Bar */}
+            <div
+              data-testid="abrn-bottom-hint-bar"
+              style={{
+                background: "var(--abrn-card)",
+                borderColor: "var(--abrn-border)",
+                color: "var(--abrn-muted-fg)",
+              }}
+              className="hidden md:flex items-center justify-between px-4 py-1.5 border-t text-[11px] shrink-0 gap-3"
+            >
+              <span className="truncate">
+                Arrastra <strong className="text-foreground font-semibold">⋮</strong> para redimensionar · Pasa el mouse o clic derecho en cualquier fila
+              </span>
+              <span className="inline-flex items-center gap-1.5 shrink-0">
+                <kbd className="abrn-kbd-pill">J / K</kbd>
+                <span>recorrer</span>
+                <span>·</span>
+                <kbd className="abrn-kbd-pill">F2</kbd>
+                <span>renombrar</span>
+                <span>·</span>
+                <kbd className="abrn-kbd-pill">Espacio</kbd>
+                <span>·</span>
+                <kbd className="abrn-kbd-pill">Enter</kbd>
+                <span>94vw</span>
+              </span>
+            </div>
             </>
             )}
           </main>
 
-          {/* Draggable right-hand splitter for Multi-Format Inspector Pane */}
+          {/* Tactile 10px Draggable Right Splitter for Multi-Format RAM Inspector */}
           {!isInspectorCollapsed && (
             <div
               role="separator"
@@ -3519,15 +4306,20 @@ export default function Files() {
                 }
               }}
               className={cn(
-                "w-1.5 relative z-20 cursor-col-resize select-none transition-colors duration-150 group hidden md:block",
-                "hover:bg-primary/50 active:bg-primary",
-                isDraggingInspectorSplitter ? "bg-primary" : "bg-border/60"
+                "abrn-splitter hidden md:flex select-none",
+                isDraggingInspectorSplitter && "is-dragging"
               )}
-              title="Arrastra para redimensionar inspector, doble clic para restaurar"
+              title="Arrastra para redimensionar inspector · Doble clic para restaurar (368px)"
             >
-              <div className="absolute top-1/2 -translate-y-1/2 -left-1 w-3.5 h-8 rounded-full bg-card border border-border group-hover:border-primary/60 opacity-85 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none shadow-2xs">
-                <div className="w-0.5 h-3.5 bg-primary/70 group-hover:bg-primary rounded-full" />
-              </div>
+              {isDraggingInspectorSplitter && (
+                <span className="abrn-splitter-hud">{inspectorPaneWidth} px</span>
+              )}
+              <span className="abrn-splitter-grip" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
             </div>
           )}
 
@@ -3539,6 +4331,15 @@ export default function Files() {
             >
               <VaultInspectorPane
                 file={inspectorFile || visibleFiles[0] || null}
+                folderName={(() => {
+                  const f = inspectorFile || visibleFiles[0];
+                  const fid = f?.folder_id || f?.drop_folder_id;
+                  return (fid && folderNameById[fid]) || (selectedNode.type === "folder" ? selectedNode.folderName : undefined);
+                })()}
+                onRenameInline={(file) => {
+                  const target = file || inspectorFile || visibleFiles[0];
+                  if (target) setRenamingFileId(target.id);
+                }}
                 onExpandCinemascope={(file) => {
                   const target = file || inspectorFile || visibleFiles[0] || null;
                   if (target) {
@@ -3631,6 +4432,9 @@ export default function Files() {
           setLastInteractedFileId(file.id);
           handleQuickShare(file.id);
         }}
+        onRenameInline={(file) => {
+          if (file?.id) setRenamingFileId(file.id);
+        }}
         onStageFile={(file) => {
           if (!file?.id) return;
           setStagedFiles((prev) => {
@@ -3685,6 +4489,17 @@ export default function Files() {
         onUploadHere={() => {
           const input = document.getElementById("file-input") as HTMLInputElement | null;
           input?.click();
+        }}
+        onSmartUpload={() => setShowSmartUploadModal(true)}
+        onRequestDrop={() => setShowWhatsAppDropModal(true)}
+        onRequestDropForFolder={(folderId, folderName) => {
+          setSelectedNode({ type: "folder", folderId, folderName });
+          setShowWhatsAppDropModal(true);
+        }}
+        onTogglePinFolder={handleTogglePinFolder}
+        isFolderPinned={(folderId) => pinnedFolderIds.includes(folderId)}
+        onGenerateStandardSubfolders={(folderId, folderName) => {
+          void handleGenerateStandardSubfolders(folderId, folderName);
         }}
         onRenameFolder={openRenameFolderModal}
         onShareFolder={handleShareFolder}
@@ -3760,7 +4575,7 @@ export default function Files() {
 
       {showPasswordModal && (() => {
         const credScheme = pendingDownload ? getFileCredentialScheme(pendingDownload) : "password";
-        const isUpload = passwordAction === "upload" || passwordAction === "drop-upload";
+        const isUpload = passwordAction === "upload" || passwordAction === "drop-upload" || passwordAction === "smart-upload";
         const defaultUsePin = isUpload ? ownerUsesPin : credScheme !== "password";
         const usePin = credentialModeOverride !== null ? credentialModeOverride === "pin" : defaultUsePin;
         return (
@@ -4206,6 +5021,16 @@ export default function Files() {
         dockedFiles={stagedFiles}
         onClearDock={() => setStagedFiles([])}
         onDownloadBatchSlip={(files) => downloadBatchTransferSlip(files, currentUser?.email)}
+        onBatchWhatsApp={(files) => {
+          if (files[0]) handleCreateShareLink(files[0]);
+        }}
+        onBatchShare={(files) => {
+          if (selectedNode.type === "folder") {
+            handleShareFolder(selectedNode.folderId, selectedNode.folderName);
+          } else if (files[0]) {
+            handleCreateShareLink(files[0]);
+          }
+        }}
         onBatchSever={async (files) => {
           const token = localStorage.getItem("token");
           if (!token) return;
@@ -4410,6 +5235,39 @@ export default function Files() {
           }
         }}
         searchIndex={globalVaultSearchIndex}
+      />
+
+      <SmartUploadOrderModal
+        isOpen={showSmartUploadModal}
+        onClose={() => setShowSmartUploadModal(false)}
+        activeFolderName={
+          selectedNode.type === "folder"
+            ? selectedNode.folderName
+            : folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")?.name
+        }
+        folders={folders}
+        onCommitUpload={handleSmartUploadCommit}
+      />
+
+      <WhatsAppDropRequestModal
+        isOpen={showWhatsAppDropModal}
+        onClose={() => setShowWhatsAppDropModal(false)}
+        clientName={
+          selectedNode.type === "folder"
+            ? selectedNode.folderName
+            : folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")?.name ||
+              "Cliente ABRN"
+        }
+        folderId={
+          selectedNode.type === "folder"
+            ? selectedNode.folderId
+            : folders.find((f) => !f.parentId && f.name !== "External Drops" && f.name !== "My Vault")?.id || null
+        }
+        existingFiles={scopedBaseFiles}
+        existingDropTokens={dropTokens}
+        onDropLinkCreated={() => {
+          void fetchDropTokens();
+        }}
       />
     </>
   );
