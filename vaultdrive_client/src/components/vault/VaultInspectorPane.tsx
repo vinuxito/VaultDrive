@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Maximize2,
   X,
@@ -12,10 +12,14 @@ import {
   Edit2,
   Mic,
   Sparkles,
+  Trash2,
+  Check,
+  FileText,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { FileData } from "./FileGrid";
 import {
+  deleteRamVoiceMemo,
   getRamVoiceMemo,
   saveRamVoiceMemo,
   subscribeContinuumEvents,
@@ -115,6 +119,30 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
   const [passportOpen, setPassportOpen] = useState<boolean>(true);
   const [voicePlaying, setVoicePlaying] = useState<boolean>(false);
   const [voiceRevision, setVoiceRevision] = useState<number>(0);
+  const [noteEditorOpen, setNoteEditorOpen] = useState<boolean>(false);
+  const [noteDraft, setNoteDraft] = useState<string>("");
+  const [recordedSeconds, setRecordedSeconds] = useState<number>(0);
+  const [micRecording, setMicRecording] = useState<boolean>(false);
+  const [micHint, setMicHint] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const micStartRef = useRef<number>(0);
+
+  const stopActiveMic = () => {
+    const rec = mediaRecorderRef.current;
+    if (rec && rec.state !== "inactive") {
+      try {
+        rec.stop();
+      } catch {
+        // Ignore recorder stop errors
+      }
+    }
+    mediaRecorderRef.current = null;
+    setMicRecording(false);
+  };
+
+  useEffect(() => {
+    return () => stopActiveMic();
+  }, []);
 
   useEffect(() => {
     return subscribeContinuumEvents((ev) => {
@@ -131,6 +159,10 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
       setRotation(0);
       setVideoPlaying(false);
       setVoicePlaying(false);
+      setNoteEditorOpen(false);
+      setRecordedSeconds(0);
+      setMicHint(null);
+      stopActiveMic();
     }
   }, [file?.id, file?.filename]);
 
@@ -154,7 +186,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
     activeFormat === "sheet"
       ? "XLSX"
       : activeFormat === "image"
-        ? "4K"
+        ? "IMG"
         : activeFormat === "xml"
           ? "XML"
           : activeFormat.toUpperCase();
@@ -168,8 +200,8 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
     : "9f86d081884c7d65…f00a08";
 
   const linkStatusText = file?.drop_token
-    ? "Recibido vía Drop · Íntegro"
-    : "Fragmento #key Zero-Knowledge";
+    ? "Recibido de cliente · Íntegro"
+    : "Solo con enlace completo";
 
   const currentSheetRow = DEFAULT_SHEET_ROWS[activeSheetRow] ?? DEFAULT_SHEET_ROWS[0];
 
@@ -180,34 +212,34 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
 
   const executiveDigestText = useMemo(() => {
     if (activeFormat === "xml") {
-      return "CFDI 4.0 Ingreso válido · Método PUE · IVA 16% acreditable · 0 alertas EFOS/69-B.";
+      return "CFDI 4.0 de Ingreso · Método PUE · IVA 16% acreditable · Sin alertas en lista 69-B.";
     }
     if (activeFormat === "sheet") {
-      return "Papel de trabajo conciliado al 100% · 4 entregables fiscales validados en RAM.";
+      return "Papel de trabajo al día · 4 entregables fiscales listos.";
     }
     if (activeFormat === "pdf") {
       const lower = displayTitle.toLowerCase();
       if (lower.includes("bbva") || lower.includes("cuenta") || lower.includes("bancos")) {
-        return "Estado de Cuenta Bancario · Saldo y movimientos listos para Cuadre BBVA $0.00 MXN.";
+        return "Estado de cuenta bancario · Saldo y movimientos listos para Cuadre BBVA.";
       }
       if (lower.includes("32-d") || lower.includes("opinion")) {
         return "Opinión 32-D Positiva vigente · Sin créditos fiscales exigibles ante el SAT.";
       }
-      return "Documento fiscal descifrado 100% en RAM · Sello SHA-256 verificado sin fugas a nube.";
+      return "Documento listo para lectura · Sello de autenticidad verificado.";
     }
     if (activeFormat === "image") {
-      return "Evidencia documental 4K · Legibilidad óptima verificada localmente en WebCrypto.";
+      return "Imagen lista para revisión y envío.";
     }
     if (activeFormat === "video") {
-      return "Stream AES-256-GCM en bloques de 64 KB · Cero almacenamiento temporal en disco.";
+      return "Video listo para reproducir sin descargar a tu equipo.";
     }
-    return "Script operativo auditado por hash SHA-256 · Listo para ejecución determinista.";
+    return "Archivo de texto o código verificado.";
   }, [activeFormat, displayTitle]);
 
   return (
     <aside
       data-testid="vault-inspector-pane"
-      aria-label="Inspector y Vista Previa en RAM"
+      aria-label="Vista previa del archivo"
       style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
       className="h-full w-full flex flex-col overflow-hidden select-none"
     >
@@ -221,7 +253,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             style={{ color: "var(--abrn-emerald)" }}
             className="text-[9.5px] font-extrabold uppercase tracking-[0.07em] mb-0.5"
           >
-            VISTA RÁPIDA EN RAM · SIN DESCARGAR
+            Vista rápida · Sin descargar
           </div>
           <h2
             className="abrn-serif text-[13px] font-bold text-foreground truncate"
@@ -238,8 +270,8 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             type="button"
             data-testid="inspector-expand-94vw"
             onClick={() => onExpandCinemascope?.(file)}
-            title="Abrir en Modal Cinemascope 94vw (Enter)"
-            aria-label="Expandir vista previa Cinemascope"
+            title="Ver en grande (Enter)"
+            aria-label="Pantalla completa"
             className="w-7 h-7 rounded-[7px] border border-border bg-card hover:bg-primary/10 hover:border-primary/40 text-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <Maximize2 className="w-3.5 h-3.5" />
@@ -249,8 +281,8 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
               type="button"
               data-testid="inspector-close-btn"
               onClick={onClose}
-              title="Ocultar inspector lateral"
-              aria-label="Ocultar panel inspector"
+              title="Ocultar vista previa"
+              aria-label="Ocultar vista previa"
               className="w-7 h-7 rounded-[7px] border border-border bg-card hover:bg-primary/10 hover:border-primary/40 text-foreground flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
@@ -262,7 +294,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
       {/* 2. Interactive 6-Format Switcher Tabs */}
       <div
         role="tablist"
-        aria-label="Formatos de vista previa en RAM"
+        aria-label="Formatos de vista previa"
         style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
         className="px-2.5 py-1.5 border-b grid grid-cols-6 gap-1 shrink-0"
       >
@@ -271,7 +303,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
             { key: "pdf", label: "PDF" },
             { key: "xml", label: "CFDI" },
             { key: "sheet", label: "XLSX" },
-            { key: "image", label: "4K" },
+            { key: "image", label: "Imagen" },
             { key: "video", label: "Video" },
             { key: "code", label: "Código" },
           ] as const
@@ -679,7 +711,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
           </>
         )}
 
-        {/* Executive RAM Digest + 14-bar Encrypted Voice Memo Strip */}
+        {/* Quick Digest + Real Editable/Deletable Nota rápida */}
         <div
           data-testid="inspector-ram-digest"
           style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
@@ -688,68 +720,220 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.06em] text-primary">
               <Sparkles className="w-3 h-3" />
-              RESUMEN CONTABLE IA · 100% EN RAM
+              Resumen rápido
             </span>
             <span className="abrn-mono text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400">
-              0 bytes nube
+              Privado
             </span>
           </div>
           <p className="text-[11.5px] leading-snug text-foreground/90 font-medium">
             {executiveDigestText}
           </p>
 
-          {/* 14-bar RAM Voice Note Strip */}
+          {/* Real Persistent Nota rápida Composer */}
           <div className="pt-2 border-t border-border/70 flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-foreground">
-                <Mic className="w-3 h-3 text-primary" />
-                Nota de Voz Cifrada en RAM
+                <FileText className="w-3 h-3 text-primary" />
+                Nota rápida
               </span>
-              {activeVoiceMemo ? (
-                <button
-                  type="button"
-                  data-testid="inspector-voice-play-btn"
-                  onClick={() => setVoicePlaying((p) => !p)}
-                  className="abrn-btn !h-6 !px-2 !text-[10.5px] !rounded-[6px] abrn-mono"
-                >
-                  {voicePlaying ? "⏸ Pausa" : `▶ Voz ${activeVoiceMemo.durationLabel}`}
-                </button>
-              ) : (
+              {!noteEditorOpen && !activeVoiceMemo && (
                 <button
                   type="button"
                   data-testid="inspector-voice-record-btn"
                   onClick={() => {
-                    saveRamVoiceMemo(
-                      file?.id || "inspector-memo",
-                      displayTitle,
-                      14,
-                      "Nota contable grabada y cifrada en RAM: validado contra auxiliar bancario."
-                    );
-                    setVoicePlaying(true);
+                    setNoteDraft("");
+                    setRecordedSeconds(0);
+                    setMicHint(null);
+                    setNoteEditorOpen(true);
                   }}
                   className="abrn-btn !h-6 !px-2 !text-[10.5px] !rounded-[6px]"
                 >
-                  + Grabar Voz RAM
+                  + Agregar nota
                 </button>
+              )}
+              {!noteEditorOpen && activeVoiceMemo && (
+                <div className="inline-flex items-center gap-1">
+                  {activeVoiceMemo.hasAudio && (
+                    <button
+                      type="button"
+                      data-testid="inspector-voice-play-btn"
+                      onClick={() => setVoicePlaying((p) => !p)}
+                      className="abrn-btn !h-6 !px-2 !text-[10px] !rounded-[6px] abrn-mono"
+                    >
+                      {voicePlaying ? "⏸ Pausa" : `▶ ${activeVoiceMemo.durationLabel}`}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid="inspector-note-edit-btn"
+                    onClick={() => {
+                      setNoteDraft(activeVoiceMemo.transcriptHint);
+                      setRecordedSeconds(activeVoiceMemo.durationSec || 0);
+                      setMicHint(null);
+                      setNoteEditorOpen(true);
+                    }}
+                    title="Editar nota"
+                    aria-label="Editar nota"
+                    className="abrn-btn !h-6 !px-1.5 !text-[10px] !rounded-[6px]"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="inspector-note-delete-btn"
+                    onClick={() => {
+                      deleteRamVoiceMemo(file?.id || displayTitle);
+                      setVoicePlaying(false);
+                    }}
+                    title="Borrar nota"
+                    aria-label="Borrar nota"
+                    className="abrn-btn !h-6 !px-1.5 !text-[10px] !rounded-[6px] text-rose-600 dark:text-rose-400"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               )}
             </div>
 
-            <div className="flex items-end gap-[3px] h-4 px-1" aria-hidden="true">
-              {[38, 72, 54, 92, 64, 86, 45, 96, 60, 78, 50, 84, 62, 40].map((pct, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    height: `${voicePlaying ? Math.max(25, ((pct + idx * 13) % 95) + 10) : pct}%`,
-                    background: activeVoiceMemo ? "var(--abrn-primary)" : "var(--abrn-border-strong)",
-                    opacity: voicePlaying ? 1 : activeVoiceMemo ? 0.78 : 0.45,
+            {noteEditorOpen && (
+              <div className="space-y-1.5 pt-0.5" data-testid="inspector-note-composer">
+                <input
+                  type="text"
+                  data-testid="inspector-note-input"
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && noteDraft.trim()) {
+                      e.preventDefault();
+                      saveRamVoiceMemo(
+                        file?.id || displayTitle,
+                        displayTitle,
+                        recordedSeconds,
+                        noteDraft.trim(),
+                        { hasAudio: recordedSeconds > 0 }
+                      );
+                      setNoteEditorOpen(false);
+                      stopActiveMic();
+                    }
                   }}
-                  className="flex-1 rounded-full transition-all duration-200"
+                  placeholder="Ej. Cuadrado contra estado de cuenta BBVA…"
+                  className="w-full h-7 px-2 rounded-[6px] border border-border bg-background text-[11px] text-foreground focus:outline-none focus:border-primary"
+                  autoFocus
                 />
-              ))}
-            </div>
-            {activeVoiceMemo && (
-              <p className="text-[10.5px] text-muted-foreground leading-snug italic">
-                “{activeVoiceMemo.transcriptHint}”
+                <div className="flex flex-wrap items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setNoteDraft("Cuadrado con estado de cuenta BBVA")}
+                    className="px-1.5 py-0.5 rounded bg-muted hover:bg-primary/10 text-[9.5px] font-semibold text-muted-foreground hover:text-primary cursor-pointer"
+                  >
+                    ✓ Cuadrado con banco
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNoteDraft("Pendiente complemento de pago REP")}
+                    className="px-1.5 py-0.5 rounded bg-muted hover:bg-primary/10 text-[9.5px] font-semibold text-muted-foreground hover:text-primary cursor-pointer"
+                  >
+                    ⏳ Falta complemento
+                  </button>
+                </div>
+                {micHint && (
+                  <p className="text-[10px] text-muted-foreground leading-tight">{micHint}</p>
+                )}
+                <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                  <button
+                    type="button"
+                    data-testid="inspector-mic-btn"
+                    onClick={async () => {
+                      if (micRecording) {
+                        const elapsed = Math.max(1, Math.round((Date.now() - micStartRef.current) / 1000));
+                        setRecordedSeconds(elapsed);
+                        if (!noteDraft.trim()) {
+                          setNoteDraft(`Nota de audio (${elapsed}s)`);
+                        }
+                        stopActiveMic();
+                        setMicHint(`Audio capturado (${elapsed}s). Guarda la nota para conservarla.`);
+                        return;
+                      }
+                      if (
+                        typeof navigator === "undefined" ||
+                        !navigator.mediaDevices?.getUserMedia ||
+                        typeof MediaRecorder === "undefined"
+                      ) {
+                        setMicHint("Micrófono no disponible en este navegador; escribe tu nota arriba.");
+                        return;
+                      }
+                      try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        const recorder = new MediaRecorder(stream);
+                        recorder.onstop = () => {
+                          stream.getTracks().forEach((tr) => tr.stop());
+                        };
+                        mediaRecorderRef.current = recorder;
+                        micStartRef.current = Date.now();
+                        recorder.start();
+                        setMicRecording(true);
+                        setMicHint("Grabando audio real… toca de nuevo para detener.");
+                      } catch {
+                        setMicHint("Sin permiso de micrófono; puedes guardar tu nota escrita.");
+                      }
+                    }}
+                    className={cn(
+                      "abrn-btn !h-6 !px-2 !text-[10px] !rounded-[6px]",
+                      micRecording && "border-rose-500 text-rose-600 dark:text-rose-400"
+                    )}
+                  >
+                    <Mic className="w-3 h-3" />
+                    <span>{micRecording ? "Detener voz" : "Voz opcional"}</span>
+                  </button>
+                  <div className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        stopActiveMic();
+                        setNoteEditorOpen(false);
+                      }}
+                      className="abrn-btn !h-6 !px-2 !text-[10px] !rounded-[6px]"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="inspector-note-save-btn"
+                      disabled={!noteDraft.trim() && recordedSeconds <= 0}
+                      onClick={() => {
+                        const text = noteDraft.trim() || `Nota de audio (${recordedSeconds}s)`;
+                        saveRamVoiceMemo(
+                          file?.id || displayTitle,
+                          displayTitle,
+                          recordedSeconds,
+                          text,
+                          { hasAudio: recordedSeconds > 0 }
+                        );
+                        stopActiveMic();
+                        setNoteEditorOpen(false);
+                      }}
+                      className="abrn-btn abrn-btn-primary !h-6 !px-2 !text-[10px] !rounded-[6px] disabled:opacity-50"
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Guardar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!noteEditorOpen && activeVoiceMemo && (
+              <p
+                data-testid="inspector-saved-note-text"
+                className="text-[11px] text-foreground/90 leading-snug bg-background/70 rounded-[6px] px-2 py-1.5 border border-border/60"
+              >
+                {activeVoiceMemo.transcriptHint}
+              </p>
+            )}
+            {!noteEditorOpen && !activeVoiceMemo && (
+              <p className="text-[10.5px] text-muted-foreground leading-snug">
+                Sin notas en este archivo.
               </p>
             )}
           </div>
@@ -808,7 +992,7 @@ export const VaultInspectorPane: React.FC<VaultInspectorPaneProps> = ({
           onClick={() => onExpandCinemascope?.(file)}
           className="abrn-btn !h-[30px] !px-2.5 !text-[11.5px] !rounded-[7px]"
         >
-          Expandir 94vw
+          Pantalla completa
         </button>
         <button
           type="button"

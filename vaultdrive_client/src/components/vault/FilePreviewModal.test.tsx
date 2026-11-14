@@ -395,8 +395,9 @@ describe("FilePreviewModal cached credential recovery", () => {
       "FILEMÓN OFFICE • CFDI 4.0",
     );
     expect(screen.getByTestId("filemon-office-suite-pill")).toHaveTextContent(
-      /Quantix ABRN SAT • Amarre Fiscal \(Roche\)/,
+      /ABRN SAT • (Fiscal Summary|Resumen Fiscal)/,
     );
+    expect(screen.getByTestId("filemon-office-suite-pill")).not.toHaveTextContent(/Roche/i);
     expect(screen.getByTestId("filemon-office-tactical-dock")).toBeInTheDocument();
     expect(screen.getByText("AMARRE FISCAL OCTUBRE")).toBeInTheDocument();
   });

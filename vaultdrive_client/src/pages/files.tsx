@@ -3331,21 +3331,19 @@ trailer << /Root 1 0 R >>
                 </h1>
                 <span className="abrn-blindado-pill shrink-0">
                   <span className="abrn-pulse-dot" />
-                  <span className="hidden 2xl:inline">Blindado · AES-256-GCM</span>
-                  <span className="hidden sm:inline 2xl:hidden">Blindado AES-256</span>
-                  <span className="sm:hidden">{t("drive:vault.statusSafe", "Blindado")}</span>
+                  <span>🔒 {t("drive:vault.statusSafe", "Blindado")}</span>
                 </span>
               </div>
               <p className="hidden sm:block md:hidden text-xs text-muted-foreground mt-0.5">
                 {visibleFiles.length > 0
-                  ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos blindados en tu chip · Todo en orden" })
+                  ? t("drive:vault.heroCount", { count: visibleFiles.length, defaultValue: "{{count}} archivos protegidos · Todo en orden" })
                   : t("drive:vault.readyToProtect", { defaultValue: "Bóveda lista y a salvo" })}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Sovereign Center Module Switcher: Archivos · Cuadre BBVA · Accesos #key */}
+            {/* Center Module Switcher: Archivos · Cuadre BBVA · Enlaces y Buzones */}
             <div
               data-testid="abrn-center-module-bar"
               role="tablist"
@@ -3357,7 +3355,7 @@ trailer << /Root 1 0 R >>
                 [
                   { id: "files" as const, label: "Archivos", testId: "module-tab-files" },
                   { id: "reconcile" as const, label: "Cuadre BBVA", testId: "module-tab-reconcile" },
-                  { id: "access" as const, label: "Accesos #key", testId: "module-tab-access" },
+                  { id: "access" as const, label: "Enlaces y Buzones", testId: "module-tab-access" },
                 ]
               ).map((mod) => {
                 const active = centerModule === mod.id;
@@ -3432,7 +3430,7 @@ trailer << /Root 1 0 R >>
               })}
             </div>
 
-            {/* 1px-Divided Telemetry Strip matching ABRN unified preview */}
+            {/* Folder Summary Strip: Archivos · Recibidos · Compartidos */}
             <div
               data-testid="vault-telemetry-strip"
               style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
@@ -3441,31 +3439,27 @@ trailer << /Root 1 0 R >>
               <button
                 type="button"
                 onClick={() => setAbrnTabFilter("all")}
-                className="px-2 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
               >
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Archivos</span>
+                <span className="text-[10px] font-bold text-muted-foreground">Archivos</span>
                 <span className="font-mono font-bold text-foreground tabular-nums">{visibleFiles.length}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAbrnTabFilter((prev) => (prev === "drop" ? "all" : "drop"))}
-                className="px-2 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
               >
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">Drop</span>
+                <span className="text-[10px] font-bold text-muted-foreground">Recibidos</span>
                 <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">{dropReceivedCount}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAbrnTabFilter((prev) => (prev === "shared" ? "all" : "shared"))}
-                className="px-2 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
+                className="px-2.5 py-1 flex items-center gap-1.5 hover:bg-card transition-colors cursor-pointer"
               >
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">#key</span>
+                <span className="text-[10px] font-bold text-muted-foreground">Compartidos</span>
                 <span className="font-mono font-bold text-primary tabular-nums">{Math.max(dropTokens.length, abrnTabCounts.shared)}</span>
               </button>
-              <div className="px-2 py-1 flex items-center gap-1.5">
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">SHA-256</span>
-                <span style={{ color: "var(--abrn-emerald)" }} className="font-mono font-bold tabular-nums">100%</span>
-              </div>
             </div>
 
             <button
@@ -3876,13 +3870,13 @@ trailer << /Root 1 0 R >>
                   [
                     { id: "all", label: "Todos" },
                     { id: "starred", label: "Fijados ★" },
-                    { id: "drop", label: "Recibidos Drop" },
+                    { id: "drop", label: "Recibidos" },
                     { id: "pdf", label: "PDF" },
                     { id: "xml", label: "XML CFDI" },
                     { id: "xlsx", label: "XLSX" },
-                    { id: "media", label: "4K y Video" },
+                    { id: "media", label: "Imagen y Video" },
                     { id: "code", label: "Código" },
-                    { id: "shared", label: "Enlaces #key" },
+                    { id: "shared", label: "Compartidos" },
                   ] as const
                 ).map((tab) => {
                   const isTabActive = abrnTabFilter === tab.id;
@@ -4059,11 +4053,11 @@ trailer << /Root 1 0 R >>
                     <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-emerald-700 dark:text-emerald-300">
-                          EL RECIBO SAGRADO · TRANSMISIÓN CEL → PC VERIFICADA
+                        <span className="text-[11px] font-extrabold tracking-[0.02em] text-emerald-700 dark:text-emerald-300">
+                          El Recibo Sagrado · Guardado desde tu celular
                         </span>
                         <span className="px-2 py-0.5 rounded-full text-[9.5px] font-extrabold bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 abrn-mono">
-                          AES-256-GCM
+                          Verificado
                         </span>
                       </div>
                       <p className="mt-0.5 text-xs text-foreground font-semibold truncate">
@@ -4080,7 +4074,7 @@ trailer << /Root 1 0 R >>
                     aria-label="Cerrar recibo sagrado"
                     className="abrn-btn !h-7 !px-2.5 !text-[11px]"
                   >
-                    OK
+                    Listo
                   </button>
                 </div>
               )}
@@ -4171,10 +4165,11 @@ trailer << /Root 1 0 R >>
                           )?.name || "Grupo Roche SA de CV"
                     }
                     isLocked={isVaultLocked}
+                    onOpenUploadModal={() => setShowSmartUploadModal(true)}
                     onSeedAccountingFiles={handleSmartUploadCommit}
                     onShareReconcileWhatsApp={(msg) => {
                       void navigator.clipboard?.writeText(msg);
-                      addToast("Resumen de Cuadre BBVA $0.00 MXN copiado para WhatsApp", "success");
+                      addToast("Resumen de cuadre copiado para enviar por WhatsApp", "success");
                     }}
                     onBackToFiles={() => setCenterModule("files")}
                   />
@@ -4654,7 +4649,7 @@ trailer << /Root 1 0 R >>
                 <kbd className="abrn-kbd-pill">Espacio</kbd>
                 <span>·</span>
                 <kbd className="abrn-kbd-pill">Enter</kbd>
-                <span>94vw</span>
+                <span>abrir</span>
               </span>
             </div>
             </>
@@ -4738,7 +4733,7 @@ trailer << /Root 1 0 R >>
                       folder_id: target.folder_id || (selectedNode.type === "folder" ? selectedNode.folderId : null),
                     });
                   } else {
-                    addToast("Visor Cinemascope 94vw listo — selecciona o sube un archivo para pantalla completa", "success");
+                    addToast("Vista completa lista — selecciona o sube un archivo para abrirlo", "success");
                   }
                 }}
                 onClose={() => setIsInspectorCollapsed(true)}
@@ -4747,7 +4742,7 @@ trailer << /Root 1 0 R >>
                   if (target) {
                     handleCreateShareLink(target);
                   } else {
-                    addToast("Enlace #key fragmentado listo para despachar", "success");
+                    addToast("Selecciona o sube un archivo para crear su enlace compartido", "success");
                   }
                 }}
                 onWhatsAppShare={(file) => {
@@ -5812,10 +5807,14 @@ trailer << /Root 1 0 R >>
               "Grupo Roche SA de CV"
         }
         isLocked={isVaultLocked}
+        onOpenUpload={() => {
+          setMobileReconcileOpen(false);
+          setMobileScannerOpen(true);
+        }}
         onSeedAccountingFiles={handleSmartUploadCommit}
         onShareWhatsApp={(msg) => {
           void navigator.clipboard?.writeText(msg);
-          addToast("Cuadre BBVA $0.00 MXN copiado para compartir por WhatsApp", "success");
+          addToast("Resumen de cuadre copiado para enviar por WhatsApp", "success");
         }}
       />
 

@@ -35,7 +35,8 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const logout = useLogout();
-  const { t } = useTranslation(["common"]);
+  const { t, i18n } = useTranslation(["common"]);
+  const isEs = (i18n.language || "").toLowerCase().startsWith("es");
   const fileResults = useFileSearch(inputValue);
   const [authenticated, setAuthenticated] = useState(() => Boolean(localStorage.getItem("token")));
   const isAdmin = getStoredUserFromLocalStorage()?.is_admin === true;
@@ -164,9 +165,9 @@ export function CommandPalette() {
                   </Command.Group>
                 )}
 
-                <Command.Group heading="Vault Operations" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                <Command.Group heading={isEs ? "Bóveda" : "Vault"} className="px-2 text-xs font-medium py-2 text-muted-foreground">
                   <Command.Item
-                    value="action-omnibar /search cerebro ciego omnibar blind brain"
+                    value="action-omnibar /search buscar dentro cerebro ciego search inside"
                     onSelect={() => runCommand(() => {
                       navigate("/files");
                       setTimeout(() => {
@@ -177,13 +178,13 @@ export function CommandPalette() {
                   >
                     <div className="flex items-center">
                       <Search className="mr-3 h-4 w-4 text-primary" />
-                      <span>Cerebro Ciego — Omnibar Search</span>
+                      <span>{isEs ? "Buscar dentro · Cerebro Ciego" : "Search inside · Cerebro Ciego"}</span>
                     </div>
                     <span className="text-xs text-muted-foreground font-mono">/</span>
                   </Command.Item>
 
                   <Command.Item
-                    value="action-lock-vault /lock lock"
+                    value="action-lock-vault /lock bloquear pantalla privacidad lock screen"
                     onSelect={() => runCommand(() => {
                       window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "lock" } }));
                     })}
@@ -191,13 +192,13 @@ export function CommandPalette() {
                   >
                     <div className="flex items-center">
                       <Lock className="mr-3 h-4 w-4 text-primary" />
-                      <span>Lock Vault Privacy Shutter</span>
+                      <span>{isEs ? "Bloquear pantalla (Privacidad)" : "Lock screen (Privacy)"}</span>
                     </div>
                     <span className="text-xs text-muted-foreground font-mono">⌘L</span>
                   </Command.Item>
 
                   <Command.Item
-                    value="action-passport /passport /seal passport"
+                    value="action-passport /passport /seal pasaporte criptografico"
                     onSelect={() => runCommand(() => {
                       window.dispatchEvent(new CustomEvent("vault-action", { detail: { action: "passport" } }));
                     })}
@@ -205,16 +206,16 @@ export function CommandPalette() {
                   >
                     <div className="flex items-center">
                       <ShieldCheck className="mr-3 h-4 w-4 text-primary" />
-                      <span>Cryptographic Passport (Golden Seal)</span>
+                      <span>{isEs ? "Pasaporte Criptográfico ABRN" : "ABRN Cryptographic Passport"}</span>
                     </div>
                     <span className="text-xs text-muted-foreground font-mono">⌘I</span>
                   </Command.Item>
                 </Command.Group>
 
                 {branding.logoVariant === "abrn" && (
-                  <Command.Group heading="Sovereign Continuum (ABRN)" className="px-2 text-xs font-medium py-2 text-muted-foreground">
+                  <Command.Group heading="Acciones Rápidas" className="px-2 text-xs font-medium py-2 text-muted-foreground">
                     <Command.Item
-                      value="continuum dual en vivo espejo celular android iphone 0ms"
+                      value="continuum dual en vivo espejo pc celular lado a lado"
                       onSelect={() => runCommand(() => {
                         navigate("/files");
                         setTimeout(() => {
@@ -226,13 +227,13 @@ export function CommandPalette() {
                     >
                       <div className="flex items-center">
                         <ShieldCheck className="mr-3 h-4 w-4 text-primary" />
-                        <span>⚡ Activar Espejo Continuo Dual (PC + Celular 0ms)</span>
+                        <span>⚡ Ver PC y Celular lado a lado</span>
                       </div>
-                      <span className="text-xs text-muted-foreground font-mono">0ms</span>
+                      <span className="text-xs text-muted-foreground font-mono">Vista</span>
                     </Command.Item>
 
                     <Command.Item
-                      value="cuadre bbva conciliacion cfdi xml banco ram $0"
+                      value="cuadre bbva conciliacion cfdi xml banco facturas"
                       onSelect={() => runCommand(() => {
                         navigate("/files");
                         setTimeout(() => {
@@ -243,13 +244,13 @@ export function CommandPalette() {
                     >
                       <div className="flex items-center">
                         <FileText className="mr-3 h-4 w-4 text-emerald-500" />
-                        <span>Conciliación CFDI 4.0 ↔ BBVA en RAM ($0.00)</span>
+                        <span>Abrir Cuadre CFDI ↔ Banco</span>
                       </div>
-                      <span className="text-xs text-muted-foreground font-mono">RAM</span>
+                      <span className="text-xs text-muted-foreground font-mono">Cuadre</span>
                     </Command.Item>
 
                     <Command.Item
-                      value="modo oled puro negro #030712 abrn theme"
+                      value="modo negro oled oscuro abrn tema"
                       onSelect={() => runCommand(() => {
                         localStorage.setItem("abrn-drive-skin", "oled");
                         document.documentElement.setAttribute("data-theme", "oled");
@@ -260,9 +261,9 @@ export function CommandPalette() {
                     >
                       <div className="flex items-center">
                         <File className="mr-3 h-4 w-4 text-primary" />
-                        <span>◆ Cambiar a Modo Puro OLED Soberano (#030712)</span>
+                        <span>◆ Cambiar a tema Negro</span>
                       </div>
-                      <span className="text-xs text-muted-foreground font-mono">OLED</span>
+                      <span className="text-xs text-muted-foreground font-mono">Negro</span>
                     </Command.Item>
                   </Command.Group>
                 )}

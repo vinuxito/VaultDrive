@@ -2175,93 +2175,93 @@
       </p>
 
       <!-- 3 Native Skins -->
-      <div class="studio-seg" role="group" aria-label="Pieles Nativas">
-        <button id="st-skin-light" class="active" type="button" onclick="setSkin('abrn-light')">☀ Cream</button>
-        <button id="st-skin-dark" type="button" onclick="setSkin('abrn-dark')">☾ Slate</button>
-        <button id="st-skin-oled" type="button" onclick="setSkin('abrn-oled')">◆ OLED</button>
+      <div class="studio-seg" role="group" aria-label="Temas de color">
+        <button id="st-skin-light" class="active" type="button" onclick="setSkin('abrn-light')">☀ Claro</button>
+        <button id="st-skin-dark" type="button" onclick="setSkin('abrn-dark')">☾ Gris</button>
+        <button id="st-skin-oled" type="button" onclick="setSkin('abrn-oled')">◆ Negro</button>
       </div>
 
       <!-- 3 Device Viewports -->
       <div class="studio-seg" role="group" aria-label="Chasis Móvil">
         <button id="st-dev-iphone" class="active" type="button" onclick="setDevice('iphone')">iPhone 16 Pro</button>
-        <button id="st-dev-android" type="button" onclick="setDevice('android')">Android 13 Real</button>
-        <button id="st-dev-native" type="button" onclick="setViewMode('native')">100% Nativa</button>
+        <button id="st-dev-android" type="button" onclick="setDevice('android')">Android 13</button>
+        <button id="st-dev-native" type="button" onclick="setViewMode('native')">Pantalla completa</button>
       </div>
 
       <div class="studio-gesture-tip">
         <svg viewBox="0 0 24 24" style="color:var(--primary);width:20px;height:20px;"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
-        <span><strong>Continuum Vivo:</strong> lo que escanees, fijes ★, grabes en voz o selles aquí se refleja en <strong>tiempo real</strong> en Escritorio (modo <strong>⚡ Dual</strong>).</span>
+        <span><strong>Sincronizado con PC:</strong> lo que escanees, marques con ★ o compartas aquí aparece al instante en tu computadora.</span>
       </div>
 
       <div class="studio-grid">
         <button class="sc-btn active tap-spring" data-sc="1" type="button" onclick="runScenario(1)">
-          <span class="sc-num">01 · Pulso Wallet</span>
-          <span class="sc-name">Inicio & Pase Cliente</span>
-          <span class="sc-sub">Carrusel táctil + urgentes hoy</span>
+          <span class="sc-num">01 · Pulso Fiscal</span>
+          <span class="sc-name">Inicio & Resumen Cliente</span>
+          <span class="sc-sub">Clientes + pendientes hoy</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="2" type="button" onclick="runScenario(2)">
-          <span class="sc-num">02 · Swipe Táctil</span>
-          <span class="sc-name">Archivos & Gestos</span>
-          <span class="sc-sub">Desliza → WhatsApp #key</span>
+          <span class="sc-num">02 · Gestos</span>
+          <span class="sc-name">Archivos & Deslizar</span>
+          <span class="sc-sub">Desliza → Enviar WhatsApp</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="3" type="button" onclick="runScenario(3)">
-          <span class="sc-num">03 · Cámara IA</span>
-          <span class="sc-name">Escáner Fiscal Vivo</span>
-          <span class="sc-sub">Detección de bordes + EXIF</span>
+          <span class="sc-num">03 · Cámara</span>
+          <span class="sc-name">Escanear documento</span>
+          <span class="sc-sub">Directo a la bóveda</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="4" type="button" onclick="runScenario(4)">
-          <span class="sc-num">04 · Visor + Voz RAM</span>
-          <span class="sc-name">CFDI 4.0 + Audio IA</span>
-          <span class="sc-sub">Nota de voz contable 0:12</span>
+          <span class="sc-num">04 · Visor + Nota</span>
+          <span class="sc-name">CFDI 4.0 + Nota rápida</span>
+          <span class="sc-sub">Lectura y anotación</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="11" type="button" onclick="runScenario(11)">
-          <span class="sc-num">05 · WhatsApp #key</span>
-          <span class="sc-name">Compositor Cifrado</span>
+          <span class="sc-num">05 · WhatsApp</span>
+          <span class="sc-name">Enviar documento</span>
           <span class="sc-sub">Destinatario + vigencia + QR</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="13" type="button" onclick="runScenario(13)">
-          <span class="sc-num">06 · Cuadre Bancos</span>
-          <span class="sc-name">CFDI ↔ BBVA en RAM</span>
+          <span class="sc-num">06 · Cuadre BBVA</span>
+          <span class="sc-name">Facturas vs Banco</span>
           <span class="sc-sub">14/14 SPEI · $0.00 diferencia</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="5" type="button" onclick="runScenario(5)">
-          <span class="sc-num">07 · Haptic Peek</span>
-          <span class="sc-name">Menú Presión Larga</span>
-          <span class="sc-sub">Fondo blur + mover 1 toque</span>
+          <span class="sc-num">07 · Menú Rápido</span>
+          <span class="sc-name">Mantener presionado</span>
+          <span class="sc-sub">Mover a subcarpeta en 1 toque</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="6" type="button" onclick="runScenario(6)">
-          <span class="sc-num">08 · Portal Drop</span>
-          <span class="sc-name">Entregas & Pase QR</span>
+          <span class="sc-num">08 · Recibidos</span>
+          <span class="sc-name">Entregas de Clientes</span>
           <span class="sc-sub">Bandeja + Checklist WhatsApp</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="7" type="button" onclick="runScenario(7)">
-          <span class="sc-num">09 · Canasta #key</span>
-          <span class="sc-name">Lote Multi-Archivo</span>
-          <span class="sc-sub">Cápsula flotante sobre dock</span>
+          <span class="sc-num">09 · Selección</span>
+          <span class="sc-name">Varios archivos</span>
+          <span class="sc-sub">Enviar lote por WhatsApp</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="9" type="button" onclick="runScenario(9)">
-          <span class="sc-num">10 · Cabina OLED</span>
-          <span class="sc-name">Bóveda & Pánico RAM</span>
-          <span class="sc-sub">Monitor WebCrypto + pieles</span>
+          <span class="sc-num">10 · Tema Negro</span>
+          <span class="sc-name">Seguridad y Temas</span>
+          <span class="sc-sub">Claro · Gris · Negro</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="10" type="button" onclick="runScenario(10)">
-          <span class="sc-num">11 · FaceID + PIN</span>
-          <span class="sc-name">Cortina Soberana 4×3</span>
-          <span class="sc-sub">Cero salto de teclado OS</span>
+          <span class="sc-num">11 · Bloqueo PIN</span>
+          <span class="sc-name">Ocultar pantalla</span>
+          <span class="sc-sub">PIN de 4 dígitos o FaceID</span>
         </button>
 
         <button class="sc-btn tap-spring" data-sc="12" type="button" onclick="runScenario(12)">
-          <span class="sc-num">12 · Auto-Orden IA</span>
+          <span class="sc-num">12 · Subir y Ordenar</span>
           <span class="sc-name">Lote WhatsApp → 01–04</span>
           <span class="sc-sub">Renombra 4 archivos al vuelo</span>
         </button>
@@ -2278,14 +2278,14 @@
         <div class="dynamic-island" id="dynamic-island" onclick="collapseIsland()" role="status" aria-live="polite">
           <div class="di-idle">
             <span class="di-dot"></span>
-            <span class="mono">AES-256 RAM</span>
+            <span>🔒 Privado</span>
           </div>
           <div class="di-live">
             <span style="display:inline-flex;align-items:center;gap:8px;min-width:0;">
               <span class="di-dot"></span>
-              <span id="di-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Sello SHA-256 verificado</span>
+              <span id="di-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Documento verificado</span>
             </span>
-            <span class="mono" style="font-size:10px;color:#86efac;flex-shrink:0;" id="di-tag">RAM OK</span>
+            <span class="mono" style="font-size:10px;color:#86efac;flex-shrink:0;" id="di-tag">LISTO</span>
           </div>
         </div>
 
@@ -2312,17 +2312,17 @@
                   <div class="brand-title serif">ABRN Drive</div>
                   <div class="brand-ram-sub">
                     <span style="width:6px;height:6px;border-radius:999px;background:var(--emerald);"></span>
-                    <span id="header-context-sub">Pulso Contable · 0 bytes en disco</span>
+                    <span id="header-context-sub">🔒 Privado · En vivo</span>
                   </div>
                 </div>
               </div>
 
               <div class="topbar-actions">
-                <button type="button" class="circle-btn tap-spring fs-btn-mobile" id="fullscreen-app-btn" onclick="toggleFullscreenApp()" title="Modo App Pantalla Completa">
+                <button type="button" class="circle-btn tap-spring fs-btn-mobile" id="fullscreen-app-btn" onclick="toggleFullscreenApp()" title="Pantalla completa">
                   <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
                 </button>
-                <button type="button" class="circle-btn tap-spring" onclick="cycleSkin()" title="Cambiar Piel">
-                  <span id="skin-pill-label">☾ Slate</span>
+                <button type="button" class="circle-btn tap-spring" onclick="cycleSkin()" title="Cambiar tema">
+                  <span id="skin-pill-label">☾ Gris</span>
                 </button>
                 <button type="button" class="circle-btn tap-spring" onclick="openPinShutter()" aria-label="Bloquear Bóveda">
                   <svg viewBox="0 0 24 24" style="width:15px;height:15px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -2331,10 +2331,10 @@
             </div>
           </header>
 
-          <!-- Pull-to-Refresh SHA-256 Verification Strip -->
+          <!-- Pull-to-Refresh Verification Strip -->
           <div class="ptr-indicator" id="ptr-indicator">
             <svg id="ptr-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-            <span id="ptr-label">Jala para auditar sellos SHA-256…</span>
+            <span id="ptr-label">Desliza para actualizar documentos…</span>
           </div>
 
           <!-- ================================================================
@@ -2345,9 +2345,9 @@
             <!-- ==============================================================
                  TAB 1: PULSO CONTABLE (HOME WALLET + URGENT WORK QUEUE)
                  ============================================================== -->
-            <section class="tab-screen active" id="screen-home" aria-label="Pulso Contable">
+            <section class="tab-screen active" id="screen-home" aria-label="Pulso Fiscal">
               <div class="section-head">
-                <span class="section-kicker">Expedientes Activos · Desliza</span>
+                <span class="section-kicker">Resumen del cliente · Desliza</span>
                 <button type="button" class="section-link tap-spring" onclick="openNewClientPrompt()">+ Nuevo Cliente</button>
               </div>
 
@@ -2357,7 +2357,7 @@
               <!-- Urgent Actionable Queue (Work-First) -->
               <div class="section-head">
                 <span class="section-kicker">Cola de Trabajo Hoy</span>
-                <span class="mono" style="font-size:10.5px;color:var(--emerald);font-weight:700;" id="sync-status-pill">⚡ Continuum Sync</span>
+                <span style="font-size:10.5px;color:var(--emerald);font-weight:700;" id="sync-status-pill">🔒 Privado</span>
               </div>
 
               <div class="urgent-card">
@@ -2366,8 +2366,8 @@
                     <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </div>
                   <div style="min-width:0;">
-                    <div class="urgent-title" id="home-drop-title">2 recibidos en Drop cifrado</div>
-                    <div class="urgent-sub">Carátula BBVA y Complemento XML listos para sellar</div>
+                    <div class="urgent-title" id="home-drop-title">2 recibidos de clientes</div>
+                    <div class="urgent-sub">Carátula BBVA y Complemento XML listos para revisar</div>
                   </div>
                 </div>
                 <button type="button" class="urgent-cta tap-spring" style="background:var(--primary);color:var(--primary-fg);" onclick="switchTab('drop')">
@@ -2381,8 +2381,8 @@
                     <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                   </div>
                   <div style="min-width:0;">
-                    <div class="urgent-title">Conciliación CFDI ↔ BBVA</div>
-                    <div class="urgent-sub">14 SPEI cuadrados en RAM · $0.00 diferencia</div>
+                    <div class="urgent-title">Cuadre CFDI ↔ BBVA</div>
+                    <div class="urgent-sub">14 SPEI cuadrados · $0.00 diferencia</div>
                   </div>
                 </div>
                 <button type="button" class="urgent-cta tap-spring" data-testid="open-reconcile-btn" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-bd);" onclick="openReconcileSheet()">
@@ -2396,8 +2396,8 @@
                     <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                   </div>
                   <div style="min-width:0;">
-                    <div class="urgent-title">2 pendientes del cierre mensual</div>
-                    <div class="urgent-sub">Opinión 32-D y Comprobante de Domicilio</div>
+                    <div class="urgent-title">Pedir documentos por WhatsApp</div>
+                    <div class="urgent-sub">Opinión 32-D y Comprobante de Domicilio sin cuenta</div>
                   </div>
                 </div>
                 <button type="button" class="urgent-cta tap-spring" style="background:var(--whatsapp-bg);color:var(--whatsapp);border:1px solid var(--whatsapp-bd);" onclick="quickWhatsAppReminder()">
@@ -2536,57 +2536,57 @@
               </div>
 
               <div class="section-head">
-                <span class="section-kicker">Apariencia Nativa</span>
+                <span class="section-kicker">Tema de color</span>
               </div>
               <div class="studio-seg">
-                <button id="tab-skin-light" class="active" type="button" onclick="setSkin('abrn-light')">☀ Cream</button>
-                <button id="tab-skin-dark" type="button" onclick="setSkin('abrn-dark')">☾ Slate</button>
-                <button id="tab-skin-oled" type="button" onclick="setSkin('abrn-oled')">◆ OLED</button>
+                <button id="tab-skin-light" class="active" type="button" onclick="setSkin('abrn-light')">☀ Claro</button>
+                <button id="tab-skin-dark" type="button" onclick="setSkin('abrn-dark')">☾ Gris</button>
+                <button id="tab-skin-oled" type="button" onclick="setSkin('abrn-oled')">◆ Negro</button>
               </div>
 
               <div class="section-head">
-                <span class="section-kicker">Controles Criptográficos</span>
+                <span class="section-kicker">Privacidad y Resguardo</span>
               </div>
               <div class="ios-group">
                 <button type="button" class="ios-row tap-spring" onclick="openPinShutter()">
                   <div>
-                    <div style="font-size:13px;font-weight:800;color:var(--fg-strong);">Cortina Biométrica / PIN 4×3</div>
-                    <div style="font-size:11px;color:var(--muted-fg);">FaceID o teclado numérico fijo sin salto de pantalla</div>
+                    <div style="font-size:13px;font-weight:800;color:var(--fg-strong);">Bloquear pantalla con PIN</div>
+                    <div style="font-size:11px;color:var(--muted-fg);">FaceID o PIN de 4 dígitos cuando alguien se acerque</div>
                   </div>
                   <span style="font-size:11.5px;font-weight:800;color:var(--primary);">Bloquear →</span>
                 </button>
 
                 <button type="button" class="ios-row tap-spring" onclick="triggerPullAudit()">
                   <div>
-                    <div style="font-size:13px;font-weight:800;color:var(--fg-strong);">Auditar Sellos SHA-256 Ahora</div>
-                    <div style="font-size:11px;color:var(--muted-fg);">Verifica integridad bit-por-bit de los 8 activos</div>
+                    <div style="font-size:13px;font-weight:800;color:var(--fg-strong);">Verificar autenticidad de archivos</div>
+                    <div style="font-size:11px;color:var(--muted-fg);">Comprueba el sello SHA-256 de los 8 documentos</div>
                   </div>
                   <span class="mono" style="font-size:11px;font-weight:700;color:var(--emerald);">8/8 OK</span>
                 </button>
 
                 <button type="button" class="ios-row tap-spring" onclick="panicWipeRam()">
                   <div>
-                    <div style="font-size:13px;font-weight:800;color:var(--ruby);">Botón de Pánico: Purgar RAM</div>
-                    <div style="font-size:11px;color:var(--muted-fg);">Destruye buffers descifrados y baja la cortina PIN</div>
+                    <div style="font-size:13px;font-weight:800;color:var(--ruby);">Cerrar y ocultar todo ahora</div>
+                    <div style="font-size:11px;color:var(--muted-fg);">Limpia vistas abiertas y pide tu PIN para volver</div>
                   </div>
-                  <span style="font-size:11.5px;font-weight:800;color:var(--ruby);">Purgar</span>
+                  <span style="font-size:11.5px;font-weight:800;color:var(--ruby);">Ocultar</span>
                 </button>
               </div>
             </section>
 
           </main>
 
-          <!-- Floating Multi-File Canasta #key Pill (Zero Collision Above Dock) -->
+          <!-- Floating Multi-File Selection Pill -->
           <div id="canasta-bar" class="canasta-pill-bar hidden">
             <div style="display:flex;align-items:center;gap:8px;min-width:0;">
               <span class="mono" id="canasta-count" style="width:24px;height:24px;border-radius:8px;background:var(--primary);color:var(--primary-fg);display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;">3</span>
               <div style="min-width:0;">
-                <div style="font-size:11.8px;font-weight:800;">Canasta #key lista</div>
-                <div style="font-size:10px;opacity:0.75;">1 solo link cifrado para WhatsApp</div>
+                <div style="font-size:11.8px;font-weight:800;">Seleccionados</div>
+                <div style="font-size:10px;opacity:0.75;">Listos para enviar por WhatsApp</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" class="tap-spring" style="height:34px;padding:0 11px;border-radius:10px;background:#16a34a;color:#fff;font-size:11.2px;font-weight:800;" onclick="dispatchBasketWhatsApp()">WhatsApp #key</button>
+              <button type="button" class="tap-spring" style="height:34px;padding:0 11px;border-radius:10px;background:#16a34a;color:#fff;font-size:11.2px;font-weight:800;" onclick="dispatchBasketWhatsApp()">Enviar por WhatsApp</button>
               <button type="button" class="tap-spring" style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.14);color:inherit;font-weight:800;" onclick="clearBasket()">✕</button>
             </div>
           </div>
@@ -2605,7 +2605,7 @@
               <span>Archivos</span>
             </button>
 
-            <button type="button" class="dock-orb tap-spring" data-testid="bottom-nav-scanner" onclick="openScannerSheet('camera')" aria-label="Escáner IA y Subir">
+            <button type="button" class="dock-orb tap-spring" data-testid="bottom-nav-scanner" onclick="openScannerSheet('camera')" aria-label="Escanear documento">
               <svg viewBox="0 0 24 24" style="width:21px;height:21px;stroke-width:2.4;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>ESCANEAR</span>
             </button>
@@ -2625,15 +2625,15 @@
         </div><!-- /.app-canvas -->
 
         <!-- ==================================================================
-             DRAGGABLE SHEET 1: LIVE CAMERA IA SCANNER & SMART AUTO-ORDER
+             DRAGGABLE SHEET 1: LIVE CAMERA SCANNER & SMART AUTO-ORDER
              ================================================================== -->
         <div class="sheet-layer" id="layer-scanner" onclick="if(event.target===this)closeAllSheets()">
           <div class="native-sheet" id="sheet-scanner">
             <div class="sheet-grab-zone" data-sheet-drag="layer-scanner"><div class="sheet-pill"></div></div>
             <div class="sheet-header">
               <div>
-                <div class="studio-kicker">Captura Cifrada en RAM</div>
-                <div style="font-size:15.5px;font-weight:800;color:var(--fg-strong);">Escáner Fiscal IA y Subida</div>
+                <div class="studio-kicker">🔒 Va directo a la bóveda — no se queda en tus fotos</div>
+                <div style="font-size:15.5px;font-weight:800;color:var(--fg-strong);">Escanear documento</div>
               </div>
               <button type="button" class="circle-btn tap-spring" onclick="closeAllSheets()">✕</button>
             </div>
@@ -2642,7 +2642,7 @@
               <div class="studio-seg" style="grid-template-columns:1fr 1fr;">
                 <button type="button" id="sc-tab-cam" class="active" onclick="setScannerMode('camera')" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">
                   <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                  <span>Escáner Cámara</span>
+                  <span>Usar Cámara</span>
                 </button>
                 <button type="button" id="sc-tab-up" onclick="setScannerMode('upload')" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">
                   <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -2665,8 +2665,8 @@
                     <div style="height:6px;background:#e4e4e7;border-radius:3px;width:92%;margin-bottom:10px;"></div>
                     <div style="border:1px solid #d4d4d8;padding:6px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
                       <div>
-                        <div style="font-weight:800;">SELLO DIGITAL DETECTADO</div>
-                        <div class="mono" style="font-size:7px;">SHA-256 · NITIDEZ 99%</div>
+                        <div style="font-weight:800;">GUÍA DE DOCUMENTO</div>
+                        <div class="mono" style="font-size:7px;">ORDEN AUTOMÁTICO</div>
                       </div>
                       <span style="font-weight:800;border:1px solid #18181b;padding:2px 4px;">QR OK</span>
                     </div>
@@ -2676,18 +2676,18 @@
                   <div class="scan-flash" id="scan-flash"></div>
 
                   <div class="scan-hud-top">
-                    <span class="hud-pill"><span style="width:6px;height:6px;border-radius:999px;background:#4ade80;"></span> Bordes detectados</span>
-                    <button type="button" class="hud-pill tap-spring" onclick="toggleScanFilter()" id="scan-filter-btn">B/N Fiscal · EXIF Off</button>
+                    <span class="hud-pill"><span style="width:6px;height:6px;border-radius:999px;background:#4ade80;"></span> Listo para capturar</span>
+                    <button type="button" class="hud-pill tap-spring" onclick="toggleScanFilter()" id="scan-filter-btn">B/N Legible</button>
                   </div>
                 </div>
 
                 <div class="passport-card">
                   <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <span style="font-size:10.5px;font-weight:800;color:var(--primary);">IA Local sugiere nombre y carpeta:</span>
+                    <span style="font-size:10.5px;font-weight:800;color:var(--primary);">Nombre y subcarpeta sugeridos:</span>
                     <span class="s-pill s-ok" id="scan-pages-pill">1 pág lista</span>
                   </div>
                   <div style="font-size:12.8px;font-weight:800;color:var(--fg-strong);" id="scan-clean-name">Acta_Asamblea_Roche_Folio194_Nov2026.pdf</div>
-                  <div style="font-size:11px;color:var(--muted-fg);">Destino automático: <strong>01 Expediente Legal</strong> · GPS purgado</div>
+                  <div style="font-size:11px;color:var(--muted-fg);">Se guardará en: <strong>01 Expediente Legal</strong></div>
                 </div>
 
                 <div class="shutter-bar">
@@ -2702,11 +2702,11 @@
               <!-- Multi-File Smart Auto-Order Mode -->
               <div id="scanner-upload-pane" class="hidden" style="display:flex;flex-direction:column;gap:9px;">
                 <div style="font-size:11.5px;color:var(--muted-fg);line-height:1.4;">
-                  Convierte nombres caóticos de WhatsApp o del SAT en nombres limpios ABRN y los acomoda en su subcarpeta:
+                  Ordena nombres sueltos de WhatsApp o del SAT y los acomoda en su subcarpeta:
                 </div>
                 <div id="upload-queue-mount" style="display:flex;flex-direction:column;gap:8px;"></div>
                 <button type="button" class="hero-btn hero-primary tap-spring" data-testid="triage-auto-rename-btn" onclick="commitUploadBatch()">
-                  <span>Cifrar y Auto-Ordenar 4 Archivos en RAM</span>
+                  <span>Guardar y Ordenar 4 Archivos</span>
                 </button>
               </div>
             </div>
@@ -2714,7 +2714,7 @@
         </div>
 
         <!-- ==================================================================
-             DRAGGABLE SHEET 2: 2-DETENT SWIPEABLE 6-FORMAT RAM INSPECTOR
+             DRAGGABLE SHEET 2: 2-DETENT SWIPEABLE 6-FORMAT INSPECTOR
              ================================================================== -->
         <div class="sheet-layer" id="layer-inspector" onclick="if(event.target===this)closeAllSheets()">
           <div class="native-sheet" id="sheet-inspector">
@@ -2743,20 +2743,20 @@
               <!-- Quick 6-Format Switcher Strip -->
               <div class="chip-strip" id="insp-format-strip" style="margin:0 -15px;padding:0 15px;"></div>
 
-              <!-- Local AI Contador Digest -->
+              <!-- Quick Digest -->
               <div class="ai-digest-card" id="insp-ai-digest"></div>
 
-              <!-- Encrypted RAM Accounting Voice Note Player & Recorder -->
+              <!-- Nota rápida -->
               <div id="insp-voice-memo"></div>
 
-              <!-- Rendered RAM Document Stage -->
+              <!-- Rendered Document Stage -->
               <div id="insp-stage-mount"></div>
 
               <!-- Cryptographic Passport -->
               <div class="passport-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;">
                   <span style="font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--primary);">Pasaporte Criptográfico ABRN</span>
-                  <span class="s-pill s-ok">0 Delta</span>
+                  <span class="s-pill s-ok">Verificado</span>
                 </div>
                 <div class="mono" id="insp-sha" style="font-size:10.2px;color:var(--muted-fg);word-break:break-all;background:var(--card);padding:7px 9px;border-radius:9px;border:1px solid var(--border);"></div>
                 <button type="button" class="hero-btn hero-soft tap-spring" style="height:38px;font-size:11.5px;" onclick="notifyIsland('Huella SHA-256 copiada al portapapeles', 'SHA-256')">
@@ -2768,26 +2768,26 @@
             <div class="sheet-dock">
               <button type="button" class="hero-btn hero-wa tap-spring" onclick="shareActiveInspectorWhatsApp()">
                 <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                <span>WhatsApp #key</span>
+                <span>Enviar por WhatsApp</span>
               </button>
               <button type="button" class="hero-btn hero-soft tap-spring" style="flex:0.78;" onclick="downloadActiveDecrypted()">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Bajar</span>
+                <span>Descargar</span>
               </button>
             </div>
           </div>
         </div>
 
         <!-- ==================================================================
-             DRAGGABLE SHEET 3: NATIVE WHATSAPP #KEY DISPATCH & QR COMPOSER
+             DRAGGABLE SHEET 3: NATIVE WHATSAPP DISPATCH & QR COMPOSER
              ================================================================== -->
         <div class="sheet-layer" id="layer-share" onclick="if(event.target===this)closeAllSheets()">
           <div class="native-sheet" id="sheet-share">
             <div class="sheet-grab-zone" data-sheet-drag="layer-share"><div class="sheet-pill"></div></div>
             <div class="sheet-header">
               <div style="min-width:0;flex:1;">
-                <div class="studio-kicker" style="color:var(--whatsapp);">Despacho Soberano · Llave en Fragmento #key</div>
-                <div id="share-sheet-title" style="font-size:14.2px;font-weight:800;color:var(--fg-strong);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Enviar por WhatsApp #key</div>
+                <div class="studio-kicker" style="color:var(--whatsapp);">🔒 Solo quien tenga el enlace completo puede abrirlo</div>
+                <div id="share-sheet-title" style="font-size:14.2px;font-weight:800;color:var(--fg-strong);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Enviar por WhatsApp</div>
               </div>
               <button type="button" class="circle-btn tap-spring" onclick="closeAllSheets()">✕</button>
             </div>
@@ -2800,7 +2800,7 @@
               <div class="chip-strip" id="share-recipient-strip" style="margin:0;padding:0;"></div>
 
               <div class="section-head">
-                <span class="section-kicker">2. Vigencia Criptográfica</span>
+                <span class="section-kicker">2. Vigencia del enlace</span>
                 <button type="button" class="section-link tap-spring" id="share-qr-toggle" onclick="toggleShareQr()">Mostrar QR</button>
               </div>
               <div class="studio-seg" id="share-expiry-seg" style="grid-template-columns:repeat(3,1fr);"></div>
@@ -2819,12 +2819,12 @@
                     <rect x="50" y="96" width="20" height="10"/><rect x="86" y="96" width="20" height="10"/>
                   </svg>
                 </div>
-                <div style="font-size:10.8px;color:var(--muted-fg);">Escaneo presencial en sala de juntas · Llave jamás toca el servidor</div>
+                <div style="font-size:10.8px;color:var(--muted-fg);">Escaneo presencial en sala de juntas</div>
               </div>
 
               <div class="section-head">
-                <span class="section-kicker">3. Burbuja Lista para WhatsApp</span>
-                <span class="mono" style="font-size:10px;color:var(--whatsapp);font-weight:700;">AES-256-GCM</span>
+                <span class="section-kicker">3. Mensaje listo para WhatsApp</span>
+                <span style="font-size:10px;color:var(--whatsapp);font-weight:700;">Privado</span>
               </div>
               <div class="wa-bubble-preview" id="share-wa-preview"></div>
             </div>
@@ -2835,14 +2835,14 @@
                 <span>Enviar por WhatsApp</span>
               </button>
               <button type="button" class="hero-btn hero-soft tap-spring" style="flex:0.74;" onclick="copyShareKeyLink()">
-                <span>Copiar #key</span>
+                <span>Copiar enlace</span>
               </button>
             </div>
           </div>
         </div>
 
         <!-- ==================================================================
-             SHEET 4: CONCILIACIÓN BANCARIA CFDI 4.0 ↔ BBVA EN RAM ($0.00 DIF)
+             SHEET 4: CUADRE CFDI ↔ BBVA ($0.00 DIF)
              ================================================================== -->
         <div class="sheet-layer" id="layer-reconcile" onclick="if(event.target===this)closeAllSheets()">
           <div class="native-sheet" id="sheet-reconcile" style="height:82%;">
@@ -2851,10 +2851,10 @@
             <div class="sheet-header">
               <div style="min-width:0;flex:1;">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                  <span class="s-pill s-ok">14/14 CUADRADOS</span>
+                  <span class="s-pill s-ok">100% AMARRADO</span>
                   <span class="mono" style="font-size:10px;color:var(--emerald);font-weight:700;">$0.00 DIFERENCIA</span>
                 </div>
-                <div style="font-size:14.2px;font-weight:800;color:var(--fg-strong);">Conciliación CFDI 4.0 ↔ BBVA</div>
+                <div style="font-size:14.2px;font-weight:800;color:var(--fg-strong);">Cuadre de Facturas (CFDI) contra Banco</div>
               </div>
               <button type="button" class="circle-btn tap-spring" onclick="closeAllSheets()" aria-label="Cerrar conciliación">✕</button>
             </div>
@@ -2864,7 +2864,7 @@
             <div class="sheet-dock">
               <button type="button" class="hero-btn hero-wa tap-spring" onclick="closeAllSheets();openShareComposer(['f3','f2'])">
                 <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                <span>Enviar Cuadre #key</span>
+                <span>Enviar Cuadre por WhatsApp</span>
               </button>
               <button type="button" class="hero-btn hero-soft tap-spring" style="flex:0.78;" onclick="closeAllSheets();openInspector('f3')">
                 <span>Ver Edo. Cta.</span>
@@ -2874,7 +2874,7 @@
         </div>
 
         <!-- ==================================================================
-             OVERLAY 3: iOS HAPTIC LONG-PRESS PEEK & TACTILE MENU
+             OVERLAY 3: LONG-PRESS QUICK MENU
              ================================================================== -->
         <div class="peek-overlay" id="peek-overlay" onclick="if(event.target===this)closePeekMenu()">
           <div class="peek-card-preview" id="peek-card-mount"></div>
@@ -2887,11 +2887,11 @@
 
           <div class="peek-menu">
             <button type="button" class="peek-item tap-spring" onclick="peekOpenInspector()">
-              <span>Abrir Vista RAM (6 Formatos)</span>
+              <span>Abrir vista rápida</span>
               <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
             <button type="button" class="peek-item tap-spring" style="color:var(--whatsapp);" onclick="peekShareWhatsApp()">
-              <span>Enviar Link #key por WhatsApp</span>
+              <span>Enviar por WhatsApp</span>
               <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             </button>
             <button type="button" class="peek-item tap-spring" onclick="peekStartRename()">
@@ -2903,7 +2903,7 @@
               <span>★</span>
             </button>
             <button type="button" class="peek-item tap-spring" onclick="peekToggleBasket()">
-              <span id="peek-basket-label">Agregar a Canasta #key</span>
+              <span id="peek-basket-label">Seleccionar archivo</span>
               <span>+</span>
             </button>
             <button type="button" class="peek-item danger tap-spring" id="peek-delete-btn" onclick="peekArmedDelete()">
@@ -2914,15 +2914,15 @@
         </div>
 
         <!-- ==================================================================
-             OVERLAY 4: SOVEREIGN 4X3 FROSTED PIN PAD & FACEID SHUTTER
+             OVERLAY 4: PIN PAD & FACEID SHUTTER
              ================================================================== -->
         <div class="pin-shutter" id="pin-shutter">
           <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;">
             <img src="/abrn/abrn-logo.png" alt="ABRN" style="width:46px;height:46px;border-radius:14px;background:#fff;padding:4px;border:1px solid var(--border);" />
-            <div class="studio-kicker" style="margin-top:4px;">Cortina de Privacidad Soberana</div>
+            <div class="studio-kicker" style="margin-top:4px;">Tus archivos están ocultos</div>
             <h2 class="serif" style="font-size:25px;font-weight:700;margin:0;color:var(--fg-strong);">Bóveda Protegida</h2>
             <p style="margin:0;font-size:12px;color:var(--muted-fg);max-width:250px;">
-              Llaves AES-256 resguardadas. Desbloquea con FaceID o cualquier PIN de 4 dígitos.
+              Nadie puede ver tu pantalla en este momento. Desbloquea con FaceID o tu PIN de 4 dígitos.
             </p>
             <div class="pin-dots" id="pin-dots">
               <span class="pin-dot"></span>
@@ -2953,8 +2953,8 @@
             </button>
           </div>
 
-          <div class="mono" style="font-size:10.2px;color:var(--muted-fg);">
-            PBKDF2-SHA256 · Cero salto de teclado móvil
+          <div style="font-size:10.5px;color:var(--muted-fg);">
+            Teclado fijo cómodo para una sola mano
           </div>
         </div>
 
@@ -2987,9 +2987,9 @@
         id: "f1",
         name: "Constancia_Situacion_Fiscal_Roche_Nov2026.pdf",
         fmt: "pdf", ext: "PDF", badge: "32-D POSITIVA", badgeCls: "s-ok",
-        subfolder: "02 Constancia y 32-D", size: "412 KB", time: "10:42 AM", day: "HOY · VERIFICADOS EN RAM",
+        subfolder: "02 Constancia y 32-D", size: "412 KB", time: "10:42 AM", day: "HOY",
         starred: true, shared: true, origin: "drop",
-        note: "Recibido vía Portal Drop · 1 vista cliente",
+        note: "Recibido de cliente · 1 vista",
         digest: "✓ Opinión 32-D y Constancia vigentes al cierre de Noviembre 2026. Régimen General de Ley Personas Morales sin créditos fiscales firmes.",
         voiceNote: null,
         sha: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
@@ -2999,17 +2999,17 @@
         id: "f2",
         name: "2026-11_Factura_Grupo_Roche_$48,500.xml",
         fmt: "xml", ext: "CFDI", badge: "CFDI $48,500", badgeCls: "s-ok",
-        subfolder: "04 Facturas XML", size: "28 KB", time: "09:18 AM", day: "HOY · VERIFICADOS EN RAM",
+        subfolder: "04 Facturas XML", size: "28 KB", time: "09:18 AM", day: "HOY",
         starred: true, shared: true, origin: "upload",
-        note: "UUID 8F4A-92C1 · Conciliado con BBVA",
+        note: "UUID 8F4A-92C1 · Cuadrado con BBVA",
         digest: "✓ RFC Receptor GRO190412AB4 coincide · Subtotal $41,810.34 + IVA 16% ($6,689.66) = $48,500.00 MXN · Método PUE · 100% deducible.",
         voiceNote: {
           author: "Auxiliar Sofía",
-          dur: "0:12",
+          dur: "Nota",
           text: "Pagada con SPEI BBVA ref 9041; ya cuadró el IVA 16% contra estado de cuenta."
         },
         sha: "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
-        words: "factura xml cfdi 48500 honorarios iva pue sat nota voz"
+        words: "factura xml cfdi 48500 honorarios iva pue sat nota"
       },
       {
         id: "f3",
@@ -3021,19 +3021,19 @@
         digest: "✓ Saldo inicial $312,400.00 → Saldo final $428,910.00 MXN · 14 depósitos conciliados contra CFDI emitidos.",
         voiceNote: {
           author: "Contadora Brenda",
-          dur: "0:09",
+          dur: "Nota",
           text: "Conciliados los 14 depósitos de Noviembre sin diferencias en bancos."
         },
         sha: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        words: "bbva banco estado cuenta conciliado clabe nota voz"
+        words: "bbva banco estado cuenta conciliado clabe nota"
       },
       {
         id: "f4",
         name: "Papel_Trabajo_ISR_IVA_Roche_Nov2026.xlsx",
-        fmt: "sheet", ext: "XLSX", badge: "LINK #KEY", badgeCls: "s-key",
+        fmt: "sheet", ext: "XLSX", badge: "COMPARTIDO", badgeCls: "s-key",
         subfolder: "05 Entregables", size: "640 KB", time: "Ayer", day: "ESTA SEMANA",
         starred: true, shared: true, origin: "upload",
-        note: "4 hojas activas · Fórmulas en vivo en RAM",
+        note: "4 hojas activas · Fórmulas al día",
         digest: "✓ Pago provisional ISR estimado $18,420 MXN · IVA a cargo neto $11,290 MXN · Cuadre DIOT sin discrepancias.",
         voiceNote: null,
         sha: "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
@@ -3042,11 +3042,11 @@
       {
         id: "f5",
         name: "INE_Representante_Legal_Frente_Vigente.png",
-        fmt: "image", ext: "4K", badge: "EXIF LIMPIO", badgeCls: "s-ok",
+        fmt: "image", ext: "IMG", badge: "VIGENTE", badgeCls: "s-ok",
         subfolder: "01 Expediente Legal", size: "2.4 MB", time: "11 Nov", day: "ESTA SEMANA",
         starred: false, shared: false, origin: "drop",
-        note: "Coordenadas GPS eliminadas al capturar",
-        digest: "✓ Identificación vigente hasta 2031 · Metadatos EXIF y ubicación GPS purgados antes del cifrado.",
+        note: "Sin datos de ubicación GPS",
+        digest: "✓ Identificación vigente hasta 2031 · Lista para expediente legal.",
         voiceNote: null,
         sha: "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
         words: "ine identificacion foto imagen representante legal"
@@ -3054,11 +3054,11 @@
       {
         id: "f6",
         name: "Inspeccion_Bodega_Activo_Fijo_2026.mp4",
-        fmt: "video", ext: "MP4", badge: "STREAM 64KB", badgeCls: "s-key",
+        fmt: "video", ext: "MP4", badge: "VIDEO", badgeCls: "s-key",
         subfolder: "01 Expediente Legal", size: "38.4 MB", time: "09 Nov", day: "ESTA SEMANA",
         starred: false, shared: false, origin: "upload",
-        note: "Reproducción por bloques AES-GCM en RAM",
-        digest: "✓ Evidencia de materialidad Art. 69-B CFF · Streaming descifrado en bloques de 64 KB sin archivos temporales.",
+        note: "Reproducción directa sin descargar",
+        digest: "✓ Evidencia de materialidad Art. 69-B CFF · Lista para reproducir.",
         voiceNote: null,
         sha: "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
         words: "video bodega activo fijo materialidad mp4"
@@ -3066,11 +3066,11 @@
       {
         id: "f7",
         name: "respaldo-automatico-boveda-abrn.sh",
-        fmt: "code", ext: "SH", badge: "FIRMA RSA", badgeCls: "s-key",
+        fmt: "code", ext: "SH", badge: "VERIFICADO", badgeCls: "s-key",
         subfolder: "05 Entregables", size: "12 KB", time: "08 Nov", day: "ESTA SEMANA",
         starred: false, shared: false, origin: "upload",
-        note: "Script firmado con llave RSA-PSS",
-        digest: "✓ Rutina de verificación criptográfica nocturna · Firma RSA-PSS íntegra.",
+        note: "Script verificado",
+        digest: "✓ Rutina de verificación nocturna lista.",
         voiceNote: null,
         sha: "1d8f99a3c4018b2209e61f33a91c88427b0012c9a114f8d22e90b3176c44910a",
         words: "codigo bash script respaldo rsa"
@@ -3083,7 +3083,7 @@
         raw: "WhatsApp_Img_2026-11-13_Caratula.jpg",
         clean: "Caratula_Bancaria_BBVA_Roche_Nov2026.png",
         subfolder: "03 Estados de Cuenta",
-        fmt: "image", ext: "4K", size: "1.9 MB", ago: "Hace 14 min"
+        fmt: "image", ext: "IMG", size: "1.9 MB", ago: "Hace 14 min"
       },
       {
         id: "in2",
@@ -3097,7 +3097,7 @@
     const UPLOAD_BATCH = [
       { raw: "scan_0019(2)_whatsapp.pdf", clean: "Acuse_Declaracion_Mensual_Roche_Nov2026.pdf", subfolder: "02 Constancia y 32-D", fmt: "pdf", ext: "PDF", size: "518 KB" },
       { raw: "a89f22c1-90b2-sat.xml",     clean: "2026-11_CFDI_Logistica_Istmo_$19,200.xml",    subfolder: "04 Facturas XML",      fmt: "xml", ext: "CFDI", size: "31 KB" },
-      { raw: "IMG_8842_foto_acta.jpg",    clean: "Acta_Asamblea_Extraordinaria_Folio201.png",   subfolder: "01 Expediente Legal",  fmt: "image", ext: "4K", size: "2.8 MB" },
+      { raw: "IMG_8842_foto_acta.jpg",    clean: "Acta_Asamblea_Extraordinaria_Folio201.png",   subfolder: "01 Expediente Legal",  fmt: "image", ext: "IMG", size: "2.8 MB" },
       { raw: "edo_banorte_nov.pdf",       clean: "Banorte_Estado_de_Cuenta_Nov2026.pdf",        subfolder: "03 Estados de Cuenta", fmt: "pdf", ext: "PDF", size: "1.4 MB" }
     ];
 
@@ -3116,7 +3116,7 @@
     ];
 
     const SHARE_EXPIRIES = [
-      { id: "1v",  label: "1 Vista",  note: "Se autodestruye al abrir" },
+      { id: "1v",  label: "1 Vista",  note: "Se cierra al abrirse una vez" },
       { id: "24h", label: "24 Horas", note: "Expira mañana misma hora" },
       { id: "7d",  label: "7 Días",   note: "Ideal para cierre mensual" }
     ];
@@ -3164,7 +3164,7 @@
       try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
     }
 
-    function notifyIsland(text, tag = "RAM OK") {
+    function notifyIsland(text, tag = "LISTO") {
       haptic(12);
       const el = document.getElementById("dynamic-island");
       document.getElementById("di-text").textContent = text;
@@ -3205,7 +3205,7 @@
         document.getElementById(`tab-skin-${k}`)?.classList.toggle("active", match);
       });
 
-      const nextLbl = skin === "abrn-light" ? "☾ Slate" : skin === "abrn-dark" ? "◆ OLED" : "☀ Cream";
+      const nextLbl = skin === "abrn-light" ? "☾ Gris" : skin === "abrn-dark" ? "◆ Negro" : "☀ Claro";
       document.getElementById("skin-pill-label").textContent = nextLbl;
     }
 
@@ -3213,7 +3213,7 @@
       const cur = document.documentElement.getAttribute("data-theme");
       const next = cur === "abrn-light" ? "abrn-dark" : cur === "abrn-dark" ? "abrn-oled" : "abrn-light";
       setSkin(next);
-      notifyIsland(`Piel activa: ${next === "abrn-light" ? "ABRN Cream" : next === "abrn-dark" ? "ABRN Slate" : "OLED Nocturno"}`, "TEMA");
+      notifyIsland(`Tema activo: ${next === "abrn-light" ? "Claro" : next === "abrn-dark" ? "Gris" : "Negro"}`, "TEMA");
     }
 
     function setDevice(dev) {
@@ -3250,7 +3250,7 @@
 
       if (n === 1) {
         switchTab("home");
-        notifyIsland("Pulso Contable · Desliza pases tipo Wallet", "PULSO");
+        notifyIsland("Pulso Fiscal · Resumen de clientes", "PULSO");
       } else if (n === 2) {
         basketIds.clear();
         activeSubfolder = "all";
@@ -3266,19 +3266,19 @@
         openPeekMenu("f1");
       } else if (n === 6) {
         switchTab("drop");
-        notifyIsland("Portal Drop y Pase QR Presencial listos", "DROP");
+        notifyIsland("Recibidos de clientes y código QR listos", "LISTO");
       } else if (n === 7) {
         basketIds = new Set(["f1", "f2", "f4"]);
         switchTab("files");
         renderCanastaBar();
-        notifyIsland("3 archivos en Canasta #key · Cero colisión", "LOTE");
+        notifyIsland("3 archivos seleccionados", "LOTE");
       } else if (n === 8) {
         switchTab("files");
         triggerPullAudit();
       } else if (n === 9) {
         setSkin("abrn-oled");
         switchTab("vault");
-        notifyIsland("Piel OLED Nocturno · 0 bytes en disco", "OLED");
+        notifyIsland("Tema Negro activado", "TEMA");
       } else if (n === 10) {
         openPinShutter();
       } else if (n === 11) {
@@ -3307,9 +3307,9 @@
 
       const subMap = {
         home:  `${getClient().name} · ${getClient().score}% al día`,
-        files: `${FILES.length} activos cifrados · AES-256 RAM`,
-        drop:  `Portal Drop · ${DROP_INBOX.length} por revisar`,
-        vault: `Seguridad Soberana · 0 bytes en disco`
+        files: `${FILES.length} archivos protegidos · 🔒 Privado`,
+        drop:  `Recibidos · ${DROP_INBOX.length} por revisar`,
+        vault: `Privacidad y temas`
       };
       document.getElementById("header-context-sub").textContent = subMap[tab] || "";
       document.getElementById("tab-stage").scrollTop = 0;
@@ -3342,11 +3342,11 @@
           <div class="pass-kpis">
             <div class="pass-kpi">
               <div class="pass-kpi-val">${c.xmlCount}</div>
-              <div class="pass-kpi-lbl">CFDI en RAM</div>
+              <div class="pass-kpi-lbl">Facturas XML</div>
             </div>
             <div class="pass-kpi">
               <div class="pass-kpi-val">${c.dropNew} nuevos</div>
-              <div class="pass-kpi-lbl">Bandeja Drop</div>
+              <div class="pass-kpi-lbl">Recibidos</div>
             </div>
             <div class="pass-kpi">
               <div class="pass-kpi-val">${c.pending === 0 ? "Completo" : c.pending + " faltan"}</div>

@@ -9,6 +9,7 @@ import {
   Lock,
   Loader2,
   ShieldCheck,
+  Upload,
 } from "lucide-react";
 import type { FileData } from "../vault/FileGrid";
 import type { SmartUploadStagedItem } from "../vault/SmartUploadOrderModal";
@@ -24,6 +25,7 @@ export interface MobileReconcileSheetProps {
   files: FileData[];
   clientName?: string;
   isLocked?: boolean;
+  onOpenUpload?: () => void;
   onSeedAccountingFiles?: (items: SmartUploadStagedItem[]) => Promise<void> | void;
   onShareWhatsApp?: (message: string) => void;
   onExportCsv?: (csvContent: string, filename: string) => void;
@@ -35,6 +37,7 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
   files,
   clientName = "Grupo Roche SA de CV",
   isLocked = false,
+  onOpenUpload,
   onSeedAccountingFiles,
   onShareWhatsApp,
   onExportCsv,
@@ -93,7 +96,7 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
       data-testid="mobile-reconcile-sheet"
       role="dialog"
       aria-modal="true"
-      aria-label="Conciliación CFDI 4.0 y BBVA en RAM"
+      aria-label="Cuadre de Facturas contra Banco"
       className="fixed inset-0 z-[75] flex flex-col justify-end bg-black/60 backdrop-blur-sm md:hidden"
       onClick={onClose}
     >
@@ -115,20 +118,20 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
           <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-primary">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span>MOTOR CONTABLE 100% EN RAM</span>
+              <span>🔒 Cruce privado en tu equipo</span>
             </div>
             <h3 className="mt-0.5 text-[16px] font-extrabold tracking-tight text-foreground leading-snug">
-              Conciliación CFDI 4.0 ↔ BBVA
+              Cuadre de Facturas (CFDI) contra Banco
             </h3>
             <p className="text-[11.5px] text-muted-foreground truncate">
-              {clientName} · Cero datos en servidor
+              {clientName} · Se calcula aquí mismo sin salir de tu teléfono
             </p>
           </div>
           <button
             type="button"
             data-testid="close-mobile-reconcile-btn"
             onClick={onClose}
-            aria-label="Cerrar conciliación"
+            aria-label="Cerrar cuadre"
             className="w-10 h-10 rounded-full border border-border bg-muted/60 flex items-center justify-center text-foreground shrink-0 active:scale-95"
           >
             <X className="w-4 h-4" />
@@ -142,9 +145,9 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
               data-testid="mobile-reconcile-locked"
               className="rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4 space-y-2"
             >
-              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-extrabold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-extrabold text-xs">
                 <Lock className="w-4 h-4 shrink-0" />
-                <span>NOT_EVALUABLE · BÓVEDA BLOQUEADA</span>
+                <span>Bóveda bloqueada — desbloquéala para calcular</span>
               </div>
               <p className="text-xs text-foreground/90 leading-relaxed">
                 {evaluation.reason}
@@ -158,39 +161,55 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
               className="rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4 space-y-3"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-300 abrn-mono">
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  SIN_CFDI_EN_CARPETA
+                  Faltan facturas XML o el estado de cuenta
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/80 border border-border abrn-mono">
-                  NOT_EVALUABLE
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/80 border border-border">
+                  Pendiente
                 </span>
               </div>
               <p className="text-xs text-foreground/90 leading-relaxed">
-                {evaluation.reason} Nunca mostramos falsos <code className="abrn-mono">$0.00</code> cuando faltan XML o el estado de cuenta bancario.
+                {evaluation.reason} Sube los documentos del mes para ver si cuadran.
               </p>
-              {onSeedAccountingFiles && (
-                <button
-                  type="button"
-                  data-testid="mobile-seed-reconcile-btn"
-                  disabled={seeding}
-                  onClick={() => void handleSeed()}
-                  className="w-full min-h-[48px] rounded-xl font-extrabold text-[13px] px-4 py-2.5 flex items-center justify-center gap-2 text-white shadow-md active:scale-[0.99]"
-                  style={{ background: "linear-gradient(135deg, #7a1f2b 0%, #58131d 100%)" }}
-                >
-                  {seeding ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Cifrando CFDI 4.0 + BBVA en RAM…</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Cifrar Expediente Contable Real (3 XML + BBVA)</span>
-                    </>
-                  )}
-                </button>
-              )}
+              <div className="flex flex-col gap-2">
+                {onOpenUpload && (
+                  <button
+                    type="button"
+                    data-testid="mobile-reconcile-upload-btn"
+                    onClick={() => {
+                      onClose();
+                      onOpenUpload();
+                    }}
+                    className="w-full min-h-[48px] rounded-xl font-extrabold text-[13px] px-4 py-2.5 flex items-center justify-center gap-2 text-white shadow-md active:scale-[0.99]"
+                    style={{ background: "linear-gradient(135deg, #7a1f2b 0%, #58131d 100%)" }}
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Subir o escanear documentos</span>
+                  </button>
+                )}
+                {onSeedAccountingFiles && (
+                  <button
+                    type="button"
+                    data-testid="mobile-seed-reconcile-btn"
+                    disabled={seeding}
+                    onClick={() => void handleSeed()}
+                    className="w-full min-h-[48px] rounded-xl font-bold text-[12.5px] px-4 py-2.5 flex items-center justify-center gap-2 border border-border bg-card text-foreground shadow-2xs active:scale-[0.99]"
+                  >
+                    {seeding ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Cargando ejemplo de prueba…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span>Probar con ejemplo (3 CFDI + BBVA)</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -200,7 +219,7 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-xl border border-border bg-muted/40 p-2.5">
                   <div className="text-[9.5px] font-bold uppercase text-muted-foreground">
-                    CFDI ({evaluation.cfdiFilesCount})
+                    Facturas ({evaluation.cfdiFilesCount})
                   </div>
                   <div className="mt-1 text-[12px] font-extrabold text-foreground abrn-mono truncate">
                     {formatMxn(evaluation.cfdiTotalMxn ?? 0).replace(" MXN", "")}
@@ -208,7 +227,7 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
                 </div>
                 <div className="rounded-xl border border-border bg-muted/40 p-2.5">
                   <div className="text-[9.5px] font-bold uppercase text-muted-foreground">
-                    BBVA ({evaluation.bankFilesCount})
+                    Banco ({evaluation.bankFilesCount})
                   </div>
                   <div className="mt-1 text-[12px] font-extrabold text-foreground abrn-mono truncate">
                     {formatMxn(evaluation.bankTotalMxn ?? 0).replace(" MXN", "")}
@@ -236,11 +255,11 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
                 <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-emerald-700 dark:text-emerald-300">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   {evaluation.status === "RECONCILED"
-                    ? "Cuadre Exacto $0.00 MXN · 100% Conciliado"
-                    : "Diferencia detectada en RAM"}
+                    ? "100% amarrado · Diferencia $0.00 MXN"
+                    : "Diferencia pendiente por revisar"}
                 </span>
-                <span className="abrn-mono text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                  AES-256
+                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                  Verificado
                 </span>
               </div>
 
@@ -265,7 +284,7 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
                         ${line.amountMxn.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </div>
                       <span className="inline-flex items-center gap-1 text-[9.5px] font-extrabold text-emerald-600 dark:text-emerald-400">
-                        ✓ SPEI OK
+                        ✓ Conciliado
                       </span>
                     </div>
                   </div>
@@ -294,16 +313,16 @@ export const MobileReconcileSheet: React.FC<MobileReconcileSheetProps> = ({
             data-testid="mobile-reconcile-wa-btn"
             disabled={evaluation.lines.length === 0}
             onClick={() => {
-              const msg = `Hola ${clientName}, tu Conciliación CFDI 4.0 ↔ BBVA cerró con diferencia ${formatMxn(
+              const msg = `Hola ${clientName}, el cuadre de tus facturas (CFDI) contra estado de cuenta cerró con diferencia ${formatMxn(
                 evaluation.deltaMxn ?? 0
-              )} (${evaluation.cfdiFilesCount} CFDI verificados en RAM con sello SHA-256).`;
+              )} (${evaluation.cfdiFilesCount} facturas verificadas).`;
               onShareWhatsApp?.(msg);
             }}
             className="flex-1 min-h-[48px] rounded-xl font-extrabold text-[13px] text-white px-4 flex items-center justify-center gap-2 shadow-sm disabled:opacity-45 active:scale-[0.99]"
             style={{ background: "#15803d" }}
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Enviar Cuadre #key por WhatsApp</span>
+            <span>Enviar Cuadre por WhatsApp</span>
           </button>
         </div>
       </div>

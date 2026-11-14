@@ -60,10 +60,10 @@ export const StagingDock: React.FC<StagingDockProps> = ({
         </div>
         <div className="flex flex-col leading-tight">
           <span className="text-[11.5px] font-bold text-[#f5f2ed]">
-            {t("drive:vault.stagingDock.stagedForAction", { defaultValue: "En Canasta #key" })}
+            {t("drive:vault.stagingDock.stagedForAction", { defaultValue: "Seleccionados" })}
           </span>
           <span className="text-[10px] text-[#b6bfd0] abrn-mono">
-            {formatBytes(totalBytes)} · Canasta #key
+            {formatBytes(totalBytes)} · {t("drive:vault.stagingDock.selectionReady", { defaultValue: "Listos para compartir" })}
           </span>
         </div>
       </div>
@@ -81,7 +81,7 @@ export const StagingDock: React.FC<StagingDockProps> = ({
             className="abrn-btn abrn-btn-whatsapp !h-[30px] !px-2.5 !text-[11.5px] !rounded-[8px]"
           >
             <MessageCircle className="w-3.5 h-3.5" />
-            <span>WhatsApp (#key Lote)</span>
+            <span>{t("drive:vault.stagingDock.whatsappBatch", { defaultValue: "Enviar por WhatsApp" })}</span>
           </button>
         )}
 

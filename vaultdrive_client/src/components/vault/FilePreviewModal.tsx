@@ -800,13 +800,10 @@ export function FilePreviewModal({
               </div>
               <div className="space-y-1">
                 <div className="text-sm font-semibold text-foreground">
-                  {t("coherence.preview.decrypting", { defaultValue: "Decrypting…" })}
+                  {t("coherence.preview.decrypting", { defaultValue: "Abriendo archivo…" })}
                 </div>
-                <div className="font-mono text-[10px] text-primary/80 tracking-widest uppercase">
-                  AES-256-GCM OPTICAL FOCUS
-                </div>
-                <div className="font-mono text-[10px] text-muted-foreground animate-pulse">
-                  4f1e a432 d88f b290 e712 99ca
+                <div className="text-xs text-muted-foreground">
+                  Se abre directamente en tu navegador
                 </div>
               </div>
             </div>
@@ -855,18 +852,18 @@ export function FilePreviewModal({
                 <div className="flex items-center gap-2 min-w-0">
                   <Sparkles className="w-4 h-4 text-primary shrink-0" />
                   <span className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-primary shrink-0">
-                    RESUMEN CONTABLE IA · 100% EN RAM
+                    Resumen rápido
                   </span>
                   <span className="text-xs text-foreground/90 truncate">
-                    {officeDoc?.headline || "Descifrado íntegro en WebCrypto local · 0 bytes transmitidos a servicios externos."}
+                    {officeDoc?.headline || "Archivo verificado y abierto en privado dentro de tu navegador."}
                   </span>
                 </div>
                 {(() => {
                   const memo = getRamVoiceMemo(file.id, file.filename);
                   if (!memo) return null;
                   return (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/12 text-primary border border-primary/25 abrn-mono">
-                      🎙 VOZ {memo.durationLabel} · {memo.transcriptHint}
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/12 text-primary border border-primary/25">
+                      {memo.hasAudio ? `🎙 ${memo.durationLabel}` : "📝 Nota"} · {memo.transcriptHint}
                     </span>
                   );
                 })()}

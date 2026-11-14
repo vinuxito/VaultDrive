@@ -5,7 +5,11 @@ import { playDeadboltThud, playUnlockChime } from "../../utils/audioHaptics";
 import { clearAuthSessionStorage, getLoginUrl } from "../../utils/auth-session";
 
 import { SovereignPinPad } from "./SovereignPinPad";
-import { broadcastContinuumEvent, scrubAllRamVoiceMemos } from "../../utils/continuum-bridge";
+import {
+  broadcastContinuumEvent,
+  restoreRamVoiceMemos,
+  scrubAllRamVoiceMemos,
+} from "../../utils/continuum-bridge";
 
 interface VaultPrivacyShutterProps {
   isLocked: boolean;
@@ -28,6 +32,8 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
       onScrubMemory?.();
       broadcastContinuumEvent({ type: "PANIC_LOCK", source: "desktop" });
       setPin("");
+    } else {
+      restoreRamVoiceMemos();
     }
   }, [isLocked, onScrubMemory]);
 
@@ -35,6 +41,7 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
 
   const handleUnlockWithPin = (_finalPin: string) => {
     playUnlockChime();
+    restoreRamVoiceMemos();
     broadcastContinuumEvent({ type: "VAULT_UNLOCK", source: "desktop" });
     onUnlock();
   };
@@ -42,6 +49,7 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     playUnlockChime();
+    restoreRamVoiceMemos();
     broadcastContinuumEvent({ type: "VAULT_UNLOCK", source: "desktop" });
     onUnlock();
   };
@@ -65,9 +73,9 @@ export const VaultPrivacyShutter: React.FC<VaultPrivacyShutterProps> = ({
           </span>
         </div>
 
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/12 border border-emerald-500/30 text-[10.5px] font-mono font-bold text-emerald-700 dark:text-emerald-300">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/12 border border-emerald-500/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span>0.0 MB en RAM · Llaves Purgadas · Continuum Sync</span>
+          <span>Tus archivos están ocultos</span>
         </div>
 
         <div className="space-y-1">

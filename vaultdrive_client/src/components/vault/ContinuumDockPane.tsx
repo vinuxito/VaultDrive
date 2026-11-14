@@ -197,28 +197,15 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
         }}
         className="relative w-[372px] max-w-full h-[720px] max-h-[calc(100dvh-165px)] bg-[#030712] overflow-hidden flex flex-col shrink-0"
       >
-        {/* Hardware Camera Cutout */}
-        <div className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
-          {deviceBezel === "iphone" ? (
-            <div className="w-24 h-5 rounded-full bg-black border border-white/10 flex items-center justify-end pr-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400/80" />
-            </div>
-          ) : (
-            <div className="w-3.5 h-3.5 rounded-full bg-black border border-white/15 flex items-center justify-center">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
-            </div>
-          )}
-        </div>
-
         {loadingFrame ? (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-2 text-xs abrn-mono">
             <RefreshCw className="w-5 h-5 animate-spin text-emerald-400" />
-            <span>Sincronizando Espejo Móvil 0ms…</span>
+            <span>Cargando vista celular…</span>
           </div>
         ) : mobileSrcDoc ? (
           <iframe
             ref={iframeRef}
-            title="ABRN Sovereign Mobile Live Companion"
+            title="Vista en vivo del celular ABRN"
             data-testid="continuum-mobile-iframe"
             srcDoc={mobileSrcDoc}
             onLoad={() => pushSkinToCompanion(skin)}
@@ -227,9 +214,9 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-200 gap-2">
             <Smartphone className="w-8 h-8 text-emerald-400" />
-            <p className="text-xs font-bold">Compañero Móvil Soberano Activo</p>
+            <p className="text-xs font-bold">Vista celular lista</p>
             <p className="text-[11px] text-slate-400">
-              Abre esta misma ruta en tu Android 13 o iPhone para operar con la barra táctil nativa.
+              Abre esta misma ruta en tu Android o iPhone para usar la barra inferior táctil.
             </p>
           </div>
         )}
@@ -246,7 +233,7 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
       >
         {phoneChassis}
 
-        {/* Sovereign Studio Telemetry & Quick Triggers */}
+        {/* Companion Controls */}
         <div
           style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-border)" }}
           className="w-full max-w-md rounded-2xl border p-5 space-y-4 shadow-md"
@@ -254,7 +241,7 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
           <div className="flex items-center justify-between gap-2">
             <span className="abrn-blindado-pill">
               <span className="abrn-pulse-dot" />
-              <span>ESTUDIO MÓVIL SOBERANO · PUENTE 0MS</span>
+              <span>Vista en vivo de tu celular</span>
             </span>
             <button
               type="button"
@@ -262,16 +249,16 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
               className="abrn-btn !h-7 !px-2.5 !text-[11px]"
             >
               <X className="w-3.5 h-3.5" />
-              <span>Volver a 3 Paneles</span>
+              <span>Volver a PC</span>
             </button>
           </div>
 
           <div className="space-y-1">
             <h2 className="abrn-serif text-lg font-bold text-foreground">
-              ABRN Pocket Vault — Paridad Criptográfica 1:1
+              Tus mismos archivos en versión móvil
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Prueba aquí mismo los gestos táctiles, el pase tipo Wallet de <strong>{activeClientName}</strong>, el escáner fiscal AES-256-GCM y la Hoja 4 de Conciliación BBVA.
+              Revisa cómo se ve el expediente de <strong>{activeClientName}</strong>, el escáner y el Cuadre BBVA desde un teléfono.
             </p>
           </div>
 
@@ -282,7 +269,7 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
               className="abrn-btn abrn-btn-primary !h-10 justify-center"
             >
               <Sparkles className="w-4 h-4" />
-              <span>⚡ Escanear Póliza Cel → Bóveda Real</span>
+              <span>⚡ Escanear documento del celular a PC</span>
             </button>
             <button
               type="button"
@@ -293,7 +280,7 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
               className="abrn-btn !h-9 justify-center"
             >
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              <span>Abrir Cuadre CFDI ↔ BBVA ($0.00)</span>
+              <span>Abrir Cuadre CFDI ↔ BBVA</span>
             </button>
             <button
               type="button"
@@ -301,7 +288,7 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
               className="abrn-btn !h-9 justify-center"
             >
               <Lock className="w-4 h-4 text-amber-500" />
-              <span>Probar Cortina de Pánico Simultánea (⌘L)</span>
+              <span>Bloquear PC y celular al mismo tiempo (⌘L)</span>
             </button>
           </div>
 
@@ -309,10 +296,10 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
             style={{ background: "var(--abrn-bg)", borderColor: "var(--abrn-border)" }}
             className="rounded-xl border p-3 text-[11px] space-y-1.5 text-muted-foreground"
           >
-            <div className="font-bold text-foreground">Garantías Verificadas en Android 13 Real:</div>
-            <div>• 0.0 px desbordamiento horizontal · Objetivos táctiles &ge; 48 px</div>
-            <div>• Botón físico Atrás (◀) cierra hojas vía popstate sin perder sesión</div>
-            <div>• Cifrado WebCrypto AES-256-GCM antes de tocar la red</div>
+            <div className="font-bold text-foreground">Comodidad en celular:</div>
+            <div>• Sin recortes laterales y botones fáciles de tocar con una mano</div>
+            <div>• El botón físico Atrás cierra ventanas sin sacarte de tu cuenta</div>
+            <div>• Tus documentos se protegen antes de salir de tu teléfono</div>
           </div>
         </div>
       </div>
@@ -323,7 +310,7 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
   return (
     <aside
       data-testid="continuum-dual-dock"
-      aria-label="Espejo Continuo Celular en Vivo"
+      aria-label="Vista en vivo del celular"
       style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
       className="hidden lg:flex w-[408px] xl:w-[422px] shrink-0 h-full border-l flex-col overflow-hidden select-none"
     >
@@ -335,10 +322,10 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
           <div className="min-w-0">
             <div className="text-[11px] font-extrabold text-foreground truncate">
-              CONTINUUM EN VIVO · 0ms SYNC
+              Celular sincronizado en vivo
             </div>
-            <div className="abrn-mono text-[9.5px] text-muted-foreground truncate">
-              BroadcastChannel + AES-256-GCM Real
+            <div className="text-[9.5px] text-muted-foreground truncate">
+              Cambios reflejados al instante
             </div>
           </div>
         </div>
@@ -352,14 +339,14 @@ export const ContinuumDockPane: React.FC<ContinuumDockPaneProps> = ({
               onTriggerReconcileBoth();
             }}
             className="abrn-btn !h-6 !px-2 !text-[10.5px]"
-            title="Abrir Conciliación CFDI ↔ BBVA en ambos dispositivos"
+            title="Abrir Cuadre BBVA en ambos dispositivos"
           >
-            <span>Cuadre Dual</span>
+            <span>Cuadre en ambos</span>
           </button>
           <button
             type="button"
             onClick={onCloseDock}
-            aria-label="Cerrar espejo móvil"
+            aria-label="Cerrar vista celular"
             className="w-6 h-6 rounded-md border border-border bg-background hover:text-primary inline-flex items-center justify-center cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />

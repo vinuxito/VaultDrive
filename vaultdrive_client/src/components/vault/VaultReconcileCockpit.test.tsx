@@ -17,14 +17,20 @@ const makeFile = (id: string, filename: string): FileData => ({
 });
 
 describe("VaultReconcileCockpit", () => {
-  it("never displays false $0.00 when folder has no CFDI XML or bank statement", () => {
-    render(<VaultReconcileCockpit files={[]} clientName="Grupo Roche SA de CV" />);
+  it("never displays false $0.00 or raw enum codes when folder has no CFDI XML or bank statement", () => {
+    const { container } = render(
+      <VaultReconcileCockpit files={[]} clientName="Grupo Roche SA de CV" />
+    );
     expect(screen.getByTestId("reconcile-not-evaluable")).toBeTruthy();
-    expect(screen.getAllByText(/SIN_CFDI_EN_CARPETA/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Faltan facturas XML o el estado de cuenta/i)
+    ).toBeTruthy();
     expect(screen.queryByTestId("reconcile-delta-total")).toBeNull();
+    expect(container.textContent).not.toMatch(/SIN_CFDI_EN_CARPETA/);
+    expect(container.textContent).not.toMatch(/NOT_EVALUABLE/);
   });
 
-  it("reports LOCKED NOT_EVALUABLE when privacy shutter is active", () => {
+  it("reports LOCKED status internally without false $0.00 when privacy shutter is active", () => {
     const res = evaluateRamReconciliation([makeFile("1", "a.xml")], true);
     expect(res.status).toBe("LOCKED");
     expect(res.deltaMxn).toBeNull();
@@ -43,15 +49,20 @@ describe("VaultReconcileCockpit", () => {
     expect(screen.getByTestId("reconcile-delta-total").textContent).toBe("$0.00 MXN");
   });
 
-  it("builds a 4-file real CFDI 4.0 + BBVA batch when seeding is triggered", () => {
+  it("opens real document upload modal and keeps secondary sample batch honest", () => {
+    const onOpenUpload = vi.fn();
     const onSeed = vi.fn();
     render(
       <VaultReconcileCockpit
         files={[]}
         clientName="Grupo Roche SA de CV"
+        onOpenUploadModal={onOpenUpload}
         onSeedAccountingFiles={onSeed}
       />
     );
+    fireEvent.click(screen.getByTestId("reconcile-upload-real-btn"));
+    expect(onOpenUpload).toHaveBeenCalledTimes(1);
+
     fireEvent.click(screen.getByTestId("reconcile-seed-real-btn"));
     expect(onSeed).toHaveBeenCalledTimes(1);
     const batch = buildRealAccountingSeedBatch("Grupo Roche SA de CV");

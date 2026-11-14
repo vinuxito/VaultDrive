@@ -202,7 +202,7 @@ export const VaultContextMenu: React.FC<VaultContextMenuProps> = ({
           {onPreview && (
             <MenuItem
               icon={Eye}
-              label={t("common:actions.preview", "Abrir en Visor 94vw")}
+              label={t("common:actions.preview", "Abrir en pantalla completa")}
               shortcut="Enter"
               onClick={() => onPreview(targetData)}
             />

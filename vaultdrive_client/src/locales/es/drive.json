@@ -59,11 +59,11 @@
       "keyDerivation": "Derivación de Clave",
       "zeroKnowledge": "Conocimiento Cero",
       "strictClientSide": "Estrictamente en el Cliente",
-      "routeHud": "HUD de Exposición de Rutas Externas",
-      "activeRoutes": "Rutas Externas Activas",
-      "severAccess": "Cortar Todo Acceso Externo",
-      "severSuccess": "Todas las rutas externas cortadas de inmediato.",
-      "zeroExposure": "Cero exposición externa. Archivo aislado en su bóveda privada.",
+      "routeHud": "¿Quién tiene acceso a este archivo?",
+      "activeRoutes": "Accesos externos activos",
+      "severAccess": "Cancelar todos los accesos externos",
+      "severSuccess": "Todos los accesos externos fueron cancelados.",
+      "zeroExposure": "Sin accesos externos. Este archivo solo está en tu bóveda.",
       "chainOfCustody": "Cadena de Custodia",
       "created": "Creado",
       "payloadSize": "Tamaño de Carga",
@@ -72,12 +72,14 @@
       "close": "Cerrar pasaporte"
     },
     "stagingDock": {
-      "stagedForAction": "Preparado para Acción",
-      "batchDownload": "Descarga por Lote",
-      "combinedLink": "Enlace Combinado",
+      "stagedForAction": "Seleccionados",
+      "selectionReady": "Listos para compartir",
+      "whatsappBatch": "Enviar por WhatsApp",
+      "batchDownload": "Descargar juntos",
+      "combinedLink": "Enlace compartido",
       "transferSlip": "Comprobante",
-      "batchSever": "Cortar en Lote",
-      "clearDock": "Limpiar Muelle (Esc)"
+      "batchSever": "Quitar acceso",
+      "clearDock": "Deseleccionar (Esc)"
     },
     "privacyShutter": {
       "title": "Bóveda protegida por seguridad",
@@ -985,13 +987,13 @@
     }
   },
   "omnibar": {
-    "dialogLabel": "Omnibar de Bóveda Soberana",
-    "triggerLabel": "Cerebro Ciego",
-    "triggerAria": "Abrir Omnibar Cerebro Ciego",
+    "dialogLabel": "Buscar dentro de tus archivos",
+    "triggerLabel": "Buscar dentro · Cerebro Ciego",
+    "triggerAria": "Buscar dentro de tus archivos (Cerebro Ciego)",
     "placeholder": "Buscar por nombre, RFC, monto, cláusula o etiqueta…",
     "activeBadge": "Cerebro Ciego Activo",
-    "ramTitle": "Búsqueda Soberana en Memoria RAM",
-    "ramSubtitle": "Escribe cualquier palabra, monto ($), RFC o etiqueta. Tus archivos se indexan de forma 100% ciega y cifrada.",
+    "ramTitle": "Búsqueda privada dentro de tus archivos",
+    "ramSubtitle": "Escribe cualquier palabra, monto ($), RFC o etiqueta. Todo se busca en privado desde tu navegador.",
     "noMatches": "Sin coincidencias para “{{query}}”",
     "noMatchesHint": "Prueba buscando por extensión (.pdf, .xml), año (2026) o monto exacto.",
     "matchCount_one": "1 coincidencia",
@@ -1001,7 +1003,7 @@
     "copySeal": "Copiar Sello / Enlace (⌘C)",
     "download": "Descargar (⌘D)",
     "navHint": "↑↓ navegar • ↵ abrir • ⌘S compartir • ⌘D descargar",
-    "localEncrypted": "100% Cifrado Local"
+    "localEncrypted": "Privado en tu equipo"
   },
   "triage": {
     "badgeLabel": "Cerebro Ciego Detectó",
@@ -1010,14 +1012,14 @@
     "indexedToast": "Indexado en Cerebro Ciego ({{category}})"
   },
   "office": {
-    "pluginSuiteBadge": "Quantix ABRN SAT • Amarre Fiscal (Roche)",
-    "viewGlassTwin": "Vista Ejecutiva (Glass Twin)",
+    "pluginSuiteBadge": "ABRN SAT • Resumen Fiscal",
+    "viewGlassTwin": "Vista Lectura",
     "viewRawSource": "Fuente Original",
-    "viewAmarreContract": "Ficha SAT / Amarre Fiscal (Roche)",
+    "viewAmarreContract": "Ficha SAT Fiscal",
     "copyCitation": "Copiar Cita / UUID",
     "copiedCitation": "¡Cita copiada!",
-    "copyAmarreJson": "Copiar JSON Amarre Fiscal (Roche)",
-    "copiedAmarreJson": "¡JSON de Amarre Fiscal copiado!",
+    "copyAmarreJson": "Copiar datos fiscales (JSON)",
+    "copiedAmarreJson": "¡Datos fiscales copiados!",
     "sendWhatsApp": "Enviar Resumen WhatsApp",
     "emisorTitle": "Emisor Fiscal (SAT)",
     "receptorTitle": "Receptor / Cliente Fiscal",
@@ -1028,7 +1030,7 @@
     "selectedCell": "Celda Activa",
     "formulaLabel": "Fórmula",
     "backToVault": "← Volver a Bóveda (Esc)",
-    "ramLineage": "Leído en RAM • 0 Bytes Alterados",
+    "ramLineage": "Abierto en privado en tu navegador • Original intacto",
     "downloadOriginal": "Descargar Original"
   }
 }

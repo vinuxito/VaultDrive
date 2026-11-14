@@ -60,4 +60,36 @@ describe("VaultInspectorPane", () => {
     await userEvent.click(screen.getByTestId("inspector-download-btn"));
     expect(onDownload).toHaveBeenCalledWith(sampleFile);
   });
+
+  it("creates, edits, persists, and deletes a real Nota rápida without fake audio theater", async () => {
+    window.localStorage.clear();
+
+    const { container } = render(<VaultInspectorPane file={sampleFile} />);
+    expect(container.textContent).not.toMatch(/94vw/i);
+    expect(screen.getByText(/Pantalla completa/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sin notas en este archivo/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId("inspector-voice-record-btn"));
+    const input = screen.getByTestId("inspector-note-input");
+    await userEvent.type(input, "Cuadrado con estado de cuenta BBVA Nov 2026");
+    await userEvent.click(screen.getByTestId("inspector-note-save-btn"));
+
+    expect(screen.getByTestId("inspector-saved-note-text")).toHaveTextContent(
+      "Cuadrado con estado de cuenta BBVA Nov 2026"
+    );
+
+    await userEvent.click(screen.getByTestId("inspector-note-edit-btn"));
+    const editInput = screen.getByTestId("inspector-note-input");
+    await userEvent.clear(editInput);
+    await userEvent.type(editInput, "Nota actualizada por contador");
+    await userEvent.click(screen.getByTestId("inspector-note-save-btn"));
+
+    expect(screen.getByTestId("inspector-saved-note-text")).toHaveTextContent(
+      "Nota actualizada por contador"
+    );
+
+    await userEvent.click(screen.getByTestId("inspector-note-delete-btn"));
+    expect(screen.queryByTestId("inspector-saved-note-text")).toBeNull();
+    expect(screen.getByText(/Sin notas en este archivo/i)).toBeInTheDocument();
+  });
 });

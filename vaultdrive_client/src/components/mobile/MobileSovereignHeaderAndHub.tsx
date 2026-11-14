@@ -141,13 +141,13 @@ export const MobileSovereignHeaderAndHub: React.FC<MobileSovereignHeaderAndHubPr
               <div className="min-w-0">
                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/12 border border-white/15 text-[9.5px] font-extrabold tracking-wider uppercase text-rose-100">
                   <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                  <span>PASE SOBERANO · AES-256 RAM</span>
+                  <span>Resumen del cliente</span>
                 </div>
                 <h2 className="mt-1.5 text-[18px] font-extrabold tracking-tight leading-snug truncate">
                   {activeClientName}
                 </h2>
                 <p className="text-[11.5px] text-rose-100/85 truncate abrn-mono">
-                  RFC Auditado · Cierre Fiscal Noviembre 2026
+                  RFC verificado · Cierre Noviembre 2026
                 </p>
               </div>
 
@@ -165,7 +165,7 @@ export const MobileSovereignHeaderAndHub: React.FC<MobileSovereignHeaderAndHubPr
             {/* 3 KPI Strip */}
             <div className="grid grid-cols-3 gap-2 pt-0.5">
               <div className="rounded-xl bg-black/25 border border-white/10 px-2.5 py-2">
-                <div className="text-[9.5px] text-rose-100/75 font-semibold">Archivos RAM</div>
+                <div className="text-[9.5px] text-rose-100/75 font-semibold">Archivos</div>
                 <div className="text-[14px] font-extrabold abrn-mono mt-0.5">{files.length}</div>
               </div>
               <div className="rounded-xl bg-black/25 border border-white/10 px-2.5 py-2">
@@ -175,7 +175,7 @@ export const MobileSovereignHeaderAndHub: React.FC<MobileSovereignHeaderAndHubPr
                 </div>
               </div>
               <div className="rounded-xl bg-black/25 border border-white/10 px-2.5 py-2">
-                <div className="text-[9.5px] text-rose-100/75 font-semibold">Bandeja Drop</div>
+                <div className="text-[9.5px] text-rose-100/75 font-semibold">Recibidos</div>
                 <div className="text-[14px] font-extrabold abrn-mono mt-0.5">{dropCount}</div>
               </div>
             </div>
@@ -216,12 +216,12 @@ export const MobileSovereignHeaderAndHub: React.FC<MobileSovereignHeaderAndHubPr
               <span className="text-[11px] font-extrabold uppercase tracking-[0.07em] text-muted-foreground">
                 Cola de Trabajo Hoy
               </span>
-              <span className="text-[10.5px] font-bold text-primary abrn-mono">
-                Zero-Knowledge
+              <span className="text-[10.5px] font-bold text-primary">
+                Privado
               </span>
             </div>
 
-            {/* Card 1: Conciliación CFDI 4.0 ↔ BBVA */}
+            {/* Card 1: Cuadre de Facturas contra Banco */}
             <button
               type="button"
               data-testid="open-reconcile-btn"
@@ -236,23 +236,23 @@ export const MobileSovereignHeaderAndHub: React.FC<MobileSovereignHeaderAndHubPr
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-[13px] font-extrabold text-foreground">
-                      Conciliación CFDI 4.0 ↔ BBVA
+                      Cuadre CFDI ↔ BBVA
                     </span>
                     <span className="px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 abrn-mono">
-                      {cfdiCount > 0 && bankCount > 0 ? "$0.00 MXN" : "EN RAM"}
+                      {cfdiCount > 0 && bankCount > 0 ? "$0.00 MXN" : "Revisar"}
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground line-clamp-1">
                     {cfdiCount > 0 && bankCount > 0
-                      ? `${cfdiCount} XML conciliados contra Estado de Cuenta BBVA`
-                      : "Cruza facturas XML contra BBVA sin subir datos en claro"}
+                      ? `${cfdiCount} XML cuadrados contra Estado de Cuenta BBVA`
+                      : "Cruza tus facturas XML contra el estado de cuenta"}
                   </p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-primary shrink-0" />
             </button>
 
-            {/* Card 2: Solicitar Documentos vía WhatsApp Secure Drop */}
+            {/* Card 2: Pedir documentos por WhatsApp */}
             <button
               type="button"
               onClick={onOpenDropRequest}
@@ -265,10 +265,10 @@ export const MobileSovereignHeaderAndHub: React.FC<MobileSovereignHeaderAndHubPr
                 </div>
                 <div className="min-w-0">
                   <div className="text-[13px] font-extrabold text-foreground">
-                    Bandeja Secure Drop sin Cuenta
+                    Pedir documentos por WhatsApp
                   </div>
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground line-clamp-1">
-                    Envía liga por WhatsApp para recibir Constancia y 32-D cifrados
+                    Tu cliente sube Constancia y 32-D sin crear cuenta
                   </p>
                 </div>
               </div>

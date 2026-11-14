@@ -986,13 +986,13 @@
     }
   },
   "omnibar": {
-    "dialogLabel": "Sovereign Vault Omnibar",
-    "triggerLabel": "Blind Brain",
-    "triggerAria": "Open Blind Brain Omnibar",
+    "dialogLabel": "Vault Search",
+    "triggerLabel": "Search Inside · Blind Brain",
+    "triggerAria": "Search inside files (Blind Brain)",
     "placeholder": "Search by filename, RFC, amount ($), clause, or tag…",
     "activeBadge": "Blind Brain Active",
-    "ramTitle": "Zero-Knowledge In-Memory Search",
-    "ramSubtitle": "Type any word, amount ($), tax ID (RFC), or tag. Your files are indexed 100% locally in RAM.",
+    "ramTitle": "Private In-Browser Search",
+    "ramSubtitle": "Type any word, amount ($), tax ID (RFC), or tag. Your files are indexed privately in your browser.",
     "noMatches": "No matches for “{{query}}”",
     "noMatchesHint": "Try searching by extension (.pdf, .xml), year (2026), or exact amount.",
     "matchCount_one": "1 match",
@@ -1002,7 +1002,7 @@
     "copySeal": "Copy SHA-256 / Link (⌘C)",
     "download": "Download (⌘D)",
     "navHint": "↑↓ navigate • ↵ open • ⌘S share • ⌘D download",
-    "localEncrypted": "100% Client-Side Index"
+    "localEncrypted": "100% Private Browser Index"
   },
   "triage": {
     "badgeLabel": "Blind Brain Detected",
@@ -1011,14 +1011,14 @@
     "indexedToast": "Indexed in Blind Brain ({{category}})"
   },
   "office": {
-    "pluginSuiteBadge": "Quantix ABRN SAT • Amarre Fiscal (Roche)",
-    "viewGlassTwin": "Executive View (Glass Twin)",
+    "pluginSuiteBadge": "ABRN SAT • Fiscal Summary",
+    "viewGlassTwin": "Reading View",
     "viewRawSource": "Original Source",
-    "viewAmarreContract": "SAT / Amarre Fiscal (Roche) Contract",
+    "viewAmarreContract": "Ficha SAT / Fiscal Summary",
     "copyCitation": "Copy Citation / UUID",
     "copiedCitation": "Citation copied!",
-    "copyAmarreJson": "Copy Amarre Fiscal (Roche) JSON",
-    "copiedAmarreJson": "Amarre Fiscal JSON copied!",
+    "copyAmarreJson": "Copy Fiscal Data (JSON)",
+    "copiedAmarreJson": "Fiscal data copied!",
     "sendWhatsApp": "Send Summary via WhatsApp",
     "emisorTitle": "Issuer (Emisor SAT)",
     "receptorTitle": "Recipient (Receptor Fiscal)",
@@ -1029,7 +1029,7 @@
     "selectedCell": "Active Cell",
     "formulaLabel": "Formula",
     "backToVault": "← Back to Vault (Esc)",
-    "ramLineage": "Decrypted in RAM • 0 Bytes Altered",
+    "ramLineage": "Opened privately in your browser • Original untouched",
     "downloadOriginal": "Download Original"
   }
 }

@@ -233,10 +233,10 @@ export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps)
             type="button"
             data-testid="sidebar-reconcile-btn"
             onClick={() => triggerVaultAction("open-reconcile")}
-            title="Conciliación CFDI 4.0 ↔ Estado de Cuenta en RAM"
+            title="Cuadre de facturas CFDI contra estado de cuenta"
             className={cn(
               "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer",
-              isCompact ? "justify-center" : "justify-between gap-2"
+              isCompact ? "justify-center" : "justify-start gap-2"
             )}
           >
             <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
@@ -245,21 +245,16 @@ export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps)
               </svg>
               {!isCompact && <span className="font-semibold text-[12.5px] truncate">Cuadre BBVA</span>}
             </span>
-            {!isCompact && (
-              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                RAM
-              </span>
-            )}
           </button>
 
           <button
             type="button"
             data-testid="sidebar-dual-continuum-btn"
             onClick={() => triggerVaultAction("toggle-dual")}
-            title="Espejo Continuo en Vivo (Escritorio + Celular 0ms)"
+            title="Ver pantalla de PC y celular lado a lado"
             className={cn(
               "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer",
-              isCompact ? "justify-center" : "justify-between gap-2"
+              isCompact ? "justify-center" : "justify-start gap-2"
             )}
           >
             <span className="flex items-center gap-2.5 min-w-0 overflow-hidden">
@@ -268,20 +263,15 @@ export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps)
                 <rect x="16" y="7" width="6" height="14" rx="1.5" />
                 <path d="M6 18h5" />
               </svg>
-              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Dual en Vivo</span>}
+              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Ver con Celular</span>}
             </span>
-            {!isCompact && (
-              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-primary/15 text-primary border border-primary/30">
-                0ms
-              </span>
-            )}
           </button>
 
           <button
             type="button"
             data-testid="sidebar-drop-request-btn"
             onClick={() => triggerVaultAction("drop-request")}
-            title="Pedir Documentos por WhatsApp (Buzón Secure Drop)"
+            title="Solicitar documentos por WhatsApp"
             className={cn(
               "w-full h-[38px] flex items-center px-2.5 rounded-[10px] transition-all duration-150 text-muted-foreground border border-transparent hover:bg-card hover:text-foreground hover:border-border cursor-pointer relative",
               isCompact ? "justify-center" : "justify-between gap-2"
@@ -295,13 +285,8 @@ export function Sidebar({ mode, collapsed = false, onToggleMode }: SidebarProps)
                 <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
                 <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
               </svg>
-              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Buzón Drop</span>}
+              {!isCompact && <span className="font-semibold text-[12.5px] truncate">Pedir Documentos</span>}
             </span>
-            {!isCompact && (
-              <span className="abrn-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                Drop
-              </span>
-            )}
           </button>
         </nav>
       </div>

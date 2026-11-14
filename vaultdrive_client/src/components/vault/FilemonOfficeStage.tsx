@@ -159,7 +159,7 @@ export function FilemonOfficeStage({ doc }: FilemonOfficeStageProps) {
             }`}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            {t("office.viewGlassTwin", { defaultValue: "Vista Ejecutiva (Glass Twin)" })}
+            {t("office.viewGlassTwin", { defaultValue: "Vista Lectura" })}
           </button>
 
           {doc.rawText !== undefined && (
@@ -188,7 +188,7 @@ export function FilemonOfficeStage({ doc }: FilemonOfficeStageProps) {
           >
             <Terminal className="h-3.5 w-3.5" />
             {t("office.viewAmarreContract", {
-              defaultValue: "Ficha SAT / Amarre Fiscal (Roche)",
+              defaultValue: "Ficha SAT Fiscal",
             })}
           </button>
         </div>
@@ -226,10 +226,10 @@ export function FilemonOfficeStage({ doc }: FilemonOfficeStageProps) {
             <span>
               {copiedAmarre
                 ? t("office.copiedAmarreJson", {
-                    defaultValue: "¡JSON de Amarre Fiscal copiado!",
+                    defaultValue: "¡Datos fiscales copiados!",
                   })
                 : t("office.copyAmarreJson", {
-                    defaultValue: "Copiar JSON Amarre Fiscal (Roche)",
+                    defaultValue: "Copiar datos fiscales (JSON)",
                   })}
             </span>
           </button>

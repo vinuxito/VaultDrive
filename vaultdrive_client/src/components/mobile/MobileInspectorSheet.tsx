@@ -34,7 +34,7 @@ export interface MobileInspectorSheetProps {
 
 const FORMAT_TABS: Array<{ key: InspectorFormatKey; label: string }> = [
   { key: "pdf", label: "PDF" },
-  { key: "image", label: "4K" },
+  { key: "image", label: "Imagen" },
   { key: "video", label: "MP4" },
   { key: "code", label: "CFDI" },
   { key: "sheet", label: "XLSX" },
@@ -158,7 +158,7 @@ export function MobileInspectorSheet({
                   {file.filename}
                 </h3>
                 <p className="text-[10.5px] text-muted-foreground truncate">
-                  {activeBadge} · {formatBytesHuman(file.file_size)} · Descifrado en RAM (0 Bytes Servidor)
+                  {activeBadge} · {formatBytesHuman(file.file_size)} · Vista rápida sin descargar
                 </p>
               </div>
             </div>
@@ -176,7 +176,7 @@ export function MobileInspectorSheet({
           {/* 5-Format Switcher */}
           <div
             role="tablist"
-            aria-label="Formatos del visor RAM"
+            aria-label="Formatos de vista previa"
             className="grid grid-cols-5 gap-1 bg-background p-1 rounded-xl border border-border mt-2.5"
           >
             {FORMAT_TABS.map((tab) => (
@@ -211,7 +211,7 @@ export function MobileInspectorSheet({
               className="rounded-xl border border-border bg-background p-3.5 space-y-2.5"
             >
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-primary border-b border-border pb-2">
-                <span>ABRN Asesores · Visor PDF Soberano</span>
+                <span>ABRN Asesores · Vista de Documento</span>
                 <span>AES-256-GCM</span>
               </div>
               <h4
@@ -221,7 +221,7 @@ export function MobileInspectorSheet({
                 {file.filename}
               </h4>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Documento verificado con sello de integridad SHA-256 en memoria local del navegador. El contenido cifrado permanece intacto en{" "}
+                Documento verificado con sello de autenticidad SHA-256. El archivo cifrado permanece protegido en{" "}
                 <strong className="text-foreground">
                   {folderName || file.drop_folder_name || "Bóveda Principal ABRN"}
                 </strong>
@@ -234,7 +234,7 @@ export function MobileInspectorSheet({
             </div>
           )}
 
-          {/* Format 2: 4K Image Stage */}
+          {/* Format 2: Image Stage */}
           {activeFormat === "image" && (
             <div
               data-testid="mobile-inspector-stage-image"
@@ -242,7 +242,7 @@ export function MobileInspectorSheet({
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-bold text-foreground">
-                  Lienzo 4K UHD · Zoom {zoom}%
+                  Imagen · Zoom {zoom}%
                 </span>
                 <div className="flex items-center gap-1">
                   <button
@@ -271,10 +271,10 @@ export function MobileInspectorSheet({
                   }}
                   className="text-sm font-bold transition-transform"
                 >
-                   Evidencia Fotográfica 4K Cifrada
+                  Evidencia fotográfica protegida
                 </span>
                 <span className="text-[10.5px] opacity-85 mt-1 font-mono">
-                  3840 × 2160 px · Blob URL Efímero en RAM
+                  Vista privada sin guardar copia en galería
                 </span>
               </div>
             </div>
@@ -291,7 +291,7 @@ export function MobileInspectorSheet({
                 style={{ color: "#fecdd3" }}
                 className="flex items-center justify-between text-[10px] font-mono"
               >
-                <span>STREAMING AES-GCM · BLOQUES 64 KB</span>
+                <span>REPRODUCCIÓN PRIVADA</span>
                 <span>1080p 60fps</span>
               </div>
               <div className="py-4 flex flex-col items-center justify-center gap-2">
@@ -304,7 +304,7 @@ export function MobileInspectorSheet({
                   {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
                 </button>
                 <span className="text-xs font-semibold">
-                  {playing ? "Descifrando bloques en vivo…" : "Listo para reproducción segura"}
+                  {playing ? "Reproduciendo en vivo…" : "Listo para reproducción privada"}
                 </span>
               </div>
               <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
@@ -321,7 +321,7 @@ export function MobileInspectorSheet({
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#2d8a6e] dark:text-[#3eb489]">
-                  CFDI 4.0 / Código Fuente en RAM
+                  CFDI 4.0 · Vista de XML
                 </span>
                 <span className="text-[10px] font-mono text-muted-foreground">UTF-8</span>
               </div>
@@ -384,7 +384,7 @@ export function MobileInspectorSheet({
             </div>
           )}
 
-          {/* Open Full Streaming Decrypted Preview Button */}
+          {/* Open Full Preview Button */}
           {onOpenFullPreview && (
             <button
               type="button"
@@ -396,7 +396,7 @@ export function MobileInspectorSheet({
               className="w-full min-h-[42px] rounded-xl border border-primary/35 bg-background hover:bg-muted text-primary text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <Maximize2 className="w-3.5 h-3.5" />
-              <span>Abrir Documento Completo (Descifrado Streaming)</span>
+              <span>Abrir documento completo</span>
             </button>
           )}
 

@@ -110,7 +110,7 @@ trailer << /Root 1 0 R >>
       data-testid="mobile-scanner-sheet"
       role="dialog"
       aria-modal="true"
-      aria-label="Escáner Fiscal Óptico AES-256-GCM"
+      aria-label="Escanear documento"
       className="fixed inset-0 z-[75] flex flex-col justify-end bg-black/75 backdrop-blur-md md:hidden"
       onClick={onClose}
     >
@@ -128,12 +128,12 @@ trailer << /Root 1 0 R >>
           className="px-4 pt-1.5 pb-3 border-b flex items-center justify-between gap-3"
         >
           <div>
-            <div className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-emerald-600 dark:text-emerald-400">
+            <div className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold text-emerald-600 dark:text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>WEBCRYPTO DIRECTO EN RAM · 0 BYTES GALERÍA</span>
+              <span>🔒 Va directo a la bóveda — no se queda en tus fotos</span>
             </div>
-            <h3 className="text-[16px] font-extrabold text-foreground">
-              Escáner Fiscal IA · Cel → Bóveda
+            <h3 className="text-[16px] font-extrabold text-foreground mt-0.5">
+              Escanear documento
             </h3>
           </div>
           <button
@@ -156,28 +156,28 @@ trailer << /Root 1 0 R >>
             <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-emerald-400 rounded-br-md" />
 
             <div className="flex items-center justify-between z-10">
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-extrabold abrn-mono">
-                ● ENCUADRE FISCAL AUTO · 99.4%
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-extrabold">
+                Elige qué documento vas a fotografiar
               </span>
-              <span className="text-[10px] text-slate-300 abrn-mono">AES-256-GCM</span>
+              <span className="text-[10px] text-slate-300 abrn-mono">Privado</span>
             </div>
 
-            {/* Simulated Live Document Sheet inside Viewfinder */}
+            {/* Document Guide Sheet inside Viewfinder */}
             <div className="mx-auto w-[78%] rounded-lg bg-white/95 text-slate-900 p-2.5 shadow-lg border border-emerald-400/60">
               <div className="flex items-center justify-between text-[9.5px] font-extrabold text-[#7a1f2b]">
                 <span>ABRN ASESORES · {clientName.toUpperCase()}</span>
-                <span>FOLIO #2026-11</span>
+                <span>GUÍA DE ARCHIVO</span>
               </div>
               <div className="mt-1 h-1.5 w-3/4 rounded bg-slate-200" />
               <div className="mt-1 h-1.5 w-1/2 rounded bg-slate-200" />
               <div className="mt-2 flex items-center justify-between text-[9px] font-mono text-emerald-700 font-bold">
-                <span>SHA-256 EN VIVO</span>
-                <span>CLASIFICACIÓN AUTOMÁTICA</span>
+                <span>ORDEN AUTOMÁTICO</span>
+                <span>SUBCARPETA LISTA</span>
               </div>
             </div>
 
             <div className="text-center text-[10.5px] text-slate-300 z-10">
-              Clasificación destino:{" "}
+              Se guardará en:{" "}
               <strong className="text-white">
                 {docPreset === "poliza"
                   ? "05 Pólizas y Auxiliares"
@@ -226,7 +226,7 @@ trailer << /Root 1 0 R >>
               className="min-h-[48px] px-3.5 rounded-xl border border-border bg-muted/50 text-foreground font-bold text-xs flex items-center justify-center gap-1.5"
             >
               <Upload className="w-4 h-4" />
-              <span>Archivo</span>
+              <span>Cámara / Archivo</span>
             </button>
             <button
               type="button"
@@ -239,12 +239,12 @@ trailer << /Root 1 0 R >>
               {capturing ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Cifrando en RAM…</span>
+                  <span>Guardando en bóveda…</span>
                 </>
               ) : (
                 <>
                   <Camera className="w-4 h-4" />
-                  <span>Capturar y Cifrar en RAM</span>
+                  <span>Guardar documento</span>
                   <Sparkles className="w-3.5 h-3.5 opacity-85" />
                 </>
               )}

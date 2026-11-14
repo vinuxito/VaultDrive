@@ -94,7 +94,7 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
   return (
     <section
       data-testid="vault-access-center-inline"
-      aria-label="Gobernanza de Enlaces #key y Buzones Secure Drop"
+      aria-label="Enlaces Compartidos y Buzones de Clientes"
       className="flex flex-col gap-3.5 py-1"
     >
       {/* Header Banner */}
@@ -106,14 +106,14 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="abrn-blindado-pill">
               <span className="abrn-pulse-dot" />
-              <span>ZERO-KNOWLEDGE #FRAGMENT · LLAVE NUNCA TOCA EL SERVIDOR</span>
+              <span>🔒 Solo quien tenga el enlace completo puede abrirlo</span>
             </span>
           </div>
           <h2 className="abrn-serif text-base sm:text-[18px] font-bold text-foreground">
-            Centro de Accesos #key y Buzones Secure Drop
+            Enlaces Compartidos y Buzones de Clientes
           </h2>
           <p className="text-xs text-muted-foreground">
-            Audita, copia por WhatsApp o corta en 1 clic cualquier buzón de cliente o enlace cifrado activo sin salir de tus carpetas.
+            Revisa, manda por WhatsApp o cancela en un clic cualquier buzón de recepción o enlace compartido sin salir de tus carpetas.
           </p>
         </div>
 
@@ -121,7 +121,7 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
           {onOpenFullAccessCenter && (
             <button type="button" onClick={onOpenFullAccessCenter} className="abrn-btn">
               <ExternalLink className="w-3.5 h-3.5 text-primary" />
-              <span>Auditoría Global</span>
+              <span>Ver historial completo</span>
             </button>
           )}
           <button
@@ -131,7 +131,7 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
             className="abrn-btn abrn-btn-primary"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Nuevo Buzón WhatsApp</span>
+            <span>+ Pedir por WhatsApp</span>
           </button>
         </div>
       </div>
@@ -143,12 +143,12 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
           className="rounded-xl border p-3.5 space-y-1"
         >
           <div className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            BUZONES SECURE DROP ACTIVOS
+            BUZONES DE RECEPCIÓN ACTIVOS
           </div>
           <div className="abrn-mono text-lg font-extrabold text-foreground">
             {dropTokens.length}
           </div>
-          <div className="text-[11px] text-muted-foreground">Recepción de clientes con PIN de 4 dígitos</div>
+          <div className="text-[11px] text-muted-foreground">Tu cliente sube archivos sin crear cuenta</div>
         </div>
 
         <div
@@ -156,12 +156,12 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
           className="rounded-xl border p-3.5 space-y-1"
         >
           <div className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            ENLACES #KEY COMPARTIDOS
+            ARCHIVOS COMPARTIDOS
           </div>
           <div className="abrn-mono text-lg font-extrabold text-primary">
             {sharedFiles.length}
           </div>
-          <div className="text-[11px] text-muted-foreground">Llave viajando solo tras el signo #</div>
+          <div className="text-[11px] text-muted-foreground">Ni siquiera el servidor puede abrir el enlace</div>
         </div>
 
         <div
@@ -173,15 +173,15 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
             className="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>EXPOSICIÓN EN NUBE</span>
+            <span>CONTROL DE ACCESO</span>
           </div>
           <div
             style={{ color: "var(--abrn-emerald)" }}
             className="abrn-mono text-lg font-extrabold"
           >
-            0 Llaves Expuestas
+            Bajo tu llave
           </div>
-          <div className="text-[11px] text-foreground/85">Revocación instantánea de ciphertext</div>
+          <div className="text-[11px] text-foreground/85">Puedes cancelar cualquier enlace al instante</div>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
           style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
           className="px-4 py-2.5 border-b flex items-center justify-between text-[11px] font-bold text-muted-foreground"
         >
-          <span>ACCESOS EXTERNOS Y BUZONES VIGENTES ({dropTokens.length + sharedFiles.length})</span>
+          <span>ENLACES Y BUZONES VIGENTES ({dropTokens.length + sharedFiles.length})</span>
           <span className="abrn-mono text-[10.5px]">CONTROL DE 1 CLIC</span>
         </div>
 
@@ -205,7 +205,7 @@ export const VaultAccessCenterInline: React.FC<VaultAccessCenterInlineProps> = (
               Ningún acceso externo abierto en este momento
             </p>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Crea un Buzón Secure Drop para que tu cliente suba su Estado de Cuenta o comparte cualquier documento con llave fragmentada #key.
+              Pide documentos por WhatsApp para que tu cliente suba su estado de cuenta o comparte cualquier archivo con enlace protegido.
             </p>
             <div className="pt-1 flex justify-center gap-2">
               <button

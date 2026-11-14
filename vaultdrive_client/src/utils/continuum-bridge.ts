@@ -31,12 +31,48 @@ export interface EncryptedRamVoiceMemo {
   durationLabel: string;
   transcriptHint: string;
   createdAt: string;
+  hasAudio?: boolean;
+  audioDataUrl?: string;
 }
 
 const CHANNEL_NAME = "abrn_continuum_v25";
+const NOTES_STORAGE_KEY = "abrn_vault_file_notes_v1";
 
-// Ephemeral in-RAM map (scrubbed immediately on VaultPrivacyShutter lock!)
+// Active in-memory map (scrubbed immediately on VaultPrivacyShutter lock, restored on unlock)
 const ramVoiceMemos = new Map<string, EncryptedRamVoiceMemo>();
+let notesHydrated = false;
+let notesLocked = false;
+
+function persistNotesToStorage(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const serialized: Record<string, EncryptedRamVoiceMemo> = {};
+    ramVoiceMemos.forEach((memo, key) => {
+      serialized[key] = memo;
+    });
+    window.localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(serialized));
+  } catch {
+    // Ignore storage quota or private-mode restrictions
+  }
+}
+
+function hydrateNotesIfNeeded(): void {
+  if (notesLocked || notesHydrated || typeof window === "undefined") return;
+  notesHydrated = true;
+  try {
+    const raw = window.localStorage.getItem(NOTES_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Record<string, EncryptedRamVoiceMemo>;
+    if (!parsed || typeof parsed !== "object") return;
+    Object.entries(parsed).forEach(([key, val]) => {
+      if (val && typeof val.transcriptHint === "string") {
+        ramVoiceMemos.set(key, val);
+      }
+    });
+  } catch {
+    // Ignore malformed storage entries
+  }
+}
 
 export function skinToPreviewTheme(skin: Skin): "abrn-cream" | "abrn-slate" | "abrn-oled" {
   if (skin === "oled") return "abrn-oled";
@@ -196,41 +232,37 @@ export function subscribeContinuumEvents(
   };
 }
 
-export function getRamVoiceMemo(fileId?: string | null, filename?: string | null): EncryptedRamVoiceMemo | null {
-  if (fileId && ramVoiceMemos.has(fileId)) {
-    return ramVoiceMemos.get(fileId)!;
-  }
-  const lower = (filename || "").toLowerCase();
-  if (lower.includes("bbva") || lower.includes("banorte") || lower.includes("estado_de_cuenta") || lower.includes("cfdi") || lower.includes("factura")) {
-    return {
-      fileId: fileId || "default-memo",
-      filename: filename || "Expediente_Contable",
-      durationSec: 12,
-      durationLabel: "0:12",
-      transcriptHint: "Nota contadora: Amarre verificado contra CFDI 4.0 del periodo; póliza lista para cierre mensual.",
-      createdAt: "En RAM · AES-256",
-    };
-  }
-  return null;
+export function getRamVoiceMemo(fileId?: string | null, _filename?: string | null): EncryptedRamVoiceMemo | null {
+  if (notesLocked || !fileId) return null;
+  hydrateNotesIfNeeded();
+  return ramVoiceMemos.get(fileId) ?? null;
 }
 
 export function saveRamVoiceMemo(
   fileId: string,
   filename: string,
-  durationSec = 14,
-  transcriptHint = "Dictado cifrado en RAM: Revisado por contabilidad ABRN, autorizado para envío #key."
+  durationSec = 0,
+  transcriptHint = "",
+  options?: { hasAudio?: boolean; audioDataUrl?: string }
 ): EncryptedRamVoiceMemo {
-  const mins = Math.floor(durationSec / 60);
-  const secs = String(durationSec % 60).padStart(2, "0");
+  notesLocked = false;
+  hydrateNotesIfNeeded();
+  const cleanText = transcriptHint.trim() || "Revisado por contabilidad";
+  const hasAudio = Boolean(options?.hasAudio);
+  const mins = Math.floor(Math.max(0, durationSec) / 60);
+  const secs = String(Math.max(0, durationSec) % 60).padStart(2, "0");
   const memo: EncryptedRamVoiceMemo = {
     fileId,
     filename,
-    durationSec,
-    durationLabel: `${mins}:${secs}`,
-    transcriptHint,
+    durationSec: hasAudio ? Math.max(1, durationSec) : 0,
+    durationLabel: hasAudio ? `${mins}:${secs}` : "Nota",
+    transcriptHint: cleanText,
     createdAt: new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }),
+    hasAudio,
+    audioDataUrl: options?.audioDataUrl,
   };
   ramVoiceMemos.set(fileId, memo);
+  persistNotesToStorage();
   broadcastContinuumEvent({
     type: "VOICE_NOTE_UPDATED",
     fileId,
@@ -240,6 +272,29 @@ export function saveRamVoiceMemo(
   return memo;
 }
 
+export function deleteRamVoiceMemo(fileId: string): void {
+  hydrateNotesIfNeeded();
+  ramVoiceMemos.delete(fileId);
+  persistNotesToStorage();
+  broadcastContinuumEvent({
+    type: "VOICE_NOTE_UPDATED",
+    fileId,
+  });
+}
+
 export function scrubAllRamVoiceMemos(): void {
+  notesLocked = true;
   ramVoiceMemos.clear();
+  broadcastContinuumEvent({
+    type: "VOICE_NOTE_UPDATED",
+  });
+}
+
+export function restoreRamVoiceMemos(): void {
+  notesLocked = false;
+  notesHydrated = false;
+  hydrateNotesIfNeeded();
+  broadcastContinuumEvent({
+    type: "VOICE_NOTE_UPDATED",
+  });
 }

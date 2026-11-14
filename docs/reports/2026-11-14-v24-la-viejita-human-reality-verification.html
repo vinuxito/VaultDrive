@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive · v24 La Viejita Human-Reality Verification Dashboard</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --card: #ffffff;
+      --ink: #171923;
+      --muted: #5a6275;
+      --border: #e6dfd7;
+      --burgundy: #7a1f2b;
+      --burgundy-soft: #f9eeee;
+      --emerald: #0d7a52;
+      --emerald-soft: #e9f8f1;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: "Libre Baskerville", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 20px 64px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      background: linear-gradient(135deg, #7a1f2b 0%, #4d1018 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 28px 32px;
+      box-shadow: 0 18px 42px rgba(122, 31, 43, 0.16);
+      margin-bottom: 24px;
+    }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+    .pill.pass { background: #0f9d68; border-color: #34d399; color: #fff; }
+    h1 {
+      font-family: var(--serif);
+      font-size: 26px;
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+    .subtitle { margin: 0; opacity: 0.92; font-size: 14.5px; max-width: 880px; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .kpi .lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+    .kpi .val { font-size: 26px; font-weight: 800; color: var(--burgundy); margin: 6px 0 4px; }
+    .kpi .sub { font-size: 12.5px; color: var(--muted); }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-family: var(--serif);
+      font-size: 18px;
+      margin: 0 0 14px;
+      color: var(--burgundy);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: #fcfaf7; }
+    code { font-family: var(--mono); font-size: 12px; background: #f3efe9; padding: 2px 6px; border-radius: 5px; }
+    .badge-ok {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--emerald-soft);
+      color: var(--emerald);
+    }
+    .quote {
+      border-left: 4px solid var(--burgundy);
+      background: var(--burgundy-soft);
+      padding: 12px 16px;
+      border-radius: 0 12px 12px 0;
+      font-size: 13.5px;
+      margin-bottom: 16px;
+    }
+    ul.clean { margin: 0; padding-left: 20px; }
+    ul.clean li { margin-bottom: 6px; font-size: 13.5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="pill-row">
+        <span class="pill pass">✓ SEGURO CONTINUAR · PASS</span>
+        <span class="pill">TICKET-2026-11-14-LA-VIEJITA-HUMAN-REALITY</span>
+        <span class="pill">Build: v24-la-viejita-human-reality</span>
+        <span class="pill">abrndrive.service: UNTOUCHED</span>
+      </div>
+      <h1>👵🏻 ABRN Drive v24 — La Viejita Human-Reality &amp; Behavioral Truth Sweep</h1>
+      <p class="subtitle">
+        “Personality may decorate meaning. It may never replace meaning.” — Full 6-surface plain-Spanish humanization, truthful persisted file notes, honest empty-folder bank reconciliation, cold Desktop Chromium (<code>bsk</code>) &amp; physical Android 13 (<code>427×721</code>) verification.
+      </p>
+    </header>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="lbl">TypeScript Gate</div>
+        <div class="val">0 Errors</div>
+        <div class="sub"><code>npm run typecheck</code> (App + E2E)</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Focused Vitest Suite</div>
+        <div class="val">161 / 161</div>
+        <div class="sub">19/19 suites · 91/91 7-skin WCAG &ge;4.5:1</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Desktop + Android 13</div>
+        <div class="val">8 Live Proofs</div>
+        <div class="sub"><code>0px</code> mobile overflow · Hardware Back OK</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Bundle SHA-256 Seal</div>
+        <div class="val" style="font-family:var(--mono);font-size:18px;">47570720…6f7799</div>
+        <div class="sub"><code>dist/index.html</code> · <code>/abrn/</code> manifest</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>1. Verification Matrix (Cold Execution)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Gate</th>
+            <th>Environment / Command</th>
+            <th>Outcome</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CHK-01</code></td>
+            <td>Strict TypeScript</td>
+            <td><code>npm --prefix vaultdrive_client run typecheck</code></td>
+            <td>Exit <code>0</code> (0 compiler errors)</td>
+            <td><span class="badge-ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-02</code></td>
+            <td>19-Suite Vitest + WCAG</td>
+            <td><code>npx vitest run ...</code> (19 suites including <code>continuum-bridge.test.ts</code> &amp; <code>skin-contrast.test.ts</code>)</td>
+            <td><code>19/19</code> suites · <code>161/161</code> tests passed</td>
+            <td><span class="badge-ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-03</code></td>
+            <td>Production Vite Build</td>
+            <td><code>npm --prefix vaultdrive_client run build</code></td>
+            <td>Built in <code>12.00s</code> · <code>start_url: "/abrn/"</code></td>
+            <td><span class="badge-ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-04..08</code></td>
+            <td>Live Desktop Chromium (<code>bsk</code>)</td>
+            <td><code>https://abrndrive.filemonprime.net/abrn/files</code> at <code>1632×940@2x</code></td>
+            <td><code>live-01..05</code> verified · <code>$0.00 MXN</code> cuadre · persistent <code>Nota rápida</code> · 0 forbidden jargon</td>
+            <td><span class="badge-ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-09..11</code></td>
+            <td>Physical Android 13 (<code>427×721</code>)</td>
+            <td><code>waydroid-android-13</code> via <code>filemon_mobile_client.py</code></td>
+            <td><code>live-06..08</code> · <code>overflowPx: 0</code> · <code>autonomous_audit: PASSED</code> (<code>27px</code> clearance) · lease <code>held: false</code></td>
+            <td><span class="badge-ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-12</code></td>
+            <td>Post-Build Audit Validator</td>
+            <td><code>check-post-build-audit.py ... --build-id v24-la-viejita-human-reality</code></td>
+            <td>Exit <code>0</code> · 7 requirements · 6 fixed findings</td>
+            <td><span class="badge-ok">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>2. Before vs. After Human-Reality Transformation</h2>
+      <div class="quote">
+        <strong>Consigliere Fiscal Rule Preserved:</strong> <code>Subir y Ordenar</code>, <code>Cuadre BBVA</code>, <code>Papel Trabajo .CSV</code>, <code>100% amarrado · Verificado</code>, <code>Pasaporte Criptográfico ABRN</code>, <code>El Recibo Sagrado</code>, <code>⚡ Pulso Fiscal</code>, and <code>Cola de Trabajo Hoy</code> remain intact because character decorates meaning without obscuring it.
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Surface</th>
+            <th>Before (<code>v23</code>)</th>
+            <th>After (<code>v24</code> — La Viejita Lens)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Viewport &amp; Skins</td>
+            <td><code>Escritorio | ⚡ Dual en Vivo | Estudio Móvil</code> · <code>Cream / Slate / OLED</code></td>
+            <td><code>PC | ⚡ PC + Celular | Vista Celular</code> · <code>☀ Claro | ☾ Gris | ◆ Negro</code></td>
+          </tr>
+          <tr>
+            <td>Empty Bank Reconcile</td>
+            <td><code>NOT_EVALUABLE · SIN_CFDI_EN_CARPETA</code> + <code>Cifrar Expediente Contable Real</code></td>
+            <td><code>Faltan facturas XML o el estado de cuenta</code> + primary <code>Subir facturas y estado de cuenta</code> + secondary <code>Probar con ejemplo (3 CFDI + BBVA)</code></td>
+          </tr>
+          <tr>
+            <td>File Notes &amp; Badges</td>
+            <td>Auto-invented <code>🎙 VOZ 0:12</code> badges on unannotated files + simulated bars</td>
+            <td>Zero fake badges; real <code>localStorage</code>-persisted editable/deletable <code>Nota rápida</code> (<code>📝 NOTA</code>) + optional real <code>MediaRecorder</code> audio</td>
+          </tr>
+          <tr>
+            <td>Access &amp; Basket</td>
+            <td><code>Accesos #key</code> · <code>ZERO-KNOWLEDGE #FRAGMENT</code> · <code>En Canasta #key</code></td>
+            <td><code>Enlaces y Buzones</code> · <code>🔒 Solo quien tenga el enlace completo puede abrirlo</code> · <code>Seleccionados</code></td>
+          </tr>
+          <tr>
+            <td>Privacy &amp; Scanner</td>
+            <td><code>0.0 MB en RAM · Llaves Purgadas</code> · <code>Escáner Óptico Directo a RAM (99.4%)</code></td>
+            <td><code>Tus archivos están ocultos</code> · <code>🔒 Va directo a la bóveda — no se queda en tus fotos</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>3. Next Proposed Steps</h2>
+      <ul class="clean">
+        <li>Proceed with human release-readiness gates tracked in <code>README.md</code> (5-person unassisted journeys, 200% zoom/reflow review, and staged schema 49&rarr;50 cutover drill).</li>
+        <li>Keep <code>LA VIEJITA LENS</code> active as a pre-merge copy &amp; behavioral-truth check on future accounting modules.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

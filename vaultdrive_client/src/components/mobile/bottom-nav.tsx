@@ -127,7 +127,7 @@ export function BottomNav() {
               type="button"
               data-testid="dock-scanner-orb"
               onClick={handleOpenScanner}
-              aria-label="Abrir Escáner Fiscal AES-256 en RAM"
+              aria-label="Escanear documento"
               style={{
                 background: "linear-gradient(135deg, #7a1f2b 0%, #58131d 100%)",
               }}

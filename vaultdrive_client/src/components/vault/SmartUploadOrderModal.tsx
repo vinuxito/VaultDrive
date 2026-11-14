@@ -189,7 +189,7 @@ export const SmartUploadOrderModal: React.FC<SmartUploadOrderModalProps> = ({
           className="px-4 py-3 border-b flex items-center justify-between gap-3 shrink-0"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="abrn-blindado-pill">Auto-Orden + AES-256-GCM</span>
+            <span className="abrn-blindado-pill">Orden automático · Privado</span>
             <h2 id="smart-upload-modal-title" className="abrn-serif text-[15px] font-bold text-foreground truncate">
               Subir y Ordenar Archivos Sueltos
             </h2>
@@ -242,11 +242,11 @@ export const SmartUploadOrderModal: React.FC<SmartUploadOrderModalProps> = ({
           >
             <div className="min-w-0">
               <div className="abrn-serif font-bold text-[14.5px] text-foreground">
-                Suelta PDFs del escáner, XMLs con UUID o fotos de WhatsApp
+                Suelta aquí facturas, PDFs o fotos de WhatsApp
               </div>
               <p className="text-[12px] text-muted-foreground mt-0.5">
-                ABRN Drive detecta el tipo en tu navegador, sugiere un nombre limpio para{" "}
-                <strong className="text-foreground">{activeFolderName}</strong>, lo cifra en bloques de 64 KB y lo ordena en su subcarpeta.
+                ABRN Drive detecta qué documento es, sugiere un nombre limpio para{" "}
+                <strong className="text-foreground">{activeFolderName}</strong>, lo protege antes de subirlo y lo acomoda en su carpeta.
               </p>
             </div>
 

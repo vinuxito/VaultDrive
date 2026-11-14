@@ -5,19 +5,26 @@ import { MobileReconcileSheet } from "./MobileReconcileSheet";
 import type { FileData } from "../vault/FileGrid";
 
 describe("MobileReconcileSheet", () => {
-  it("never shows false $0.00 when CFDI or bank files are absent (SIN_CFDI_EN_CARPETA)", () => {
-    render(
+  it("never shows false $0.00 or raw enum codes when CFDI or bank files are absent", async () => {
+    const onOpenUpload = vi.fn();
+    const { container } = render(
       <MobileReconcileSheet
         open={true}
         onClose={vi.fn()}
         files={[]}
         clientName="Grupo Roche SA de CV"
+        onOpenUpload={onOpenUpload}
       />
     );
 
     expect(screen.getByTestId("mobile-reconcile-not-evaluable")).toBeInTheDocument();
-    expect(screen.getAllByText(/SIN_CFDI_EN_CARPETA/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Faltan facturas XML o el estado de cuenta/i)).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/SIN_CFDI_EN_CARPETA/);
+    expect(container.textContent).not.toMatch(/NOT_EVALUABLE/);
     expect(screen.queryByTestId("mobile-reconcile-delta-card")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId("mobile-reconcile-upload-btn"));
+    expect(onOpenUpload).toHaveBeenCalledOnce();
   });
 
   it("computes exact $0.00 MXN delta when CFDI 4.0 XMLs match BBVA bank statement", async () => {
@@ -68,7 +75,7 @@ describe("MobileReconcileSheet", () => {
     );
 
     expect(screen.getByTestId("mobile-reconcile-delta-card")).toHaveTextContent("$0.00");
-    expect(screen.getByText(/Cuadre Exacto \$0\.00 MXN/i)).toBeInTheDocument();
+    expect(screen.getByText(/100% amarrado · Diferencia \$0\.00 MXN/i)).toBeInTheDocument();
 
     await userEvent.click(screen.getByTestId("mobile-reconcile-wa-btn"));
     expect(onShareWhatsApp).toHaveBeenCalledOnce();

@@ -73,11 +73,11 @@ export const FileSearch: React.FC<FileSearchProps> = ({
               disabled={disabled}
               onClick={onOpenOmnibar}
               data-testid="open-omnibar-btn"
-              aria-label={t("drive:omnibar.triggerAria", "Abrir Omnibar Cerebro Ciego")}
+              aria-label={t("drive:omnibar.triggerAria", "Buscar dentro de tus archivos (Cerebro Ciego)")}
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 text-xs font-semibold shrink-0 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{t("drive:omnibar.triggerLabel", "Cerebro Ciego")}</span>
+              <span className="hidden md:inline">{t("drive:omnibar.triggerLabel", "Buscar dentro · Cerebro Ciego")}</span>
               <kbd className="px-1 py-0.2 rounded bg-background/80 border border-primary/20 text-[10px] font-mono">
                 /
               </kbd>

@@ -472,10 +472,10 @@ export const FileGrid: React.FC<FileGridProps> = ({
                   return (
                     <span
                       data-testid={`voice-pill-${file.id}`}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold tracking-tight bg-primary/12 text-primary border border-primary/25 shrink-0 abrn-mono"
-                      title={`Nota de voz cifrada en RAM: ${memo.transcriptHint}`}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold tracking-tight bg-primary/12 text-primary border border-primary/25 shrink-0"
+                      title={`Nota: ${memo.transcriptHint}`}
                     >
-                      🎙 VOZ {memo.durationLabel}
+                      {memo.hasAudio ? `🎙 ${memo.durationLabel}` : "📝 Nota"}
                     </span>
                   );
                 })()}
@@ -651,7 +651,7 @@ export const FileGrid: React.FC<FileGridProps> = ({
                 type="button"
                 data-testid={`ingrid-open-94vw-${file.id}`}
                 onClick={() => (onOpenCinemascope ?? onDoubleClickRow ?? onPreviewClick)(file)}
-                title="Abrir en Visor Ejecutivo 94vw (Enter)"
+                title="Abrir en pantalla completa (Enter)"
                 style={{
                   background: "var(--abrn-primary-tint)",
                   borderColor: "var(--abrn-border-strong)",

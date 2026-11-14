@@ -2334,61 +2334,58 @@
             <span class="nav-badge">Auto</span>
           </button>
 
-          <button class="nav-btn" id="nav-drop" onclick="openDropRequestModal()" title="Pedir Documentos al Cliente (Buzón Secure Drop)">
+          <button class="nav-btn" id="nav-drop" onclick="openDropRequestModal()" title="Pedir documentos al cliente sin cuenta">
             <span class="nav-dot-indicator"></span>
             <span class="nav-btn-left">
               <svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-              <span>Buzón Drop</span>
+              <span>Recibidos de Clientes</span>
             </span>
             <span class="nav-badge emerald">2 nuevos</span>
           </button>
 
-          <button class="nav-btn" id="nav-shared" onclick="activateMainVault('shared')" title="Enlaces #key Activos">
+          <button class="nav-btn" id="nav-shared" onclick="activateMainVault('shared')" title="Enlaces compartidos activos">
             <span class="nav-btn-left">
               <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              <span>Compartidos (#key)</span>
+              <span>Compartidos</span>
             </span>
             <span class="nav-badge" id="nav-shared-badge">3</span>
           </button>
 
-          <button class="nav-btn" id="nav-cinema" onclick="openCinemascopeModal()" title="Visor Ejecutivo Cinemascope (94vw)">
+          <button class="nav-btn" id="nav-cinema" onclick="openCinemascopeModal()" title="Abrir vista previa en pantalla completa">
             <span class="nav-btn-left">
               <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Visor 94vw</span>
+              <span>Pantalla completa</span>
             </span>
-            <span class="nav-badge">RAM</span>
           </button>
 
-          <div class="nav-section-title">Ecosistema y Seguridad</div>
+          <div class="nav-section-title">Dispositivos y Enlaces</div>
 
-          <button class="nav-btn" id="nav-dual" onclick="setViewportMode('dual')" title="Espejo Dual en Vivo: Escritorio + Celular sincronizados en 0ms">
+          <button class="nav-btn" id="nav-dual" onclick="setViewportMode('dual')" title="Ver PC y Celular lado a lado">
             <span class="nav-btn-left">
               <svg viewBox="0 0 24 24"><rect x="2" y="4" width="13" height="16" rx="2"/><rect x="17" y="6" width="5" height="14" rx="1.5"/></svg>
-              <span>Dual en Vivo</span>
+              <span>Ver con Celular</span>
             </span>
-            <span class="nav-badge emerald">⚡ 0ms</span>
           </button>
 
-          <button class="nav-btn" id="nav-mobile" onclick="setViewportMode('mobile')" title="Estudio Móvil Completo (13 Escenarios + Android 13)">
+          <button class="nav-btn" id="nav-mobile" onclick="setViewportMode('mobile')" title="Vista completa de celular">
             <span class="nav-btn-left">
               <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              <span>Estudio Móvil</span>
+              <span>Vista Celular</span>
             </span>
-            <span class="nav-badge">v25</span>
           </button>
 
-          <button class="nav-btn" id="nav-access" data-testid="nav-access" onclick="setCenterModule('access')" title="Centro de Acceso Zero-Knowledge (#key y Revocación)">
+          <button class="nav-btn" id="nav-access" data-testid="nav-access" onclick="setCenterModule('access')" title="Enlaces compartidos y buzones de clientes">
             <span class="nav-btn-left">
               <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-              <span>Centro de Acceso</span>
+              <span>Enlaces y Buzones</span>
             </span>
-            <span class="nav-badge emerald" id="nav-access-badge">3 OK</span>
+            <span class="nav-badge emerald" id="nav-access-badge">3 activos</span>
           </button>
         </div>
       </div>
 
       <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <button class="icon-btn" onclick="openCmdkModal()" title="Paleta de Comandos Soberana (⌘K)">
+        <button class="icon-btn" onclick="openCmdkModal()" title="Acciones Rápidas (⌘K)">
           <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
         </button>
         <button class="icon-btn" onclick="toggleNavRail()" title="Expandir o compactar menú (⌘B)">
@@ -2410,52 +2407,52 @@
 
           <div class="omnibar-trigger" onclick="document.getElementById('omnibar-input').focus()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input id="omnibar-input" type="search" placeholder="Busca cliente, RFC, CFDI, banco o SHA-256…" oninput="if(centerModule!=='files')setCenterModule('files');renderFiles()" />
-            <button class="kbd-pill" style="cursor:pointer;" data-testid="btn-cmdk" onclick="event.stopPropagation();openCmdkModal()" title="Abrir Paleta de Comandos Soberana (⌘K)">⌘K</button>
+            <input id="omnibar-input" type="search" placeholder="Buscar cliente, factura, banco o RFC…" oninput="if(centerModule!=='files')setCenterModule('files');renderFiles()" />
+            <button class="kbd-pill" style="cursor:pointer;" data-testid="btn-cmdk" onclick="event.stopPropagation();openCmdkModal()" title="Acciones Rápidas (⌘K)">⌘K</button>
           </div>
         </div>
 
-        <!-- 3-Mode Ecosystem Continuum Switcher -->
-        <div class="eco-mode-bar" role="group" aria-label="Modo de Ecosistema Escritorio y Móvil">
-          <button class="eco-chip active" data-eco="desktop" data-testid="eco-desktop" onclick="setViewportMode('desktop')" title="Estación de Escritorio 3 Paneles">
+        <!-- 3-Mode Ecosystem Switcher -->
+        <div class="eco-mode-bar" role="group" aria-label="Vista en computadora o celular">
+          <button class="eco-chip active" data-eco="desktop" data-testid="eco-desktop" onclick="setViewportMode('desktop')" title="Vista de computadora">
             <svg viewBox="0 0 24 24" style="width:13px;height:13px;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <span>Escritorio</span>
+            <span>PC</span>
           </button>
-          <button class="eco-chip" data-eco="dual" data-testid="eco-dual" onclick="setViewportMode('dual')" title="Escritorio + App Móvil en Vivo sincronizados en tiempo real">
+          <button class="eco-chip" data-eco="dual" data-testid="eco-dual" onclick="setViewportMode('dual')" title="Ver PC y Celular sincronizados lado a lado">
             <span class="sync-live-dot"></span>
-            <span>⚡ Dual en Vivo</span>
+            <span>⚡ PC + Celular</span>
           </button>
-          <button class="eco-chip" data-eco="mobile" data-testid="eco-mobile" onclick="setViewportMode('mobile')" title="Estudio Móvil Nativo Completo (13 Escenarios)">
+          <button class="eco-chip" data-eco="mobile" data-testid="eco-mobile" onclick="setViewportMode('mobile')" title="Vista de celular">
             <svg viewBox="0 0 24 24" style="width:13px;height:13px;"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            <span>Estudio Móvil</span>
+            <span>Vista Celular</span>
           </button>
         </div>
 
-        <!-- Immutable ABRN 3-Skin Switcher (Synced 0ms with Mobile) -->
-        <div class="abrn-mode-bar" role="group" aria-label="Paleta Unificada ABRN">
+        <!-- ABRN 3-Skin Switcher -->
+        <div class="abrn-mode-bar" role="group" aria-label="Tema de color ABRN">
           <button class="mode-chip active" data-mode="abrn-light" data-testid="skin-cream" onclick="setAbrnMode('abrn-light')">
-            <span class="swatch-dot" style="background: #7a1f2b;"></span>☀ Cream
+            <span class="swatch-dot" style="background: #7a1f2b;"></span>☀ Claro
           </button>
           <button class="mode-chip" data-mode="abrn-dark" data-testid="skin-slate" onclick="setAbrnMode('abrn-dark')">
-            <span class="swatch-dot" style="background: #d4aeb0;"></span>☾ Slate
+            <span class="swatch-dot" style="background: #d4aeb0;"></span>☾ Gris
           </button>
           <button class="mode-chip" data-mode="abrn-oled" data-testid="skin-oled" onclick="setAbrnMode('abrn-oled')">
-            <span class="swatch-dot" style="background: #4ade80;"></span>◆ OLED
+            <span class="swatch-dot" style="background: #4ade80;"></span>◆ Negro
           </button>
         </div>
 
         <div class="topbar-actions">
-          <button class="btn" onclick="openDropRequestModal()" title="Solicitar documentos faltantes por WhatsApp sin contraseña">
+          <button class="btn" onclick="openDropRequestModal()" title="Solicitar documentos faltantes por WhatsApp sin cuenta">
             <svg viewBox="0 0 24 24" style="color: var(--emerald);"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
             <span>Pedir Docs</span>
           </button>
 
-          <button class="btn btn-soft" onclick="openShareModal('folder')" title="Compartir toda la carpeta activa con enlace #key">
+          <button class="btn btn-soft" onclick="openShareModal('folder')" title="Compartir toda la carpeta activa">
             <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             <span>Enviar Carpeta</span>
           </button>
 
-          <button class="btn" data-testid="btn-lock-vault" onclick="lockDesktopVault(true)" title="Bloquear Bóveda en Escritorio y Celular (⌘L)">
+          <button class="btn" data-testid="btn-lock-vault" onclick="lockDesktopVault(true)" title="Bloquear pantalla (⌘L)">
             <svg viewBox="0 0 24 24" style="color: var(--amber);"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span>Bloquear</span>
           </button>
@@ -2477,14 +2474,14 @@
           <h1 class="vault-h1" id="active-folder-heading">Grupo Roche SA de CV</h1>
           <span class="blindado-pill">
             <span class="pulse-dot"></span>
-            Blindado · AES-256-GCM
+            🔒 Blindado
           </span>
 
           <!-- Quick Module Switcher inside Subheader -->
           <div class="layout-presets" style="margin-left:4px;" aria-label="Módulos operativos">
             <button class="preset-btn active" id="mod-btn-files" onclick="setCenterModule('files')">Archivos</button>
-            <button class="preset-btn" id="mod-btn-reconcile" data-testid="sub-reconcile-btn" onclick="setCenterModule('reconcile')">Cuadre BBVA ($0.00)</button>
-            <button class="preset-btn" id="mod-btn-access" data-testid="sub-access-btn" onclick="setCenterModule('access')">Accesos #key</button>
+            <button class="preset-btn" id="mod-btn-reconcile" data-testid="sub-reconcile-btn" onclick="setCenterModule('reconcile')">Cuadre BBVA</button>
+            <button class="preset-btn" id="mod-btn-access" data-testid="sub-access-btn" onclick="setCenterModule('access')">Enlaces y Buzones</button>
           </div>
         </div>
 
@@ -2494,7 +2491,7 @@
               <svg viewBox="0 0 24 24" style="width:13px;height:13px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="16" y1="3" x2="16" y2="21"/></svg>
               <span>3 Paneles</span>
             </button>
-            <button class="preset-btn" data-layout="wide-list" onclick="applyLayoutPreset('wide-list')" title="Lista amplia sin inspector derecho">
+            <button class="preset-btn" data-layout="wide-list" onclick="applyLayoutPreset('wide-list')" title="Lista amplia sin vista previa derecha">
               <svg viewBox="0 0 24 24" style="width:13px;height:13px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/></svg>
               <span>Lista Ancha</span>
             </button>
@@ -2509,17 +2506,13 @@
               <span class="t-label">Archivos</span>
               <span class="t-val" id="stat-visible-count">8</span>
             </div>
-            <div class="t-cell" style="cursor:pointer;" onclick="setCenterModule('files');setFilterTab('drop')" title="Filtrar archivos recién subidos por cliente">
-              <span class="t-label">Drop</span>
+            <div class="t-cell" style="cursor:pointer;" onclick="setCenterModule('files');setFilterTab('drop')" title="Archivos recibidos de clientes">
+              <span class="t-label">Recibidos</span>
               <span class="t-val" style="color: var(--emerald);" id="stat-drop-count">2 nuevos</span>
             </div>
-            <div class="t-cell" style="cursor:pointer;" onclick="setCenterModule('access')" title="Gobernanza de enlaces #key activos">
-              <span class="t-label">#key</span>
+            <div class="t-cell" style="cursor:pointer;" onclick="setCenterModule('access')" title="Enlaces compartidos activos">
+              <span class="t-label">Compartidos</span>
               <span class="t-val" style="color: var(--primary);" id="stat-key-count">3 activos</span>
-            </div>
-            <div class="t-cell" style="cursor:pointer;" onclick="setViewportMode(viewportMode==='dual'?'desktop':'dual')" title="Puente Continuum en tiempo real con App Móvil">
-              <span class="t-label">Continuum</span>
-              <span class="t-val" style="color: var(--emerald);" id="stat-sync-pill">⚡ 0ms</span>
             </div>
           </div>
         </div>
@@ -2548,7 +2541,7 @@
 
           <div class="tree-footer">
             <div style="display:flex;justify-content:space-between;">
-              <span>Espacio cifrado</span>
+              <span>Espacio protegido</span>
               <strong class="mono" style="color:var(--fg-strong);">28.4 / 100 GB</strong>
             </div>
             <div style="height:5px;border-radius:999px;background:var(--muted);overflow:hidden;">
@@ -2556,7 +2549,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
               <svg viewBox="0 0 24 24" style="width:12px;height:12px;color:var(--emerald);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span>Sincronizado con App Móvil v25</span>
+              <span>Sincronizado con tu celular</span>
             </div>
           </div>
         </aside>
@@ -2567,7 +2560,7 @@
           <div class="splitter-grip"><i></i><i></i><i></i><i></i></div>
         </div>
 
-        <!-- PANE 2: Unified Center Workspace (Archivos / Conciliación BBVA / Centro de Acceso) -->
+        <!-- PANE 2: Unified Center Workspace -->
         <main class="pane-center" id="pane-center" style="position:relative;"
               oncontextmenu="openCanvasCtx(event)"
               ondragover="handleDragOver(event)"
@@ -2576,9 +2569,9 @@
 
           <!-- Drag & Drop Anywhere Overlay -->
           <div id="drag-drop-overlay" class="drag-drop-overlay hidden">
-            <span class="blindado-pill">AES-256-GCM · Bloques 64 KB en RAM</span>
-            <div class="serif" style="font-size:17px;font-weight:700;color:var(--fg-strong);">Suelta aquí para cifrar, auto-nombrar y emitir Recibo Sagrado</div>
-            <div style="font-size:12px;color:var(--muted-fg);">0 bytes sin cifrar salen de tu navegador</div>
+            <span class="blindado-pill">Orden automático · Privado</span>
+            <div class="serif" style="font-size:17px;font-weight:700;color:var(--fg-strong);">Suelta aquí para ordenar y guardar en esta carpeta</div>
+            <div style="font-size:12px;color:var(--muted-fg);">Se protege en tu equipo antes de subirse</div>
           </div>
 
           <!-- MODULE A: FILES EXPLORER -->
@@ -2590,23 +2583,23 @@
               <div class="underline-tabs" id="underline-tabs" role="tablist"></div>
             </div>
 
-            <!-- Live Sacred Cryptographic Receipt Banner (Appears on Upload or Cross-Device Mobile Scan!) -->
+            <!-- Live Sacred Cryptographic Receipt Banner -->
             <div id="sacred-receipt-banner" class="sacred-receipt-banner hidden" data-testid="sacred-receipt-banner">
               <div style="min-width:0;display:flex;flex-direction:column;gap:2px;">
                 <div style="display:flex;align-items:center;gap:7px;">
                   <span class="pulse-dot"></span>
-                  <span style="font-size:10px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--emerald);" id="receipt-banner-kicker">EL RECIBO SAGRADO · SINCRONIZADO EN VIVO</span>
+                  <span style="font-size:10px;font-weight:800;letter-spacing:0.04em;color:var(--emerald);" id="receipt-banner-kicker">El Recibo Sagrado · Guardado desde tu celular</span>
                 </div>
                 <strong id="receipt-banner-title" class="serif" style="font-size:13px;color:var(--fg-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                   Poliza_Egresos_Escaneada_Android13_Nov2026.pdf
                 </strong>
                 <div class="mono" style="font-size:10.5px;color:var(--muted-fg);" id="receipt-banner-sha">
-                  SHA-256: 5a9c8812e4109f7b…44d29a · AES-256-GCM · 0 bytes en claro
+                  SHA-256: 5a9c8812e4109f7b…44d29a · Verificado
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                <button class="btn btn-whatsapp btn-sm" onclick="openShareModal('single')">WhatsApp #key</button>
-                <button class="btn btn-sm" onclick="openCinemascopeModal()">Ver 94vw</button>
+                <button class="btn btn-whatsapp btn-sm" onclick="openShareModal('single')">Enviar por WhatsApp</button>
+                <button class="btn btn-sm" onclick="openCinemascopeModal()">Pantalla completa</button>
                 <button class="icon-btn" style="width:26px;height:26px;" onclick="document.getElementById('sacred-receipt-banner').classList.add('hidden')" title="Ocultar recibo">×</button>
               </div>
             </div>
@@ -2614,64 +2607,64 @@
             <!-- Day-Grouped In-Grid Rows -->
             <div class="file-list-scroll" id="file-list-container"></div>
 
-            <!-- Unified Floating Canasta / Staging #key Dock -->
+            <!-- Unified Floating Selection Dock -->
             <div class="canasta-dock" id="canasta-dock">
               <div style="display:flex;align-items:center;gap:7px;">
                 <span class="pulse-dot"></span>
-                <strong id="canasta-count-label" style="font-size:12px;">2 en Canasta</strong>
+                <strong id="canasta-count-label" style="font-size:12px;">2 seleccionados</strong>
               </div>
               <button class="btn btn-whatsapp btn-sm" onclick="openShareModal('basket')">
-                <span>WhatsApp (#key Lote)</span>
+                <span>Enviar por WhatsApp</span>
               </button>
-              <button class="btn btn-sm" style="background:rgba(255,255,255,0.13);color:inherit;border-color:rgba(255,255,255,0.22);" onclick="showToast('Descargando paquete ZIP descifrado en memoria…')">
-                <span>Bajar ZIP</span>
+              <button class="btn btn-sm" style="background:rgba(255,255,255,0.13);color:inherit;border-color:rgba(255,255,255,0.22);" onclick="showToast('Descargando paquete ZIP…')">
+                <span>Descargar juntos</span>
               </button>
               <button class="btn btn-sm" style="background:transparent;color:inherit;border:none;opacity:0.8;" onclick="clearBasket()">
-                <span>Vaciar</span>
+                <span>Deseleccionar</span>
               </button>
             </div>
 
             <!-- Bottom Tactile & Keyboard Shortcut Bar -->
             <div class="power-hint-bar">
-              <span>Arrastra <strong>⋮</strong> para redimensionar · Suelta archivos aquí o usa <strong>⌘K</strong> para comandos</span>
+              <span>Arrastra <strong>⋮</strong> para ajustar ancho · Suelta archivos aquí o usa <strong>⌘K</strong> para acciones rápidas</span>
               <div style="display:flex;align-items:center;gap:5px;">
                 <span class="kbd-pill">J / K</span>
                 <span class="kbd-pill">F2 Renombrar</span>
                 <span class="kbd-pill">⌘L Bloquear</span>
-                <span class="kbd-pill">Enter 94vw</span>
+                <span class="kbd-pill">Enter Ver grande</span>
               </div>
             </div>
           </div>
 
-          <!-- MODULE B: DETERMINISTIC CFDI 4.0 ↔ BBVA RAM RECONCILIATION COCKPIT -->
+          <!-- MODULE B: RECONCILIATION COCKPIT -->
           <div id="center-reconcile-view" class="center-module-view hidden" data-testid="desktop-reconcile-view">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
               <div>
-                <div style="font-size:10.5px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--emerald);">MOTOR CONTABLE 100% EN RAM · CERO SERVIDOR</div>
-                <h2 class="serif" style="font-size:19px;color:var(--fg-strong);margin-top:2px;">Conciliación CFDI 4.0 vs. Estado de Cuenta BBVA</h2>
-                <p style="font-size:12px;color:var(--muted-fg);margin-top:2px;">Cruce determinista entre XMLs timbrados y SPEI bancarios de <strong id="rec-client-label" style="color:var(--fg-strong);">Grupo Roche SA de CV</strong> (Noviembre 2026).</p>
+                <div style="font-size:10.5px;font-weight:800;letter-spacing:0.04em;color:var(--emerald);">🔒 Cruce privado en tu equipo</div>
+                <h2 class="serif" style="font-size:19px;color:var(--fg-strong);margin-top:2px;">Cuadre de Facturas (CFDI) contra Banco</h2>
+                <p style="font-size:12px;color:var(--muted-fg);margin-top:2px;">Compara tus XML timbrados contra los movimientos bancarios de <strong id="rec-client-label" style="color:var(--fg-strong);">Grupo Roche SA de CV</strong> (Noviembre 2026).</p>
               </div>
               <div style="display:flex;gap:7px;">
-                <button class="btn btn-soft btn-sm" onclick="exportReconcileWorkpaper()">+ Guardar Papel de Trabajo XLSX</button>
-                <button class="btn btn-whatsapp btn-sm" onclick="showToast('Cuadre $0.00 MXN enviado con enlace #key por WhatsApp')">WhatsApp Cuadre #key</button>
+                <button class="btn btn-soft btn-sm" onclick="exportReconcileWorkpaper()">Papel Trabajo .CSV</button>
+                <button class="btn btn-whatsapp btn-sm" onclick="showToast('Resumen de cuadre copiado para enviar por WhatsApp')">Enviar Cuadre por WhatsApp</button>
               </div>
             </div>
 
             <div class="rec-kpi-grid">
               <div class="rec-kpi-card">
-                <span style="font-size:10.5px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;">CFDI 4.0 Emitidos (14)</span>
+                <span style="font-size:10.5px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;">Facturas XML (14)</span>
                 <strong class="mono" style="font-size:16px;color:var(--fg-strong);">$418,200.00</strong>
-                <span style="font-size:11px;color:var(--emerald);font-weight:700;">14 UUIDs vigentes SAT</span>
+                <span style="font-size:11px;color:var(--emerald);font-weight:700;">14 CFDI vigentes SAT</span>
               </div>
               <div class="rec-kpi-card">
-                <span style="font-size:10.5px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;">Abonos BBVA (Oct–Nov)</span>
+                <span style="font-size:10.5px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;">Estado de Cuenta BBVA</span>
                 <strong class="mono" style="font-size:16px;color:var(--fg-strong);">$418,200.00</strong>
                 <span style="font-size:11px;color:var(--muted-fg);">CLABE ···8921 verificada</span>
               </div>
               <div class="rec-kpi-card sealed">
-                <span style="font-size:10.5px;font-weight:800;color:var(--emerald);text-transform:uppercase;">Diferencia Determinista</span>
+                <span style="font-size:10.5px;font-weight:800;color:var(--emerald);text-transform:uppercase;">Diferencia por aclarar</span>
                 <strong class="mono" style="font-size:16.5px;color:var(--emerald);">$0.00 MXN</strong>
-                <span style="font-size:11px;color:var(--emerald);font-weight:700;">✓ 14/14 SPEI cuadrados</span>
+                <span style="font-size:11px;color:var(--emerald);font-weight:700;">✓ 100% amarrado · Verificado</span>
               </div>
               <div class="rec-kpi-card">
                 <span style="font-size:10.5px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;">IVA Neto Estimado</span>
@@ -2684,25 +2677,25 @@
               <div class="rec-ledger-row head">
                 <span>Fecha SPEI</span>
                 <span>Movimiento Bancario BBVA</span>
-                <span>CFDI 4.0 Vinculado (UUID)</span>
+                <span>Factura XML Vinculada</span>
                 <span style="text-align:right;">Importe MXN</span>
-                <span style="text-align:right;">Estado Sello</span>
+                <span style="text-align:right;">Estado</span>
               </div>
               <div id="reconcile-ledger-mount"></div>
             </div>
           </div>
 
-          <!-- MODULE C: ZERO-KNOWLEDGE ACCESS CENTER (#KEY & SECURE DROP GOVERNANCE) -->
+          <!-- MODULE C: ENLACES Y BUZONES -->
           <div id="center-access-view" class="center-module-view hidden" data-testid="desktop-access-view">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
               <div>
-                <div style="font-size:10.5px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--primary);">GOBERNANZA ZERO-KNOWLEDGE · LLAVES EN FRAGMENTO #KEY</div>
-                <h2 class="serif" style="font-size:19px;color:var(--fg-strong);margin-top:2px;">Centro de Acceso y Revocación Instantánea</h2>
-                <p style="font-size:12px;color:var(--muted-fg);margin-top:2px;">El servidor almacena únicamente bloques cifrados; aquí auditas aperturas y apagas cualquier enlace <strong>#key</strong> en 1 clic.</p>
+                <div style="font-size:10.5px;font-weight:800;letter-spacing:0.04em;color:var(--primary);">🔒 Solo quien tenga el enlace completo puede abrirlo</div>
+                <h2 class="serif" style="font-size:19px;color:var(--fg-strong);margin-top:2px;">Enlaces Compartidos y Buzones de Clientes</h2>
+                <p style="font-size:12px;color:var(--muted-fg);margin-top:2px;">Revisa quién abrió tus enlaces compartidos o desactívalos con un clic cuando ya no los necesiten.</p>
               </div>
               <div style="display:flex;gap:7px;">
-                <button class="btn btn-soft btn-sm" onclick="openDropRequestModal()">+ Nuevo Buzón Drop</button>
-                <button class="btn btn-primary btn-sm" onclick="openShareModal('folder')">+ Nuevo Enlace #key</button>
+                <button class="btn btn-soft btn-sm" onclick="openDropRequestModal()">+ Pedir documentos</button>
+                <button class="btn btn-primary btn-sm" onclick="openShareModal('folder')">+ Compartir archivo</button>
               </div>
             </div>
 
@@ -2711,17 +2704,17 @@
         </main>
 
         <!-- SPLITTER 2: Right Preview Dock Resizer -->
-        <div class="splitter" id="splitter-right" title="Arrastra para redimensionar Vista Previa RAM (doble clic restaura)">
+        <div class="splitter" id="splitter-right" title="Arrastra para redimensionar Vista Previa (doble clic restaura)">
           <div class="splitter-hud mono" id="hud-right">368 px</div>
           <div class="splitter-grip"><i></i><i></i><i></i><i></i></div>
         </div>
 
-        <!-- PANE 3: Resizable Live RAM Preview, AI Digest, Voice Note & Cryptographic Inspector -->
+        <!-- PANE 3: Resizable Preview & Cryptographic Inspector -->
         <aside class="pane-preview" id="pane-preview" oncontextmenu="openInspectorCtx(event)">
           <div class="preview-dock-header">
             <div style="min-width: 0;">
               <div style="font-size:9.5px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--emerald);margin-bottom:2px;">
-                VISTA RÁPIDA EN RAM · SIN DESCARGAR
+                Vista rápida · Sin descargar
               </div>
               <div id="dock-filename" class="serif" style="font-size:13px;font-weight:700;color:var(--fg-strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                 Constancia_Situacion_Fiscal_Roche_Nov2026.pdf
@@ -2731,10 +2724,10 @@
               </div>
             </div>
             <div style="display:flex;gap:4px;flex-shrink:0;">
-              <button class="icon-btn" style="width:27px;height:27px;" onclick="openCinemascopeModal()" title="Abrir en Modal Cinemascope 94vw (Enter)">
+              <button class="icon-btn" style="width:27px;height:27px;" onclick="openCinemascopeModal()" title="Ver en grande (Enter)">
                 <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
               </button>
-              <button class="icon-btn" style="width:27px;height:27px;" onclick="applyLayoutPreset('wide-list')" title="Ocultar inspector lateral">
+              <button class="icon-btn" style="width:27px;height:27px;" onclick="applyLayoutPreset('wide-list')" title="Ocultar vista previa">
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
@@ -2743,9 +2736,9 @@
           <!-- 6-Format Interactive Switcher -->
           <div class="preview-format-tabs" role="tablist">
             <button class="p-tab active" id="ptab-pdf" onclick="selectSampleByFormat('pdf')">PDF</button>
-            <button class="p-tab" id="ptab-xml" onclick="selectSampleByFormat('xml')">XML CFDI</button>
+            <button class="p-tab" id="ptab-xml" onclick="selectSampleByFormat('xml')">CFDI</button>
             <button class="p-tab" id="ptab-xlsx" onclick="selectSampleByFormat('xlsx')">XLSX</button>
-            <button class="p-tab" id="ptab-image" onclick="selectSampleByFormat('image')">4K</button>
+            <button class="p-tab" id="ptab-image" onclick="selectSampleByFormat('image')">Imagen</button>
             <button class="p-tab" id="ptab-video" onclick="selectSampleByFormat('video')">Video</button>
             <button class="p-tab" id="ptab-code" onclick="selectSampleByFormat('code')">Código</button>
           </div>
@@ -2757,7 +2750,7 @@
                 <span>WhatsApp</span>
               </button>
               <button class="deck-btn deck-btn-primary" onclick="openShareModal('single')">
-                <span>Enlace #key</span>
+                <span>Compartir</span>
               </button>
               <button class="deck-btn" onclick="startInlineRename(selectedFileId)">
                 <span>Renombrar</span>
@@ -2768,7 +2761,7 @@
             </button>
           </div>
 
-          <!-- Interactive Multi-Format Stage (Includes AI RAM Digest + Encrypted Voice Note + Live Document!) -->
+          <!-- Interactive Multi-Format Stage -->
           <div class="preview-stage-wrap" id="dock-stage-mount"></div>
 
           <!-- Collapsible Cryptographic Passport Summary -->
@@ -2783,7 +2776,7 @@
             <div class="passport-details" id="passport-details">
               <div class="kv-line">
                 <span class="kv-k">Cifrado en navegador</span>
-                <span class="kv-v" style="color:var(--emerald);">AES-256-GCM · 64 KB</span>
+                <span class="kv-v" style="color:var(--emerald);">AES-256-GCM · 0 bytes en claro</span>
               </div>
               <div class="kv-line">
                 <span class="kv-k">Sello SHA-256</span>
@@ -2791,14 +2784,14 @@
               </div>
               <div class="kv-line">
                 <span class="kv-k">Estado de enlace</span>
-                <span class="kv-v" id="dock-links">Recibido vía Drop · Íntegro</span>
+                <span class="kv-v" id="dock-links">Recibido de cliente · Íntegro</span>
               </div>
             </div>
           </div>
 
           <!-- Sticky Bottom Tactical Dock -->
           <div class="preview-tactical-dock">
-            <button class="btn btn-sm" onclick="openCinemascopeModal()">Expandir 94vw</button>
+            <button class="btn btn-sm" onclick="openCinemascopeModal()">Pantalla completa</button>
             <button class="btn btn-primary btn-sm" onclick="downloadActiveFile()">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Descargar Original</span>
@@ -2806,14 +2799,14 @@
           </div>
         </aside>
 
-        <!-- PANE 4 (DUAL EN VIVO): REAL INTERACTIVE MOBILE APP TWIN (0ms BroadcastChannel + postMessage) -->
-        <aside class="continuum-dock" id="continuum-dock" aria-label="App Móvil Nativa en Vivo">
+        <!-- PANE 4 (PC + CELULAR): REAL INTERACTIVE MOBILE APP TWIN -->
+        <aside class="continuum-dock" id="continuum-dock" aria-label="Celular sincronizado en vivo">
           <div class="continuum-dock-top">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
               <div style="display:flex;align-items:center;gap:6px;min-width:0;">
                 <span class="sync-live-dot"></span>
-                <strong style="font-size:11.5px;color:var(--fg-strong);white-space:nowrap;">App Móvil en Vivo</strong>
-                <span class="mono" id="continuum-telemetry" style="font-size:10px;color:var(--emerald);font-weight:700;">⚡ Sync 0ms</span>
+                <strong style="font-size:11.5px;color:var(--fg-strong);white-space:nowrap;">Celular sincronizado en vivo</strong>
+                <span class="mono" id="continuum-telemetry" style="font-size:10px;color:var(--emerald);font-weight:700;">En vivo</span>
               </div>
               <div style="display:flex;gap:3px;">
                 <button class="c-mini-btn active" id="hw-btn-ios" onclick="setContinuumHardware('ios')" title="Marco iPhone 16 Pro">iOS</button>
@@ -2822,52 +2815,52 @@
             </div>
 
             <div class="continuum-chip-strip">
-              <button class="c-mini-btn magic" data-testid="btn-magic-cross" onclick="triggerMagicCrossScan()" title="Abre la cámara IA en el celular, escanea una póliza y la envía cifrada al Escritorio en tiempo real">
+              <button class="c-mini-btn magic" data-testid="btn-magic-cross" onclick="triggerMagicCrossScan()" title="Escanea desde el celular y guárdalo directo en esta carpeta">
                 ⚡ Escanear Cel → PC
               </button>
               <button class="c-mini-btn" onclick="sendMobileScenario(1)">Pulso</button>
               <button class="c-mini-btn" onclick="sendMobileScenario(13)">Cuadre $0</button>
-              <button class="c-mini-btn" onclick="sendMobileScenario(5)">Cámara IA</button>
-              <button class="c-mini-btn" onclick="sendMobileScenario(7)">Voz RAM</button>
-              <button class="c-mini-btn" onclick="lockDesktopVault(true)">PIN 4×3</button>
+              <button class="c-mini-btn" onclick="sendMobileScenario(3)">Escanear</button>
+              <button class="c-mini-btn" onclick="sendMobileScenario(4)">Nota</button>
+              <button class="c-mini-btn" onclick="lockDesktopVault(true)">Bloquear</button>
             </div>
           </div>
 
           <div class="continuum-bezel-wrap">
             <div class="continuum-bezel" id="continuum-bezel">
-              <iframe id="continuum-mobile-frame" class="continuum-iframe" title="ABRN Drive Mobile v25 Twin"></iframe>
+              <iframe id="continuum-mobile-frame" class="continuum-iframe" title="Vista en vivo del celular ABRN"></iframe>
             </div>
           </div>
         </aside>
       </div>
 
       <!-- ====================================================================
-           FULL MOBILE STUDIO STAGE (13 SCENARIOS + STUDIO RAIL EMBEDDED)
+           FULL MOBILE STAGE
            ==================================================================== -->
       <div class="mobile-studio-stage" id="mobile-stage-view">
         <div class="studio-top-ribbon">
           <div style="display:flex;align-items:center;gap:9px;">
-            <span class="blindado-pill"><span class="sync-live-dot"></span> Estudio Móvil Nativo v25 · 13 Escenarios en Vivo</span>
-            <span style="font-size:11.5px;color:var(--muted-fg);">Cualquier estrella, nota de voz, escaneo o cambio de piel aquí se refleja al instante en el Escritorio.</span>
+            <span class="blindado-pill"><span class="sync-live-dot"></span> Vista en vivo de tu celular</span>
+            <span style="font-size:11.5px;color:var(--muted-fg);">Cualquier cambio que hagas aquí se refleja al instante en tu vista de PC.</span>
           </div>
           <div style="display:flex;align-items:center;gap:7px;">
-            <button class="btn btn-sm" onclick="setViewportMode('desktop')">← Escritorio 3 Paneles</button>
-            <button class="btn btn-soft btn-sm" onclick="setViewportMode('dual')">⚡ Ver Dual Lado a Lado</button>
-            <a href="/abrn/previews/mobile.html" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="text-decoration:none;">Abrir Móvil Independiente ↗</a>
+            <button class="btn btn-sm" onclick="setViewportMode('desktop')">← Volver a PC</button>
+            <button class="btn btn-soft btn-sm" onclick="setViewportMode('dual')">⚡ Ver PC + Celular</button>
+            <a href="/abrn/previews/mobile.html" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="text-decoration:none;">Abrir vista celular sola ↗</a>
           </div>
         </div>
-        <iframe id="studio-mobile-frame" class="continuum-iframe" title="ABRN Drive Mobile Studio Completo"></iframe>
+        <iframe id="studio-mobile-frame" class="continuum-iframe" title="Vista completa del celular ABRN"></iframe>
       </div>
     </div>
   </div>
 
   <!-- ========================================================================
-       RIGHT-CLICK CONTEXT MENU (FILES, CLIENT FOLDERS, CANVAS, INSPECTOR)
+       RIGHT-CLICK CONTEXT MENU
        ======================================================================== -->
   <div id="ctx-menu" class="ctx-menu hidden" role="menu"></div>
 
   <!-- ========================================================================
-       MODAL 1: FULL CINEMASCOPE EXECUTIVE PREVIEW MODAL (94vw × 88dvh)
+       MODAL 1: FULLSCREEN PREVIEW MODAL
        ======================================================================== -->
   <div id="cinemascope-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeAllModals()">
     <div class="cinemascope-modal">
@@ -2877,7 +2870,7 @@
           <strong id="cinema-filename" class="serif" style="font-size:15.5px;color:var(--fg-strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
             Constancia_Situacion_Fiscal_Roche_Nov2026.pdf
           </strong>
-          <span class="blindado-pill">Descifrado en RAM · 0 rastros en disco</span>
+          <span class="blindado-pill">🔒 Lectura privada · Sin descargar</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <button class="btn btn-sm" onclick="stepSelectedFile(-1)" title="Archivo anterior">← Ant</button>
@@ -2889,14 +2882,14 @@
       <div style="padding:7px 18px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div style="display:flex;gap:5px;">
           <button class="p-tab active" id="ctab-pdf" onclick="selectSampleByFormat('pdf')">1. PDF</button>
-          <button class="p-tab" id="ctab-xml" onclick="selectSampleByFormat('xml')">2. XML CFDI</button>
+          <button class="p-tab" id="ctab-xml" onclick="selectSampleByFormat('xml')">2. CFDI</button>
           <button class="p-tab" id="ctab-xlsx" onclick="selectSampleByFormat('xlsx')">3. Hoja XLSX</button>
-          <button class="p-tab" id="ctab-image" onclick="selectSampleByFormat('image')">4. Imagen 4K</button>
-          <button class="p-tab" id="ctab-video" onclick="selectSampleByFormat('video')">5. Video 64KB</button>
+          <button class="p-tab" id="ctab-image" onclick="selectSampleByFormat('image')">4. Imagen</button>
+          <button class="p-tab" id="ctab-video" onclick="selectSampleByFormat('video')">5. Video</button>
           <button class="p-tab" id="ctab-code" onclick="selectSampleByFormat('code')">6. Código</button>
         </div>
         <div style="display:flex;gap:7px;">
-          <button class="btn btn-whatsapp btn-sm" onclick="openShareModal('single')">Mandar por WhatsApp</button>
+          <button class="btn btn-whatsapp btn-sm" onclick="openShareModal('single')">Enviar por WhatsApp</button>
           <button class="btn btn-soft btn-sm" onclick="toggleStar(selectedFileId)">★ Fijar / Destacar</button>
         </div>
       </div>
@@ -2909,7 +2902,7 @@
             <div>
               <div style="font-size:10.5px;font-weight:800;letter-spacing:0.08em;color:var(--primary);margin-bottom:6px;">PASAPORTE CRIPTOGRÁFICO ABRN</div>
               <div class="stage-box" style="padding:12px;gap:6px;">
-                <div class="kv-line"><span class="kv-k">Cifrado</span><span class="kv-v">AES-256-GCM (64 KB)</span></div>
+                <div class="kv-line"><span class="kv-k">Cifrado</span><span class="kv-v">AES-256-GCM</span></div>
                 <div class="kv-line"><span class="kv-k">Firma autoría</span><span class="kv-v" style="color:var(--emerald);">RSA-PSS Verificada</span></div>
                 <div class="kv-line"><span class="kv-k">Servidor</span><span class="kv-v">0 bytes en claro</span></div>
                 <div class="kv-line"><span class="kv-k">SHA-256</span><span class="kv-v" id="cinema-sha">9f86d081…f00a08</span></div>
@@ -2917,14 +2910,14 @@
             </div>
 
             <div>
-              <div style="font-size:10.5px;font-weight:800;letter-spacing:0.08em;color:var(--primary);margin-bottom:6px;">COMPARTICIÓN ZERO-KNOWLEDGE (#KEY)</div>
+              <div style="font-size:10.5px;font-weight:800;letter-spacing:0.06em;color:var(--primary);margin-bottom:6px;">ENLACE PROTEGIDO</div>
               <div class="stage-box" style="padding:12px;gap:8px;">
                 <div style="font-size:11.5px;color:var(--muted-fg);">
-                  La llave viaja tras el símbolo <strong>#</strong> del enlace y jamás toca el servidor. Puedes apagar el enlace con 1 clic.
+                  Solo quien reciba el enlace completo puede abrir este archivo. Puedes desactivarlo con un clic cuando quieras.
                 </div>
                 <input type="text" readonly value="https://abrndrive.filemonprime.net/s/9xK2mP#k8F9qL2vR7wX4nM1" class="mono" style="width:100%;height:31px;padding:0 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--fg-strong);font-size:11px;" />
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <button class="deck-btn deck-btn-primary" style="justify-content:center;" onclick="showToast('Enlace #key copiado al portapapeles')">Copiar #key</button>
+                  <button class="deck-btn deck-btn-primary" style="justify-content:center;" onclick="showToast('Enlace copiado al portapapeles')">Copiar enlace</button>
                   <button class="deck-btn deck-btn-wa" style="justify-content:center;" onclick="dispatchShareWhatsApp()">WhatsApp</button>
                 </div>
               </div>
@@ -2942,14 +2935,14 @@
   </div>
 
   <!-- ========================================================================
-       MODAL 2: EL RECIBO SAGRADO — SHARE FILE / FOLDER / CANASTA (#KEY + QR + WA)
+       MODAL 2: EL RECIBO SAGRADO — SHARE FILE / FOLDER
        ======================================================================== -->
   <div id="share-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeAllModals()">
     <div class="dialog-card" style="max-width:640px;">
       <div class="preview-dock-header" style="padding:13px 18px;">
         <div style="display:flex;align-items:center;gap:9px;">
           <img src="/abrn/abrn-logo.png" alt="ABRN" style="width:24px;height:24px;border-radius:5px;" />
-          <strong class="serif" style="font-size:15px;" id="share-modal-heading">Compartir con Enlace Protegido (#key)</strong>
+          <strong class="serif" style="font-size:15px;" id="share-modal-heading">Compartir con Enlace Protegido</strong>
         </div>
         <button class="btn btn-sm" onclick="closeAllModals()">Cerrar</button>
       </div>
@@ -2961,31 +2954,31 @@
             <strong id="share-modal-target" style="color:var(--fg-strong);font-size:12.5px;">Constancia_Situacion_Fiscal_Roche_Nov2026.pdf</strong>
           </div>
           <div class="kv-line">
-            <span class="kv-k">Política de caducidad</span>
+            <span class="kv-k">Vigencia</span>
             <div style="display:flex;gap:5px;">
-              <button class="c-mini-btn" id="exp-1v" onclick="setShareExpiry('1v', '1 sola apertura · Autodestrucción')">1 Vista</button>
+              <button class="c-mini-btn" id="exp-1v" onclick="setShareExpiry('1v', '1 sola apertura')">1 Vista</button>
               <button class="c-mini-btn" id="exp-24h" onclick="setShareExpiry('24h', '24 horas · Máx 3 descargas')">24h</button>
               <button class="c-mini-btn magic" id="exp-7d" onclick="setShareExpiry('7d', '7 días · Máx 10 descargas')">7 Días</button>
             </div>
           </div>
           <div class="kv-line">
             <span class="kv-k">Vigencia activa</span>
-            <span class="kv-v" id="share-expiry-label">7 días · Máx 10 descargas (revocable en 1 clic)</span>
+            <span class="kv-v" id="share-expiry-label">7 días · Máx 10 descargas (puedes desactivarlo en 1 clic)</span>
           </div>
           <div class="kv-line">
-            <span class="kv-k">Sello criptográfico SHA-256</span>
+            <span class="kv-k">Sello SHA-256</span>
             <span class="kv-v" style="color:var(--emerald);" id="share-modal-sha">9f86d081884c7d65…f00a08</span>
           </div>
         </div>
 
         <div>
           <label style="display:block;font-size:11.5px;font-weight:600;color:var(--muted-fg);margin-bottom:5px;">
-            Enlace Zero-Knowledge (la llave viaja después de <strong>#</strong> y nunca pisa el servidor):
+            Enlace protegido (solo quien tenga el enlace completo puede abrirlo):
           </label>
           <div style="display:flex;gap:8px;">
             <input id="share-url-input" type="text" readonly value="https://abrndrive.filemonprime.net/s/9xK2mP#k8F9qL2vR7wX4nM1pT6yZ0" class="mono" style="flex:1;height:35px;padding:0 10px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg);color:var(--fg-strong);font-size:11.5px;" />
-            <button class="btn btn-soft" onclick="showToast('Enlace #key copiado al portapapeles')">Copiar</button>
-            <button class="btn" onclick="document.getElementById('share-qr-box').classList.toggle('hidden')">Pase QR</button>
+            <button class="btn btn-soft" onclick="showToast('Enlace copiado al portapapeles')">Copiar</button>
+            <button class="btn" onclick="document.getElementById('share-qr-box').classList.toggle('hidden')">Código QR</button>
           </div>
         </div>
 
@@ -2999,13 +2992,13 @@
             <rect x="34" y="52" width="10" height="10" fill="#1c1a17"/><rect x="52" y="50" width="8" height="16" fill="#1c1a17"/><rect x="64" y="58" width="10" height="14" fill="#7a1f2b"/>
           </svg>
           <div style="font-size:11.5px;color:var(--muted-fg);">
-            <strong style="color:var(--fg-strong);display:block;margin-bottom:2px;">Pase QR Presencial Zero-Knowledge</strong>
-            Escanea con la cámara del celular del cliente en sala de juntas para abrir en RAM con verificación SHA-256 inmediata.
+            <strong style="color:var(--fg-strong);display:block;margin-bottom:2px;">Código QR Presencial</strong>
+            Tu cliente puede escanearlo con la cámara de su teléfono para abrir el documento al instante.
           </div>
         </div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">
-          <button class="btn btn-sm" onclick="showToast('Recibo Sagrado .TXT descargado con sello SHA-256')">Descargar Recibo .TXT</button>
+          <button class="btn btn-sm" onclick="showToast('El Recibo Sagrado .TXT descargado con sello SHA-256')">Descargar Recibo .TXT</button>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-whatsapp" onclick="dispatchShareWhatsApp()">
               <span>Enviar por WhatsApp</span>
@@ -3017,13 +3010,13 @@
   </div>
 
   <!-- ========================================================================
-       MODAL 3: SUBIDA MÁGICA Y AUTO-ORDEN (Integrated Directly Into Main Vault)
+       MODAL 3: SUBIR Y ORDENAR
        ======================================================================== -->
   <div id="magic-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeAllModals()">
     <div class="dialog-card">
       <div class="preview-dock-header" style="padding:13px 18px;">
         <div style="display:flex;align-items:center;gap:9px;">
-          <span class="blindado-pill">Auto-Orden + AES-256-GCM</span>
+          <span class="blindado-pill">Orden automático · Privado</span>
           <strong class="serif" style="font-size:15px;">Subir y Ordenar Archivos Sueltos</strong>
         </div>
         <button class="btn btn-sm" onclick="closeAllModals()">Cerrar</button>
@@ -3033,14 +3026,14 @@
         <div style="border:2px dashed var(--border-strong);border-radius:12px;padding:16px;background:var(--primary-tint);display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div>
             <div class="serif" style="font-weight:700;font-size:14.5px;color:var(--fg-strong);">
-              Suelta PDFs del escáner, XMLs con UUID o fotos de WhatsApp
+              Suelta PDFs del escáner, XMLs del SAT o fotos de WhatsApp
             </div>
             <div style="font-size:12px;color:var(--muted-fg);margin-top:2px;">
-              ABRN Drive detecta el tipo de archivo en tu navegador, sugiere un nombre limpio, lo cifra en bloques de 64 KB y sincroniza con tu App Móvil.
+              ABRN Drive detecta el tipo de documento, sugiere un nombre limpio y lo acomoda en su subcarpeta.
             </div>
           </div>
           <button class="btn btn-primary" onclick="commitMagicUpload()">
-            <span>Cifrar y Guardar los 4</span>
+            <span>Guardar y Ordenar los 4</span>
           </button>
         </div>
 
@@ -3075,13 +3068,13 @@
   </div>
 
   <!-- ========================================================================
-       MODAL 4: PEDIR DOCUMENTOS AL CLIENTE (BUZÓN SECURE DROP + WHATSAPP)
+       MODAL 4: SOLICITAR DOCUMENTOS POR WHATSAPP
        ======================================================================== -->
   <div id="drop-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeAllModals()">
     <div class="dialog-card" style="max-width:680px;">
       <div class="preview-dock-header" style="padding:13px 18px;">
         <div style="display:flex;align-items:center;gap:9px;">
-          <span class="blindado-pill">Buzón Secure Drop · Sin Contraseña</span>
+          <span class="blindado-pill">Recepción directa · Tu cliente no necesita cuenta</span>
           <strong class="serif" style="font-size:15px;">Solicitar Documentos por WhatsApp</strong>
         </div>
         <button class="btn btn-sm" onclick="closeAllModals()">Cerrar</button>
@@ -3089,7 +3082,7 @@
 
       <div style="padding:18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;">
         <p style="font-size:12.5px;color:var(--muted-fg);">
-          Marca lo que te falta de <strong id="drop-client-name" style="color:var(--fg-strong);">Grupo Roche SA de CV</strong>. El cliente abre el enlace desde su celular y sube sus archivos cifrados directo a esta carpeta, sin crear cuenta.
+          Marca lo que te falta de <strong id="drop-client-name" style="color:var(--fg-strong);">Grupo Roche SA de CV</strong>. Tu cliente abre el enlace desde su celular y sube sus archivos directo a esta carpeta, sin crear cuenta.
         </p>
 
         <div id="drop-checklist-mount" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -3100,8 +3093,8 @@
         </div>
 
         <div style="display:flex;justify-content:flex-end;gap:8px;">
-          <button class="btn btn-soft" onclick="closeAllModals();showToast('Enlace de Buzón Secure Drop copiado')">Copiar Link Drop</button>
-          <button class="btn btn-whatsapp" onclick="closeAllModals();showToast('Solicitud Secure Drop enviada por WhatsApp')">Enviar Solicitud por WhatsApp</button>
+          <button class="btn btn-soft" onclick="closeAllModals();showToast('Enlace para recibir documentos copiado')">Copiar enlace</button>
+          <button class="btn btn-whatsapp" onclick="closeAllModals();showToast('Solicitud lista para enviar por WhatsApp')">Enviar Solicitud por WhatsApp</button>
         </div>
       </div>
     </div>
@@ -3133,13 +3126,13 @@
   </div>
 
   <!-- ========================================================================
-       MODAL 6: ⌘K SOVEREIGN COMMAND PALETTE
+       MODAL 6: ⌘K ACCIONES RÁPIDAS
        ======================================================================== -->
   <div id="cmdk-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeAllModals()">
     <div class="cmdk-card" data-testid="cmdk-modal">
       <div class="cmdk-input-wrap">
         <svg viewBox="0 0 24 24" style="color:var(--primary);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="cmdk-input" type="text" class="cmdk-input" placeholder="Escribe un comando soberano (ej. Dual, Escanear Celular, BBVA, OLED, Bloquear)…" oninput="renderCmdkList()" onkeydown="handleCmdkKey(event)" />
+        <input id="cmdk-input" type="text" class="cmdk-input" placeholder="¿Qué quieres hacer? (ej. Cuadre BBVA, Subir, Celular, Bloquear)…" oninput="renderCmdkList()" onkeydown="handleCmdkKey(event)" />
         <span class="kbd-pill">Esc</span>
       </div>
       <div id="cmdk-list-mount" class="cmdk-list"></div>
@@ -3147,15 +3140,15 @@
   </div>
 
   <!-- ========================================================================
-       OVERLAY 7: SOVEREIGN VAULT LOCK CURTAIN (4×3 PIN + TOUCHID, 0.0 MB RAM)
+       OVERLAY 7: VAULT LOCK CURTAIN
        ======================================================================== -->
   <div id="vault-lock-curtain" class="vault-lock-curtain hidden" data-testid="vault-lock-curtain">
     <div class="lock-card">
       <img src="/abrn/abrn-logo.png" alt="ABRN" style="width:44px;height:44px;border-radius:11px;border:1px solid var(--border-strong);" />
       <div>
-        <span class="blindado-pill" style="margin-bottom:6px;">0.0 MB en RAM · Llaves Purgadas</span>
-        <h2 class="serif" style="font-size:18px;color:var(--fg-strong);">Cortina Soberana ABRN</h2>
-        <p style="font-size:11.5px;color:var(--muted-fg);margin-top:3px;">Escritorio y App Móvil bloqueados simultáneamente. Ingresa 4 dígitos o usa llave biométrica.</p>
+        <span class="blindado-pill" style="margin-bottom:6px;">Tus archivos están ocultos</span>
+        <h2 class="serif" style="font-size:18px;color:var(--fg-strong);">Bóveda Bloqueada por Privacidad</h2>
+        <p style="font-size:11.5px;color:var(--muted-fg);margin-top:3px;">Tus documentos están ocultos mientras no estás frente a la pantalla. Ingresa tu PIN de 4 dígitos para continuar.</p>
       </div>
 
       <div class="pin-dots-desk" id="desk-pin-dots">

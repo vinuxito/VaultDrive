@@ -507,7 +507,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Search className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">
                   {branding.logoVariant === "abrn"
-                    ? "Busca por cliente, banco, RFC, #etiqueta o sello SHA-256…"
+                    ? "Buscar cliente, factura, banco o RFC…"
                     : t("common:nav.search")}
                 </span>
               </span>
@@ -523,10 +523,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 {location.pathname.startsWith("/files") && (
                   <div
                     data-testid="abrn-mobile-dynamic-island"
-                    className="md:hidden h-6 px-2 rounded-full bg-[#090d16] text-emerald-300 border border-emerald-500/35 text-[9.5px] abrn-mono font-bold inline-flex items-center gap-1 shadow-xs shrink-0"
+                    className="md:hidden h-6 px-2 rounded-full bg-[#090d16] text-emerald-300 border border-emerald-500/35 text-[9.5px] font-bold inline-flex items-center gap-1 shadow-xs shrink-0"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                    <span>AES-256 RAM</span>
+                    <span>🔒 Privado</span>
                   </div>
                 )}
 
@@ -537,7 +537,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     const nextSkin = skin === "light" ? "dark" : skin === "dark" ? "oled" : "light";
                     applySkinWithContinuum(nextSkin, e);
                   }}
-                  aria-label="Cambiar modo ABRN Cream, Slate u OLED"
+                  aria-label="Cambiar tema Claro, Gris o Negro"
                   className="md:hidden h-7 px-2 rounded-full bg-card border border-primary/30 text-[10.5px] font-bold text-foreground inline-flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95 shrink-0"
                 >
                   <span
@@ -550,21 +550,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           : "bg-[#7a1f2b]"
                     )}
                   />
-                  <span>{skin === "oled" ? "◆ OLED" : skin === "dark" ? "☾ Slate" : "☀ Cream"}</span>
+                  <span>{skin === "oled" ? "◆ Negro" : skin === "dark" ? "☾ Gris" : "☀ Claro"}</span>
                 </button>
 
                 {location.pathname.startsWith("/files") && (
                   <div
                     data-testid="abrn-ecosystem-bar"
                     role="group"
-                    aria-label="Ecosistema Soberano ABRN"
+                    aria-label="Vista de pantalla"
                     className="hidden md:flex items-center gap-0.5 p-[3px] rounded-[10px] bg-background border border-border shrink-0"
                   >
                     {(
                       [
-                        { id: "desktop", label: "Escritorio" },
-                        { id: "dual", label: "⚡ Dual en Vivo" },
-                        { id: "mobile-studio", label: "Estudio Móvil" },
+                        { id: "desktop", label: "PC" },
+                        { id: "dual", label: "⚡ PC + Celular" },
+                        { id: "mobile-studio", label: "Vista Celular" },
                       ] as const
                     ).map((vp) => {
                       const active = continuumViewport === vp.id;
@@ -591,7 +591,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div
                   data-testid="abrn-mode-bar"
                   role="group"
-                  aria-label="Paleta Inmutable ABRN"
+                  aria-label="Tema de pantalla"
                   className="hidden md:flex items-center gap-0.5 p-[3px] rounded-[10px] bg-background border border-border shrink-0"
                 >
                   <button
@@ -606,7 +606,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     )}
                   >
                     <span className="w-2 h-2 rounded-full bg-[#7a1f2b] shrink-0" />
-                    <span>☀ Cream</span>
+                    <span>☀ Claro</span>
                   </button>
                   <button
                     type="button"
@@ -620,7 +620,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     )}
                   >
                     <span className="w-2 h-2 rounded-full bg-[#d4aeb0] shrink-0" />
-                    <span>☾ Slate</span>
+                    <span>☾ Gris</span>
                   </button>
                   <button
                     type="button"
@@ -634,7 +634,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     )}
                   >
                     <span className="w-2 h-2 rounded-full bg-[#030712] ring-1 ring-emerald-400/70 shrink-0" />
-                    <span>◆ OLED</span>
+                    <span>◆ Negro</span>
                   </button>
                 </div>
 

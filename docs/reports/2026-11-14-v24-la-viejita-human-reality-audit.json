@@ -1,0 +1,466 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v24-la-viejita-human-reality",
+    "environment": "Ubuntu Linux 64-bit · Node/Vite Production Bundle (/abrn/) · Live HTTPS https://abrndrive.filemonprime.net/abrn/files · Real Chromium via bsk (1632x940@2x) + Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+    "report": "docs/reports/2026-11-14-v24-la-viejita-human-reality-verification.md",
+    "files": [
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "4757072040ea95de8691ed2a23d3056c9f1001528c88d53a19c8b25c6c6f7799"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/index.html",
+        "sha256": "a19018177931d6fe5e29654d32349cde2c152249ecc84fed780b3323e61dd8e6"
+      },
+      {
+        "path": "vaultdrive_client/public/previews/mobile.html",
+        "sha256": "cb316e11c53c97f9c7c6d3c6a543bbac8701f197a67b775a9ca805d6418febd7"
+      },
+      {
+        "path": "vaultdrive_client/src/utils/continuum-bridge.ts",
+        "sha256": "3d67ad6e1a68dae5dbf28829da120bdc86874705227857a939c985be5d0f121c"
+      },
+      {
+        "path": "vaultdrive_client/src/utils/continuum-bridge.test.ts",
+        "sha256": "c43103eeb4e49f531a15027588a56d3a19cfa749af3bc2d78e1e3a3fe903c4ac"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/dashboard-layout.tsx",
+        "sha256": "8c5366b500cd6c7f93f4b663661c089cfd87b1e0bba034fc8e2b4df8ae508b4c"
+      },
+      {
+        "path": "vaultdrive_client/src/components/layout/sidebar.tsx",
+        "sha256": "0a72380c3ccf709d6d72d1c4a49b52f5bd88758b90c8eb7d920e7e6e6efa9090"
+      },
+      {
+        "path": "vaultdrive_client/src/components/ui/command-palette.tsx",
+        "sha256": "a932aa297544c43d585bd5792a6e0080633ca3dd65de9259fe1c37d0f9e18b5e"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileSearch.tsx",
+        "sha256": "d8419de3d767fe926f0111c084b3282d05696c7fab9d9d6b1052b708b9dfe398"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultReconcileCockpit.tsx",
+        "sha256": "5b6e489d83251794d4ce93f0cefdc04b0e4e10f9ea29c596b0f8f75ac4faef42"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultReconcileCockpit.test.tsx",
+        "sha256": "2c9c10b3a062447c2880ecd8a3adcf011a2dc00069ddab1dcac859d779e89149"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultAccessCenterInline.tsx",
+        "sha256": "cec332a7fe0d42605a99a621e9c87e99e6621f24d97b9be1183ffad52201f1e9"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/SmartUploadOrderModal.tsx",
+        "sha256": "8862d60f2d31907b4ccfae4393df1597a3dcf23681865b868d8d2501ee97acb8"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/WhatsAppDropRequestModal.tsx",
+        "sha256": "8c7291695a4414ffeda4f62a49a0043289c3de1c7b6d1f39dc499cdc2891cc71"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/StagingDock.tsx",
+        "sha256": "85046d8ccf04becfd9ab0c628fa1e4d8cbc5002909c48fc965de67bdeacfb941"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilemonOfficeStage.tsx",
+        "sha256": "a0a735852aad7ace63e430c6ba6eec27bc371d5268eec01350d00d4608f763af"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilePreviewModal.tsx",
+        "sha256": "a7d79d4589857955e4dba36f527fd9a1073341e4ee9a31435096b31d62475761"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FilePreviewModal.test.tsx",
+        "sha256": "f2f92f48bea5333ee9fc22c33e06d4870d284ef588fb5d5f162643a8d1579bbf"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultPrivacyShutter.tsx",
+        "sha256": "33dfeb438e3637527f9586ccbd9c4c463040f8c500a7c20d92ccae870367e8d9"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultInspectorPane.tsx",
+        "sha256": "71f9c4ac1ff42da5acd434b136d77b51dc34863f487b838d265e145c36c50a96"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultInspectorPane.test.tsx",
+        "sha256": "190d679720f91731cb03d74de80bd37bcebded6202011d0269a807d21d7b1746"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/FileGrid.tsx",
+        "sha256": "7229fe6bb1e6a9b25fa4172e9e112421edc271d700934348be487117b6345b98"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/VaultContextMenu.tsx",
+        "sha256": "3c256c44e5b59219d1151bdd266e82f961a987d5fcc0ae4ad895161d437e4cf1"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/ContinuumDockPane.tsx",
+        "sha256": "fb628b2f565b0b1a2f5b44370901fae55f849ae9eb1f012b3163237fe4aec457"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileSovereignHeaderAndHub.tsx",
+        "sha256": "5d6034e9afa1377bc72fc5c8b1fb3c5528330b1fcc905dd3ed9f6fd86ae75492"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileReconcileSheet.tsx",
+        "sha256": "d5677d01dfa12cd2dc2e7511850799601a9e76b41c5d387837f3a9bccee656bd"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileReconcileSheet.test.tsx",
+        "sha256": "ad66216d09bd756b4766f387d7faa5f27b5491ffe1e84026b3c3de83f276bdec"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileScannerSheet.tsx",
+        "sha256": "86c8d62a6fd6c10f5e8148f2134850dc16ce4603199fadc2643229bc455e5d24"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/MobileInspectorSheet.tsx",
+        "sha256": "1e3c165e922e23b1fc74e565dcf531816e5884ee2d38ac81d319b147d3d25621"
+      },
+      {
+        "path": "vaultdrive_client/src/components/mobile/bottom-nav.tsx",
+        "sha256": "91d9902aaef6ca679c7695c380ba8e1af2cd15d1c24a722f7bc739107cb5302e"
+      },
+      {
+        "path": "vaultdrive_client/src/pages/files.tsx",
+        "sha256": "f2691c731bf4e1e9ecebfc7ba8c30af08a3fbe98eccf4a0a70ac2e11fc1812e4"
+      },
+      {
+        "path": "vaultdrive_client/src/locales/es/drive.json",
+        "sha256": "4011ca16f059ae04007f94dc5264e4c6dc94534e9a1e0aa24a8fdb5e5fc08792"
+      },
+      {
+        "path": "vaultdrive_client/src/locales/en/drive.json",
+        "sha256": "b5b2ec96ab4bd390779655c78261245f1c1022c058fcf71b3bf14fed87a099f2"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+      "description": "Preserve Subir y Ordenar (Auto) and Cuadre BBVA; remove RAM/0ms implementation pills; humanize topbar search, mobile Dynamic Island (Privado), viewport bar (PC | PC + Celular | Vista Celular), 3-skin selector (Claro | Gris | Negro), FileSearch (Buscar dentro · Cerebro Ciego), and Spanish CommandPalette (Bóveda + Acciones Rápidas).",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-05", "CHK-06", "CHK-07"]
+    },
+    {
+      "id": "REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD",
+      "description": "Replace leaked NOT_EVALUABLE · BÓVEDA EN REPOSO / SIN_CFDI_EN_CARPETA enums with plain Spanish while keeping No-False-Zeros (—), Papel Trabajo .CSV, and 100% amarrado, and pair primary real upload CTA with honestly labeled Probar con ejemplo (3 CFDI + BBVA).",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-04", "CHK-06", "CHK-10"]
+    },
+    {
+      "id": "REQ-03-UPLOAD-DROP-ACCESS-STAGING",
+      "description": "Humanize SmartUploadOrderModal, WhatsAppDropRequestModal, VaultAccessCenterInline (aligned with docs/trust-copy-contract.md), and Spanish StagingDock (Seleccionados, Enviar por WhatsApp, Quitar acceso, Deseleccionar).",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-07"]
+    },
+    {
+      "id": "REQ-04-INSPECTOR-MODAL-OFFICE-REAL-NOTES",
+      "description": "Humanize Inspector, FilePreviewModal, and FilemonOfficeStage (Imagen, Pantalla completa, ¿Quién tiene acceso a este archivo?, Resumen rápido · Privado, client-neutral SAT labels), remove fake VOZ 0:12 badges on unannotated files, and ship real localStorage-persisted editable/deletable Nota rápida notes.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-05"]
+    },
+    {
+      "id": "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+      "description": "Preserve warm PIN prompt, Pulso Fiscal, Expediente, Cola de Trabajo Hoy, and 5-slot dock; humanize VaultPrivacyShutter (Tus archivos están ocultos), MobileScannerSheet (Va directo a la bóveda — no se queda en tus fotos), MobileInspectorSheet, ContinuumDockPane, and public/previews/{index,mobile}.html.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-06", "CHK-08", "CHK-09", "CHK-11"]
+    },
+    {
+      "id": "REQ-06-FOCUSED-TESTS-AND-BUILD",
+      "description": "Zero TypeScript errors, 19/19 focused Vitest suites passing (161/161 tests including 91/91 7-skin WCAG contrast assertions and continuum-bridge.test.ts), and clean Vite production bundle under /abrn/.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03"]
+    },
+    {
+      "id": "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT",
+      "description": "Cold live Desktop verification via bsk (live-01..05) and physical Android 13 (427x721, overflowPx: 0, live-06..08, hardware Back dismissal, autonomous_audit PASSED, lease released) with untouched abrndrive.service.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-05", "CHK-06", "CHK-07", "CHK-08", "CHK-09", "CHK-10", "CHK-11"]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-01",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run typecheck",
+      "expected": "tsc -b && tsc -p tsconfig.e2e.json --noEmit exits 0 with 0 TypeScript errors.",
+      "actual": "Exited 0 with 0 errors across application and E2E TypeScript configurations.",
+      "environment": "Node.js / TypeScript CLI in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+        "REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD",
+        "REQ-03-UPLOAD-DROP-ACCESS-STAGING",
+        "REQ-04-INSPECTOR-MODAL-OFFICE-REAL-NOTES",
+        "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+        "REQ-06-FOCUSED-TESTS-AND-BUILD",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-14-v24-la-viejita-human-reality-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-02",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npx vitest run src/utils/continuum-bridge.test.ts src/config/skin-contrast.test.ts src/components/ui/command-palette.test.tsx src/components/layout/dashboard-layout.test.tsx src/components/layout/sidebar.test.tsx src/components/mobile/MobileInspectorSheet.test.tsx src/components/mobile/MobileReconcileSheet.test.tsx src/components/vault/FileGrid.test.tsx src/components/vault/FilemonOfficeStage.test.tsx src/components/vault/FilePreviewModal.test.tsx src/components/vault/FileSearch.test.tsx src/components/vault/SmartUploadOrderModal.test.tsx src/components/vault/StagingDock.test.tsx src/components/vault/trust-coherence.test.tsx src/components/vault/VaultContextMenu.test.tsx src/components/vault/VaultInspectorPane.test.tsx src/components/vault/VaultPrivacyShutter.test.tsx src/components/vault/VaultReconcileCockpit.test.tsx src/components/vault/WhatsAppDropRequestModal.test.tsx",
+      "expected": "All 19 focused test suites pass with exit code 0 including 91/91 7-skin WCAG contrast assertions and real file-note behavioral truth tests.",
+      "actual": "19/19 test suites passed, 161/161 tests passed (0 failed).",
+      "environment": "Vitest v4.1.0 jsdom in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+        "REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD",
+        "REQ-03-UPLOAD-DROP-ACCESS-STAGING",
+        "REQ-04-INSPECTOR-MODAL-OFFICE-REAL-NOTES",
+        "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+        "REQ-06-FOCUSED-TESTS-AND-BUILD",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/reports/2026-11-14-v24-la-viejita-human-reality-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-03",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run build && sha256sum dist/index.html",
+      "expected": "Vite production bundle compiles cleanly after Vitest so public/manifest.json preserves /abrn/ start_url and dist/index.html updates cleanly.",
+      "actual": "Built cleanly in 12.00s; dist/index.html SHA-256 4757072040ea95de8691ed2a23d3056c9f1001528c88d53a19c8b25c6c6f7799; MANIFEST_OK:/abrn/.",
+      "environment": "Vite v7.2.4 production build in /lamp/www/ABRN-Drive/vaultdrive_client",
+      "requirement_ids": [
+        "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+        "REQ-06-FOCUSED-TESTS-AND-BUILD",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "vaultdrive_client/dist/index.html",
+        "docs/reports/2026-11-14-v24-la-viejita-human-reality-verification.md"
+      ]
+    },
+    {
+      "id": "CHK-04",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Open empty folder Grupo Roche SA de CV -> Cuadre BBVA on https://abrndrive.filemonprime.net/abrn/files via bsk at 1632x940@2x.",
+      "expected": "Displays plain-Spanish Faltan facturas XML o el estado de cuenta, No-False-Zeros dashes (—), primary Subir facturas y estado de cuenta CTA, and secondary Probar con ejemplo (3 CFDI + BBVA) CTA with zero narrow-column text squeeze.",
+      "actual": "Verified full-width readable empty-state card, No-False-Zeros dashes, and honest primary vs example CTAs.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-01-desktop-reconcile-empty-human.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-01-desktop-reconcile-empty-human.jpg"
+      ]
+    },
+    {
+      "id": "CHK-05",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Inspect 4 encrypted files in Grupo Roche SA de CV, verify zero fake VOZ 0:12 badges on unannotated files, save Nota rápida 'Cuadrado con SPEI BBVA Nov 2026' on BBVA PDF, and cold-reload /abrn/files via bsk.",
+      "expected": "Unannotated CFDI files show zero fake VOZ 0:12 badges; saved Nota rápida persists across cold page reload and displays truthful NOTA badge plus ¿Quién tiene acceso a este archivo? and Resumen rápido · Privado.",
+      "actual": "Confirmed 0 fake badges on unannotated files and 100% persistence of saved Nota rápida across cold reload.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+        "REQ-04-INSPECTOR-MODAL-OFFICE-REAL-NOTES",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-02-desktop-workstation-notes-truthful.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-02-desktop-workstation-notes-truthful.jpg"
+      ]
+    },
+    {
+      "id": "CHK-06",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Switch to ◆ Negro skin and ⚡ PC + Celular on Cuadre BBVA via bsk on https://abrndrive.filemonprime.net/abrn/files.",
+      "expected": "Desktop and embedded mobile mirror synchronize to #030712 Negro skin with unobstructed 🔒 Privado Dynamic Island while Cuadre BBVA proves $418,200.00 <-> $418,200.00 = $0.00 MXN (100% amarrado · Verificado).",
+      "actual": "Verified simultaneous #030712 Negro skin, unobstructed 🔒 Privado Dynamic Island, and $0.00 MXN reconciliation.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+        "REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD",
+        "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-03-desktop-reconcile-oled-dual.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-03-desktop-reconcile-oled-dual.jpg"
+      ]
+    },
+    {
+      "id": "CHK-07",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Open Enlaces y Buzones tab and press Cmd+K on https://abrndrive.filemonprime.net/abrn/files via bsk.",
+      "expected": "VaultAccessCenterInline renders Enlaces Compartidos y Buzones de Clientes aligned with trust-copy-contract.md, and CommandPalette renders 100% Spanish Bóveda and Acciones Rápidas groups.",
+      "actual": "Verified Spanish Bóveda (Buscar dentro · Cerebro Ciego, Bloquear pantalla, Pasaporte Criptográfico ABRN) and Acciones Rápidas with zero English leakage.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK",
+        "REQ-03-UPLOAD-DROP-ACCESS-STAGING",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-04-desktop-access-and-cmdk.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-04-desktop-access-and-cmdk.jpg"
+      ]
+    },
+    {
+      "id": "CHK-08",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Click Bloquear in topbar and run DOM forbidden-jargon scan on https://abrndrive.filemonprime.net/abrn/files via bsk.",
+      "expected": "VaultPrivacyShutter displays Tus archivos están ocultos and preserved warm PIN prompt; DOM scan reports ZERO_FORBIDDEN_JARGON_IN_DOM:PASS.",
+      "actual": "Verified Tus archivos están ocultos pill, warm PIN dialer, and ZERO_FORBIDDEN_JARGON_IN_DOM:PASS.",
+      "environment": "Live Chromium via bsk (1632x940@2x) on https://abrndrive.filemonprime.net/abrn/files",
+      "requirement_ids": [
+        "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-05-desktop-privacy-curtain.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-05-desktop-privacy-curtain.jpg"
+      ]
+    },
+    {
+      "id": "CHK-09",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "mobile",
+      "command_or_steps": "Open https://abrndrive.filemonprime.net/abrn/files on physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py and run autonomous_audit.",
+      "expected": "vw 427, scrollWidth 427 (overflowPx: 0), leaked: [], hasLegacyFab: false, Pulso Fiscal Wallet Pass + Cola de Trabajo Hoy + 5-slot dock visible, autonomous_audit verdict PASSED.",
+      "actual": "Measured vw 427, scrollWidth 427 (overflowPx: 0), leaked: [], hasLegacyFab: false, and autonomous_audit PASSED (nav_bar_clearance_px: 27).",
+      "environment": "Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+      "requirement_ids": [
+        "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-06-android13-pulso-wallet.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-06-android13-pulso-wallet.jpg"
+      ]
+    },
+    {
+      "id": "CHK-10",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "mobile",
+      "command_or_steps": "Physically tap [data-testid=\"open-reconcile-btn\"] via adb_input on Android 13 and dispatch hardware BACK key.",
+      "expected": "MobileReconcileSheet displays 🔒 CRUCE PRIVADO EN TU EQUIPO, Cuadre de Facturas (CFDI) contra Banco, 100% amarrado · Diferencia $0.00 MXN, and Enviar Cuadre por WhatsApp; hardware BACK closes sheet on /abrn/files.",
+      "actual": "Physical tap (x=239, y=629) opened MobileReconcileSheet ($0.00 MXN); hardware key 'back' closed sheet cleanly (hasReconcileSheet: false, path: '/abrn/files').",
+      "environment": "Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+      "requirement_ids": [
+        "REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-07-android13-reconcile-sheet.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-07-android13-reconcile-sheet.jpg"
+      ]
+    },
+    {
+      "id": "CHK-11",
+      "build_id": "v24-la-viejita-human-reality",
+      "status": "PASS",
+      "method": "mobile",
+      "command_or_steps": "Physically tap [data-testid=\"dock-scanner-orb\"] via adb_input on Android 13, verify MobileScannerSheet copy, purge browser storage, and release native phone lease.",
+      "expected": "MobileScannerSheet displays 🔒 Va directo a la bóveda — no se queda en tus fotos, Escanear documento, and Guardar documento with zero fake 99.4% telemetry; lease releases cleanly (held: false).",
+      "actual": "Physical tap (x=239, y=859) opened MobileScannerSheet with humanized copy (overflowPx: 0); lease released cleanly (held: false, status: available).",
+      "environment": "Physical Android 13 (waydroid-android-13, 427x721) via filemon_mobile_client.py",
+      "requirement_ids": [
+        "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS",
+        "REQ-07-LIVE-BSK-ANDROID13-AND-AUDIT"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-08-android13-scanner-sheet.png",
+        "docs/tickets/evidence/v24-la-viejita-human-reality/live-08-android13-scanner-sheet.jpg"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-01",
+      "severity": "LOW",
+      "reproduction": "Inspect filter underline tabs and bottom keyboard hint bar on /abrn/files.",
+      "expected": "Filter tabs and shortcut bar use natural plain Spanish without 4K, Drop, #key, or 94vw CSS tokens.",
+      "actual": "files.tsx still showed '4K y Video', 'Recibidos Drop', 'Enlaces #key', and 'Enter 94vw'.",
+      "cause": "Secondary sub-controls in files.tsx retained implementation tokens from v22.",
+      "status": "FIXED",
+      "fix": "Renamed to 'Imagen y Video', 'Recibidos', 'Compartidos', and 'Enter abrir' in files.tsx.",
+      "requirement_ids": ["REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK"],
+      "verification_check_ids": ["CHK-01", "CHK-02", "CHK-06"]
+    },
+    {
+      "id": "FND-02",
+      "severity": "LOW",
+      "reproduction": "Hover file rows or open right-click VaultContextMenu on /abrn/files.",
+      "expected": "Fullscreen viewer action reads 'Abrir en pantalla completa'.",
+      "actual": "FileGrid.tsx and VaultContextMenu.tsx showed 'Abrir en Visor 94vw'.",
+      "cause": "Viewport CSS width string leaked into action tooltips and context menu label.",
+      "status": "FIXED",
+      "fix": "Replaced 'Abrir en Visor 94vw' with 'Abrir en pantalla completa' in FileGrid.tsx and VaultContextMenu.tsx.",
+      "requirement_ids": ["REQ-04-INSPECTOR-MODAL-OFFICE-REAL-NOTES"],
+      "verification_check_ids": ["CHK-02", "CHK-05"]
+    },
+    {
+      "id": "FND-03",
+      "severity": "LOW",
+      "reproduction": "Open MobileInspectorSheet on a mobile file row.",
+      "expected": "Format tab says 'Imagen' and stage labels explain private viewing in plain Spanish.",
+      "actual": "MobileInspectorSheet.tsx showed '4K', 'Blob URL Efímero en RAM', and '(Descifrado Streaming)'.",
+      "cause": "Mobile inspector stage strings mirrored v21 technical implementation terms.",
+      "status": "FIXED",
+      "fix": "Updated MobileInspectorSheet.tsx to 'Imagen', 'Vista privada sin guardar copia en galería', and 'Abrir documento completo'.",
+      "requirement_ids": ["REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS"],
+      "verification_check_ids": ["CHK-02"]
+    },
+    {
+      "id": "FND-04",
+      "severity": "LOW",
+      "reproduction": "Inspect collapsed sidebar tooltip / accessible label for Pedir Documentos.",
+      "expected": "Accessible label reads 'Pedir Documentos' without duplicate 'Drop'.",
+      "actual": "sidebar.tsx concatenated badge text to produce 'Buzón Drop Drop'.",
+      "cause": "Legacy badge label in sidebar.tsx accounting navigation array.",
+      "status": "FIXED",
+      "fix": "Renamed item label to 'Pedir Documentos' without redundant badge suffix in sidebar.tsx.",
+      "requirement_ids": ["REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK"],
+      "verification_check_ids": ["CHK-02", "CHK-06"]
+    },
+    {
+      "id": "FND-05",
+      "severity": "MEDIUM",
+      "reproduction": "Open Cuadre BBVA on an empty folder at 1632px desktop width with 3 panes visible.",
+      "expected": "Empty-state explanation wraps comfortably across the card width with clear CTA buttons underneath.",
+      "actual": "lg:flex-row squeezed the left explanation column when paired with two side-by-side CTA buttons inside the center pane.",
+      "cause": "Horizontal flex row competed with the two-button CTA group inside the ~720px center column.",
+      "status": "FIXED",
+      "fix": "Changed VaultReconcileCockpit.tsx empty-state card layout to flex-col gap-4 with sm:pl-[52px] button alignment.",
+      "requirement_ids": ["REQ-02-RECONCILE-PLAIN-TRUTH-AND-UPLOAD"],
+      "verification_check_ids": ["CHK-02", "CHK-04"]
+    },
+    {
+      "id": "FND-06",
+      "severity": "LOW",
+      "reproduction": "Open Cmd+K in Spanish locale and open PC + Celular phone mirror on /abrn/files.",
+      "expected": "Cmd+K displays Spanish 'Bóveda' group labels and embedded phone mirror shows an unobstructed '🔒 Privado' Dynamic Island.",
+      "actual": "command-palette.tsx showed English 'Vault Operations' / 'Lock Vault Privacy Shutter', and ContinuumDockPane.tsx rendered an extra outer camera dot over mobile.html's Dynamic Island.",
+      "cause": "Hardcoded English fallback strings in command-palette.tsx and duplicate bezel overlay in ContinuumDockPane.tsx.",
+      "status": "FIXED",
+      "fix": "Localized Spanish Bóveda commands in command-palette.tsx and removed the duplicate outer camera dot in ContinuumDockPane.tsx.",
+      "requirement_ids": ["REQ-01-SHELL-TOPBAR-SIDEBAR-CMDK", "REQ-05-SHUTTER-MOBILE-CONTINUUM-PREVIEWS"],
+      "verification_check_ids": ["CHK-02", "CHK-06", "CHK-07"]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "ticket_id": "TICKET-2026-11-14-LA-VIEJITA-HUMAN-REALITY",
+  "build_id": "v24-la-viejita-human-reality",
+  "baseline_build_id": "v23-abrn-sovereign-continuum",
+  "lens": "LA VIEJITA LENS — Human-Reality Editor / Plain-Language Product Critic",
+  "rule": "Personality may decorate meaning. It may never replace meaning.",
+  "override": "If I need Filemón standing beside me explaining why the label is actually very clever, the label already failed.",
+  "counts": {
+    "keep_as_is": 9,
+    "simplify": 14,
+    "rename": 16,
+    "remove": 4,
+    "behavioral_truth_upgrades": 2
+  },
+  "behavioral_truth_upgrades": [
+    {
+      "id": "TRUTH-01-RECONCILE-UPLOAD-VS-SAMPLE",
+      "files": [
+        "vaultdrive_client/src/components/vault/VaultReconcileCockpit.tsx",
+        "vaultdrive_client/src/components/mobile/MobileReconcileSheet.tsx"
+      ],
+      "issue": "Empty folder showed only a synthetic demo seeder labeled 'Cifrar Expediente Contable Real (CFDI 4.0 + BBVA)'.",
+      "resolution": "Provide primary 'Subir facturas y estado de cuenta' real upload trigger alongside clearly labeled secondary 'Probar con ejemplo (3 CFDI + BBVA)'."
+    },
+    {
+      "id": "TRUTH-02-REAL-PERSISTENT-QUICK-NOTE",
+      "files": [
+        "vaultdrive_client/src/utils/continuum-bridge.ts",
+        "vaultdrive_client/src/components/vault/VaultInspectorPane.tsx",
+        "vaultdrive_client/src/components/vault/FileGrid.tsx",
+        "vaultdrive_client/src/components/vault/FilePreviewModal.tsx"
+      ],
+      "issue": "Hardcoded 0:12 voice badges appeared on matching filenames without user input, '+ Grabar Voz RAM' wrote a fixed simulated string, and notes vanished on reload or could not be deleted.",
+      "resolution": "Remove fake auto-invented badges; implement real persistent, editable, and deletable 'Nota rápida' composer with quick chips + optional real MediaRecorder audio, scrubbed from active memory on privacy lock and restored on unlock."
+    }
+  ]
+}

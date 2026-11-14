@@ -177,7 +177,7 @@ export const WhatsAppDropRequestModal: React.FC<WhatsAppDropRequestModalProps> =
     const finalUrl = await ensureDropUrl();
     if (!finalUrl) return;
     await navigator.clipboard?.writeText(finalUrl).catch(() => undefined);
-    addToast("Enlace de Buzón Secure Drop copiado al portapapeles", "success");
+    addToast("Enlace para recibir documentos copiado al portapapeles", "success");
     onClose();
   };
 
@@ -187,7 +187,7 @@ export const WhatsAppDropRequestModal: React.FC<WhatsAppDropRequestModalProps> =
     const msg = buildWhatsAppMessage(finalUrl);
     await navigator.clipboard?.writeText(msg).catch(() => undefined);
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
-    addToast("Solicitud Secure Drop lista en WhatsApp", "success");
+    addToast("Solicitud de documentos lista en WhatsApp", "success");
     onClose();
   };
 
@@ -225,7 +225,7 @@ export const WhatsAppDropRequestModal: React.FC<WhatsAppDropRequestModalProps> =
           className="px-4 py-3 border-b flex items-center justify-between gap-3 shrink-0"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="abrn-blindado-pill">Buzón Secure Drop · Sin Contraseña</span>
+            <span className="abrn-blindado-pill">Recepción directa · Tu cliente no necesita cuenta</span>
             <h2 id="whatsapp-drop-modal-title" className="abrn-serif text-[15px] font-bold text-foreground truncate">
               Solicitar Documentos por WhatsApp
             </h2>

@@ -9,6 +9,7 @@ import {
   FileSpreadsheet,
   Lock,
   Loader2,
+  Upload,
 } from "lucide-react";
 import type { FileData } from "./FileGrid";
 import type { SmartUploadStagedItem } from "./SmartUploadOrderModal";
@@ -68,7 +69,7 @@ export function evaluateRamReconciliation(
   if (isLocked) {
     return {
       status: "LOCKED",
-      reason: "NOT_EVALUABLE · Bóveda bloqueada (0.0 MB en RAM — llaves purgadas).",
+      reason: "Desbloquea tu bóveda con tu PIN de 4 dígitos para revisar las facturas y el estado de cuenta.",
       cfdiTotalMxn: null,
       bankTotalMxn: null,
       deltaMxn: null,
@@ -96,13 +97,13 @@ export function evaluateRamReconciliation(
   if (cfdiFiles.length === 0 || bankFiles.length === 0) {
     const missingDesc =
       cfdiFiles.length === 0 && bankFiles.length === 0
-        ? "No hay facturas XML CFDI 4.0 ni Estado de Cuenta bancario en este expediente."
+        ? "No hay facturas XML ni estado de cuenta bancario en este expediente."
         : cfdiFiles.length === 0
-          ? "Faltan comprobantes XML CFDI 4.0 para cruzar contra el Estado de Cuenta."
-          : "Falta el PDF/CSV de Estado de Cuenta bancario para amarrar los CFDI 4.0.";
+          ? "Faltan las facturas XML para cruzarlas contra el estado de cuenta."
+          : "Falta el estado de cuenta bancario (PDF o CSV) para cuadrar las facturas.";
     return {
       status: "SIN_CFDI_EN_CARPETA",
-      reason: `SIN_CFDI_EN_CARPETA · ${missingDesc}`,
+      reason: missingDesc,
       cfdiTotalMxn: null,
       bankTotalMxn: null,
       deltaMxn: null,
@@ -246,6 +247,7 @@ export interface VaultReconcileCockpitProps {
   files: FileData[];
   clientName?: string;
   isLocked?: boolean;
+  onOpenUploadModal?: () => void;
   onSeedAccountingFiles?: (items: SmartUploadStagedItem[]) => Promise<void> | void;
   onExportWorkpaper?: (csvContent: string, filename: string) => void;
   onShareReconcileWhatsApp?: (summaryMessage: string) => void;
@@ -256,6 +258,7 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
   files,
   clientName = "Grupo Roche SA de CV",
   isLocked = false,
+  onOpenUploadModal,
   onSeedAccountingFiles,
   onExportWorkpaper,
   onShareReconcileWhatsApp,
@@ -285,10 +288,10 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
     const rows = evaluation.lines
       .map(
         (l) =>
-          `"${l.concept}","${l.uuidShort}","${l.cfdiFilename}","${l.bankRef}",${l.amountMxn.toFixed(2)},"${l.shaShort}","${l.matched ? "CONCILIADO_RAM" : "DIFERENCIA"}"`
+          `"${l.concept}","${l.uuidShort}","${l.cfdiFilename}","${l.bankRef}",${l.amountMxn.toFixed(2)},"${l.shaShort}","${l.matched ? "CONCILIADO" : "DIFERENCIA"}"`
       )
       .join("\n");
-    const csv = `${header}${rows}\n"TOTAL CONCILIADO","","","${evaluation.bankStatementFilename || ""}",${(evaluation.cfdiTotalMxn ?? 0).toFixed(2)},"ZERO_KNOWLEDGE","DELTA_${(evaluation.deltaMxn ?? 0).toFixed(2)}"\n`;
+    const csv = `${header}${rows}\n"TOTAL CONCILIADO","","","${evaluation.bankStatementFilename || ""}",${(evaluation.cfdiTotalMxn ?? 0).toFixed(2)},"VERIFICADO","DELTA_${(evaluation.deltaMxn ?? 0).toFixed(2)}"\n`;
 
     if (onExportWorkpaper) {
       onExportWorkpaper(csv, `Papel_Trabajo_Cuadre_${clientName.replace(/\s+/g, "_")}.csv`);
@@ -308,8 +311,8 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
   const handleWhatsAppDispatch = () => {
     const msg =
       evaluation.status === "RECONCILED"
-        ? `ABRN Asesores · Cierre Conciliado en RAM (${clientName}): ${evaluation.cfdiFilesCount} CFDI 4.0 (${formatMxn(evaluation.cfdiTotalMxn ?? 0)}) vs Estado de Cuenta (${formatMxn(evaluation.bankTotalMxn ?? 0)}) → Diferencia exacta $0.00 MXN. Sello SHA-256 íntegro.`
-        : `ABRN Asesores · Revisión Contable (${clientName}): Estado ${evaluation.status}.`;
+        ? `ABRN Asesores · Cuadre conciliado (${clientName}): ${evaluation.cfdiFilesCount} facturas CFDI (${formatMxn(evaluation.cfdiTotalMxn ?? 0)}) contra Estado de Cuenta (${formatMxn(evaluation.bankTotalMxn ?? 0)}) → Diferencia exacta $0.00 MXN.`
+        : `ABRN Asesores · Revisión contable (${clientName}): ${evaluation.reason || "Pendiente de documentos"}.`;
     if (onShareReconcileWhatsApp) {
       onShareReconcileWhatsApp(msg);
       return;
@@ -320,7 +323,7 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
   return (
     <section
       data-testid="vault-reconcile-cockpit"
-      aria-label="Conciliación Bancaria CFDI 4.0 en RAM"
+      aria-label="Cuadre de Facturas (CFDI) contra Banco"
       className="flex flex-col gap-3.5 py-1"
     >
       {/* Executive Header Card */}
@@ -332,17 +335,17 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="abrn-blindado-pill">
               <span className="abrn-pulse-dot" />
-              <span>MOTOR CONTABLE EN RAM · 0 BYTES EN SERVIDOR</span>
+              <span>🔒 Cruce privado en tu equipo</span>
             </span>
             <span className="abrn-mono text-[10.5px] text-muted-foreground">
-              Expediente: <strong className="text-foreground">{clientName}</strong>
+              Cliente: <strong className="text-foreground">{clientName}</strong>
             </span>
           </div>
           <h2 className="abrn-serif text-base sm:text-[18px] font-bold text-foreground">
-            Cruce Automático CFDI 4.0 XML ↔ Estado de Cuenta Bancario
+            Cuadre de Facturas (CFDI) contra Banco
           </h2>
           <p className="text-xs text-muted-foreground">
-            Tus XML del SAT y estados de cuenta se cruzan únicamente en la memoria RAM de este navegador con integridad SHA-256.
+            Tus facturas XML y estados de cuenta se comparan aquí mismo en tu navegador sin enviar los montos a terceros.
           </p>
         </div>
 
@@ -374,14 +377,14 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
                 className="abrn-btn abrn-btn-whatsapp"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
-                <span>Enviar Cuadre #key</span>
+                <span>Enviar Cuadre por WhatsApp</span>
               </button>
             </>
           )}
         </div>
       </div>
 
-      {/* State 1: Locked Vault -> Truthful NOT_EVALUABLE */}
+      {/* State 1: Locked Vault -> Plain-Spanish non-evaluable state */}
       {evaluation.status === "LOCKED" && (
         <div
           data-testid="reconcile-locked-state"
@@ -389,19 +392,19 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
           className="rounded-2xl border p-6 text-center space-y-2"
         >
           <Lock className="w-8 h-8 text-primary mx-auto" />
-          <div className="abrn-mono text-xs font-bold text-primary">NOT_EVALUABLE · BÓVEDA EN REPOSO</div>
+          <div className="text-sm font-bold text-primary">Bóveda bloqueada — desbloquéala para calcular</div>
           <p className="text-xs text-muted-foreground max-w-md mx-auto">{evaluation.reason}</p>
         </div>
       )}
 
-      {/* State 2: Missing CFDI or Bank Statement -> Strict No False Zeros (SIN_CFDI_EN_CARPETA) */}
+      {/* State 2: Missing CFDI or Bank Statement -> Strict No False Zeros */}
       {evaluation.status === "SIN_CFDI_EN_CARPETA" && (
         <div
           data-testid="reconcile-not-evaluable"
           style={{ background: "var(--abrn-card)", borderColor: "var(--abrn-amber-bd)" }}
           className="rounded-2xl border p-5 space-y-4 shadow-xs"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col gap-4">
             <div className="flex items-start gap-3">
               <div
                 style={{ background: "var(--abrn-amber-bg)", color: "var(--abrn-amber)" }}
@@ -409,7 +412,7 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
               >
                 <AlertTriangle className="w-5 h-5" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span
                     style={{
@@ -417,37 +420,50 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
                       color: "var(--abrn-amber)",
                       borderColor: "var(--abrn-amber-bd)",
                     }}
-                    className="abrn-mono text-[10.5px] font-extrabold px-2 py-0.5 rounded-full border"
+                    className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border"
                   >
-                    NOT_EVALUABLE · SIN_CFDI_EN_CARPETA
+                    Faltan facturas XML o el estado de cuenta
                   </span>
                   <span className="abrn-mono text-[11px] text-muted-foreground">
-                    CFDI XML detectados: {evaluation.cfdiFilesCount} · Estados de cuenta: {evaluation.bankFilesCount}
+                    Facturas XML: {evaluation.cfdiFilesCount} · Estados de cuenta: {evaluation.bankFilesCount}
                   </span>
                 </div>
                 <h3 className="text-sm font-bold text-foreground">
-                  Sin falsos ceros: carga o cifra el lote contable para calcular el amarre real
+                  Sube las facturas XML y el estado de cuenta del mes para ver si cuadran
                 </h3>
                 <p className="text-xs text-muted-foreground">{evaluation.reason}</p>
               </div>
             </div>
 
-            {onSeedAccountingFiles && (
-              <button
-                type="button"
-                data-testid="reconcile-seed-real-btn"
-                disabled={seeding}
-                onClick={() => void handleSeedClick()}
-                className="abrn-btn abrn-btn-primary !h-10 !px-4 shrink-0"
-              >
-                {seeding ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-                <span>Cifrar Expediente Contable Real (CFDI 4.0 + BBVA)</span>
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-2.5 sm:pl-[52px]">
+              {onOpenUploadModal && (
+                <button
+                  type="button"
+                  data-testid="reconcile-upload-real-btn"
+                  onClick={onOpenUploadModal}
+                  className="abrn-btn abrn-btn-primary !h-10 !px-4"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Subir facturas y estado de cuenta</span>
+                </button>
+              )}
+              {onSeedAccountingFiles && (
+                <button
+                  type="button"
+                  data-testid="reconcile-seed-real-btn"
+                  disabled={seeding}
+                  onClick={() => void handleSeedClick()}
+                  className={onOpenUploadModal ? "abrn-btn !h-10 !px-3.5" : "abrn-btn abrn-btn-primary !h-10 !px-4"}
+                >
+                  {seeding ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  )}
+                  <span>Probar con ejemplo (3 CFDI + BBVA)</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -479,7 +495,7 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
               className="rounded-xl border p-3.5 space-y-1"
             >
               <div className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                SUMA CFDI 4.0 EN RAM ({evaluation.cfdiFilesCount} XML)
+                TOTAL FACTURAS CFDI ({evaluation.cfdiFilesCount})
               </div>
               <div
                 data-testid="reconcile-cfdi-total"
@@ -488,7 +504,7 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
                 {formatMxn(evaluation.cfdiTotalMxn ?? 0)}
               </div>
               <div className="text-[11px] text-muted-foreground">
-                UUIDs timbrados validados en navegador
+                Folios fiscales UUID verificados
               </div>
             </div>
 
@@ -510,7 +526,7 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>
                   {evaluation.deltaMxn === 0
-                    ? "DIFERENCIA CONCILIADA EXACTA"
+                    ? "DIFERENCIA EXACTA"
                     : "DIFERENCIA POR ACLARAR"}
                 </span>
               </div>
@@ -525,8 +541,8 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
               </div>
               <div className="text-[11px] text-foreground/85 font-medium">
                 {evaluation.deltaMxn === 0
-                  ? "100% amarrado · Sello Dorado SHA-256"
-                  : "Revisa pólizas pendientes en subcarpeta 04"}
+                  ? "100% amarrado · Verificado"
+                  : "Revisa facturas pendientes en la carpeta 04"}
               </div>
             </div>
           </div>
@@ -540,10 +556,10 @@ export const VaultReconcileCockpit: React.FC<VaultReconcileCockpitProps> = ({
               style={{ background: "var(--abrn-bg-elevated)", borderColor: "var(--abrn-border)" }}
               className="px-4 py-2.5 border-b flex items-center justify-between text-[11px] font-bold text-muted-foreground"
             >
-              <span>PARTIDAS CONCILIADAS EN MEMORIA RAM ({evaluation.lines.length})</span>
-              <span className="abrn-mono text-[10.5px] inline-flex items-center gap-1 text-foreground">
+              <span>MOVIMIENTOS CONCILIADOS ({evaluation.lines.length})</span>
+              <span className="text-[10.5px] inline-flex items-center gap-1 text-foreground">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                AES-256-GCM · SHA-256
+                Verificado
               </span>
             </div>
 
