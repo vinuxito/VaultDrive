@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive — CLI PIN, Dispositivo Nuevo y Recuperación WhatsApp (Preview 3/3)</title>
+  <link rel="icon" type="image/png" href="/abrn/abrn-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ABRN Unified Vault Tokens (Cream Light + Slate Dark) */
+    :root, [data-theme="light"] {
+      --bg-page: #faf8f5;
+      --bg-subtle: #f2efe9;
+      --bg-card: #ffffff;
+      --ink: #1c1a17;
+      --text-primary: #2f3542;
+      --text-muted: #6b6359;
+      --border-soft: rgba(28, 26, 23, 0.12);
+      --border-strong: rgba(28, 26, 23, 0.24);
+      --brand-primary: #7a1f2b;
+      --brand-soft: rgba(122, 31, 43, 0.08);
+      --action: #7a1f2b;
+      --action-fg: #ffffff;
+      --iv-wa-brand: #1ca04e;
+      --iv-wa-soft: rgba(28, 160, 78, 0.12);
+      --iv-wa-bubble: #e7fce9;
+      --iv-wa-bg: #efeae2;
+      --iv-wa-header: #075e54;
+      --term-bg: #151820;
+      --term-fg: #e5e9f0;
+      --term-accent: #86efac;
+      --warn-bg: #fff8eb;
+      --warn-fg: #8c4d03;
+      --warn-border: rgba(184, 98, 6, 0.32);
+      --danger-bg: #fef2f2;
+      --danger-fg: #991b1b;
+      --danger-border: rgba(153, 27, 27, 0.28);
+      --ok-bg: #ecfdf3;
+      --ok-fg: #146c38;
+      --ok-border: rgba(20, 108, 56, 0.26);
+      --info-bg: #eef5ff;
+      --info-fg: #1d4ed8;
+      --info-border: rgba(29, 78, 216, 0.25);
+      --shadow-card: 0 12px 34px -12px rgba(28, 26, 23, 0.10), 0 2px 6px rgba(28, 26, 23, 0.04);
+      --font-heading: 'Libre Baskerville', Georgia, serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --radius-card: 24px;
+      --radius-shell: 32px;
+      --radius-pill: 999px;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #181c26;
+      --bg-subtle: #1e2330;
+      --bg-card: #262c3b;
+      --ink: #ffffff;
+      --text-primary: #f2f0ed;
+      --text-muted: #a6b0c3;
+      --border-soft: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.24);
+      --brand-primary: #d4aeb0;
+      --brand-soft: rgba(212, 174, 176, 0.14);
+      --action: #d4aeb0;
+      --action-fg: #181c26;
+      --iv-wa-brand: #25d366;
+      --iv-wa-soft: rgba(37, 211, 102, 0.14);
+      --iv-wa-bubble: #005c4b;
+      --iv-wa-bg: #111b21;
+      --iv-wa-header: #202c33;
+      --term-bg: #0e1117;
+      --term-fg: #e5e9f0;
+      --term-accent: #4ade80;
+      --warn-bg: rgba(245, 158, 11, 0.14);
+      --warn-fg: #fcd34d;
+      --warn-border: rgba(252, 211, 77, 0.30);
+      --danger-bg: rgba(239, 68, 68, 0.14);
+      --danger-fg: #fca5a5;
+      --danger-border: rgba(252, 165, 165, 0.32);
+      --ok-bg: rgba(37, 211, 102, 0.14);
+      --ok-fg: #86efac;
+      --ok-border: rgba(134, 239, 172, 0.30);
+      --info-bg: rgba(96, 165, 250, 0.14);
+      --info-fg: #93c5fd;
+      --info-border: rgba(147, 197, 253, 0.28);
+      --shadow-card: 0 18px 40px -12px rgba(0, 0, 0, 0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-page);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    /* Sticky Preview Toolbar + Cross-Preview Navigation */
+    .iv-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-soft);
+      backdrop-filter: blur(10px);
+    }
+    .iv-topbar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .iv-brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .iv-brand-mark img {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border-soft);
+    }
+    .iv-brand-sub {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .iv-nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .iv-nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 6px 13px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-primary);
+      border: 1px solid var(--border-soft);
+      background: var(--bg-subtle);
+      transition: all 0.15s ease;
+    }
+    .iv-nav-link:hover {
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+    .iv-nav-link.is-active {
+      background: var(--action);
+      color: var(--action-fg);
+      border-color: var(--action);
+    }
+    .iv-toolbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .iv-ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .iv-ctrl-btn.is-on {
+      background: var(--brand-soft);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+
+    /* Main Page Shell */
+    .iv-page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 20px 68px;
+      transition: max-width 0.25s ease;
+    }
+    .iv-page.is-mobile-sim {
+      max-width: 390px;
+      padding: 16px 12px 56px;
+    }
+
+    .iv-hero {
+      margin-bottom: 18px;
+    }
+    .iv-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--brand-primary);
+      background: var(--brand-soft);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(22px, 3vw, 29px);
+      line-height: 1.2;
+      margin: 0 0 8px;
+    }
+    .iv-lead {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 760px;
+    }
+
+    /* Scenario Tabs */
+    .iv-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .iv-tab-btn {
+      min-height: 46px;
+      padding: 9px 16px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border-soft);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .iv-tab-btn.is-active {
+      background: var(--action);
+      color: var(--action-fg);
+      border-color: var(--action);
+    }
+
+    .is-hidden { display: none !important; }
+
+    /* Shared Layout Grid */
+    .iv-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+    .iv-page.is-mobile-sim .iv-split { grid-template-columns: 1fr; }
+    @media (max-width: 920px) { .iv-split { grid-template-columns: 1fr; } }
+
+    .iv-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 22px;
+    }
+    .iv-page.is-mobile-sim .iv-card {
+      padding: 16px;
+      border-radius: 20px;
+    }
+    .iv-phone-frame {
+      max-width: 440px;
+      width: 100%;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-shell);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+    .iv-phone-head {
+      padding: 18px 22px 12px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .iv-step-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    /* Class-only progress widths (.iv-w-1..4) — zero inline styles */
+    .iv-track {
+      width: 100%;
+      height: 6px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-subtle);
+      overflow: hidden;
+    }
+    .iv-fill {
+      height: 100%;
+      background: var(--brand-primary);
+      border-radius: var(--radius-pill);
+      transition: width 0.2s ease;
+    }
+    .iv-w-1 { width: 25%; }
+    .iv-w-2 { width: 50%; }
+    .iv-w-3 { width: 75%; }
+    .iv-w-4 { width: 100%; }
+
+    .iv-phone-body {
+      padding: 20px 22px;
+    }
+    .iv-phone-title {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      line-height: 1.25;
+      margin: 0 0 8px;
+    }
+    .iv-phone-copy {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0 0 16px;
+    }
+    .iv-phone-dock {
+      padding: 14px 22px 18px;
+      border-top: 1px solid var(--border-soft);
+      background: var(--bg-subtle);
+    }
+
+    /* Terminal Showcase */
+    .iv-terminal {
+      background: var(--term-bg);
+      color: var(--term-fg);
+      border-radius: 18px;
+      padding: 16px 18px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      border: 1px solid rgba(255,255,255,0.12);
+      overflow-x: auto;
+    }
+    .iv-term-dots {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .iv-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+    }
+    .iv-term-cmd { color: #93c5fd; }
+    .iv-term-ok { color: var(--term-accent); font-weight: 700; }
+    .iv-term-pin {
+      display: inline-block;
+      margin: 6px 0;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: rgba(74, 222, 128, 0.14);
+      border: 1px dashed #4ade80;
+      color: #86efac;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
+    /* Form & Status Elements */
+    .iv-field { margin-bottom: 14px; }
+    .iv-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .iv-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--bg-page);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+    }
+    .iv-input-code {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-align: center;
+    }
+    .iv-input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+    .iv-btn-primary {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: none;
+      background: var(--action);
+      color: var(--action-fg);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .iv-btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .iv-btn-ghost {
+      min-height: 40px;
+      padding: 7px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .iv-btn-ghost:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+    .iv-banner {
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      border: 1px solid var(--border-soft);
+      margin-bottom: 14px;
+    }
+    .iv-banner.is-ok { background: var(--ok-bg); color: var(--ok-fg); border-color: var(--ok-border); }
+    .iv-banner.is-warn { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-border); }
+    .iv-banner.is-danger { background: var(--danger-bg); color: var(--danger-fg); border-color: var(--danger-border); }
+    .iv-banner.is-info { background: var(--info-bg); color: var(--info-fg); border-color: var(--info-border); }
+
+    /* Checkbox Row */
+    .iv-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-subtle);
+      font-size: 13px;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .iv-check input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; }
+
+    /* Dashed Sacred Receipt */
+    .iv-receipt {
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: var(--bg-page);
+      font-size: 13px;
+    }
+    .iv-receipt-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border-soft);
+    }
+    .iv-receipt-row:last-child { border-bottom: none; }
+    .iv-mono { font-family: var(--font-mono); font-size: 12.5px; }
+
+    /* WhatsApp Alert Card */
+    .iv-wa-phone {
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      background: var(--iv-wa-bg);
+    }
+    .iv-wa-header {
+      background: var(--iv-wa-header);
+      color: #ffffff;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .iv-wa-stage {
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .iv-wa-bubble {
+      background: var(--iv-wa-bubble);
+      color: var(--ink);
+      padding: 12px 14px;
+      border-radius: 14px 14px 14px 4px;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+    }
+    [data-theme="dark"] .iv-wa-bubble { color: #f2f0ed; }
+
+    /* Rule Matrix Footer */
+    .iv-matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 14px;
+    }
+    .iv-page.is-mobile-sim .iv-matrix-grid { grid-template-columns: 1fr; }
+    .iv-mini-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 16px;
+      font-size: 13px;
+    }
+    .iv-mini-card h3 {
+      font-family: var(--font-heading);
+      font-size: 15.5px;
+      margin: 0 0 6px;
+    }
+    .iv-mini-card p { margin: 0; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <header class="iv-topbar">
+    <div class="iv-topbar-inner">
+      <a class="iv-brand-mark" href="/abrn/previews/onboarding-whatsapp.html">
+        <img src="/abrn/abrn-logo.png" alt="ABRN" />
+        <span>
+          ABRN Drive · Previews Onboarding
+          <span class="iv-brand-sub">ABRN Asesores · Un solo despacho (Single-tenant)</span>
+        </span>
+      </a>
+
+      <nav class="iv-nav-links" aria-label="Vistas del flujo de onboarding">
+        <a class="iv-nav-link" href="/abrn/previews/onboarding-whatsapp.html">1. Invitado y Mensajes</a>
+        <a class="iv-nav-link" href="/abrn/previews/onboarding-admin-consola.html">2. Consola Admin y Re-key</a>
+        <a class="iv-nav-link is-active" href="/abrn/previews/onboarding-cli-y-recuperacion.html">3. CLI PIN, Dispositivo y Recuperación</a>
+      </nav>
+
+      <div class="iv-toolbar-controls">
+        <button type="button" class="iv-ctrl-btn" id="btnTheme">Tema: ABRN Cream</button>
+        <button type="button" class="iv-ctrl-btn" id="btnViewport">Vista: Escritorio</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="iv-page" id="ivPage">
+    <section class="iv-hero">
+      <span class="iv-eyebrow">Preview 3 de 3 · Seguridad operativa y recuperación</span>
+      <h1>PIN de Servidor CLI, Dispositivo Nuevo Admin y ¿Olvidaste tu contraseña?</h1>
+      <p class="iv-lead">
+        Tres flujos críticos del contrato <code>filemon-onboarding</code> adaptados a la arquitectura Zero-Knowledge de ABRN Drive: PIN fuera de banda para dar de alta administradores, desafío en navegador nuevo y recuperación honesta de bóveda.
+      </p>
+    </section>
+
+    <!-- Scenario Switch Tabs -->
+    <div class="iv-tabs" role="tablist" aria-label="Escenarios de seguridad">
+      <button type="button" class="iv-tab-btn is-active" data-tab="cli">A. CLI Admin PIN (5 intentos)</button>
+      <button type="button" class="iv-tab-btn" data-tab="device">B. Código en Dispositivo Nuevo (Admin)</button>
+      <button type="button" class="iv-tab-btn" data-tab="recovery">C. ¿Olvidaste tu contraseña? + Honestidad ZK</button>
+    </div>
+
+    <!-- PANEL A: CLI Admin Invitation PIN -->
+    <section id="panelCli" class="iv-split">
+      <div class="iv-card">
+        <span class="iv-eyebrow">1. Consola del dueño en servidor Linux</span>
+        <h2>Comando fuera de banda (<code>abrndrive invite --admin</code>)</h2>
+        <p class="iv-lead">
+          Para crear un Administrador desde el servidor sin Superadmin inventado, el sistema divide el secreto en dos canales: el enlace viaja por WhatsApp y el <strong>PIN de 8 dígitos</strong> sólo se imprime una vez en la terminal del dueño.
+        </p>
+
+        <div class="iv-terminal" aria-label="Salida simulada del comando CLI">
+          <div class="iv-term-dots" aria-hidden="true">
+            <span class="iv-dot"></span><span class="iv-dot"></span><span class="iv-dot"></span>
+          </div>
+          <div><span class="iv-term-cmd">$ sudo /lamp/www/ABRN-Drive/abrndrive invite \</span></div>
+          <div><span class="iv-term-cmd">  --role admin --name "Martha Pineda" --phone 5500001980</span></div>
+          <br />
+          <div><span class="iv-term-ok">[OK] Invitación INV-ADMIN-09 creada (modo prueba seguro)</span></div>
+          <div>WhatsApp enviado a: 55 •••• 1980 (vía 55 •••• 0121)</div>
+          <div>Token URL: guardado únicamente como sha256(token)</div>
+          <br />
+          <div>Clave del servidor (compártela por voz; NUNCA va en WhatsApp):</div>
+          <div class="iv-term-pin">4829 - 1703</div>
+          <div>Máximo 5 intentos antes de auto-cancelar esta invitación.</div>
+        </div>
+
+        <div class="iv-btn-row">
+          <button type="button" class="iv-btn-ghost" id="btnCliFillGood">Probar PIN válido (48291703)</button>
+          <button type="button" class="iv-btn-ghost" id="btnCliFillBad">Simular PIN equivocado</button>
+          <button type="button" class="iv-btn-ghost" id="btnCliReset">Reiniciar simulación</button>
+        </div>
+      </div>
+
+      <div class="iv-phone-frame">
+        <div class="iv-phone-head">
+          <div class="iv-step-row">
+            <span id="cliStepLabel">Paso 3 de 4 · Clave del servidor</span>
+            <span>Alta Admin</span>
+          </div>
+          <div class="iv-track"><div class="iv-fill iv-w-3" id="cliBar"></div></div>
+        </div>
+
+        <!-- Step 3: Enter Server PIN -->
+        <div id="cliStep3">
+          <form id="cliPinForm">
+            <div class="iv-phone-body">
+              <h3 class="iv-phone-title">Clave del servidor</h3>
+              <p class="iv-phone-copy">
+                Quien maneja el servidor de <strong>ABRN Asesores</strong> recibió una clave de 8 dígitos al generar tu enlace. Escríbela aquí.
+              </p>
+
+              <div class="iv-banner is-warn" id="cliAttemptBanner">
+                Tienes <strong>5 intentos</strong>. Al 5.º error la invitación se cancela y avisamos por WhatsApp al dueño.
+              </div>
+
+              <div class="iv-field">
+                <label class="iv-label" for="inpServerPin">Clave de 8 dígitos</label>
+                <input class="iv-input iv-input-code" id="inpServerPin" type="text" inputmode="numeric" value="" placeholder="4829-1703" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="iv-phone-dock">
+              <button type="submit" class="iv-btn-primary" id="cliSubmitBtn">Validar clave del servidor</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 4: Admin Step 4 Confirmed -->
+        <div id="cliStep4" class="is-hidden">
+          <div class="iv-phone-body">
+            <h3 class="iv-phone-title">Así ven tu despacho en ABRN</h3>
+            <p class="iv-phone-copy">
+              Tu acceso como <strong>Administrador</strong> quedó sellado. Cada colega al que invites verá esta identidad oficial:
+            </p>
+            <div class="iv-receipt">
+              <div class="iv-receipt-row"><span>Despacho</span><strong>ABRN Asesores</strong></div>
+              <div class="iv-receipt-row"><span>Canal oficial</span><span class="iv-mono">55 •••• 0121</span></div>
+              <div class="iv-receipt-row"><span>Rol otorgado</span><strong>Administrador</strong></div>
+              <div class="iv-receipt-row"><span>Dispositivo nuevo</span><strong>Código 6 dígitos + alerta</strong></div>
+            </div>
+          </div>
+          <div class="iv-phone-dock">
+            <button type="button" class="iv-btn-primary" id="btnCliStep4Back">Volver al Paso 3</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL B: Trusted Devices & Admin Login Alert -->
+    <section id="panelDevice" class="iv-split is-hidden">
+      <div class="iv-phone-frame">
+        <div class="iv-phone-head">
+          <div class="iv-step-row">
+            <span>Acceso Administrador · Dispositivo nuevo</span>
+            <span class="iv-mono">55 •••• 0121</span>
+          </div>
+          <div class="iv-track"><div class="iv-fill iv-w-3" id="devBar"></div></div>
+        </div>
+
+        <div id="devChallengeBox">
+          <form id="devForm">
+            <div class="iv-phone-body">
+              <h3 class="iv-phone-title">Confirma este navegador nuevo</h3>
+              <p class="iv-phone-copy">
+                Tu contraseña coincidió, pero nunca habías entrado desde <strong>Chrome · Android (CDMX)</strong>. Enviamos un código de 6 dígitos a tu WhatsApp <code>55 •••• 0121</code>.
+              </p>
+
+              <div class="iv-banner is-info" id="devStatusBanner">
+                Código activo · Vigencia 10 min · Código de prueba: <code>742918</code>
+              </div>
+
+              <div class="iv-field">
+                <label class="iv-label" for="inpDevOtp">Código de 6 dígitos</label>
+                <input class="iv-input iv-input-code" id="inpDevOtp" type="text" inputmode="numeric" value="742918" maxlength="6" />
+              </div>
+
+              <label class="iv-check">
+                <input type="checkbox" id="chkTrustDevice" checked />
+                <span>Confiar en este navegador durante <strong>180 días</strong> (guarda token SHA-256 en <code>trusted_devices</code>; si el usuario cierra sesiones o dice «no fui yo», caduca al instante).</span>
+              </label>
+
+              <div class="iv-btn-row">
+                <button type="button" class="iv-btn-ghost" id="btnDevResend">Reenviar código (cooldown 45 s)</button>
+              </div>
+            </div>
+            <div class="iv-phone-dock">
+              <button type="submit" class="iv-btn-primary">Confirmar dispositivo y entrar</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="devApprovedBox" class="is-hidden">
+          <div class="iv-phone-body">
+            <h3 class="iv-phone-title">Dispositivo autorizado</h3>
+            <p class="iv-phone-copy">Se registró el navegador y se disparó la notificación preventiva por WhatsApp.</p>
+            <div class="iv-receipt" id="devReceiptBody"></div>
+          </div>
+          <div class="iv-phone-dock">
+            <button type="button" class="iv-btn-primary" id="btnDevReset">Probar otro dispositivo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="iv-card">
+        <span class="iv-eyebrow">Alerta inmediata en WhatsApp del Admin</span>
+        <h2>Protección contra inicio no reconocido</h2>
+        <p class="iv-lead">
+          Aunque el atacante conozca la contraseña, no entra sin el OTP de 6 dígitos. Y cada entrada desde equipo nuevo avisa por WhatsApp con enlace directo de revocación inmediata.
+        </p>
+
+        <div class="iv-wa-phone">
+          <div class="iv-wa-header">
+            <span>ABRN Asesores · Alerta de seguridad</span>
+            <span>Ahora</span>
+          </div>
+          <div class="iv-wa-stage">
+            <div class="iv-wa-bubble" id="devAlertBubble">
+[ALERTA] *Nuevo inicio de sesión en ABRN Drive*
+
+Cuenta: Alejandro Bravo (Admin)
+Equipo: Chrome 157 · Android (CDMX)
+Fecha: hoy, 11:02 h
+
+¿Fuiste tú? No hace falta responder nada.
+Si NO fuiste tú, toca este enlace para cerrar todas las sesiones de inmediato y avisar al sistema:
+https://abrndrive.filemonprime.net/abrn/alerta-no-fui-yo/#token-revocacion
+            </div>
+          </div>
+        </div>
+
+        <div class="iv-btn-row">
+          <button type="button" class="iv-btn-ghost" id="btnSimulateNotMe">Simular toque en «No fui yo»</button>
+        </div>
+        <div class="iv-banner is-danger is-hidden" id="notMeFeedback"></div>
+      </div>
+    </section>
+
+    <!-- PANEL C: Forgot Password + Zero-Knowledge Truth -->
+    <section id="panelRecovery" class="iv-split is-hidden">
+      <div class="iv-phone-frame">
+        <div class="iv-phone-head">
+          <div class="iv-step-row">
+            <span id="recStepTitle">Paso 1 de 4 · Solicitar código</span>
+            <span>Recuperación</span>
+          </div>
+          <div class="iv-track"><div class="iv-fill iv-w-1" id="recBar"></div></div>
+        </div>
+
+        <!-- Step 1 -->
+        <div id="recStep1">
+          <form id="recForm1">
+            <div class="iv-phone-body">
+              <h3 class="iv-phone-title">¿Olvidaste tu contraseña?</h3>
+              <p class="iv-phone-copy">
+                Escribe tu número WhatsApp o correo registrado. La respuesta en pantalla siempre será uniforme para no revelar cuentas existentes.
+              </p>
+              <div class="iv-field">
+                <label class="iv-label" for="inpRecWho">WhatsApp (10 dígitos) o correo</label>
+                <input class="iv-input" id="inpRecWho" type="text" value="55 0000 0419" required />
+              </div>
+            </div>
+            <div class="iv-phone-dock">
+              <button type="submit" class="iv-btn-primary">Enviar código por WhatsApp</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="recStep2" class="is-hidden">
+          <form id="recForm2">
+            <div class="iv-phone-body">
+              <h3 class="iv-phone-title">Código de recuperación</h3>
+              <div class="iv-banner is-info">
+                Si hay una cuenta activa con teléfono confirmado, te llegó un código de 6 dígitos por WhatsApp. (Demo: <code>391845</code>)
+              </div>
+              <div class="iv-field">
+                <label class="iv-label" for="inpRecOtp">Código de 6 dígitos</label>
+                <input class="iv-input iv-input-code" id="inpRecOtp" type="text" value="391845" maxlength="6" />
+              </div>
+            </div>
+            <div class="iv-phone-dock">
+              <button type="submit" class="iv-btn-primary">Verificar código</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 3 -->
+        <div id="recStep3" class="is-hidden">
+          <form id="recForm3">
+            <div class="iv-phone-body">
+              <h3 class="iv-phone-title">Nueva contraseña personal</h3>
+              <p class="iv-phone-copy">
+                Mínimo 10 caracteres, máximo 72 bytes UTF-8, sin espacios al inicio o al final. Cerraremos tus sesiones activas al guardar.
+              </p>
+              <div class="iv-field">
+                <label class="iv-label" for="inpRecPass">Nueva contraseña</label>
+                <input class="iv-input" id="inpRecPass" type="password" value="BovedaSegura#2026" />
+              </div>
+              <div class="iv-banner is-warn" id="recPassWarn">
+                Regla: verifica longitud ≥ 10 y ≤ 72 bytes UTF-8.
+              </div>
+            </div>
+            <div class="iv-phone-dock">
+              <button type="submit" class="iv-btn-primary">Guardar nueva contraseña</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 4 -->
+        <div id="recStep4" class="is-hidden">
+          <div class="iv-phone-body">
+            <h3 class="iv-phone-title">Acceso restablecido</h3>
+            <p class="iv-phone-copy">Ya puedes iniciar sesión con tu nueva contraseña; las sesiones previas fueron revocadas.</p>
+            <div class="iv-receipt">
+              <div class="iv-receipt-row"><span>Teléfono verificado</span><span class="iv-mono">55 •••• 0419</span></div>
+              <div class="iv-receipt-row"><span>Sesiones previas</span><strong>Revocadas (session_version + 1)</strong></div>
+              <div class="iv-receipt-row"><span>Cifrado Zero-Knowledge</span><strong>Requiere llave previa o Custodios</strong></div>
+            </div>
+          </div>
+          <div class="iv-phone-dock">
+            <button type="button" class="iv-btn-primary" id="btnRecRestart">Reiniciar flujo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Honestidad Criptográfica ZK -->
+      <div class="iv-card">
+        <span class="iv-eyebrow">Verdad Zero-Knowledge de ABRN Drive</span>
+        <h2>Qué recupera WhatsApp y qué protege el cifrado de extremo a extremo</h2>
+        <p class="iv-lead">
+          Nunca prometemos milagros falsos: ABRN Drive almacena la llave privada RSA cifrada en el servidor (<code>private_key_encrypted</code>). Por eso distinguimos con claridad total entre <strong>acceso a la cuenta</strong> y <strong>descifrado de archivos históricos</strong>:
+        </p>
+
+        <div class="iv-receipt">
+          <div class="iv-receipt-row">
+            <strong>1. Acceso a tu cuenta (WhatsApp OTP)</strong>
+            <span>Recupera entrada + invalida sesiones robadas</span>
+          </div>
+          <div class="iv-receipt-row">
+            <strong>2. Custodian Recovery (3 de 5)</strong>
+            <span>Reconstruye tu llave histórica con quórum de custodios</span>
+          </div>
+          <div class="iv-receipt-row">
+            <strong>3. Clave de Recuperación guardada</strong>
+            <span>Desbloquea tus carpetas anteriores al instante</span>
+          </div>
+          <div class="iv-receipt-row">
+            <strong>4. Sin Custodios ni Clave previa</strong>
+            <span>Generas par de llaves nuevo: archivos nuevos cifrados desde hoy; los anteriores quedan protegidos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Architecture Summary Matrix -->
+    <section class="iv-matrix-grid" aria-label="Decisiones de arquitectura ABRN Drive">
+      <article class="iv-mini-card">
+        <h3>Sin Superadmin inventado</h3>
+        <p>ABRN Drive opera un despacho único (<code>ABRN Asesores</code>). La jerarquía real es: <strong>CLI en servidor → Administrador → Colaborador</strong>.</p>
+      </article>
+      <article class="iv-mini-card">
+        <h3>Quién sigue sin cuenta</h3>
+        <p>Quien recibe un enlace público con <code>#clave</code> o sube archivos en <strong>Secure Drop (<code>/drop/:token</code>)</strong> nunca es obligado a crear cuenta ni registrar teléfono.</p>
+      </article>
+      <article class="iv-mini-card">
+        <h3>Llaves WhatsApp protegidas</h3>
+        <p>El token Green API de tu instancia <code>55 •••• 0121</code> y la lista <code>WHATSAPP_ONLY_TO</code> nunca se escriben en HTML, frontend ni Git: viven solo en archivo de entorno raíz (<code>0600</code>).</p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var state = {
+        theme: 'light',
+        mobile: false,
+        activeTab: 'cli',
+        cliAttemptsLeft: 5,
+        cliLocked: false
+      };
+
+      var html = document.documentElement;
+      var page = document.getElementById('ivPage');
+      var btnTheme = document.getElementById('btnTheme');
+      var btnViewport = document.getElementById('btnViewport');
+
+      btnTheme.addEventListener('click', function () {
+        state.theme = state.theme === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', state.theme);
+        btnTheme.textContent = state.theme === 'light' ? 'Tema: ABRN Cream' : 'Tema: ABRN Slate';
+      });
+
+      btnViewport.addEventListener('click', function () {
+        state.mobile = !state.mobile;
+        page.classList.toggle('is-mobile-sim', state.mobile);
+        btnViewport.classList.toggle('is-on', state.mobile);
+        btnViewport.textContent = state.mobile ? 'Vista: Móvil 390px' : 'Vista: Escritorio';
+      });
+
+      // Tabs
+      var panels = {
+        cli: document.getElementById('panelCli'),
+        device: document.getElementById('panelDevice'),
+        recovery: document.getElementById('panelRecovery')
+      };
+      document.querySelectorAll('[data-tab]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var t = btn.getAttribute('data-tab');
+          state.activeTab = t;
+          document.querySelectorAll('[data-tab]').forEach(function (b) {
+            b.classList.toggle('is-active', b === btn);
+          });
+          Object.keys(panels).forEach(function (key) {
+            panels[key].classList.toggle('is-hidden', key !== t);
+          });
+        });
+      });
+
+      // Panel A: CLI Admin PIN simulation
+      var inpPin = document.getElementById('inpServerPin');
+      var cliBanner = document.getElementById('cliAttemptBanner');
+      var cliStep3 = document.getElementById('cliStep3');
+      var cliStep4 = document.getElementById('cliStep4');
+      var cliBar = document.getElementById('cliBar');
+      var cliStepLabel = document.getElementById('cliStepLabel');
+      var cliSubmitBtn = document.getElementById('cliSubmitBtn');
+
+      function resetCli() {
+        state.cliAttemptsLeft = 5;
+        state.cliLocked = false;
+        inpPin.value = '';
+        inpPin.disabled = false;
+        cliSubmitBtn.disabled = false;
+        cliBanner.className = 'iv-banner is-warn';
+        cliBanner.innerHTML = 'Tienes <strong>5 intentos</strong>. Al 5.º error la invitación se cancela y avisamos por WhatsApp al dueño.';
+        cliStep3.classList.remove('is-hidden');
+        cliStep4.classList.add('is-hidden');
+        cliBar.className = 'iv-fill iv-w-3';
+        cliStepLabel.textContent = 'Paso 3 de 4 · Clave del servidor';
+      }
+
+      document.getElementById('btnCliFillGood').addEventListener('click', function () {
+        if (state.cliLocked) resetCli();
+        inpPin.value = '4829-1703';
+      });
+      document.getElementById('btnCliFillBad').addEventListener('click', function () {
+        if (state.cliLocked) return;
+        inpPin.value = '9999-0000';
+      });
+      document.getElementById('btnCliReset').addEventListener('click', resetCli);
+      document.getElementById('btnCliStep4Back').addEventListener('click', resetCli);
+
+      document.getElementById('cliPinForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (state.cliLocked) return;
+        var cleaned = inpPin.value.replace(/\D+/g, '');
+        if (cleaned === '48291703') {
+          cliStep3.classList.add('is-hidden');
+          cliStep4.classList.remove('is-hidden');
+          cliBar.className = 'iv-fill iv-w-4';
+          cliStepLabel.textContent = 'Paso 4 de 4 · Identidad del despacho';
+          return;
+        }
+        state.cliAttemptsLeft -= 1;
+        if (state.cliAttemptsLeft <= 0) {
+          state.cliLocked = true;
+          inpPin.disabled = true;
+          cliSubmitBtn.disabled = true;
+          cliBanner.className = 'iv-banner is-danger';
+          cliBanner.innerHTML = '<strong>5.º error consecutivo:</strong> invitación cancelada y alerta inmediata enviada al dueño (<code>55 •••• 0121</code>).';
+        } else {
+          cliBanner.className = 'iv-banner is-danger';
+          cliBanner.innerHTML = 'Clave incorrecta · te quedan <strong>' + state.cliAttemptsLeft + '</strong> intentos antes de cancelar la invitación.';
+        }
+      });
+
+      // Panel B: Trusted Device Challenge
+      var devChallengeBox = document.getElementById('devChallengeBox');
+      var devApprovedBox = document.getElementById('devApprovedBox');
+      var devStatusBanner = document.getElementById('devStatusBanner');
+      var devBar = document.getElementById('devBar');
+      var notMeFeedback = document.getElementById('notMeFeedback');
+
+      document.getElementById('btnDevResend').addEventListener('click', function () {
+        devStatusBanner.className = 'iv-banner is-ok';
+        devStatusBanner.innerHTML = 'Nuevo código enviado a <code>55 •••• 0121</code>. Espera 45 s antes de pedir otro.';
+      });
+
+      document.getElementById('devForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var code = document.getElementById('inpDevOtp').value.replace(/\D+/g, '');
+        if (code !== '742918') {
+          devStatusBanner.className = 'iv-banner is-danger';
+          devStatusBanner.innerHTML = 'Código incorrecto (en esta maqueta usa <code>742918</code>).';
+          return;
+        }
+        var trusted = document.getElementById('chkTrustDevice').checked;
+        devChallengeBox.classList.add('is-hidden');
+        devApprovedBox.classList.remove('is-hidden');
+        devBar.className = 'iv-fill iv-w-4';
+        document.getElementById('devReceiptBody').innerHTML =
+          '<div class="iv-receipt-row"><span>Navegador</span><strong>Chrome 157 · Android</strong></div>' +
+          '<div class="iv-receipt-row"><span>Confiar 180 días</span><strong>' + (trusted ? 'Sí (cookie SHA-256 activa)' : 'No (sólo esta sesión)') + '</strong></div>' +
+          '<div class="iv-receipt-row"><span>Aviso WhatsApp</span><strong>Enviado a 55 •••• 0121</strong></div>';
+      });
+
+      document.getElementById('btnDevReset').addEventListener('click', function () {
+        devApprovedBox.classList.add('is-hidden');
+        devChallengeBox.classList.remove('is-hidden');
+        devBar.className = 'iv-fill iv-w-3';
+      });
+
+      document.getElementById('btnSimulateNotMe').addEventListener('click', function () {
+        notMeFeedback.classList.remove('is-hidden');
+        notMeFeedback.innerHTML =
+          '<strong>Respuesta de emergencia ejecutada:</strong> se incrementó <code>session_version</code> del Admin, se borraron todas sus entradas de <code>trusted_devices</code> y se cerró la sesión de Chrome Android al instante.';
+      });
+
+      // Panel C: Forgot Password Recovery
+      var recBar = document.getElementById('recBar');
+      var recStepTitle = document.getElementById('recStepTitle');
+      var recSteps = [
+        document.getElementById('recStep1'),
+        document.getElementById('recStep2'),
+        document.getElementById('recStep3'),
+        document.getElementById('recStep4')
+      ];
+
+      function showRecStep(n) {
+        recSteps.forEach(function (el, idx) {
+          el.classList.toggle('is-hidden', idx !== (n - 1));
+        });
+        recBar.className = 'iv-fill iv-w-' + n;
+        var titles = [
+          'Paso 1 de 4 · Solicitar código',
+          'Paso 2 de 4 · Verificar WhatsApp',
+          'Paso 3 de 4 · Nueva contraseña',
+          'Paso 4 de 4 · Recibo y estado ZK'
+        ];
+        recStepTitle.textContent = titles[n - 1];
+      }
+
+      document.getElementById('recForm1').addEventListener('submit', function (e) {
+        e.preventDefault();
+        showRecStep(2);
+      });
+      document.getElementById('recForm2').addEventListener('submit', function (e) {
+        e.preventDefault();
+        showRecStep(3);
+      });
+      document.getElementById('recForm3').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var pass = document.getElementById('inpRecPass').value || '';
+        var bytes = new TextEncoder().encode(pass).length;
+        var warn = document.getElementById('recPassWarn');
+        if (pass.length < 10) {
+          warn.className = 'iv-banner is-danger';
+          warn.textContent = 'Debe tener al menos 10 caracteres.';
+          return;
+        }
+        if (bytes > 72) {
+          warn.className = 'iv-banner is-danger';
+          warn.textContent = 'Supera el máximo de 72 bytes UTF-8 (' + bytes + ' bytes). Acórtala un poco.';
+          return;
+        }
+        if (/^\s|\s$/.test(pass)) {
+          warn.className = 'iv-banner is-danger';
+          warn.textContent = 'No pongas espacios al inicio ni al final.';
+          return;
+        }
+        warn.className = 'iv-banner is-ok';
+        warn.textContent = 'Contraseña válida (' + bytes + ' bytes).';
+        showRecStep(4);
+      });
+      document.getElementById('btnRecRestart').addEventListener('click', function () {
+        showRecStep(1);
+      });
+    })();
+  </script>
+</body>
+</html>

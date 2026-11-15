@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive — Consola Admin: Invitar y Re-key por WhatsApp (Preview 2/3)</title>
+  <link rel="icon" type="image/png" href="/abrn/abrn-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ABRN Unified Vault Tokens (Cream Light + Slate Dark) */
+    :root, [data-theme="light"] {
+      --bg-page: #faf8f5;
+      --bg-subtle: #f2efe9;
+      --bg-card: #ffffff;
+      --ink: #1c1a17;
+      --text-primary: #2f3542;
+      --text-muted: #6b6359;
+      --border-soft: rgba(28, 26, 23, 0.12);
+      --border-strong: rgba(28, 26, 23, 0.24);
+      --brand-primary: #7a1f2b;
+      --brand-soft: rgba(122, 31, 43, 0.08);
+      --action: #7a1f2b;
+      --action-fg: #ffffff;
+      --iv-wa-brand: #1ca04e;
+      --iv-wa-soft: rgba(28, 160, 78, 0.12);
+      --iv-wa-bubble: #e7fce9;
+      --iv-wa-bg: #efeae2;
+      --iv-wa-header: #075e54;
+      --warn-bg: #fff8eb;
+      --warn-fg: #8c4d03;
+      --warn-border: rgba(184, 98, 6, 0.32);
+      --danger-bg: #fef2f2;
+      --danger-fg: #991b1b;
+      --danger-border: rgba(153, 27, 27, 0.28);
+      --ok-bg: #ecfdf3;
+      --ok-fg: #146c38;
+      --ok-border: rgba(20, 108, 56, 0.26);
+      --info-bg: #eef5ff;
+      --info-fg: #1d4ed8;
+      --info-border: rgba(29, 78, 216, 0.25);
+      --shadow-card: 0 12px 34px -12px rgba(28, 26, 23, 0.10), 0 2px 6px rgba(28, 26, 23, 0.04);
+      --font-heading: 'Libre Baskerville', Georgia, serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --radius-card: 24px;
+      --radius-shell: 32px;
+      --radius-pill: 999px;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #181c26;
+      --bg-subtle: #1e2330;
+      --bg-card: #262c3b;
+      --ink: #ffffff;
+      --text-primary: #f2f0ed;
+      --text-muted: #a6b0c3;
+      --border-soft: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.24);
+      --brand-primary: #d4aeb0;
+      --brand-soft: rgba(212, 174, 176, 0.14);
+      --action: #d4aeb0;
+      --action-fg: #181c26;
+      --iv-wa-brand: #25d366;
+      --iv-wa-soft: rgba(37, 211, 102, 0.14);
+      --iv-wa-bubble: #005c4b;
+      --iv-wa-bg: #111b21;
+      --iv-wa-header: #202c33;
+      --warn-bg: rgba(245, 158, 11, 0.14);
+      --warn-fg: #fcd34d;
+      --warn-border: rgba(252, 211, 77, 0.30);
+      --danger-bg: rgba(239, 68, 68, 0.14);
+      --danger-fg: #fca5a5;
+      --danger-border: rgba(252, 165, 165, 0.32);
+      --ok-bg: rgba(37, 211, 102, 0.14);
+      --ok-fg: #86efac;
+      --ok-border: rgba(134, 239, 172, 0.30);
+      --info-bg: rgba(96, 165, 250, 0.14);
+      --info-fg: #93c5fd;
+      --info-border: rgba(147, 197, 253, 0.28);
+      --shadow-card: 0 18px 40px -12px rgba(0, 0, 0, 0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-page);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    /* Sticky Preview Toolbar + Cross-Preview Navigation */
+    .iv-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-soft);
+      backdrop-filter: blur(10px);
+    }
+    .iv-topbar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .iv-brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .iv-brand-mark img {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border-soft);
+    }
+    .iv-brand-sub {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .iv-nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .iv-nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 6px 13px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-primary);
+      border: 1px solid var(--border-soft);
+      background: var(--bg-subtle);
+      transition: all 0.15s ease;
+    }
+    .iv-nav-link:hover {
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+    .iv-nav-link.is-active {
+      background: var(--action);
+      color: var(--action-fg);
+      border-color: var(--action);
+    }
+    .iv-toolbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .iv-ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .iv-ctrl-btn.is-on {
+      background: var(--brand-soft);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+
+    /* Main Canvas */
+    .iv-page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+      transition: max-width 0.25s ease;
+    }
+    .iv-page.is-mobile-sim {
+      max-width: 390px;
+      padding: 16px 12px 56px;
+    }
+
+    /* Header Hero */
+    .iv-hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .iv-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--brand-primary);
+      background: var(--brand-soft);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(22px, 3vw, 29px);
+      line-height: 1.2;
+      margin: 0 0 8px;
+      color: var(--ink);
+    }
+    .iv-lead {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 700px;
+    }
+
+    /* Safe Mode + Contract Banners */
+    .iv-banner-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .iv-page.is-mobile-sim .iv-banner-row {
+      grid-template-columns: 1fr;
+    }
+    .iv-callout {
+      padding: 13px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-card);
+      font-size: 13px;
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+    }
+    .iv-callout.is-testmode {
+      background: var(--iv-wa-soft);
+      border-color: var(--ok-border);
+    }
+    .iv-callout.is-replace {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-fg);
+    }
+    .iv-callout strong { display: block; font-size: 13px; margin-bottom: 2px; }
+    .iv-badge-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--iv-wa-brand);
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    /* Composer Split Grid */
+    .iv-workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+    .iv-page.is-mobile-sim .iv-workspace-grid {
+      grid-template-columns: 1fr;
+    }
+    @media (max-width: 920px) {
+      .iv-workspace-grid { grid-template-columns: 1fr; }
+    }
+
+    .iv-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 22px;
+    }
+    .iv-page.is-mobile-sim .iv-card {
+      padding: 16px;
+      border-radius: 20px;
+    }
+    .iv-card-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .iv-card-title {
+      font-family: var(--font-heading);
+      font-size: 19px;
+      margin: 0;
+    }
+    .iv-card-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 3px 0 0;
+    }
+
+    /* Mode Segmented Switch */
+    .iv-segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 14px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      margin-bottom: 16px;
+    }
+    .iv-page.is-mobile-sim .iv-segmented {
+      grid-template-columns: 1fr;
+    }
+    .iv-seg-btn {
+      min-height: 44px;
+      padding: 8px 12px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .iv-seg-btn.is-active {
+      background: var(--bg-card);
+      color: var(--ink);
+      border-color: var(--border-strong);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* Form Controls (>= 48px trucker targets) */
+    .iv-field { margin-bottom: 15px; }
+    .iv-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--ink);
+    }
+    .iv-label-hint {
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .iv-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--bg-page);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .iv-input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+    .iv-input[readonly] {
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+    }
+    .iv-help {
+      margin: 5px 0 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Role Radio Cards */
+    .iv-role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .iv-page.is-mobile-sim .iv-role-grid {
+      grid-template-columns: 1fr;
+    }
+    .iv-role-card {
+      position: relative;
+      display: block;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border-soft);
+      background: var(--bg-page);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .iv-role-card:hover { border-color: var(--brand-primary); }
+    .iv-role-card.is-selected {
+      border-color: var(--brand-primary);
+      background: var(--brand-soft);
+    }
+    .iv-role-card input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .iv-role-name {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .iv-role-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--warn-bg);
+      color: var(--warn-fg);
+      border: 1px solid var(--warn-border);
+    }
+    .iv-role-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Rekey Explanatory Box */
+    .iv-rekey-notice {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+      color: var(--info-fg);
+      font-size: 12.5px;
+      margin-bottom: 14px;
+    }
+    .is-hidden { display: none !important; }
+
+    /* Form Footer */
+    .iv-privacy-note {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      border: 1px dashed var(--border-strong);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .iv-btn-primary {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: none;
+      background: var(--action);
+      color: var(--action-fg);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s ease, opacity 0.15s ease;
+    }
+    .iv-btn-primary:hover { opacity: 0.94; }
+    .iv-btn-primary:active { transform: translateY(1px); }
+
+    .iv-flash {
+      margin-top: 14px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--ok-border);
+      background: var(--ok-bg);
+      color: var(--ok-fg);
+      font-size: 13px;
+    }
+    .iv-flash code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Right Column: Authentic WhatsApp Phone Mockup */
+    .iv-wa-phone {
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      background: var(--iv-wa-bg);
+      box-shadow: var(--shadow-card);
+    }
+    .iv-wa-header {
+      background: var(--iv-wa-header);
+      color: #ffffff;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .iv-wa-contact {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .iv-wa-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #075e54;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .iv-wa-name { font-weight: 700; font-size: 14px; display: block; }
+    .iv-wa-status { font-size: 11.5px; opacity: 0.88; font-family: var(--font-mono); }
+    .iv-wa-stage {
+      padding: 18px 16px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .iv-wa-daychip {
+      align-self: center;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.22);
+      color: #ffffff;
+    }
+    .iv-wa-bubble {
+      background: var(--iv-wa-bubble);
+      color: var(--ink);
+      border-radius: 14px 14px 14px 4px;
+      padding: 13px 15px;
+      max-width: 94%;
+      font-size: 13.5px;
+      line-height: 1.52;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+      white-space: pre-line;
+    }
+    [data-theme="dark"] .iv-wa-bubble { color: #f2f0ed; }
+    .iv-wa-linkbox {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(28, 160, 78, 0.12);
+      border: 1px dashed var(--iv-wa-brand);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      word-break: break-all;
+      color: var(--iv-wa-brand);
+      font-weight: 600;
+    }
+    .iv-wa-meta {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: 0.72;
+      font-family: var(--font-mono);
+    }
+    .iv-pipeline {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      font-size: 12px;
+    }
+    .iv-pipeline-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--ink);
+    }
+    .iv-pipeline ol {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-muted);
+    }
+    .iv-pipeline li { margin-bottom: 3px; }
+
+    /* Tables & Responsive Invitations List */
+    .iv-section { margin-bottom: 24px; }
+    .iv-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .iv-chip-btn {
+      min-height: 36px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-soft);
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .iv-chip-btn.is-active {
+      background: var(--action);
+      color: var(--action-fg);
+      border-color: var(--action);
+    }
+
+    .iv-table-wrap {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+    }
+    table.iv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 720px;
+    }
+    table.iv-table th {
+      text-align: left;
+      padding: 11px 14px;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    table.iv-table td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: middle;
+    }
+    table.iv-table tr:last-child td { border-bottom: none; }
+    .iv-mono { font-family: var(--font-mono); font-size: 12.5px; }
+
+    /* Mobile Cards Fallback */
+    .iv-cards-mobile { display: none; gap: 12px; flex-direction: column; }
+    .iv-page.is-mobile-sim .iv-table-wrap { display: none; }
+    .iv-page.is-mobile-sim .iv-cards-mobile { display: flex; }
+    @media (max-width: 768px) {
+      .iv-table-wrap { display: none; }
+      .iv-cards-mobile { display: flex; }
+    }
+    .iv-mcard {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-page);
+    }
+    .iv-mcard-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .iv-mcard-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* Status Badges & Action Buttons */
+    .iv-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .iv-status.is-ok { background: var(--ok-bg); color: var(--ok-fg); border-color: var(--ok-border); }
+    .iv-status.is-info { background: var(--info-bg); color: var(--info-fg); border-color: var(--info-border); }
+    .iv-status.is-warn { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-border); }
+    .iv-status.is-danger { background: var(--danger-bg); color: var(--danger-fg); border-color: var(--danger-border); }
+    .iv-status.is-muted { background: var(--bg-subtle); color: var(--text-muted); border-color: var(--border-soft); }
+
+    .iv-subbadge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--warn-fg);
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 8px;
+      padding: 2px 8px;
+    }
+
+    .iv-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .iv-btn-sm {
+      min-height: 38px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .iv-btn-sm:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+    .iv-btn-sm.is-accent {
+      background: var(--brand-soft);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+    }
+    .iv-btn-sm.is-danger {
+      color: var(--danger-fg);
+      border-color: var(--danger-border);
+      background: var(--danger-bg);
+    }
+
+    /* Admin Step 4 Showcase Card */
+    .iv-step4-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .iv-page.is-mobile-sim .iv-step4-grid { grid-template-columns: 1fr; }
+    @media (max-width: 780px) { .iv-step4-grid { grid-template-columns: 1fr; } }
+
+    .iv-desk-preview {
+      border: 1px dashed var(--border-strong);
+      border-radius: 18px;
+      padding: 18px;
+      background: var(--bg-page);
+    }
+    .iv-desk-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .iv-desk-seal {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--brand-primary);
+      color: var(--action-fg);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .iv-audit-log {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--bg-subtle);
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      max-height: 190px;
+      overflow-y: auto;
+    }
+    .iv-audit-line {
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border-soft);
+    }
+    .iv-audit-line:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <header class="iv-topbar">
+    <div class="iv-topbar-inner">
+      <a class="iv-brand-mark" href="/abrn/previews/onboarding-whatsapp.html">
+        <img src="/abrn/abrn-logo.png" alt="ABRN" />
+        <span>
+          ABRN Drive · Previews Onboarding
+          <span class="iv-brand-sub">ABRN Asesores · Un solo despacho (Single-tenant)</span>
+        </span>
+      </a>
+
+      <nav class="iv-nav-links" aria-label="Vistas del flujo de onboarding">
+        <a class="iv-nav-link" href="/abrn/previews/onboarding-whatsapp.html">1. Invitado y Mensajes</a>
+        <a class="iv-nav-link is-active" href="/abrn/previews/onboarding-admin-consola.html">2. Consola Admin y Re-key</a>
+        <a class="iv-nav-link" href="/abrn/previews/onboarding-cli-y-recuperacion.html">3. CLI PIN, Dispositivo y Recuperación</a>
+      </nav>
+
+      <div class="iv-toolbar-controls">
+        <button type="button" class="iv-ctrl-btn" id="btnTheme">Tema: ABRN Cream</button>
+        <button type="button" class="iv-ctrl-btn" id="btnViewport">Vista: Escritorio</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="iv-page" id="ivPage">
+    <section class="iv-hero">
+      <div>
+        <span class="iv-eyebrow">Preview 2 de 3 · Módulo /admin → Usuarios y Accesos</span>
+        <h1>Consola Admin: Invitar por WhatsApp y Re-key de cuentas</h1>
+        <p class="iv-lead">
+          Sustituye el alta heredada con contraseña escrita por el administrador (<code>POST /api/admin/users</code>) por invitaciones de un solo uso con código de 6 dígitos en WhatsApp y vista previa en vivo.
+        </p>
+      </div>
+    </section>
+
+    <section class="iv-banner-row" aria-label="Estado operativo del contrato">
+      <div class="iv-callout is-testmode">
+        <span class="iv-badge-dot" aria-hidden="true"></span>
+        <div>
+          <strong>Modo prueba: los avisos sólo salen a los teléfonos en tu lista segura</strong>
+          Canal conectado: instancia Green API autorizada · Remitente verificado <code>55 •••• 0121</code> (enmascarado en pantalla; tokens protegidos fuera del repo).
+        </div>
+      </div>
+      <div class="iv-callout is-replace">
+        <div>
+          <strong>Sin contraseñas compartidas entre admin y usuario</strong>
+          Cada miembro escribe su propia frase secreta (10–72 bytes) y conserva su privacidad criptográfica Zero-Knowledge en ABRN Drive.
+        </div>
+      </div>
+    </section>
+
+    <!-- Composer Split Grid -->
+    <section class="iv-workspace-grid" data-iv-invite="true">
+      <div class="iv-card">
+        <div class="iv-card-head">
+          <div>
+            <h2 class="iv-card-title" id="composerHeading">Invitar a alguien</h2>
+            <p class="iv-card-sub" id="composerSub">Crea cuenta nueva o renueva acceso existente sin revelar contraseñas.</p>
+          </div>
+          <span class="iv-status is-info" id="modeBadge">Alta nueva</span>
+        </div>
+
+        <div class="iv-segmented" role="tablist" aria-label="Modo de envío">
+          <button type="button" class="iv-seg-btn is-active" id="modeNewBtn" data-mode="new">Cuenta nueva</button>
+          <button type="button" class="iv-seg-btn" id="modeRekeyBtn" data-mode="rekey">Mandar enlace (re-key existente)</button>
+        </div>
+
+        <div class="iv-rekey-notice is-hidden" id="rekeyNotice">
+          <strong>Modo Mandar enlace (Re-key):</strong> la persona ya existe en ABRN Asesores. Al confirmar, incrementará su <code>session_version</code> (cierra sesiones previas) y definirá su nueva clave personal; sus archivos históricos requerirán su clave de recuperación si olvidó la anterior.
+        </div>
+
+        <form id="inviteForm" autocomplete="off">
+          <div class="iv-field">
+            <label class="iv-label" for="inpName">
+              Nombre completo
+              <span class="iv-label-hint">Visible en carpeta compartida</span>
+            </label>
+            <input class="iv-input" id="inpName" type="text" value="Sofía Domínguez" placeholder="Ej. Sofía Domínguez" required />
+          </div>
+
+          <div class="iv-field">
+            <label class="iv-label" for="inpPhone">
+              WhatsApp (10 dígitos México)
+              <span class="iv-label-hint" id="maskedOutHint">En pantalla: 55 •••• 0419</span>
+            </label>
+            <input class="iv-input iv-mono" id="inpPhone" type="tel" value="55 0000 0419" placeholder="55 0000 0419" required />
+            <p class="iv-help">Se normaliza internamente a E.164 (<code>521...</code>) y en logs o recibos sólo mostramos los últimos 4 dígitos.</p>
+          </div>
+
+          <div class="iv-field">
+            <span class="iv-label">
+              Rol en ABRN Asesores
+              <span class="iv-label-hint">Sin Superadmin (despacho único)</span>
+            </span>
+            <div class="iv-role-grid">
+              <label class="iv-role-card is-selected" id="roleCardColab">
+                <input type="radio" name="role" value="colaborador" checked />
+                <span class="iv-role-name">Colaborador</span>
+                <span class="iv-role-desc">Accede a bóvedas asignadas, sube documentos, sella SHA-256 y genera enlaces de descarga.</span>
+              </label>
+              <label class="iv-role-card" id="roleCardAdmin">
+                <input type="radio" name="role" value="admin" />
+                <span class="iv-role-name">
+                  Administrador
+                  <span class="iv-role-pill">Con alerta de acceso</span>
+                </span>
+                <span class="iv-role-desc">Gestiona usuarios, auditoría y cuotas. Cada navegador nuevo pide código WhatsApp y notifica al dueño.</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="iv-privacy-note">
+            El enlace se crea al enviarlo y nadie más lo ve: ni tú. En base de datos sólo se guarda <code>sha256(token)</code>.
+          </div>
+
+          <button type="submit" class="iv-btn-primary" id="submitInviteBtn">
+            Enviar invitación por WhatsApp
+          </button>
+
+          <div class="iv-flash is-hidden" id="sendFlash" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <!-- Right Column: Live WhatsApp Preview -->
+      <div>
+        <div class="iv-wa-phone" aria-label="Vista previa en tiempo real de WhatsApp">
+          <div class="iv-wa-header">
+            <div class="iv-wa-contact">
+              <div class="iv-wa-avatar" aria-hidden="true">AB</div>
+              <div>
+                <span class="iv-wa-name">ABRN Asesores · Acceso Seguro</span>
+                <span class="iv-wa-status">WhatsApp oficial · 55 •••• 0121</span>
+              </div>
+            </div>
+            <span class="iv-status is-ok">Vista previa</span>
+          </div>
+
+          <div class="iv-wa-stage">
+            <span class="iv-wa-daychip">Así llega a <span id="waTargetMask">55 •••• 0419</span></span>
+            <div class="iv-wa-bubble" id="waPreviewBubble"></div>
+            <div class="iv-wa-meta">
+              <span>Modo seguro WHATSAPP_ONLY_TO</span>
+              <span>✓✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="iv-pipeline">
+          <div class="iv-pipeline-title">Garantía de orden al oprimir «Enviar» (<code>AccessDb::send</code>)</div>
+          <ol>
+            <li>Verifica autorización en <code>WHATSAPP_ONLY_TO</code> antes de tocar producción.</li>
+            <li>Inserta fila en <code>invitations</code> con <code>token_hash = sha256(token)</code>.</li>
+            <li>Envía el mensaje con <code>#token</code> en fragmento (nunca en logs Apache).</li>
+            <li>Si falla el canal WhatsApp, revoca el registro al instante — cero enlaces huérfanos.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Invitations Queue -->
+    <section class="iv-card iv-section" aria-labelledby="queueHeading">
+      <div class="iv-card-head">
+        <div>
+          <h2 class="iv-card-title" id="queueHeading">Lista de invitaciones</h2>
+          <p class="iv-card-sub">Seguimiento accionable sin revelar nunca el token secreto ni la clave en claro.</p>
+        </div>
+        <div class="iv-filter-bar" role="group" aria-label="Filtrar invitaciones">
+          <button type="button" class="iv-chip-btn is-active" data-filter="all">Todas (<span id="countAll">5</span>)</button>
+          <button type="button" class="iv-chip-btn" data-filter="pending">Pendientes</button>
+          <button type="button" class="iv-chip-btn" data-filter="alert">Con alertas</button>
+        </div>
+      </div>
+
+      <div class="iv-table-wrap">
+        <table class="iv-table">
+          <thead>
+            <tr>
+              <th>Folio / Persona</th>
+              <th>WhatsApp</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="invitationsTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="iv-cards-mobile" id="invitationsCardsMobile"></div>
+    </section>
+
+    <!-- Current Team with Mandar enlace (re-key) -->
+    <section class="iv-card iv-section" aria-labelledby="teamHeading">
+      <div class="iv-card-head">
+        <div>
+          <h2 class="iv-card-title" id="teamHeading">Equipo actual — Migrar o renovar acceso («Mandar enlace»)</h2>
+          <p class="iv-card-sub">Para cuentas previas a WhatsApp o miembros que necesitan renovar acceso sin perder su usuario.</p>
+        </div>
+      </div>
+
+      <div class="iv-table-wrap">
+        <table class="iv-table">
+          <thead>
+            <tr>
+              <th>Miembro</th>
+              <th>WhatsApp confirmado</th>
+              <th>Rol</th>
+              <th>Seguridad de sesión</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="teamTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="iv-cards-mobile" id="teamCardsMobile"></div>
+    </section>
+
+    <!-- Step 4 Admin Perspective + Live Event Audit -->
+    <section class="iv-step4-grid">
+      <div class="iv-card">
+        <div class="iv-card-head">
+          <div>
+            <h2 class="iv-card-title">Paso 4 Admin: «Así ven tu despacho»</h2>
+            <p class="iv-card-sub">La tarjeta de identidad que valida el nuevo administrador al cerrar su alta.</p>
+          </div>
+          <span class="iv-status is-ok">Identidad verificada</span>
+        </div>
+
+        <div class="iv-desk-preview">
+          <div class="iv-desk-header">
+            <div class="iv-desk-seal" aria-hidden="true">AB</div>
+            <div>
+              <strong>ABRN Asesores · Bóveda Cifrada</strong>
+              <div class="iv-card-sub">Remitente WhatsApp oficial: <span class="iv-mono">55 •••• 0121</span></div>
+            </div>
+          </div>
+          <p class="iv-help">
+            Tus invitados ven el nombre del despacho <strong>ABRN Asesores</strong>, el origen verificado de tus alertas y nunca necesitan contraseña dictada por teléfono o chat.
+          </p>
+        </div>
+      </div>
+
+      <div class="iv-card">
+        <div class="iv-card-head">
+          <div>
+            <h2 class="iv-card-title">Bitácora de consola (en vivo)</h2>
+            <p class="iv-card-sub">Cada clic en esta maqueta deja rastro inmediato aquí para validar estados.</p>
+          </div>
+        </div>
+        <div class="iv-audit-log" id="auditLog" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var state = {
+        theme: 'light',
+        mobile: false,
+        mode: 'new', // 'new' | 'rekey'
+        filter: 'all',
+        nextSeq: 5,
+        invitations: [
+          {
+            id: 'INV-0004',
+            name: 'Diego Morales',
+            rawPhone: '5500008812',
+            masked: '55 •••• 8812',
+            role: 'Colaborador',
+            kind: 'Alta nueva',
+            status: 'open_otp',
+            badgeText: 'Abierta · falta el código',
+            badgeClass: 'is-info',
+            subBadge: '',
+            actions: ['resend', 'cancel']
+          },
+          {
+            id: 'INV-0003',
+            name: 'Valeria Cruz',
+            rawPhone: '5500003904',
+            masked: '55 •••• 3904',
+            role: 'Administrador',
+            kind: 'Alta nueva',
+            status: 'sent_retry',
+            badgeText: 'Enviada · sin abrir',
+            badgeClass: 'is-warn',
+            subBadge: 'Pidió uno nuevo · 3 intentos restantes',
+            actions: ['resend', 'cancel']
+          },
+          {
+            id: 'INV-0002',
+            name: 'Carlos Ortega',
+            rawPhone: '5500007741',
+            masked: '55 •••• 7741',
+            role: 'Colaborador',
+            kind: 'Alta nueva',
+            status: 'not_me',
+            badgeText: 'Alguien dijo «no fui yo»',
+            badgeClass: 'is-danger',
+            subBadge: 'Sesión previa bloqueada · revisar teléfono',
+            actions: ['reissue', 'cancel']
+          },
+          {
+            id: 'INV-0001',
+            name: 'Elena Ríos',
+            rawPhone: '5500001158',
+            masked: '55 •••• 1158',
+            role: 'Colaborador',
+            kind: 'Alta nueva',
+            status: 'accepted',
+            badgeText: 'Aceptada · hoy 10:28',
+            badgeClass: 'is-ok',
+            subBadge: '',
+            actions: ['rekey_from_row']
+          },
+          {
+            id: 'INV-0000',
+            name: 'Mauricio Vega',
+            rawPhone: '5500006209',
+            masked: '55 •••• 6209',
+            role: 'Colaborador',
+            kind: 'Alta nueva',
+            status: 'expired',
+            badgeText: 'Venció · jue 12 nov',
+            badgeClass: 'is-muted',
+            subBadge: 'Enlace expirado a las 72 h',
+            actions: ['reissue']
+          }
+        ],
+        team: [
+          {
+            id: 'USR-01',
+            name: 'Alejandro Bravo',
+            rawPhone: '5500000121',
+            masked: '55 •••• 0121',
+            role: 'Administrador (Dueño)',
+            security: 'WhatsApp activo · Dispositivo confiable vigente',
+            migrated: true
+          },
+          {
+            id: 'USR-02',
+            name: 'Elena Ríos',
+            rawPhone: '5500001158',
+            masked: '55 •••• 1158',
+            role: 'Colaborador',
+            security: 'WhatsApp confirmado hoy 10:28 · session_version 2',
+            migrated: true
+          },
+          {
+            id: 'USR-03',
+            name: 'Despacho Contable Norte',
+            rawPhone: '5500004420',
+            masked: '55 •••• 4420',
+            role: 'Colaborador',
+            security: 'Cuenta previa (password heredado) · lista para Mandar enlace',
+            migrated: false
+          }
+        ],
+        logs: [
+          '10:28 · INV-0001 Elena Ríos completó Paso 6 y selló session_version=2.',
+          '10:34 · INV-0002 marcó alerta «no fui yo» — token invalidado al instante.',
+          '10:41 · INV-0003 solicitó nuevo código OTP (cooldown 45 s respetado).'
+        ]
+      };
+
+      var els = {
+        html: document.documentElement,
+        page: document.getElementById('ivPage'),
+        btnTheme: document.getElementById('btnTheme'),
+        btnViewport: document.getElementById('btnViewport'),
+        modeNewBtn: document.getElementById('modeNewBtn'),
+        modeRekeyBtn: document.getElementById('modeRekeyBtn'),
+        modeBadge: document.getElementById('modeBadge'),
+        composerHeading: document.getElementById('composerHeading'),
+        composerSub: document.getElementById('composerSub'),
+        rekeyNotice: document.getElementById('rekeyNotice'),
+        inpName: document.getElementById('inpName'),
+        inpPhone: document.getElementById('inpPhone'),
+        maskedOutHint: document.getElementById('maskedOutHint'),
+        roleCardColab: document.getElementById('roleCardColab'),
+        roleCardAdmin: document.getElementById('roleCardAdmin'),
+        submitInviteBtn: document.getElementById('submitInviteBtn'),
+        sendFlash: document.getElementById('sendFlash'),
+        waTargetMask: document.getElementById('waTargetMask'),
+        waPreviewBubble: document.getElementById('waPreviewBubble'),
+        invTable: document.getElementById('invitationsTableBody'),
+        invCards: document.getElementById('invitationsCardsMobile'),
+        teamTable: document.getElementById('teamTableBody'),
+        teamCards: document.getElementById('teamCardsMobile'),
+        countAll: document.getElementById('countAll'),
+        auditLog: document.getElementById('auditLog'),
+        inviteForm: document.getElementById('inviteForm')
+      };
+
+      function digitsOnly(val) {
+        return String(val || '').replace(/\D+/g, '');
+      }
+
+      function maskPhone(val) {
+        var d = digitsOnly(val);
+        if (d.length < 4) return '55 •••• ••••';
+        var last4 = d.slice(-4);
+        var prefix = d.length >= 10 ? d.slice(0, 2) : '55';
+        return prefix + ' •••• ' + last4;
+      }
+
+      function selectedRole() {
+        var checked = document.querySelector('input[name="role"]:checked');
+        return checked ? checked.value : 'colaborador';
+      }
+
+      function pushLog(msg) {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        state.logs.unshift(hh + ':' + mm + ' · ' + msg);
+        renderLogs();
+      }
+
+      function renderLogs() {
+        els.auditLog.innerHTML = state.logs.map(function (line) {
+          return '<div class="iv-audit-line">' + escapeHtml(line) + '</div>';
+        }).join('');
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function updateWhatsAppPreview() {
+        var name = (els.inpName.value || '').trim() || 'Sofía Domínguez';
+        var firstName = name.split(/\s+/)[0] || name;
+        var masked = maskPhone(els.inpPhone.value);
+        var role = selectedRole();
+        var roleLabel = role === 'admin' ? 'Administrador (con alertas de acceso)' : 'Colaborador';
+
+        els.maskedOutHint.textContent = 'En pantalla: ' + masked;
+        els.waTargetMask.textContent = masked;
+
+        var bodyText = '';
+        if (state.mode === 'rekey') {
+          bodyText =
+            'Hola ' + firstName + ', el equipo de *ABRN Asesores* te mandó un nuevo enlace de acceso en *ABRN Drive*.\n\n' +
+            'Al abrirlo definirás tu nueva contraseña personal y cerraremos cualquier sesión abierta en otros navegadores.\n' +
+            'Rol asignado: ' + roleLabel + ' · Vigencia: 72 horas.';
+        } else {
+          bodyText =
+            'Hola ' + firstName + ', *ABRN Asesores* te invita a usar *ABRN Drive*.\n\n' +
+            'Rol: ' + roleLabel + '. Abre este enlace único para confirmar tu teléfono con un código de 6 dígitos y crear tu propia contraseña (nadie más la conocerá).\n' +
+            'Vigencia: 72 horas.';
+        }
+
+        els.waPreviewBubble.innerHTML =
+          escapeHtml(bodyText) +
+          '<div class="iv-wa-linkbox">https://abrndrive.filemonprime.net/abrn/invitacion/#token-de-un-solo-uso</div>';
+      }
+
+      function setMode(mode) {
+        state.mode = mode;
+        els.modeNewBtn.classList.toggle('is-active', mode === 'new');
+        els.modeRekeyBtn.classList.toggle('is-active', mode === 'rekey');
+        els.rekeyNotice.classList.toggle('is-hidden', mode !== 'rekey');
+
+        if (mode === 'rekey') {
+          els.composerHeading.textContent = 'Mandar enlace — cuenta existente (re-key)';
+          els.composerSub.textContent = 'Renueva el acceso de un usuario ya registrado incrementando su session_version.';
+          els.modeBadge.textContent = 'Re-key existente';
+          els.modeBadge.className = 'iv-status is-warn';
+          els.submitInviteBtn.textContent = 'Mandar enlace de renovación por WhatsApp';
+        } else {
+          els.composerHeading.textContent = 'Invitar a alguien';
+          els.composerSub.textContent = 'Crea cuenta nueva o renueva acceso existente sin revelar contraseñas.';
+          els.modeBadge.textContent = 'Alta nueva';
+          els.modeBadge.className = 'iv-status is-info';
+          els.submitInviteBtn.textContent = 'Enviar invitación por WhatsApp';
+        }
+        updateWhatsAppPreview();
+      }
+
+      function filteredInvitations() {
+        return state.invitations.filter(function (row) {
+          if (state.filter === 'pending') {
+            return row.status === 'open_otp' || row.status === 'sent_retry';
+          }
+          if (state.filter === 'alert') {
+            return row.status === 'not_me' || row.status === 'expired';
+          }
+          return true;
+        });
+      }
+
+      function actionBtnHtml(actionKey, id) {
+        if (actionKey === 'resend') {
+          return '<button type="button" class="iv-btn-sm is-accent" data-act="resend" data-id="' + id + '">Reenviar</button>';
+        }
+        if (actionKey === 'cancel') {
+          return '<button type="button" class="iv-btn-sm is-danger" data-act="cancel" data-id="' + id + '">Cancelar</button>';
+        }
+        if (actionKey === 'reissue') {
+          return '<button type="button" class="iv-btn-sm is-accent" data-act="reissue" data-id="' + id + '">Mandar otra</button>';
+        }
+        if (actionKey === 'rekey_from_row') {
+          return '<button type="button" class="iv-btn-sm" data-act="rekey_from_row" data-id="' + id + '">Mandar enlace</button>';
+        }
+        return '';
+      }
+
+      function renderInvitations() {
+        els.countAll.textContent = String(state.invitations.length);
+        var list = filteredInvitations();
+
+        els.invTable.innerHTML = list.map(function (row) {
+          var sub = row.subBadge ? '<div class="iv-subbadge">' + escapeHtml(row.subBadge) + '</div>' : '';
+          var acts = row.actions.map(function (a) { return actionBtnHtml(a, row.id); }).join('');
+          return (
+            '<tr>' +
+              '<td><strong>' + escapeHtml(row.name) + '</strong><div class="iv-mono">' + escapeHtml(row.id) + ' · ' + escapeHtml(row.kind) + '</div></td>' +
+              '<td class="iv-mono">' + escapeHtml(row.masked) + '</td>' +
+              '<td>' + escapeHtml(row.role) + '</td>' +
+              '<td><span class="iv-status ' + row.badgeClass + '">' + escapeHtml(row.badgeText) + '</span>' + sub + '</td>' +
+              '<td><div class="iv-actions">' + acts + '</div></td>' +
+            '</tr>'
+          );
+        }).join('');
+
+        els.invCards.innerHTML = list.map(function (row) {
+          var sub = row.subBadge ? '<div class="iv-subbadge">' + escapeHtml(row.subBadge) + '</div>' : '';
+          var acts = row.actions.map(function (a) { return actionBtnHtml(a, row.id); }).join('');
+          return (
+            '<div class="iv-mcard">' +
+              '<div class="iv-mcard-top">' +
+                '<div><strong>' + escapeHtml(row.name) + '</strong><div class="iv-mono">' + escapeHtml(row.id) + ' · ' + escapeHtml(row.masked) + '</div></div>' +
+                '<span class="iv-status ' + row.badgeClass + '">' + escapeHtml(row.badgeText) + '</span>' +
+              '</div>' +
+              '<div class="iv-help">' + escapeHtml(row.role) + ' · ' + escapeHtml(row.kind) + '</div>' +
+              sub +
+              '<div class="iv-mcard-actions">' + acts + '</div>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      function renderTeam() {
+        els.teamTable.innerHTML = state.team.map(function (m) {
+          return (
+            '<tr>' +
+              '<td><strong>' + escapeHtml(m.name) + '</strong><div class="iv-mono">' + escapeHtml(m.id) + '</div></td>' +
+              '<td class="iv-mono">' + escapeHtml(m.masked) + '</td>' +
+              '<td>' + escapeHtml(m.role) + '</td>' +
+              '<td><span class="iv-status ' + (m.migrated ? 'is-ok' : 'is-warn') + '">' + escapeHtml(m.security) + '</span></td>' +
+              '<td><button type="button" class="iv-btn-sm is-accent" data-team-rekey="' + m.id + '">Mandar enlace</button></td>' +
+            '</tr>'
+          );
+        }).join('');
+
+        els.teamCards.innerHTML = state.team.map(function (m) {
+          return (
+            '<div class="iv-mcard">' +
+              '<div class="iv-mcard-top">' +
+                '<div><strong>' + escapeHtml(m.name) + '</strong><div class="iv-mono">' + escapeHtml(m.masked) + '</div></div>' +
+                '<span class="iv-status ' + (m.migrated ? 'is-ok' : 'is-warn') + '">' + escapeHtml(m.role) + '</span>' +
+              '</div>' +
+              '<div class="iv-help">' + escapeHtml(m.security) + '</div>' +
+              '<div class="iv-mcard-actions"><button type="button" class="iv-btn-sm is-accent" data-team-rekey="' + m.id + '">Mandar enlace</button></div>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      function triggerRekeyPrefill(name, rawPhone, roleText) {
+        setMode('rekey');
+        els.inpName.value = name;
+        els.inpPhone.value = rawPhone.replace(/(\d{2})(\d{4})(\d{4})/, '$1 $2 $3');
+        var isAdmin = /Admin/i.test(roleText);
+        document.querySelector('input[name="role"][value="' + (isAdmin ? 'admin' : 'colaborador') + '"]').checked = true;
+        els.roleCardColab.classList.toggle('is-selected', !isAdmin);
+        els.roleCardAdmin.classList.toggle('is-selected', isAdmin);
+        updateWhatsAppPreview();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        pushLog('Formulario precargado para Mandar enlace (re-key) a ' + name + ' (' + maskPhone(rawPhone) + ').');
+      }
+
+      // Wire events
+      els.btnTheme.addEventListener('click', function () {
+        state.theme = state.theme === 'light' ? 'dark' : 'light';
+        els.html.setAttribute('data-theme', state.theme);
+        els.btnTheme.textContent = state.theme === 'light' ? 'Tema: ABRN Cream' : 'Tema: ABRN Slate';
+      });
+
+      els.btnViewport.addEventListener('click', function () {
+        state.mobile = !state.mobile;
+        els.page.classList.toggle('is-mobile-sim', state.mobile);
+        els.btnViewport.classList.toggle('is-on', state.mobile);
+        els.btnViewport.textContent = state.mobile ? 'Vista: Móvil 390px' : 'Vista: Escritorio';
+      });
+
+      els.modeNewBtn.addEventListener('click', function () { setMode('new'); });
+      els.modeRekeyBtn.addEventListener('click', function () { setMode('rekey'); });
+      els.inpName.addEventListener('input', updateWhatsAppPreview);
+      els.inpPhone.addEventListener('input', updateWhatsAppPreview);
+
+      document.querySelectorAll('input[name="role"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          var isAdmin = radio.value === 'admin' && radio.checked;
+          els.roleCardColab.classList.toggle('is-selected', !isAdmin);
+          els.roleCardAdmin.classList.toggle('is-selected', isAdmin);
+          updateWhatsAppPreview();
+        });
+      });
+
+      document.querySelectorAll('[data-filter]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          state.filter = btn.getAttribute('data-filter');
+          document.querySelectorAll('[data-filter]').forEach(function (b) {
+            b.classList.toggle('is-active', b === btn);
+          });
+          renderInvitations();
+        });
+      });
+
+      els.inviteForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var name = (els.inpName.value || '').trim();
+        var raw = digitsOnly(els.inpPhone.value);
+        if (!name || raw.length < 10) {
+          els.sendFlash.classList.remove('is-hidden');
+          els.sendFlash.innerHTML = 'Verifica un nombre válido y 10 dígitos de WhatsApp.';
+          return;
+        }
+        var seqId = 'INV-' + String(state.nextSeq).padStart(4, '0');
+        state.nextSeq += 1;
+        var masked = maskPhone(raw);
+        var roleLabel = selectedRole() === 'admin' ? 'Administrador' : 'Colaborador';
+        var kindLabel = state.mode === 'rekey' ? 'Mandar enlace (re-key)' : 'Alta nueva';
+
+        state.invitations.unshift({
+          id: seqId,
+          name: name,
+          rawPhone: raw,
+          masked: masked,
+          role: roleLabel,
+          kind: kindLabel,
+          status: 'sent_retry',
+          badgeText: 'Enviada · recién emitida',
+          badgeClass: 'is-info',
+          subBadge: 'Vence en 72 h · Modo prueba seguro',
+          actions: ['resend', 'cancel']
+        });
+
+        renderInvitations();
+        els.sendFlash.classList.remove('is-hidden');
+        els.sendFlash.innerHTML =
+          '<strong>Invitación <code>' + seqId + '</code> enviada por WhatsApp</strong><br />' +
+          'Destinatario: ' + escapeHtml(name) + ' · Teléfono: <code>' + masked + '</code> · ' + escapeHtml(kindLabel) + '. ' +
+          'El token secreto salió directo al chat y no se muestra en consola.';
+        pushLog(seqId + ' (' + kindLabel + ') enviada a ' + name + ' [' + masked + '].');
+      });
+
+      document.addEventListener('click', function (e) {
+        var actBtn = e.target.closest('[data-act]');
+        if (actBtn) {
+          var id = actBtn.getAttribute('data-id');
+          var act = actBtn.getAttribute('data-act');
+          var row = state.invitations.find(function (r) { return r.id === id; });
+          if (!row) return;
+
+          if (act === 'resend') {
+            row.badgeText = 'Reenviada · hace unos segundos';
+            row.badgeClass = 'is-info';
+            row.subBadge = 'Nuevo enlace emitido · anterior revocado';
+            pushLog(id + ' reenviada a ' + row.name + ' (' + row.masked + '); enlace previo invalidado.');
+            renderInvitations();
+          } else if (act === 'cancel') {
+            row.status = 'expired';
+            row.badgeText = 'Cancelada por admin';
+            row.badgeClass = 'is-danger';
+            row.subBadge = 'Token y código bloqueados';
+            row.actions = ['reissue'];
+            pushLog(id + ' cancelada manualmente; SHA-256 revocado.');
+            renderInvitations();
+          } else if (act === 'reissue') {
+            row.status = 'open_otp';
+            row.badgeText = 'Enviada · reemplazo activo';
+            row.badgeClass = 'is-info';
+            row.subBadge = 'Vigencia renovada por 72 h';
+            row.actions = ['resend', 'cancel'];
+            pushLog('Se emitió reemplazo limpio para ' + row.name + ' desde ' + id + '.');
+            renderInvitations();
+          } else if (act === 'rekey_from_row') {
+            triggerRekeyPrefill(row.name, row.rawPhone, row.role);
+          }
+          return;
+        }
+
+        var teamBtn = e.target.closest('[data-team-rekey]');
+        if (teamBtn) {
+          var tid = teamBtn.getAttribute('data-team-rekey');
+          var member = state.team.find(function (m) { return m.id === tid; });
+          if (member) {
+            triggerRekeyPrefill(member.name, member.rawPhone, member.role);
+          }
+        }
+      });
+
+      updateWhatsAppPreview();
+      renderInvitations();
+      renderTeam();
+      renderLogs();
+    })();
+  </script>
+</body>
+</html>
