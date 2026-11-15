@@ -32,14 +32,18 @@ BINARY_TARGET = Path("/usr/local/lib/abrndrive/abrndrive")
 DIST_TARGET = Path("/lamp/www/ABRN-Drive/vaultdrive_client/dist")
 BACKUP_ROOT = Path("/var/backups/abrndrive-release")
 LOCK_PATH = Path("/run/lock/abrndrive-release.lock")
-MIGRATION = "migrations/050_recovery_attempt_capabilities.sql"
+MIGRATIONS = (
+    "050_recovery_attempt_capabilities.sql",
+    "051_agent_keys_and_recoverable_trash.sql",
+    "052_agent_key_guardrails.sql",
+)
 EXPECTED_FILES = {
     "RELEASE.json",
     "FRONTEND-MANIFEST.sha256",
     "abrndrive",
     "frontend-dist.tar",
     "goose",
-    MIGRATION,
+    *(f"migrations/{name}" for name in MIGRATIONS),
     "release_installer.py",
 }
 EXPECTED_TOP_LEVEL = {
@@ -52,7 +56,7 @@ EXPECTED_TOP_LEVEL = {
     "migrations",
     "release_installer.py",
 }
-EXPECTED_MIGRATIONS = {"050_recovery_attempt_capabilities.sql"}
+EXPECTED_MIGRATIONS = set(MIGRATIONS)
 ENV_KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 BUILD_ID = re.compile(r"^[0-9a-f]{7,64}$")
 MAX_FRONTEND_FILES = 10_000
@@ -224,13 +228,14 @@ def snapshot_stage(stage: Path, expected_uid: int) -> Path:
             raise ReleaseError("opened migration directory is not the reviewed directory")
         for name in sorted(EXPECTED_TOP_LEVEL - {"migrations"}):
             _secure_copy_file(stage_fd, name, snapshot / name, expected_uid, name in {"abrndrive", "goose", "release_installer.py"})
-        _secure_copy_file(
-            migration_fd,
-            "050_recovery_attempt_capabilities.sql",
-            snapshot / MIGRATION,
-            expected_uid,
-            False,
-        )
+        for migration_name in MIGRATIONS:
+            _secure_copy_file(
+                migration_fd,
+                migration_name,
+                snapshot / "migrations" / migration_name,
+                expected_uid,
+                False,
+            )
     except BaseException:
         shutil.rmtree(snapshot, ignore_errors=True)
         raise
@@ -255,7 +260,7 @@ def verify_bundle(snapshot: Path) -> dict[str, object]:
     }
     if set(release) != required:
         raise ReleaseError("RELEASE.json has unexpected fields")
-    if release["product"] != "abrndrive" or release["from_schema"] != 49 or release["to_schema"] != 50:
+    if release["product"] != "abrndrive" or release["from_schema"] not in {49, 50} or release["to_schema"] != 52:
         raise ReleaseError("release product/schema contract is incompatible")
     if not isinstance(release["build_id"], str) or not BUILD_ID.fullmatch(release["build_id"]):
         raise ReleaseError("release build_id must be a Git hexadecimal identifier")
@@ -365,8 +370,8 @@ def schema_version(db_env: dict[str, str]) -> int:
     if not match:
         raise ReleaseError("database migration state is missing or dirty")
     version = int(match.group(1))
-    if version not in {49, 50}:
-        raise ReleaseError(f"database schema {version} is incompatible; expected 49 or retry-safe 50")
+    if version not in {49, 50, 51, 52}:
+        raise ReleaseError(f"database schema {version} is incompatible; expected 49 through 52")
     return version
 
 
@@ -422,6 +427,53 @@ SELECT (
 def validate_schema_50(db_env: dict[str, str]) -> None:
     if run(["/usr/bin/psql", "-X", "-v", "ON_ERROR_STOP=1", "-Atqc", SCHEMA_50_VALIDATION_SQL], env=db_env, capture=True) != "true":
         raise ReleaseError("schema 50 does not match the reviewed recovery security contract")
+
+
+SCHEMA_52_VALIDATION_SQL = r"""
+SELECT (
+  to_regclass('public.agent_idempotency_records') IS NOT NULL
+  AND (SELECT count(*) = 4 FROM information_schema.columns WHERE table_schema='public' AND table_name='agent_api_keys'
+       AND ((column_name='key_kind' AND data_type='text' AND is_nullable='NO' AND column_default LIKE '%standard%')
+         OR (column_name='allowed_folder_ids' AND data_type='jsonb' AND is_nullable='YES')
+         OR (column_name='allowed_ips' AND data_type='jsonb' AND is_nullable='YES')
+         OR (column_name='rate_limit_rpm' AND data_type='integer' AND is_nullable='NO' AND column_default LIKE '%60%')))
+  AND (SELECT count(*) = 1 FROM pg_constraint WHERE conrelid='agent_api_keys'::regclass AND contype='c'
+       AND pg_get_constraintdef(oid) LIKE '%key_kind%' AND pg_get_constraintdef(oid) LIKE '%delete_only%')
+  AND (SELECT count(*) = 4 FROM information_schema.columns WHERE table_schema='public' AND table_name='files'
+       AND ((column_name='deleted_at' AND data_type='timestamp with time zone' AND is_nullable='YES')
+         OR (column_name='deleted_by_actor_type' AND data_type='text' AND is_nullable='YES')
+         OR (column_name='deleted_by_key_id' AND data_type='uuid' AND is_nullable='YES')
+         OR (column_name='deleted_reason' AND data_type='text' AND is_nullable='YES')))
+  AND (SELECT count(*) = 4 FROM information_schema.columns WHERE table_schema='public' AND table_name='folders'
+       AND ((column_name='deleted_at' AND data_type='timestamp with time zone' AND is_nullable='YES')
+         OR (column_name='deleted_by_actor_type' AND data_type='text' AND is_nullable='YES')
+         OR (column_name='deleted_by_key_id' AND data_type='uuid' AND is_nullable='YES')
+         OR (column_name='deleted_reason' AND data_type='text' AND is_nullable='YES')))
+  AND (SELECT count(*) = 1 FROM pg_constraint WHERE conrelid='files'::regclass AND contype='f'
+       AND pg_get_constraintdef(oid) LIKE '%(deleted_by_key_id) REFERENCES agent_api_keys(id) ON DELETE SET NULL%')
+  AND (SELECT count(*) = 1 FROM pg_constraint WHERE conrelid='folders'::regclass AND contype='f'
+       AND pg_get_constraintdef(oid) LIKE '%(deleted_by_key_id) REFERENCES agent_api_keys(id) ON DELETE SET NULL%')
+  AND (SELECT count(*) = 7 FROM information_schema.columns WHERE table_schema='public' AND table_name='agent_idempotency_records'
+       AND ((column_name='key_scope' AND data_type='text' AND is_nullable='NO')
+         OR (column_name='idempotency_key' AND data_type='text' AND is_nullable='NO')
+         OR (column_name='request_hash' AND data_type='text' AND is_nullable='NO')
+         OR (column_name='status_code' AND data_type='integer' AND is_nullable='NO')
+         OR (column_name='response_body' AND data_type='jsonb' AND is_nullable='NO')
+         OR (column_name='created_at' AND data_type='timestamp with time zone' AND is_nullable='NO')
+         OR (column_name='expires_at' AND data_type='timestamp with time zone' AND is_nullable='NO')))
+  AND (SELECT count(*) = 1 FROM pg_constraint WHERE conrelid='agent_idempotency_records'::regclass AND contype='p')
+  AND to_regclass('public.idx_files_active_owner') IS NOT NULL
+  AND to_regclass('public.idx_files_trash_owner') IS NOT NULL
+  AND to_regclass('public.idx_folders_active_owner') IS NOT NULL
+  AND to_regclass('public.idx_folders_trash_owner') IS NOT NULL
+  AND to_regclass('public.idx_agent_idempotency_expires_at') IS NOT NULL
+)::text
+"""
+
+
+def validate_schema_52(db_env: dict[str, str]) -> None:
+    if run(["/usr/bin/psql", "-X", "-v", "ON_ERROR_STOP=1", "-Atqc", SCHEMA_52_VALIDATION_SQL], env=db_env, capture=True) != "true":
+        raise ReleaseError("schema 52 does not match the reviewed agent API and trash contract")
 
 
 def database_size(db_env: dict[str, str]) -> int:
@@ -550,8 +602,10 @@ def main(argv: list[str]) -> int:
             if str(release["goose_version"]) not in run([str(snapshot / "goose"), "-version"], capture=True):
                 raise ReleaseError("bundled Goose version does not match RELEASE.json")
             initial_schema = schema_version(db_env)
-            if initial_schema == 50:
+            if initial_schema >= 50:
                 validate_schema_50(db_env)
+            if initial_schema == 52:
+                validate_schema_52(db_env)
             size = database_size(db_env)
             ensure_free_space(snapshot, size)
             if not service_is_active():
@@ -565,7 +619,7 @@ def main(argv: list[str]) -> int:
             shutil.copy2(snapshot / "RELEASE.json", backup / "RELEASE.json")
 
             mutation_started = False
-            post_migration_boundary = initial_schema == 50
+            post_migration_boundary = initial_schema >= 50
             try:
                 with interrupt_guard():
                     mutation_started = True
@@ -597,18 +651,20 @@ def main(argv: list[str]) -> int:
                         shutil.copy2(unit_path, backup / "abrndrive.service")
                     (backup / "schema-before.txt").write_text(f"{initial_schema}\n", encoding="ascii")
 
-                    if initial_schema == 49:
+                    if initial_schema < 52:
                         migration_root = backup / "migration"
                         migration_root.mkdir(mode=0o700)
-                        shutil.copy2(snapshot / MIGRATION, migration_root / Path(MIGRATION).name)
-                        os.chmod(migration_root / Path(MIGRATION).name, 0o400)
+                        for migration_name in MIGRATIONS:
+                            shutil.copy2(snapshot / "migrations" / migration_name, migration_root / migration_name)
+                            os.chmod(migration_root / migration_name, 0o400)
                         goose_env = db_env.copy()
                         goose_env.update(GOOSE_DRIVER="postgres", GOOSE_DBSTRING=values["DB_URL"])
                         post_migration_boundary = True
                         run([str(snapshot / "goose"), "-dir", str(migration_root), "up"], env=goose_env, private_log=backup / "goose.log")
-                    if schema_version(db_env) != 50:
-                        raise ReleaseError("migration did not reach schema 50")
+                    if schema_version(db_env) != 52:
+                        raise ReleaseError("migration did not reach schema 52")
                     validate_schema_50(db_env)
+                    validate_schema_52(db_env)
 
                     binary_new = BINARY_TARGET.with_name("abrndrive.release-new")
                     shutil.copyfile(snapshot / "abrndrive", binary_new)
@@ -645,8 +701,8 @@ def main(argv: list[str]) -> int:
                         raise ReleaseError("local readiness did not become ready")
                     diagnostics = ready.get("diagnostics")
                     migrations = diagnostics.get("migrations") if isinstance(diagnostics, dict) else None
-                    if migrations != "ok (version: 50)":
-                        raise ReleaseError("readiness did not confirm schema 50")
+                    if migrations != "ok (version: 52)":
+                        raise ReleaseError("readiness did not confirm schema 52")
                     health = fetch_json("http://127.0.0.1:8082/health")
                     if health.get("status") != "ok" or health.get("version") != release["build_id"]:
                         raise ReleaseError("local health build identity mismatch")
@@ -665,7 +721,7 @@ def main(argv: list[str]) -> int:
                 if mutation_started:
                     ensure_service_state(not post_migration_boundary)
                     if post_migration_boundary:
-                        print(f"Release failed after the schema-50 boundary. {SERVICE} is verified stopped. Backup: {backup}. Do not restore the old recovery binary automatically.", file=sys.stderr)
+                        print(f"Release failed after the schema-52 boundary. {SERVICE} is verified stopped. Backup: {backup}. Do not restore the old binary automatically.", file=sys.stderr)
                     else:
                         print(f"Release failed before migration. The unchanged service is verified active. Private diagnostics: {backup}", file=sys.stderr)
                 raise

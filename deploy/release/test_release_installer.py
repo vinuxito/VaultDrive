@@ -17,10 +17,11 @@ def bundle(root):
         for n,d in web.items():
             i=tarfile.TarInfo(n); i.size=len(d); tar.addfile(i,io.BytesIO(d))
     manifest(stage/'FRONTEND-MANIFEST.sha256',web)
-    (stage/'migrations').mkdir(); (stage/ri.MIGRATION).write_text('-- fixture\n')
+    (stage/'migrations').mkdir()
+    for name in ri.MIGRATIONS:(stage/'migrations'/name).write_text('-- fixture\n')
     (stage/'abrndrive').write_bytes(b'new backend'); (stage/'goose').write_bytes(b'goose')
     (stage/'release_installer.py').write_bytes(Path(ri.__file__).read_bytes())
-    (stage/'RELEASE.json').write_text(json.dumps({'product':'abrndrive','build_id':'abcdef1','from_schema':49,'to_schema':50,'goose_version':'v3.28.0','public_origin':'https://abrndrive.filemonprime.net','base_path':'/abrn/','frontend_api_url':'/api','agent_key_prefix':'abrnak'}))
+    (stage/'RELEASE.json').write_text(json.dumps({'product':'abrndrive','build_id':'abcdef1','from_schema':49,'to_schema':52,'goose_version':'v3.28.0','public_origin':'https://abrndrive.filemonprime.net','base_path':'/abrn/','frontend_api_url':'/api','agent_key_prefix':'abrnak'}))
     manifest(stage/'MANIFEST.sha256',{n:(stage/n).read_bytes() for n in ri.EXPECTED_FILES})
     for p in stage.rglob('*'):
         p.chmod(0o500 if p.is_dir() or p.name in {'abrndrive','goose','release_installer.py'} else 0o400)
@@ -38,7 +39,7 @@ class Fx:
         self.binary=root/'bin/abrndrive'; self.binary.parent.mkdir(); self.binary.write_bytes(b'old backend')
         self.dist=root/'client/dist'; self.dist.mkdir(parents=True); (self.dist/'index.html').write_bytes(b'old')
         self.backups=root/'backups'; self.lock=root/'lock'; self.unit=root/'unit'; self.unit.write_text('[Service]\n')
-        self.schemas=[f'{schema}:t']+([] if schema==50 else ['50:t']); self.actions=[]; self.active=True; self.goose=False; self.goose_dir=None
+        self.schemas=[f'{schema}:t','52:t']; self.actions=[]; self.active=True; self.goose=False; self.goose_dir=None
     def run(self,c,env=None,capture=False,private_log=None):
         x=Path(c[0]).name
         if private_log: Path(private_log).write_text('private\n'); Path(private_log).chmod(0o600)
@@ -49,7 +50,8 @@ class Fx:
         if x=='psql':
             q=c[-1]
             if 'goose_db_version' in q:return self.schemas.pop(0)
-            if 'to_regclass' in q:return 'false' if self.failure=='schema50' else 'true'
+            if 'account_recovery_attempts' in q:return 'false' if self.failure=='schema50' else 'true'
+            if 'agent_idempotency_records' in q:return 'false' if self.failure=='schema52' else 'true'
             if 'pg_database_size' in q:return '1024'
             if 'server_version' in q:return '16.4'
         if x=='pg_dump' and '--version' in c:return 'pg_dump 16.4'
@@ -71,7 +73,7 @@ class Fx:
     def systemctl(self,a,check=True):self.actions.append(a); self.active=(a=='start')
     def json(self,url,timeout=5):
         if self.failure=='interrupt-probe':raise ri.ReleaseInterrupted('signal')
-        if url.endswith('/ready'):return {'status':'ready','diagnostics':{'migrations':'ok (version: 50)'}}
+        if url.endswith('/ready'):return {'status':'ready','diagnostics':{'migrations':'ok (version: 52)'}}
         if self.failure=='public' and url.startswith('https'):raise ri.ReleaseError('public')
         return {'status':'ok','version':'abcdef1'}
     def asset(self,url,timeout=15):
@@ -99,7 +101,7 @@ class Tests(unittest.TestCase):
             v=ri.parse_environment_file(e); self.assertFalse(m.exists()); pg=ri.postgres_environment(v['DB_URL']); self.assertEqual(pg['PGPASSWORD'],'p@ss'); self.assertNotIn('PGOPTIONS',pg); self.assertNotIn('GOOSE_DRIVER',pg)
     def test_extra_migration_rejected_before_stop(self):
         with tempfile.TemporaryDirectory() as d:
-            f=Fx(Path(d)); md=f.stage/'migrations'; md.chmod(0o700); p=md/'051_evil.sql'; p.write_text('evil'); p.chmod(0o400); md.chmod(0o500)
+            f=Fx(Path(d)); md=f.stage/'migrations'; md.chmod(0o700); p=md/'053_evil.sql'; p.write_text('evil'); p.chmod(0o400); md.chmod(0o500)
             with mocked(f),self.assertRaises(ri.ReleaseError):ri.main(['x',str(f.stage)])
             self.assertEqual(f.actions,[]); self.assertFalse(f.goose)
     def test_symlink_and_writable_stage_rejected(self):
@@ -134,12 +136,22 @@ class Tests(unittest.TestCase):
     def test_schema_contract_and_version_gates(self):
         for x in ['false','','f']:
             with patch.object(ri,'run',return_value=x),self.assertRaises(ri.ReleaseError):ri.validate_schema_50({})
-        for x in ['48:t','51:t','50:f','']:
+            with patch.object(ri,'run',return_value=x),self.assertRaises(ri.ReleaseError):ri.validate_schema_52({})
+        for x in ['48:t','53:t','52:f','']:
             with patch.object(ri,'run',return_value=x),self.assertRaises(ri.ReleaseError):ri.schema_version({})
+        for failure,schema in [('schema50',50),('schema52',52)]:
+            with self.subTest(failure=failure),tempfile.TemporaryDirectory() as d:
+                f=Fx(Path(d),failure,schema=schema)
+                with mocked(f),self.assertRaises(ri.ReleaseError):ri.main(['x',str(f.stage)])
+                self.assertEqual(f.actions,[])
         with tempfile.TemporaryDirectory() as d:
-            f=Fx(Path(d),'schema50',schema=50)
-            with mocked(f),self.assertRaises(ri.ReleaseError):ri.main(['x',str(f.stage)])
-            self.assertEqual(f.actions,[])
+            f=Fx(Path(d),schema=50)
+            with mocked(f):self.assertEqual(ri.main(['x',str(f.stage)]),0)
+            self.assertTrue(f.goose); self.assertEqual(f.actions,['stop','start'])
+        with tempfile.TemporaryDirectory() as d:
+            f=Fx(Path(d),schema=52)
+            with mocked(f):self.assertEqual(ri.main(['x',str(f.stage)]),0)
+            self.assertFalse(f.goose); self.assertEqual(f.actions,['stop','start'])
     def test_success_uses_snapshot_after_user_stage_substitution(self):
         with tempfile.TemporaryDirectory() as d:
             f=Fx(Path(d),'substitute')

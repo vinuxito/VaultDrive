@@ -6,7 +6,7 @@ This directory is the canonical source for the coordinated ABRN release installe
 
 - `deploy/systemd/install-abrndrive.sh` safely restores a binary and preserves a private runtime snapshot, but it intentionally does not install frontend assets or migrations.
 - `scripts/deploy.sh abrn` builds and mutates in the shared application tree, evaluates `.env` as shell, downloads `goose@latest`, treats migration failure as a warning, and swaps the binary and frontend separately.
-- Schema 50 changes account-recovery state. After it is applied, automatically restoring the older recovery binary would reintroduce an incompatible and less safe protocol.
+- Schemas 50–52 change account-recovery state, agent API keys, recoverable trash columns, and idempotency/guardrail tables. After they are applied, automatically restoring the older binary would reintroduce an incompatible protocol.
 - `docs/runbooks/database-restore.md` drops and recreates the database. It is a disaster-recovery procedure, not an automatic release rollback. Its current examples also use older host/port assumptions, so an operator must use the preserved runtime credentials for this ABRN release.
 
 ## Release bundle contract
@@ -22,6 +22,8 @@ release/
   frontend-dist.tar
   goose
   migrations/050_recovery_attempt_capabilities.sql
+  migrations/051_agent_keys_and_recoverable_trash.sql
+  migrations/052_agent_key_guardrails.sql
   release_installer.py
 ```
 
@@ -32,7 +34,7 @@ release/
   "product": "abrndrive",
   "build_id": "FULL_OR_SHORT_GIT_HEX",
   "from_schema": 49,
-  "to_schema": 50,
+  "to_schema": 52,
   "goose_version": "v3.28.0",
   "public_origin": "https://abrndrive.filemonprime.net",
   "base_path": "/abrn/",
@@ -55,12 +57,15 @@ tar -C "$STAGE" -cf "$STAGE/frontend-dist.tar" dist
 rm -rf "$PRIVATE_DIST"
 ```
 
-Archive only that resulting directory so every member is under `dist/` and `dist/index.html` exists. Generate `FRONTEND-MANIFEST.sha256` from every regular file under `dist/`; the installer requires the archive inventory and hashes to match it exactly and requires the index's JavaScript/CSS entry assets. Record the exact non-secret values in `RELEASE.json`; the root preflight rejects stale metadata and rejects a protected runtime whose `BASE_PATH` or `AGENT_KEY_PREFIX` differs. Bundle a prebuilt Goose **v3.28.0** binary; do not use `go run ...@latest` during release. Copy only migration 050 into `migrations/`. Generate `MANIFEST.sha256` for all seven files named by the installer, including `release_installer.py` and the frontend manifest, then make the full stage read-only to group/other and review it before sudo. Extra stage entries or migrations are rejected.
+Archive only that resulting directory so every member is under `dist/` and `dist/index.html` exists. Generate `FRONTEND-MANIFEST.sha256` from every regular file under `dist/`; the installer requires the archive inventory and hashes to match it exactly and requires the index's JavaScript/CSS entry assets. Record the exact non-secret values in `RELEASE.json`; the root preflight rejects stale metadata and rejects a protected runtime whose `BASE_PATH` or `AGENT_KEY_PREFIX` differs. Bundle a prebuilt Goose **v3.28.0** binary; do not use `go run ...@latest` during release. Copy only migrations 050, 051, and 052 into `migrations/`. Generate `MANIFEST.sha256` for all nine files named by the installer, including `release_installer.py` and the frontend manifest, then make the full stage read-only to group/other and review it before sudo. Extra stage entries or migrations are rejected.
 
 ```bash
 (cd "$STAGE" && sha256sum \
   RELEASE.json FRONTEND-MANIFEST.sha256 abrndrive frontend-dist.tar goose \
-  migrations/050_recovery_attempt_capabilities.sql release_installer.py \
+  migrations/050_recovery_attempt_capabilities.sql \
+  migrations/051_agent_keys_and_recoverable_trash.sql \
+  migrations/052_agent_key_guardrails.sql \
+  release_installer.py \
   > MANIFEST.sha256)
 ```
 
@@ -68,15 +73,15 @@ The manifest detects staging corruption and accidental substitution. It is not a
 
 ## Reviewed cutover order
 
-1. **Non-root build gate:** clean reviewed commit; focused and full approved test gates; ABRN frontend build; backend build with non-`dev` Git identity; pinned Goose; migration 050; exact manifest.
+1. **Non-root build gate:** clean reviewed commit; focused and full approved test gates; ABRN frontend build; backend build with non-`dev` Git identity; pinned Goose; migrations 050–052; exact manifest.
 2. **Private stage gate:** absolute user-owned path, directory mode `0700`, exact recursive inventory, no symlinks, hashes match, and the frontend archive exactly matches its file manifest within bounded size/member limits.
-3. **Root preflight (no mutation):** run a separately root-owned installer with `/usr/bin/python3 -I`; acquire the exclusive ABRN release lock; copy every staged file with no-follow semantics into a root-owned snapshot and use only that snapshot; parse `/etc/abrndrive/runtime.env` as data without sourcing it; require its non-secret `BASE_PATH=/abrn/` and `AGENT_KEY_PREFIX=abrnak` to match `RELEASE.json`; require local `vaultdrive` PostgreSQL; verify bundled Goose version, free space and service state; accept only clean schema 49 or a schema 50 that matches the full recovery table/constraint/index/plaintext-removal contract. Neither the runtime file nor the service unit is replaced.
+3. **Root preflight (no mutation):** run a separately root-owned installer with `/usr/bin/python3 -I`; acquire the exclusive ABRN release lock; copy every staged file with no-follow semantics into a root-owned snapshot and use only that snapshot; parse `/etc/abrndrive/runtime.env` as data without sourcing it; require its non-secret `BASE_PATH=/abrn/` and `AGENT_KEY_PREFIX=abrnak` to match `RELEASE.json`; require local `vaultdrive` PostgreSQL; verify bundled Goose version, free space and service state; accept only clean schema 49–52 (validating schema 50/52 contracts when already applied). Neither the runtime file nor the service unit is replaced.
 4. **ABRN-only write freeze:** stop only `abrndrive.service`; verify it is inactive. QuantiX and PostgreSQL remain running.
 5. **Root-private coherent backup:** create `/var/backups/abrndrive-release/<UTC>-<build>/` mode `0700`; run `pg_dump --format=custom` with a minimal child environment, require a non-empty dump and a successful `pg_restore --list`, and record database tool/server versions before migration; copy installed binary, current dist archive, runtime env, unit, release manifest, and starting schema marker. `pg_dump`, `pg_restore` and Goose output go only to mode-0600 files in this backup, not the user console.
-6. **Schema gate:** from 49, run the bundled Goose against only migration 050 with `GOOSE_DBSTRING` in the process environment. From 50, treat the run as a retry and validate the recovery tables. Reject all other versions or dirty state. There is no `-allow-missing` and no migration warning path.
+6. **Schema gate:** from < 52, run the bundled Goose against migrations 050–052 with `GOOSE_DBSTRING` in the process environment. From 52, treat the run as a retry and validate the schema 50 and 52 tables/constraints/indexes. Reject all other versions or dirty state. There is no `-allow-missing` and no migration warning path.
 7. **Coordinated artifact swap:** install backend atomically to `/usr/local/lib/abrndrive/abrndrive`; extract and validate frontend to a sibling temporary directory, then replace `/lamp/www/ABRN-Drive/vaultdrive_client/dist`. Preserve `/etc/abrndrive/runtime.env`, the base unit, drop-ins, uploads, and all other services.
-8. **Start and prove:** start only `abrndrive.service`; require local `/ready` with schema 50, local `/health` with exact build identity, and local/public hashes plus content types for the index's immutable JavaScript/CSS entry assets.
-9. **Failure posture:** signals, interrupts and ordinary failures use the same cleanup path. Before migration, the unchanged service is restarted and its active state verified. Once schema 50 is present or Goose is invoked, every later failure stops ABRN and verifies that it remains stopped. The installer never restores the old binary or database automatically.
+8. **Start and prove:** start only `abrndrive.service`; require local `/ready` with schema 52, local `/health` with exact build identity, and local/public hashes plus content types for the index's immutable JavaScript/CSS entry assets.
+9. **Failure posture:** signals, interrupts and ordinary failures use the same cleanup path. Before migration, the unchanged service is restarted and its active state verified. Once schema >= 50 is present or Goose is invoked, every later failure stops ABRN and verifies that it remains stopped. The installer never restores the old binary or database automatically.
 
 ## Invocation after review and private staging
 
@@ -100,16 +105,16 @@ python3 -m py_compile release_installer.py test_release_installer.py
 python3 -m unittest -v test_release_installer.py
 ```
 
-Record the fresh result in the final verification report. The suite includes successful coordinated install, pre-migration backup failure with unchanged-service restart, unknown Goose outcome, public-health failure after schema 50, exact backend/frontend identity, immutable ABRN build metadata and runtime matching, private command logs, suppressed unexpected exceptions, unsafe archive paths, symlinked controls, writable artifacts, schema gates and non-executed shell-looking secrets.
+Record the fresh result in the final verification report. The suite includes successful coordinated install, pre-migration backup failure with unchanged-service restart, unknown Goose outcome, public-health failure after schema 52, exact backend/frontend identity, immutable ABRN build metadata and runtime matching, private command logs, suppressed unexpected exceptions, unsafe archive paths, symlinked controls, writable artifacts, schema gates and non-executed shell-looking secrets.
 
 The unit suite now mocks command execution, systemd and HTTP around the actual `main()` orchestration. It proves these scenarios without touching production:
 
 - exact recursive stage inventory, unmanifested migration rejection, immutable root snapshot and user-stage substitution resistance;
 - frontend missing/corrupt/extra/duplicate assets, archive bounds, entry-asset closure and public asset mismatch;
 - shell-looking runtime secret remains literal and is never executed/logged;
-- schema 48/51/dirty rejected before service stop;
-- schema 49 migration success reaches 50;
-- schema 50 retry skips migration and validates columns, types, nullability, constraints, indexes, defaults and removal of legacy plaintext state;
+- schema 48/53/dirty rejected before service stop;
+- schema 49/50 migration success reaches 52 and validates schema 50 + 52 contracts;
+- schema 52 retry skips migration and validates columns, types, nullability, constraints, indexes, defaults and removal of legacy plaintext state;
 - empty/corrupt/failed DB backup before migration restarts the unchanged old service;
 - backup or validation failure before Goose is invoked restarts the unchanged old service;
 - any failure after Goose is invoked is treated as an unknown/possibly committed migration and leaves ABRN stopped;
@@ -129,7 +134,7 @@ after=50:t
 recovery_tables=t
 ```
 
-The disposable database was dropped in a `finally` block. This proves that Goose v3.28.0 accepts the release bundle's single forward migration when the target database records version 49.
+The disposable database was dropped in a `finally` block. This proves that Goose v3.28.0 accepts forward migrations above version 49 without needing older migration files `001..049` in the temporary `-dir`.
 
 ## Operational risks requiring reviewer sign-off
 
@@ -138,4 +143,4 @@ The disposable database was dropped in a `finally` block. This proves that Goose
 - `MANIFEST.sha256` is integrity metadata, not provenance. The final build pipeline should sign it or store its hash in an independently trusted change record.
 - PostgreSQL credentials remain visible to privileged processes through child environment inspection. They are kept out of shell evaluation, command arguments, logs, and the public stage; host root can still inspect them by definition.
 - Replacing `dist` is directory-level rather than a single-file rename because the destination name already exists. The service is stopped during this bounded window and the full old dist is backed up first.
-- If schema 50 succeeds and later verification fails, recovery requires diagnosing/fixing forward or a deliberate database+binary+dist restore from the same backup. Never restore only the old binary against schema 50.
+- If migrations 050–052 succeed and later verification fails, recovery requires diagnosing/fixing forward or a deliberate database+binary+dist restore from the same backup. Never restore only the old binary against schemas 50–52.
