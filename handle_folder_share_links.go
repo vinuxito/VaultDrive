@@ -138,6 +138,9 @@ func (cfg *ApiConfig) handlerCreateFolderShareLink(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusForbidden, "You do not own this folder", nil)
 		return
 	}
+	if !cfg.enforceFolderJailID(w, r, &folderID, false) {
+		return
+	}
 
 	var body struct {
 		ExpiresAt             string            `json:"expires_at"`
@@ -496,6 +499,9 @@ func (cfg *ApiConfig) handlerGetFolderFilesRecursive(w http.ResponseWriter, r *h
 	}
 	if folder.OwnerID != user.ID {
 		respondWithError(w, http.StatusForbidden, "You do not own this folder", nil)
+		return
+	}
+	if !cfg.enforceFolderJailID(w, r, &folderID, false) {
 		return
 	}
 

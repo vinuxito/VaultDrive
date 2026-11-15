@@ -26,6 +26,11 @@ const actionLabels: Record<string, string> = {
   "agent_api_key.used": "Request served",
   "agent_api_key.expired": "Key expired",
   "agent_api_key.scope_denied": "Scope denied",
+  "agent_api_key.folder_denied": "Carpeta bloqueada",
+  "agent_api_key.ip_denied": "IP bloqueada",
+  "agent_api_key.delete_denied": "Borrado bloqueado",
+  "file.soft_deleted": "Movido a Papelera",
+  "folder.soft_deleted": "Carpeta a Papelera",
 };
 
 function readAgentName(entry: AgentOperationEntry): string {
@@ -63,6 +68,7 @@ export function explainAgentOperation(entry: AgentOperationEntry): string {
   const meta = entry.metadata;
   const matchedScope = typeof meta?.matched_scope === "string" ? meta.matched_scope : "";
   const requiredScope = typeof meta?.required_scope === "string" ? meta.required_scope : "";
+  const reason = typeof meta?.reason === "string" ? meta.reason : "";
   const grantedScopes = Array.isArray(meta?.scope_grant)
     ? meta.scope_grant.filter((value): value is string => typeof value === "string")
     : [];
@@ -72,6 +78,20 @@ export function explainAgentOperation(entry: AgentOperationEntry): string {
   }
   if (entry.action === "agent_api_key.scope_denied") {
     return requiredScope ? `Blocked: missing ${requiredScope}` : "Blocked by scope policy";
+  }
+  if (entry.action === "agent_api_key.folder_denied") {
+    return reason ? `Bloqueado fuera de carpeta permitida: ${reason}` : "Bloqueado: carpeta fuera del alcance de esta llave";
+  }
+  if (entry.action === "agent_api_key.ip_denied") {
+    return reason ? `Bloqueado por IP no permitida: ${reason}` : "Bloqueado: IP fuera de la lista permitida";
+  }
+  if (entry.action === "agent_api_key.delete_denied") {
+    return "Bloqueado: una llave estándar nunca puede borrar (usa una llave Solo Papelera)";
+  }
+  if (entry.action === "file.soft_deleted" || entry.action === "folder.soft_deleted") {
+    return reason
+      ? `Enviado a Papelera recuperable (${reason})`
+      : "Enviado a Papelera recuperable desde la app";
   }
   if (entry.action === "agent_api_key.created") {
     return grantedScopes.length > 0
@@ -88,10 +108,17 @@ export function explainAgentOperation(entry: AgentOperationEntry): string {
   return "Review the event metadata for the exact trust decision";
 }
 
+const DENIAL_ACTIONS = new Set([
+  "agent_api_key.scope_denied",
+  "agent_api_key.folder_denied",
+  "agent_api_key.ip_denied",
+  "agent_api_key.delete_denied",
+]);
+
 export function summarizeAgentOperations(entries: AgentOperationEntry[], activeKeys: number): AgentOperationSummary {
   const groups = groupAgentOperations(entries);
   const latestEntry = [...entries].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
-  const denialCount = entries.filter((entry) => entry.action === "agent_api_key.scope_denied").length;
+  const denialCount = entries.filter((entry) => DENIAL_ACTIONS.has(entry.action)).length;
 
   return {
     activeKeys,

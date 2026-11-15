@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -121,22 +122,26 @@ func (q *Queries) ListFolderSharesForFolder(ctx context.Context, folderID uuid.U
 }
 
 const listFoldersSharedWithUser = `-- name: ListFoldersSharedWithUser :many
-SELECT f.id, f.owner_id, f.name, f.parent_id, f.created_at, f.updated_at, fs.wrapped_key, fs.shared_by, fs.created_at as shared_at FROM folders f
+SELECT f.id, f.owner_id, f.name, f.parent_id, f.created_at, f.updated_at, f.deleted_at, f.deleted_by_actor_type, f.deleted_by_key_id, f.deleted_reason, fs.wrapped_key, fs.shared_by, fs.created_at as shared_at FROM folders f
 INNER JOIN folder_shares fs ON f.id = fs.folder_id
-WHERE fs.user_id = $1
+WHERE fs.user_id = $1 AND f.deleted_at IS NULL
 ORDER BY fs.created_at DESC
 `
 
 type ListFoldersSharedWithUserRow struct {
-	ID         uuid.UUID
-	OwnerID    uuid.UUID
-	Name       string
-	ParentID   uuid.NullUUID
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	WrappedKey string
-	SharedBy   uuid.UUID
-	SharedAt   time.Time
+	ID                 uuid.UUID
+	OwnerID            uuid.UUID
+	Name               string
+	ParentID           uuid.NullUUID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	DeletedAt          sql.NullTime
+	DeletedByActorType sql.NullString
+	DeletedByKeyID     uuid.NullUUID
+	DeletedReason      sql.NullString
+	WrappedKey         string
+	SharedBy           uuid.UUID
+	SharedAt           time.Time
 }
 
 func (q *Queries) ListFoldersSharedWithUser(ctx context.Context, userID uuid.UUID) ([]ListFoldersSharedWithUserRow, error) {
@@ -155,6 +160,10 @@ func (q *Queries) ListFoldersSharedWithUser(ctx context.Context, userID uuid.UUI
 			&i.ParentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 			&i.WrappedKey,
 			&i.SharedBy,
 			&i.SharedAt,

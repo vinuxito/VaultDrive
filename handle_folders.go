@@ -257,17 +257,17 @@ func (cfg *ApiConfig) handleDeleteFolder(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Delete folder (CASCADE will delete children automatically)
-	err = cfg.dbQueries.DeleteFolder(r.Context(), database.DeleteFolderParams{
-		ID:      folderID,
-		OwnerID: userID,
-	})
+	// Soft-delete folder, child folders, and files into 100% recoverable Trash (keeps ciphertext on disk).
+	trashedFolders, trashedFiles, err := cfg.softDeleteFolderTreeWithActor(r.Context(), userID, folderID, "human_jwt", nil, "Carpeta movida a la Papelera recuperable", r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to delete folder", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to move folder to Trash", err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, map[string]string{
-		"message": "Folder deleted successfully",
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message":         "Folder moved to recoverable Trash",
+		"recoverable":     true,
+		"trashed_folders": trashedFolders,
+		"trashed_files":   trashedFiles,
 	})
 }

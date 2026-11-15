@@ -366,7 +366,7 @@ func (cfg *ApiConfig) removeFileFromGroupHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	var fileOwner uuid.UUID
-	if err := tx.QueryRowContext(r.Context(), `SELECT f.owner_id FROM group_file_shares gfs JOIN files f ON f.id=gfs.file_id WHERE gfs.group_id=$1 AND gfs.file_id=$2`, groupID, fileID).Scan(&fileOwner); err != nil {
+	if err := tx.QueryRowContext(r.Context(), `SELECT f.owner_id FROM group_file_shares gfs JOIN files f ON f.id=gfs.file_id WHERE gfs.group_id=$1 AND gfs.file_id=$2 AND f.deleted_at IS NULL`, groupID, fileID).Scan(&fileOwner); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			respondWithError(w, http.StatusNotFound, "Group file association not found", nil)
 		} else {

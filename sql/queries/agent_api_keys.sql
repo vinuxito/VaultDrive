@@ -10,9 +10,13 @@ INSERT INTO agent_api_keys (
   expires_at,
   notes,
   usage_count,
-  last_seen_context_json
+  last_seen_context_json,
+  key_kind,
+  allowed_folder_ids,
+  allowed_ips,
+  rate_limit_rpm
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 RETURNING *;
 
 -- name: ListAgentAPIKeysByUser :many

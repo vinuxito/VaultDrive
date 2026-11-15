@@ -212,7 +212,7 @@ func buildFileAccessEntries(ctx context.Context, db database.DBTX, fileID uuid.U
 	entries, err = appendPersonAccessRows(ctx, db, entries, `
 		SELECT 'folder_share',COALESCE(u.first_name,''),COALESCE(u.last_name,''),u.username,fs.created_at
 		FROM files f JOIN folder_shares fs ON fs.folder_id=f.folder_id JOIN users u ON u.id=fs.user_id
-		WHERE f.id=$1 ORDER BY fs.created_at,fs.id`, fileID)
+		WHERE f.id=$1 AND f.deleted_at IS NULL ORDER BY fs.created_at,fs.id`, fileID)
 	if err != nil {
 		return nil, fmt.Errorf("folder collaborator source: %w", err)
 	}
@@ -227,9 +227,9 @@ func buildFileAccessEntries(ctx context.Context, db database.DBTX, fileID uuid.U
 
 	entries, err = appendLinkAccessRows(ctx, db, entries, `
 		WITH RECURSIVE ancestors AS (
-			SELECT f.folder_id AS id FROM files f WHERE f.id=$1 AND f.folder_id IS NOT NULL
+			SELECT f.folder_id AS id FROM files f WHERE f.id=$1 AND f.folder_id IS NOT NULL AND f.deleted_at IS NULL
 			UNION ALL
-			SELECT folder.parent_id FROM folders folder JOIN ancestors a ON folder.id=a.id WHERE folder.parent_id IS NOT NULL
+			SELECT folder.parent_id FROM folders folder JOIN ancestors a ON folder.id=a.id WHERE folder.parent_id IS NOT NULL AND folder.deleted_at IS NULL
 		)
 		SELECT fsl.token,fsl.created_at,fsl.expires_at,fsl.access_count,fsl.last_accessed_at,fsl.is_active
 		FROM ancestors a JOIN folder_share_links fsl ON fsl.folder_id=a.id

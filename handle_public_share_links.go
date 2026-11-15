@@ -71,6 +71,9 @@ func (cfg *ApiConfig) handlerCreatePublicShareLink(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusForbidden, "You do not own this file", nil)
 		return
 	}
+	if !cfg.enforceFolderJailForFile(w, r, dbFile) {
+		return
+	}
 
 	var body struct {
 		ExpiresAt    string `json:"expires_at"`
@@ -342,6 +345,11 @@ func (cfg *ApiConfig) handlerListPublicShareLinks(w http.ResponseWriter, r *http
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid file ID format", err)
 		return
+	}
+	if dbFile, fErr := cfg.dbQueries.GetFileByID(r.Context(), fileID); fErr == nil && dbFile.OwnerID.Valid && dbFile.OwnerID.UUID == user.ID {
+		if !cfg.enforceFolderJailForFile(w, r, dbFile) {
+			return
+		}
 	}
 
 	links, err := cfg.dbQueries.ListPublicShareLinksByOwner(r.Context(), user.ID)

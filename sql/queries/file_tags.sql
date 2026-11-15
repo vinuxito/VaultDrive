@@ -16,7 +16,7 @@ ORDER BY t.name ASC;
 -- name: GetFilesWithTag :many
 SELECT f.* FROM files f
 INNER JOIN file_tags ft ON f.id = ft.file_id
-WHERE ft.tag_id = $1 AND f.owner_id = $2
+WHERE ft.tag_id = $1 AND f.owner_id = $2 AND f.deleted_at IS NULL
 ORDER BY f.created_at DESC;
 
 -- name: GetFileTags :many

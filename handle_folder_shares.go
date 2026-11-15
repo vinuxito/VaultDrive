@@ -245,6 +245,9 @@ func (cfg *ApiConfig) handleListFolderFiles(w http.ResponseWriter, r *http.Reque
 		respondWithError(w, http.StatusForbidden, "Access denied to this folder", nil)
 		return
 	}
+	if !cfg.enforceFolderJailID(w, r, &folderID, false) {
+		return
+	}
 
 	files, err := cfg.dbQueries.GetFilesByFolderID(r.Context(), uuid.NullUUID{UUID: folderID, Valid: true})
 	if err != nil {

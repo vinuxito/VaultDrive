@@ -1,0 +1,19 @@
+{
+  "name": "@abrn-drive/mcp",
+  "version": "2.0.0",
+  "description": "Zero-knowledge Model Context Protocol (MCP) stdio server for ABRN Drive",
+  "type": "module",
+  "bin": {
+    "abrn-drive-mcp": "./bin.ts"
+  },
+  "exports": {
+    ".": "./server.ts"
+  },
+  "scripts": {
+    "start": "node --experimental-strip-types ./bin.ts",
+    "test": "node --experimental-strip-types --test ./mcp.test.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

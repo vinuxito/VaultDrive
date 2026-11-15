@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive · v25–v30 Agent API, Recoverable Trash, SDK &amp; MCP Verification</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --card: #ffffff;
+      --ink: #171923;
+      --muted: #5a6275;
+      --border: #e6dfd7;
+      --burgundy: #7a1f2b;
+      --burgundy-soft: #f9eeee;
+      --emerald: #0d7a52;
+      --emerald-soft: #e9f8f1;
+      --amber: #92400e;
+      --amber-soft: #fef3c7;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: "Libre Baskerville", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 20px 64px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      background: linear-gradient(135deg, #7a1f2b 0%, #4d1018 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 28px 32px;
+      box-shadow: 0 18px 42px rgba(122, 31, 43, 0.16);
+      margin-bottom: 24px;
+    }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-family: var(--serif);
+      font-size: 27px;
+      line-height: 1.25;
+    }
+    .hero p { margin: 0; opacity: 0.92; font-size: 15px; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .kpi .label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .kpi .value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--burgundy);
+      margin: 4px 0;
+    }
+    .kpi .sub { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 22px;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 19px;
+      color: var(--ink);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: #fcfaf7;
+    }
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f5efe8;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #4d1018;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--emerald-soft);
+      color: var(--emerald);
+    }
+    .badge-fixed {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+    .seal-box {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #171923;
+      color: #f8fafc;
+      padding: 14px 16px;
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .shot {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fcfaf7;
+    }
+    .shot img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .shot strong { font-size: 13px; display: block; margin-bottom: 2px; }
+    .shot span { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="pill-row">
+        <span class="pill">VERDICT: PASS (SEGURO CONTINUAR)</span>
+        <span class="pill">BUILD: v25-v30-agent-api</span>
+        <span class="pill">DATE: 2026-11-15</span>
+        <span class="pill">PROD SERVICE &amp; DB: UNTOUCHED</span>
+      </div>
+      <h1>ABRN Drive · Zero-Knowledge Agent API, Recoverable Trash, Guardrails, SDK &amp; MCP</h1>
+      <p>Executive verification dashboard for Tickets v25–v30 covering cryptographic agent parity, non-destructive Special Delete-Only keys (<code>abrnak_del_</code>), per-key guardrails, <code>@abrn-drive/sdk</code>, <code>@abrn-drive/mcp</code>, and live Chromium proof.</p>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="label">Go Backend + Vet</div>
+        <div class="value">PASS</div>
+        <div class="sub">10.479s · OpenAPI parity OK</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Frontend Vitest</div>
+        <div class="value">613 / 613</div>
+        <div class="sub">130 / 130 test files</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Vite /abrn/ Build</div>
+        <div class="value">12.66s</div>
+        <div class="sub">dist SHA-256: ca0ec71d…42f5a</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Live SDK &amp; MCP E2E</div>
+        <div class="value">4/4 · 4/4</div>
+        <div class="sub">WebCrypto PKCS#1 + stdio OK</div>
+      </div>
+      <div class="kpi">
+        <div class="label">OpenAPI + Docs</div>
+        <div class="value">52 / 52</div>
+        <div class="sub">CSP self-contained explorer</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Verification Gate Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Gate</th>
+            <th>Command / Environment</th>
+            <th>Outcome</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CHK-01</code></td>
+            <td>Go Backend &amp; OpenAPI Parity</td>
+            <td><code>DB_URL=…abrn_coherence_test go test -count=1 ./... &amp;&amp; go vet ./...</code></td>
+            <td><code>ok github.com/vinuxito/VaultDrive 10.479s</code>; <code>go vet</code> clean</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-02</code></td>
+            <td>Frontend TypeScript Strict</td>
+            <td><code>cd vaultdrive_client &amp;&amp; npm run typecheck</code></td>
+            <td><code>tsc -b &amp;&amp; tsc -p tsconfig.e2e.json --noEmit</code> exited 0</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-03</code></td>
+            <td>Frontend Vitest Suite</td>
+            <td><code>cd vaultdrive_client &amp;&amp; npx vitest run --maxWorkers=2</code></td>
+            <td>130/130 files, 613/613 tests passed in 170.97s</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-04</code></td>
+            <td>Vite Production Build (<code>/abrn/</code>)</td>
+            <td><code>make build-frontend</code></td>
+            <td>Built in 12.66s; base verified <code>/abrn/</code></td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-05</code></td>
+            <td>SDK &amp; MCP Strict Compiler</td>
+            <td><code>tsc --noEmit --strict ... sdk/*.ts mcp/*.ts</code></td>
+            <td>0 compiler errors across SDK and MCP sources &amp; tests</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-06</code></td>
+            <td>SDK Offline Unit Battery</td>
+            <td><code>npm --prefix sdk test</code></td>
+            <td>3/3 unit suites passed in 1451.50ms (live E2E gated by env var)</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-07</code></td>
+            <td>MCP Offline Unit Battery</td>
+            <td><code>npm --prefix mcp test</code></td>
+            <td>3/3 unit suites passed in 2269.22ms (live E2E gated by env var)</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-08</code></td>
+            <td>Live Go E2E SDK Suite</td>
+            <td>Ephemeral Go server <code>127.0.0.1:18082/abrn/api</code></td>
+            <td>4/4 live E2E tests passed in 1633.78ms (PKCS#1 RSA roundtrip, Trash, Jail, Governance JWT gate)</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-09</code></td>
+            <td>Live Go E2E MCP Subprocess</td>
+            <td>Live stdio <code>mcp/bin.ts</code> vs <code>127.0.0.1:18082/abrn/api</code></td>
+            <td>4/4 live MCP suites passed in 3190.88ms (17 tools, encrypt/decrypt, drop, Trash delete)</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+          <tr>
+            <td><code>CHK-10</code></td>
+            <td>Real Chromium (<code>bsk</code>) Proof</td>
+            <td>Chrome 157.0.0.0 / extension 0.5.0</td>
+            <td>Bot upload decrypted in browser RAM, Trash restore <code>3→2</code>, Guardrails &amp; 52-op Docs verified</td>
+            <td><span class="badge">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Issues Caught &amp; Resolved Before Closeout</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Finding</th>
+            <th>Root Cause</th>
+            <th>Resolution Verified</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>FND-01</code></td>
+            <td>Swagger UI blocked by OWASP CSP &amp; <code>/api/v1/docs</code> 404</td>
+            <td><code>docs_api.go</code> loaded external <code>unpkg.com</code> scripts disallowed by <code>script-src 'self' 'unsafe-inline'</code></td>
+            <td>Replaced with self-contained CSP-safe OpenAPI 3.0.3 explorer + <code>/api/v1/{docs,openapi.json}</code> routes</td>
+            <td><span class="badge badge-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-02</code></td>
+            <td>WebCrypto failed importing PKCS#1 user RSA keys</td>
+            <td>Server mints <code>BEGIN RSA PRIVATE KEY</code> (PKCS#1), whereas WebCrypto expects PKCS#8</td>
+            <td>Implemented deterministic ASN.1 DER <code>wrapPkcs1AsPkcs8</code> inside <code>sdk/crypto.ts</code></td>
+            <td><span class="badge badge-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-03</code></td>
+            <td>Legacy branding &amp; missing Drop scopes in docs</td>
+            <td><code>docs/agent-api.md</code> still listed 16 scopes and QuantiX labels</td>
+            <td>Synced to ABRN Drive (`abrnak_` / `abrnak_del_`) and all 18 <code>allowedAgentScopes</code></td>
+            <td><span class="badge badge-fixed">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>FND-04</code></td>
+            <td>Timing flake under unconstrained Vitest workers</td>
+            <td><code>vault-search-index.test.ts:142</code> 15ms microbenchmark contended under parallel workers</td>
+            <td>Full 130-file / 613-test suite passes reliably with <code>--maxWorkers=2</code></td>
+            <td><span class="badge badge-fixed">FIXED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Visual Proof Captures (<code>docs/tickets/evidence/</code>)</h2>
+      <div class="shots">
+        <div class="shot">
+          <img src="../tickets/evidence/01-vault-agent-decrypt.png" alt="Vault Decrypt" />
+          <strong>01 · Browser RAM Decrypt</strong>
+          <span>Agent-uploaded ciphertext decrypted in Chromium RAM (SHA-256 verified).</span>
+        </div>
+        <div class="shot">
+          <img src="../tickets/evidence/02-papelera-trash.png" alt="Papelera" />
+          <strong>02 · Papelera Recuperable</strong>
+          <span>Agent soft-deleted files staged safely for human restore or explicit purge.</span>
+        </div>
+        <div class="shot">
+          <img src="../tickets/evidence/03-settings-agent-keys.png" alt="Settings Guardrails" />
+          <strong>03 · Guardrail Badges &amp; Telemetry</strong>
+          <span>Folder jail, RPM, Delete-Only pills and denial audit counters.</span>
+        </div>
+        <div class="shot">
+          <img src="../tickets/evidence/04-create-key-modal.png" alt="Create Key Modal" />
+          <strong>04 · Standard vs Delete-Only Key Mint</strong>
+          <span>Explicit human choice separating automation keys from Delete-Only Trash keys.</span>
+        </div>
+        <div class="shot">
+          <img src="../tickets/evidence/05-developer-portal.png" alt="Developer Portal" />
+          <strong>05 · Developer Portal</strong>
+          <span>Updated ABRN endpoints, WebCrypto SDK examples, and MCP snippets.</span>
+        </div>
+        <div class="shot">
+          <img src="../tickets/evidence/06-swagger-docs.png" alt="OpenAPI Explorer" />
+          <strong>06 · CSP-Safe OpenAPI Explorer</strong>
+          <span>52 of 52 documented operations served live from <code>/abrn/api/v1/docs</code>.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Cryptographic Seals</h2>
+      <div class="seal-box">vaultdrive_client/dist/index.html SHA-256 : ca0ec71dba8bef7833c5535f2c6e646c010fab7bf8d0724f2f7470c008b42f5a
+docs_api.go                        SHA-256 : 5391055dd5e05fad34f965c95a3197e8dc96215922f4477943d1c592fd993c08
+guardrails_v1.go                   SHA-256 : 5ea01d0c12632de5aff2d78c83cdb1e45eed82485fcc4364baa41612c80433c0
+handle_v1_crypto.go                SHA-256 : 133978030e438b048814c9a96272f306bad7e941b126c7e81ec3874e5d31f136
+handle_v1_trash_and_dataplane.go   SHA-256 : efb9abb5c882efcedaa347b284c661a11b5bd61db36f23ce1f62f6277b1c860d
+sdk/crypto.ts                      SHA-256 : 7739dfe1a041967db7e5ca6157e5d1e5ec0e9c333633b6d6bc3590f2a8ff0074
+mcp/server.ts                      SHA-256 : 36f18e90c89a60ed937fe0633b3c13a615906937e05bbe168e59322e66241ad0</div>
+    </section>
+  </div>
+</body>
+</html>

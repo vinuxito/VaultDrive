@@ -33,7 +33,7 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 		        psl.access_count, psl.last_accessed_at
 		 FROM public_share_links psl
 		 INNER JOIN files f ON f.id = psl.file_id
-		 WHERE psl.owner_id = $1
+		 WHERE psl.owner_id = $1 AND f.deleted_at IS NULL
 		 ORDER BY psl.created_at DESC`, user.ID)
 	if err != nil {
 		respondWithError(w, http.StatusServiceUnavailable, "Share links are temporarily unavailable", err)
@@ -72,7 +72,7 @@ func (cfg *ApiConfig) handlerListShares(w http.ResponseWriter, r *http.Request, 
 		        fsl.access_count, fsl.last_accessed_at
 		 FROM folder_share_links fsl
 		 INNER JOIN folders fol ON fol.id = fsl.folder_id
-		 WHERE fsl.owner_id = $1
+		 WHERE fsl.owner_id = $1 AND fol.deleted_at IS NULL
 		 ORDER BY fsl.created_at DESC`, user.ID)
 	if err != nil {
 		respondWithError(w, http.StatusServiceUnavailable, "Share links are temporarily unavailable", err)

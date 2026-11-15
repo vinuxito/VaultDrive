@@ -11,6 +11,7 @@ import {
   Search,
   Folder as FolderIcon,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import type { Folder as FolderType } from "../files/FolderBreadcrumb";
 import { FolderTree } from "../folders/FolderTree";
@@ -21,6 +22,7 @@ export type TreeNode =
   | { type: "all" }
   | { type: "starred" }
   | { type: "shared" }
+  | { type: "trash" }
   | { type: "folder"; folderId: string; folderName: string }
   | { type: "manage-folder-shares"; folderId: string; folderName: string }
   | { type: "drop-link"; token: string; tokenId: string; linkName: string }
@@ -44,6 +46,7 @@ interface VaultTreeProps {
   allFilesCount: number;
   starredCount: number;
   sharedCount: number;
+  trashCount?: number;
   dropReceivedCount?: number;
   totalBytesUsed?: number;
   pinnedFolderIds?: string[];
@@ -166,6 +169,7 @@ export function VaultTree({
   allFilesCount,
   starredCount,
   sharedCount,
+  trashCount = 0,
   dropReceivedCount = 0,
   totalBytesUsed = 0,
   pinnedFolderIds = [],
@@ -390,6 +394,14 @@ export function VaultTree({
           count={sharedCount}
           active={isSameNode(selected, { type: "shared" })}
           onClick={() => onSelect({ type: "shared" })}
+        />
+
+        <TreeItem
+          icon={<Trash2 className="w-4 h-4" />}
+          label="Papelera"
+          count={trashCount > 0 ? trashCount : undefined}
+          active={isSameNode(selected, { type: "trash" })}
+          onClick={() => onSelect({ type: "trash" })}
         />
 
         <div className="my-1.5 mx-2 border-t border-border" />

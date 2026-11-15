@@ -84,6 +84,14 @@ func (cfg *ApiConfig) handlerDownloadFile(w http.ResponseWriter, r *http.Request
 						})
 						if fkErr == nil {
 							wrappedKey = folderKey.WrappedKey
+						} else if dbFile.OwnerID.Valid {
+							ownerKey, okErr := cfg.dbQueries.GetFileAccessKey(r.Context(), database.GetFileAccessKeyParams{
+								FileID: uuid.NullUUID{UUID: fileID, Valid: true},
+								UserID: uuid.NullUUID{UUID: dbFile.OwnerID.UUID, Valid: true},
+							})
+							if okErr == nil {
+								wrappedKey = ownerKey.WrappedKey
+							}
 						}
 					}
 				}

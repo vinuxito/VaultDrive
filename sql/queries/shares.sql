@@ -10,7 +10,7 @@ WHERE file_id = $1;
 -- name: GetFilesBySharedWithUser :many
 SELECT f.* FROM files f
 INNER JOIN file_shares fs ON f.id = fs.file_id
-WHERE fs.shared_with_user_id = $1
+WHERE fs.shared_with_user_id = $1 AND f.deleted_at IS NULL
 ORDER BY f.created_at DESC;
 
 -- name: DeleteShare :exec

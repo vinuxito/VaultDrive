@@ -79,7 +79,7 @@ func (q *Queries) DeleteGroup(ctx context.Context, arg DeleteGroupParams) error 
 }
 
 const getFilesSharedViaGroups = `-- name: GetFilesSharedViaGroups :many
-SELECT DISTINCT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash,
+SELECT DISTINCT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash, f.deleted_at, f.deleted_by_actor_type, f.deleted_by_key_id, f.deleted_reason,
        g.name as group_name,
        g.id as group_id,
        gfs.created_at as shared_at,
@@ -95,33 +95,37 @@ JOIN groups g ON gfs.group_id = g.id
 JOIN group_members gm ON gfs.group_id = gm.group_id
 JOIN users owner ON f.owner_id = owner.id
 JOIN users sharer ON gfs.created_by = sharer.id
-WHERE gm.user_id = $1
+WHERE gm.user_id = $1 AND f.deleted_at IS NULL
 ORDER BY gfs.created_at DESC
 `
 
 type GetFilesSharedViaGroupsRow struct {
-	ID                uuid.UUID
-	OwnerID           uuid.NullUUID
-	Filename          string
-	FilePath          string
-	FileSize          int64
-	EncryptedMetadata sql.NullString
-	CurrentKeyVersion sql.NullInt32
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	Starred           bool
-	DropSourceID      uuid.NullUUID
-	FolderID          uuid.NullUUID
-	ParentHash        sql.NullString
-	GroupName         string
-	GroupID           uuid.UUID
-	SharedAt          sql.NullTime
-	OwnerEmail        string
-	OwnerFirstName    string
-	OwnerLastName     string
-	SharedByEmail     string
-	SharedByFirstName string
-	SharedByLastName  string
+	ID                 uuid.UUID
+	OwnerID            uuid.NullUUID
+	Filename           string
+	FilePath           string
+	FileSize           int64
+	EncryptedMetadata  sql.NullString
+	CurrentKeyVersion  sql.NullInt32
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	Starred            bool
+	DropSourceID       uuid.NullUUID
+	FolderID           uuid.NullUUID
+	ParentHash         sql.NullString
+	DeletedAt          sql.NullTime
+	DeletedByActorType sql.NullString
+	DeletedByKeyID     uuid.NullUUID
+	DeletedReason      sql.NullString
+	GroupName          string
+	GroupID            uuid.UUID
+	SharedAt           sql.NullTime
+	OwnerEmail         string
+	OwnerFirstName     string
+	OwnerLastName      string
+	SharedByEmail      string
+	SharedByFirstName  string
+	SharedByLastName   string
 }
 
 func (q *Queries) GetFilesSharedViaGroups(ctx context.Context, userID uuid.UUID) ([]GetFilesSharedViaGroupsRow, error) {
@@ -147,6 +151,10 @@ func (q *Queries) GetFilesSharedViaGroups(ctx context.Context, userID uuid.UUID)
 			&i.DropSourceID,
 			&i.FolderID,
 			&i.ParentHash,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 			&i.GroupName,
 			&i.GroupID,
 			&i.SharedAt,
@@ -206,14 +214,14 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (GetGroupByIDR
 }
 
 const getGroupFiles = `-- name: GetGroupFiles :many
-SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash,
+SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash, f.deleted_at, f.deleted_by_actor_type, f.deleted_by_key_id, f.deleted_reason,
        gfs.created_at as shared_at,
        u.username as shared_by,
        f.encrypted_metadata
 FROM group_file_shares gfs
 JOIN files f ON gfs.file_id = f.id
 JOIN users u ON gfs.created_by = u.id
-WHERE gfs.group_id = $1
+WHERE gfs.group_id = $1 AND f.deleted_at IS NULL
 ORDER BY gfs.created_at DESC
 `
 
@@ -231,6 +239,10 @@ type GetGroupFilesRow struct {
 	DropSourceID        uuid.NullUUID
 	FolderID            uuid.NullUUID
 	ParentHash          sql.NullString
+	DeletedAt           sql.NullTime
+	DeletedByActorType  sql.NullString
+	DeletedByKeyID      uuid.NullUUID
+	DeletedReason       sql.NullString
 	SharedAt            sql.NullTime
 	SharedBy            string
 	EncryptedMetadata_2 sql.NullString
@@ -259,6 +271,10 @@ func (q *Queries) GetGroupFiles(ctx context.Context, groupID uuid.UUID) ([]GetGr
 			&i.DropSourceID,
 			&i.FolderID,
 			&i.ParentHash,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 			&i.SharedAt,
 			&i.SharedBy,
 			&i.EncryptedMetadata_2,

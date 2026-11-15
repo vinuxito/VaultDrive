@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vinuxito/VaultDrive/auth"
@@ -46,27 +46,16 @@ func (cfg *ApiConfig) handlerDeleteFile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Delete only from the configured storage root.
-	storagePath, pathErr := resolveStoredFilePath(dbFile.FilePath)
-	if pathErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Stored file path is invalid", pathErr)
-		return
-	}
-	err = os.Remove(storagePath)
-	if err != nil && !os.IsNotExist(err) {
-		respondWithError(w, http.StatusInternalServerError, "Could not delete file from disk", err)
-		return
-	}
-
-	// Delete from database
-	err = cfg.dbQueries.DeleteFile(r.Context(), fileID)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not delete file from database", err)
+	now := time.Now().UTC()
+	if _, err := cfg.softDeleteFileWithActor(r.Context(), userID, fileID, "human_jwt", nil, "Eliminado desde Mi Bóveda (Papelera recuperable)", r); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not move file to Trash", err)
 		return
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"message": "File deleted successfully",
-		"file_id": fileID,
+		"message":     "File moved to recoverable Trash",
+		"file_id":     fileID,
+		"recoverable": true,
+		"deleted_at":  now,
 	})
 }

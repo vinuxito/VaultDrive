@@ -16,10 +16,14 @@ import (
 type actorContextKey struct{}
 
 type actorAuth struct {
-	AuthType string
-	KeyID    *uuid.UUID
-	Scopes   []string
-	User     database.User
+	AuthType         string
+	KeyID            *uuid.UUID
+	KeyKind          string
+	Scopes           []string
+	AllowedFolderIDs []uuid.UUID
+	AllowedIPs       []string
+	RateLimitRPM     int32
+	User             database.User
 }
 
 func actorFromContext(ctx context.Context) (*actorAuth, bool) {
@@ -81,7 +85,7 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 	}
 
 	if dbKey.RevokedAt.Valid || dbKey.Status != "active" {
-		respondWithV1Error(w, r, http.StatusUnauthorized, "API key is not active")
+		respondWithV1ErrorCode(w, r, http.StatusUnauthorized, "key_inactive", "API key is not active")
 		return
 	}
 	if dbKey.ExpiresAt.Valid && dbKey.ExpiresAt.Time.Before(time.Now()) {
@@ -101,20 +105,79 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 			"result":     "expired",
 			"method":     r.Method,
 		})
-		respondWithV1Error(w, r, http.StatusUnauthorized, "API key has expired")
+		respondWithV1ErrorCode(w, r, http.StatusUnauthorized, "key_expired", "API key has expired")
 		return
 	}
 
+	allowedIPs := decodeStringSliceRawJSON(dbKey.AllowedIps)
+	allowedFolderIDs := decodeUUIDSliceRawJSON(dbKey.AllowedFolderIds)
+	rpm := int(dbKey.RateLimitRpm)
+	if rpm <= 0 {
+		rpm = 60
+	}
+
 	ip := requestIP(r)
-	if !isLoopbackIP(ip) && !agentKeyRateLimiter.allow(dbKey.ID.String(), 60, time.Minute) {
+	if len(allowedIPs) > 0 && !ipAllowedByAllowlist(ip, allowedIPs) {
+		cfg.insertAudit(r.Context(), dbKey.UserID, "agent_api_key.ip_denied", "agent_api_key", &dbKey.ID, map[string]interface{}{
+			"path":      r.URL.Path,
+			"method":    r.Method,
+			"client_ip": ip,
+		}, r)
+		broadcastAgentOperation(dbKey.UserID, "agent_api_key.ip_denied", map[string]interface{}{
+			"key_id":     dbKey.ID.String(),
+			"agent_name": dbKey.Name,
+			"key_prefix": dbKey.KeyPrefix,
+			"resource":   r.URL.Path,
+			"result":     "denied",
+			"method":     r.Method,
+			"client_ip":  ip,
+		})
+		respondWithV1ErrorCode(w, r, http.StatusForbidden, "ip_not_allowed", "Request IP address is not in this agent key's allowlist")
+		return
+	}
+	if (!isLoopbackIP(ip) || rpm != 60) && !agentKeyRateLimiter.allow(dbKey.ID.String(), rpm, time.Minute) {
 		w.Header().Set("Retry-After", "60")
-		respondWithV1Error(w, r, http.StatusTooManyRequests, "Rate limit exceeded for this agent key")
+		respondWithV1ErrorCode(w, r, http.StatusTooManyRequests, "rate_limited", "Rate limit exceeded for this agent key")
 		return
 	}
 
 	scopes := decodeAgentScopes(dbKey.ScopesJson)
 	matchedScope := ""
 	for _, required := range requiredScopes {
+		if required == scopeFilesSoftDelete && dbKey.KeyKind != agentKeyKindDeleteOnly {
+			cfg.insertActivity(r.Context(), dbKey.UserID, "agent_api_key_delete_denied", map[string]interface{}{
+				"key_id": dbKey.ID.String(),
+				"scope":  required,
+				"path":   r.URL.Path,
+			})
+			cfg.insertAudit(r.Context(), dbKey.UserID, "agent_api_key.delete_denied", "agent_api_key", &dbKey.ID, map[string]interface{}{
+				"required_scope": required,
+				"key_kind":       dbKey.KeyKind,
+				"path":           r.URL.Path,
+				"method":         r.Method,
+			}, r)
+			broadcastAgentOperation(dbKey.UserID, "agent_api_key.scope_denied", map[string]interface{}{
+				"key_id":         dbKey.ID.String(),
+				"agent_name":     dbKey.Name,
+				"key_prefix":     dbKey.KeyPrefix,
+				"resource":       r.URL.Path,
+				"result":         "denied",
+				"method":         r.Method,
+				"required_scope": required,
+			})
+			respondWithV1ErrorCode(w, r, http.StatusForbidden, "delete_key_required", "Standard agent keys cannot delete files or folders. Create a Special Delete-Only key (abrnak_del_) whose actions are 100% recoverable in Trash.")
+			return
+		}
+		if dbKey.KeyKind == agentKeyKindDeleteOnly && required != scopeFilesSoftDelete {
+			cfg.insertAudit(r.Context(), dbKey.UserID, "agent_api_key.scope_denied", "agent_api_key", &dbKey.ID, map[string]interface{}{
+				"required_scope": required,
+				"key_kind":       dbKey.KeyKind,
+				"path":           r.URL.Path,
+				"method":         r.Method,
+			}, r)
+			respondWithV1ErrorCode(w, r, http.StatusForbidden, "insufficient_scope", "Special Delete-Only keys are strictly isolated to recoverable trash operations (files:soft_delete)")
+			return
+		}
 		if !scopeAllowed(scopes, required) {
 			cfg.insertActivity(r.Context(), dbKey.UserID, "agent_api_key_scope_denied", map[string]interface{}{
 				"key_id": dbKey.ID.String(),
@@ -135,7 +198,7 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 				"method":         r.Method,
 				"required_scope": required,
 			})
-			respondWithV1Error(w, r, http.StatusForbidden, "API key scope denied")
+			respondWithV1ErrorCode(w, r, http.StatusForbidden, "insufficient_scope", "API key scope denied")
 			return
 		}
 		matchedScope = required
@@ -158,13 +221,15 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 		}),
 	})
 	cfg.insertAudit(r.Context(), dbKey.UserID, "agent_api_key.used", "agent_api_key", &dbKey.ID, map[string]interface{}{
-		"path":   r.URL.Path,
-		"method": r.Method,
+		"path":     r.URL.Path,
+		"method":   r.Method,
+		"key_kind": dbKey.KeyKind,
 	}, r)
 	broadcastAgentOperation(dbKey.UserID, "agent_api_key.used", map[string]interface{}{
 		"key_id":        dbKey.ID.String(),
 		"agent_name":    dbKey.Name,
 		"key_prefix":    dbKey.KeyPrefix,
+		"key_kind":      dbKey.KeyKind,
 		"resource":      r.URL.Path,
 		"result":        "ok",
 		"method":        r.Method,
@@ -172,10 +237,14 @@ func (cfg *ApiConfig) handleAgentKeyAuth(w http.ResponseWriter, r *http.Request,
 	})
 
 	ctx := context.WithValue(r.Context(), actorContextKey{}, &actorAuth{
-		AuthType: "agent_api_key",
-		KeyID:    &dbKey.ID,
-		Scopes:   scopes,
-		User:     user,
+		AuthType:         "agent_api_key",
+		KeyID:            &dbKey.ID,
+		KeyKind:          dbKey.KeyKind,
+		Scopes:           scopes,
+		AllowedFolderIDs: allowedFolderIDs,
+		AllowedIPs:       allowedIPs,
+		RateLimitRPM:     int32(rpm),
+		User:             user,
 	})
 	handler(w, r.WithContext(ctx), user)
 }

@@ -69,8 +69,8 @@ func middlewareCORS(origins []string) func(http.Handler) http.Handler {
 			}
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-File-Name, Retry-After, X-Request-Id")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Idempotency-Key, X-Request-Id")
+			w.Header().Set("Access-Control-Expose-Headers", "X-File-Metadata, X-Wrapped-Key, X-Credential-Scheme, X-Folder-Wrapped-Key, X-File-Name, Retry-After, X-Request-Id, X-Idempotency-Replayed")
 
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
@@ -134,6 +134,8 @@ func main() {
 	mux.HandleFunc("GET /metrics", handleMetrics)
 	mux.HandleFunc("GET /docs/api", handleSwaggerUI)
 	mux.HandleFunc("GET /docs/openapi.json", handleOpenAPISpec)
+	mux.HandleFunc("GET /api/v1/docs", handleSwaggerUI)
+	mux.HandleFunc("GET /api/v1/openapi.json", handleOpenAPISpec)
 
 	mux.HandleFunc("DELETE /api/upload-links/{id}", apiConfig.handlerDeleteDropToken)
 
@@ -165,28 +167,40 @@ func main() {
 	mux.Handle("POST /api/folders", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleCreateFolder)))
 	mux.Handle("POST /api/v1/folders",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1CreateFolder)))
+			apiConfig.middlewareActor("folders:write")(apiConfig.withV1Idempotency(apiConfig.handlerV1CreateFolder))))
 
 	mux.Handle("PUT /api/folders/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleUpdateFolder)))
 	mux.Handle("PUT /api/v1/folders/{id}",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1UpdateFolder)))
+			apiConfig.middlewareActor("folders:write")(apiConfig.withV1Idempotency(apiConfig.handlerV1UpdateFolder))))
 
 	mux.Handle("DELETE /api/folders/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handleDeleteFolder)))
 	mux.Handle("DELETE /api/v1/folders/{id}",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("folders:write")(apiConfig.handlerV1DeleteFolder)))
+			apiConfig.middlewareActor(scopeFilesSoftDelete)(apiConfig.handlerV1DeleteFolder)))
 
 	// Folder sharing endpoints
 	mux.Handle("POST /api/folders/{id}/shares", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleCreateFolderShare)))
 	mux.Handle("GET /api/folders/{id}/shares", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleListFolderShares)))
 	mux.Handle("DELETE /api/folders/{id}/shares/{userId}", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleDeleteFolderShare)))
 	mux.Handle("GET /api/folders/shared", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleListSharedFolders)))
+	mux.Handle("GET /api/v1/folders/shared",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:read")(apiConfig.wrapV1JSON(apiConfig.handleListSharedFolders))))
 	mux.Handle("GET /api/folders/{id}/files", apiConfig.middlewareMetricsInc(apiConfig.middlewareAuth(apiConfig.handleListFolderFiles)))
+	mux.Handle("GET /api/v1/folders/{id}/files",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("files:list")(apiConfig.wrapV1JSON(apiConfig.handleListFolderFiles))))
 
 	mux.Handle("POST /api/drop/create", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerCreateDropToken)))
+	mux.Handle("POST /api/v1/drop/create",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("requests:create")(apiConfig.withV1Idempotency(apiConfig.wrapV1JSON(apiConfig.handlerCreateDropTokenWithUser)))))
 
 	mux.Handle("GET /api/drop/tokens", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListDropTokens)))
+	mux.Handle("GET /api/v1/drop/tokens",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("requests:list")(apiConfig.wrapV1JSON(apiConfig.handlerListDropTokensWithUser))))
 
 	mux.HandleFunc("GET /api/drop/{token}", apiConfig.handlerDropTokenInfo)
 	mux.HandleFunc("GET /api/drop/{token}/owner-info", apiConfig.handlerDropOwnerInfo)
@@ -199,9 +213,15 @@ func main() {
 	mux.Handle("POST /api/files/{id}/move",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerMoveFileToFolder)))
+	mux.Handle("POST /api/v1/files/{id}/move",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:write")(apiConfig.withV1Idempotency(apiConfig.wrapV1JSON(apiConfig.handlerMoveFileToFolder)))))
 	mux.Handle("PUT /api/files/{id}/folder",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerMoveFileToFolder)))
+	mux.Handle("PUT /api/v1/files/{id}/folder",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("folders:write")(apiConfig.withV1Idempotency(apiConfig.wrapV1JSON(apiConfig.handlerMoveFileToFolder)))))
 	mux.Handle("POST /api/v1/files/upload",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("files:upload_ciphertext")(apiConfig.handlerV1CreateFile)))
@@ -214,20 +234,38 @@ func main() {
 	mux.Handle("POST /api/files/{id}/share", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerShareFile)))
 
 	mux.Handle("GET /api/files/{id}/shares", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFileShares)))
+	mux.Handle("GET /api/v1/files/{id}/shares",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:list")(apiConfig.wrapV1JSON(apiConfig.handlerListFileSharesWithUser))))
 
 	mux.Handle("DELETE /api/files/{id}/revoke/{user_id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerRevokeFileAccess)))
+	mux.Handle("DELETE /api/v1/files/{id}/revoke/{user_id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:revoke")(apiConfig.wrapV1JSON(apiConfig.handlerRevokeFileAccessWithUser))))
 
 	mux.Handle("GET /api/files", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListFiles)))
+	mux.Handle("GET /api/v1/files/shared",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("files:list")(apiConfig.handlerV1ListSharedFiles)))
 	mux.Handle("GET /api/v1/files",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("files:list")(apiConfig.handlerV1ListFiles)))
 	mux.Handle("GET /api/v1/files/{id}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("files:read_metadata")(apiConfig.handlerV1GetFileMetadata)))
+	mux.Handle("GET /api/v1/users/me/public-key",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor()(apiConfig.handlerV1GetMyPublicKey)))
+	mux.Handle("GET /api/v1/users/{id}/public-key",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor()(apiConfig.handlerV1GetPublicKeyByID)))
 
 	mux.Handle("GET /api/files/shared", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerListSharedFiles)))
 
 	mux.Handle("DELETE /api/files/{id}", apiConfig.middlewareMetricsInc(http.HandlerFunc(apiConfig.handlerDeleteFile)))
+	mux.Handle("DELETE /api/v1/files/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor(scopeFilesSoftDelete)(apiConfig.handlerV1DeleteFile)))
 
 	// Groups CRUD
 	mux.Handle("GET /api/groups",
@@ -318,12 +356,21 @@ func main() {
 	mux.Handle("POST /api/folders/{folderId}/share-link",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerCreateFolderShareLink)))
+	mux.Handle("POST /api/v1/folders/{folderId}/share-link",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:create")(apiConfig.withV1Idempotency(apiConfig.wrapV1JSON(apiConfig.handlerCreateFolderShareLink)))))
 	mux.Handle("GET /api/folders/{folderId}/share-links",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerListFolderShareLinks)))
+	mux.Handle("GET /api/v1/folders/{folderId}/share-links",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:list")(apiConfig.wrapV1JSON(apiConfig.handlerListFolderShareLinks))))
 	mux.Handle("DELETE /api/folder-share-links/{linkId}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerRevokeFolderShareLink)))
+	mux.Handle("DELETE /api/v1/folder-share-links/{linkId}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareActor("shares:revoke")(apiConfig.wrapV1JSON(apiConfig.handlerRevokeFolderShareLink))))
 	mux.Handle("GET /api/folder-share-links",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerListOwnedFolderShareLinks)))
@@ -362,7 +409,7 @@ func main() {
 			apiConfig.middlewareAuth(apiConfig.handlerGetActivity)))
 	mux.Handle("GET /api/v1/activity",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("activity:read")(apiConfig.handlerGetActivity)))
+			apiConfig.middlewareActor("activity:read")(apiConfig.wrapV1JSON(apiConfig.handlerGetActivity))))
 
 	mux.Handle("GET /api/security-posture",
 		apiConfig.middlewareMetricsInc(
@@ -373,7 +420,7 @@ func main() {
 			apiConfig.middlewareAuth(apiConfig.handlerGetFileAccessSummary)))
 	mux.Handle("GET /api/v1/files/{id}/access-summary",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("trust:read")(apiConfig.handlerGetFileAccessSummary)))
+			apiConfig.middlewareActor("trust:read")(apiConfig.wrapV1JSON(apiConfig.handlerGetFileAccessSummary))))
 	mux.Handle("GET /api/v1/files/{id}/trust",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("trust:read")(apiConfig.handlerGetFileTrustSummary)))
@@ -386,34 +433,33 @@ func main() {
 			apiConfig.middlewareAuth(apiConfig.handlerRevokeAllExternalAccess)))
 	mux.Handle("DELETE /api/v1/files/{id}/revoke-external",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("shares:revoke")(apiConfig.handlerRevokeAllExternalAccess)))
+			apiConfig.middlewareActor("shares:revoke")(apiConfig.wrapV1JSON(apiConfig.handlerRevokeAllExternalAccess))))
 
 	mux.Handle("GET /api/v1/files/{fileId}/share-links",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("shares:list")(apiConfig.handlerListPublicShareLinks)))
+			apiConfig.middlewareActor("shares:list")(apiConfig.wrapV1JSON(apiConfig.handlerListPublicShareLinks))))
 	mux.Handle("POST /api/v1/files/{fileId}/share-link",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("shares:create")(apiConfig.handlerCreatePublicShareLink)))
+			apiConfig.middlewareActor("shares:create")(apiConfig.withV1Idempotency(apiConfig.wrapV1JSON(apiConfig.handlerCreatePublicShareLink)))))
 	mux.Handle("DELETE /api/v1/share-links/{linkId}",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("shares:revoke")(apiConfig.handlerRevokePublicShareLink)))
+			apiConfig.middlewareActor("shares:revoke")(apiConfig.wrapV1JSON(apiConfig.handlerRevokePublicShareLink))))
 
 	mux.Handle("GET /api/v1/file-requests",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("requests:list")(apiConfig.handlerListFileRequests)))
+			apiConfig.middlewareActor("requests:list")(apiConfig.wrapV1JSON(apiConfig.handlerListFileRequests))))
 	mux.Handle("POST /api/v1/file-requests",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("requests:create")(apiConfig.handlerCreateFileRequest)))
+			apiConfig.middlewareActor("requests:create")(apiConfig.withV1Idempotency(apiConfig.wrapV1JSON(apiConfig.handlerCreateFileRequest)))))
 	mux.Handle("DELETE /api/v1/file-requests/{id}",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("requests:revoke")(apiConfig.handlerRevokeFileRequest)))
-
+			apiConfig.middlewareActor("requests:revoke")(apiConfig.wrapV1JSON(apiConfig.handlerRevokeFileRequest))))
 	mux.Handle("GET /api/v1/agent-keys",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("api_keys:read")(apiConfig.handlerListAgentAPIKeys)))
 	mux.Handle("POST /api/v1/agent-keys",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareActor("api_keys:write")(apiConfig.handlerCreateAgentAPIKey)))
+			apiConfig.middlewareActor("api_keys:write")(apiConfig.withV1Idempotency(apiConfig.handlerCreateAgentAPIKey))))
 	mux.Handle("DELETE /api/v1/agent-keys/{id}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareActor("api_keys:write")(apiConfig.handlerRevokeAgentAPIKey)))
@@ -438,21 +484,38 @@ func main() {
 	// Unified access center — all outbound share links for the owner.
 	mux.Handle("GET /api/v1/shares",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerListShares)))
+			apiConfig.middlewareActor("shares:list")(apiConfig.wrapV1ForAgentKey(apiConfig.handlerListShares))))
 
 	// Collection templates CRUD.
 	mux.Handle("GET /api/v1/collection-templates",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerListCollectionTemplates)))
+			apiConfig.middlewareActor("requests:list")(apiConfig.wrapV1ForAgentKey(apiConfig.handlerListCollectionTemplates))))
 	mux.Handle("POST /api/v1/collection-templates",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerCreateCollectionTemplate)))
+			apiConfig.middlewareAuth(apiConfig.withV1Idempotency(apiConfig.handlerCreateCollectionTemplate))))
 	mux.Handle("PUT /api/v1/collection-templates/{id}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerUpdateCollectionTemplate)))
 	mux.Handle("DELETE /api/v1/collection-templates/{id}",
 		apiConfig.middlewareMetricsInc(
 			apiConfig.middlewareAuth(apiConfig.handlerDeleteCollectionTemplate)))
+
+	// Human-JWT-Only 100% Recoverable Trash controls (never exposed to agent API keys).
+	mux.Handle("GET /api/trash",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerListTrash)))
+	mux.Handle("POST /api/trash/files/{id}/restore",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerRestoreTrashedFile)))
+	mux.Handle("POST /api/trash/folders/{id}/restore",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerRestoreTrashedFolder)))
+	mux.Handle("DELETE /api/trash/files/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerPurgeTrashedFile)))
+	mux.Handle("DELETE /api/trash/folders/{id}",
+		apiConfig.middlewareMetricsInc(
+			apiConfig.middlewareAuth(apiConfig.handlerPurgeTrashedFolder)))
 
 	// Admin routes
 	mux.Handle("GET /api/admin/users",
@@ -497,7 +560,7 @@ func main() {
 	mux.HandleFunc("POST /api/v1/rooms/{id}/broadcast", apiConfig.handlerRoomBroadcast)
 	mux.Handle("POST /api/v1/files/sync",
 		apiConfig.middlewareMetricsInc(
-			apiConfig.middlewareAuth(apiConfig.handlerFilesSync)))
+			apiConfig.middlewareActor()(apiConfig.withV1Idempotency(apiConfig.wrapV1ForAgentKey(apiConfig.handlerV1FilesSync)))))
 
 	fmt.Printf("Starting server on port %s...\n", port)
 

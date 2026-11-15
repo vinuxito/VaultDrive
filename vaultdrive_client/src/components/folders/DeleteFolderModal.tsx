@@ -50,7 +50,7 @@ export default function DeleteFolderModal({
             <div className={cn("flex items-center justify-between p-4 border-b", "border-border")}>
               <div className="flex items-center gap-2">
                 <Trash2 className="h-5 w-5 text-destructive" />
-                <h2 className={cn("text-xl font-semibold", "text-foreground")}>Delete Folder</h2>
+                <h2 className={cn("text-xl font-semibold", "text-foreground")}>Mover carpeta a la Papelera</h2>
               </div>
               <button
                 type="button"
@@ -68,28 +68,27 @@ export default function DeleteFolderModal({
             <div className="p-4">
               <div className="space-y-4">
                 <p className={"text-foreground"}>
-                  Are you sure you want to delete the folder{" "}
-                  <span className={cn("font-semibold", "text-foreground")}>"{folderName}"</span>?
+                  ¿Quieres mover la carpeta{" "}
+                  <span className={cn("font-semibold", "text-foreground")}>"{folderName}"</span> a la Papelera?
                 </p>
 
                 {hasSubfolders && (
                   <div className={cn(
                     "flex items-start gap-2 p-3 border rounded-lg",
-                    "bg-destructive/10 border-destructive/20 text-destructive"
+                    "bg-amber-500/10 border-amber-500/30 text-foreground"
                   )}>
-                    <AlertTriangle className={cn("h-5 w-5 flex-shrink-0 mt-0.5", "text-destructive")} />
+                    <AlertTriangle className={cn("h-5 w-5 flex-shrink-0 mt-0.5", "text-amber-500")} />
                     <div className="text-sm">
-                      <p className="font-semibold mb-1">Warning</p>
+                      <p className="font-semibold mb-1">Incluye subcarpetas</p>
                       <p>
-                        This folder contains subfolders. All subfolders and their contents
-                        will be permanently deleted.
+                        Esta carpeta y todo lo que contiene pasarán juntos a tu Papelera recuperable.
                       </p>
                     </div>
                   </div>
                 )}
 
                 <p className={cn("text-sm", "text-muted-foreground")}>
-                  This action cannot be undone.
+                  Podrás restaurarla cuando quieras desde Papelera. Solo tú puedes vaciarla para siempre.
                 </p>
 
                 <div className="flex gap-2 justify-end pt-2">
@@ -99,7 +98,7 @@ export default function DeleteFolderModal({
                     onClick={onClose}
                     disabled={loading}
                   >
-                    Cancel
+                    Cancelar
                   </Button>
                   <Button
                     type="button"
@@ -110,10 +109,10 @@ export default function DeleteFolderModal({
                     {loading ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Deleting...
+                        Moviendo...
                       </>
                     ) : (
-                      "Delete Folder"
+                      "Mover a Papelera"
                     )}
                   </Button>
                 </div>

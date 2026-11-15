@@ -232,7 +232,7 @@ workerScope.onmessage = async (e: MessageEvent<PreviewRequest>) => {
       const wrapped = new Uint8Array(base64ToArrayBuffer(wrappedKeyB64));
       const raw = await crypto.subtle.decrypt({ name: "AES-GCM", iv: wrapped.slice(0, 12) }, folderKey, wrapped.slice(12));
       encryptionKey = await crypto.subtle.importKey("raw", raw, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
-    } else if (isDropUpload && pinWrappedKey && file.is_owner !== false) {
+    } else if (isDropUpload && metaObj.credential_scheme !== "rsa" && pinWrappedKey && file.is_owner !== false) {
       failureKind = "credential";
       const rawKey = await unwrapKey(credential, pinWrappedKey);
       const keyBytes = hexToBytes(rawKey);
@@ -244,7 +244,7 @@ workerScope.onmessage = async (e: MessageEvent<PreviewRequest>) => {
         ["decrypt"]
       );
       failureKind = "unknown";
-    } else if (wrappedKeyB64 && file.is_owner === false) {
+    } else if (wrappedKeyB64 && (metaObj.credential_scheme === "rsa" || file.is_owner === false)) {
       if (!rawPrivateKeyPem) throw new Error("Private key PEM required for decryption");
       const rsaKey = await importRSAPrivateKey(rawPrivateKeyPem);
       encryptionKey = await unwrapKeyWithRSA(rsaKey, wrappedKeyB64);

@@ -16,11 +16,11 @@ RETURNING *;
 
 -- name: GetFileByID :one
 SELECT * FROM files
-WHERE id = $1;
+WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: GetFilesByOwnerID :many
 SELECT * FROM files
-WHERE owner_id = $1
+WHERE owner_id = $1 AND deleted_at IS NULL
 ORDER BY created_at DESC;
 
 -- name: UpdateFile :one
@@ -32,7 +32,7 @@ SET
     encrypted_metadata = $5,
     current_key_version = $6,
     updated_at = $7
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: UpdateFileMetadata :one
@@ -41,7 +41,7 @@ SET
     encrypted_metadata = $2,
     current_key_version = $3,
     updated_at = $4
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: DeleteFile :exec
@@ -54,42 +54,42 @@ WHERE owner_id = $1;
 
 -- name: GetFilesByOwnerIDWithPagination :many
 SELECT * FROM files
-WHERE owner_id = $1
+WHERE owner_id = $1 AND deleted_at IS NULL
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CountFilesByOwnerID :one
 SELECT COUNT(*) FROM files
-WHERE owner_id = $1;
+WHERE owner_id = $1 AND deleted_at IS NULL;
 
 -- name: ToggleFileStarred :one
 UPDATE files
 SET starred = $2,
     updated_at = $3
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: GetFilesByFolderID :many
 SELECT * FROM files
-WHERE folder_id = $1
+WHERE folder_id = $1 AND deleted_at IS NULL
 ORDER BY filename ASC;
 
 -- name: UpdateFileFolderID :exec
 UPDATE files SET folder_id = $1, updated_at = $2
-WHERE id = $3;
+WHERE id = $3 AND deleted_at IS NULL;
 
 -- name: GetFilesByFolderIDs :many
 SELECT * FROM files
-WHERE folder_id = ANY($1::uuid[])
+WHERE folder_id = ANY($1::uuid[]) AND deleted_at IS NULL
 ORDER BY folder_id, filename ASC;
 
 -- name: UpdateFileParentHash :exec
 UPDATE files
 SET parent_hash = $2,
     updated_at = $3
-WHERE id = $1;
+WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: GetFileByParentHash :one
 SELECT * FROM files
-WHERE parent_hash = $1;
+WHERE parent_hash = $1 AND deleted_at IS NULL;
 

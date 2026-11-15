@@ -22,6 +22,11 @@ func (cfg *ApiConfig) handlerRevokeFileAccess(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	cfg.handlerRevokeFileAccessWithUser(w, r, database.User{ID: userID})
+}
+
+func (cfg *ApiConfig) handlerRevokeFileAccessWithUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	userID := user.ID
 	fileIDStr := r.PathValue("id")
 	if fileIDStr == "" {
 		respondWithError(w, http.StatusBadRequest, "File ID is required", nil)

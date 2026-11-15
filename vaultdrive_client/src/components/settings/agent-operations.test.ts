@@ -54,4 +54,47 @@ describe("groupAgentOperations", () => {
       activeAgents: 2,
     });
   });
+
+  it("explains and counts guardrail blocks and recoverable trash actions", () => {
+    const guardrailEntries: AgentOperationEntry[] = [
+      {
+        id: "g1",
+        action: "agent_api_key.folder_denied",
+        resource_type: "agent_api_key",
+        created_at: "2026-11-15T12:00:00Z",
+        metadata: { reason: "SiblingSecret outside allowed_folder_ids" },
+      },
+      {
+        id: "g2",
+        action: "agent_api_key.ip_denied",
+        resource_type: "agent_api_key",
+        created_at: "2026-11-15T12:01:00Z",
+        metadata: { reason: "203.0.113.9" },
+      },
+      {
+        id: "g3",
+        action: "agent_api_key.delete_denied",
+        resource_type: "agent_api_key",
+        created_at: "2026-11-15T12:02:00Z",
+      },
+      {
+        id: "g4",
+        action: "file.soft_deleted",
+        resource_type: "file",
+        created_at: "2026-11-15T12:03:00Z",
+        metadata: { reason: "CFDI duplicado" },
+      },
+    ];
+
+    expect(explainAgentOperation(guardrailEntries[0]!)).toContain("SiblingSecret outside allowed_folder_ids");
+    expect(explainAgentOperation(guardrailEntries[1]!)).toContain("203.0.113.9");
+    expect(explainAgentOperation(guardrailEntries[2]!)).toContain("llave Solo Papelera");
+    expect(explainAgentOperation(guardrailEntries[3]!)).toContain("CFDI duplicado");
+
+    expect(summarizeAgentOperations(guardrailEntries, 2)).toMatchObject({
+      activeKeys: 2,
+      latestEvent: "Movido a Papelera",
+      attention: "3 denials to review",
+    });
+  });
 });

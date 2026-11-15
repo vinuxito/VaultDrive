@@ -69,6 +69,14 @@ export async function recoverVerifiedOwnerFileKey({
         throw new Error("Open this folder in Files first, then manage or recreate the link there.");
       }
       key = await unwrapKeyWithAES(folderKey, wrappedKey);
+    } else if (!key && metadata.credential_scheme === "rsa") {
+      if (!wrappedKey) {
+        throw new Error("Missing wrapped RSA key for this file. Manage or recreate the link from Files.");
+      }
+      key = cachedFileKey ?? null;
+      if (!key) {
+        throw new Error("Open or preview this RSA-protected file first so its key is unlocked, then manage the link.");
+      }
     } else if (!key) {
       if (!metadata.salt) {
         throw new Error("This older file cannot be recovered here. Manage or recreate the link from Files.");

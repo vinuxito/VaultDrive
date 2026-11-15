@@ -9,6 +9,7 @@ import { TrustRail } from "./TrustRail";
 import { FileSecurityTimeline } from "./FileSecurityTimeline";
 import { getRamVoiceMemo } from "../../utils/continuum-bridge";
 import {
+  decryptPrivateKeyWithPassword,
   decryptPrivateKeyWithPIN,
   importRSAPSSPrivateKey,
   importRSAPSSPublicKey,
@@ -16,7 +17,7 @@ import {
   verifyWithRSAPSS,
 } from "../../utils/crypto";
 import { getStoredUserFromLocalStorage } from "../../utils/browser-storage";
-import { getFileCredentialScheme } from "../../utils/file-credential";
+import { getFileCredentialScheme, isRsaKeyWrappedFile } from "../../utils/file-credential";
 import { playTumblerClick, playUnlockChime } from "../../utils/audioHaptics";
 import { extractSnippetForIndexing } from "../../utils/streaming-decrypt";
 import { analyzeDocumentTriage } from "../../utils/document-triage";
@@ -269,15 +270,22 @@ export function FilePreviewModal({
       const cachedFileKey = getFileKey(file.id);
       const cachedFolderKey = file.folder_id ? getFolderKey(file.folder_id) : null;
       let rawPrivateKeyPem: string | null = null;
-      if (file.is_owner === false && !file.pin_wrapped_key && !cachedFileKey && !cachedFolderKey) {
+      if (isRsaKeyWrappedFile(file) && !cachedFileKey && !cachedFolderKey) {
         rawPrivateKeyPem = await getPrivateKeyPem();
         if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
         if (!rawPrivateKeyPem) {
           const userObj = getStoredUserFromLocalStorage();
           const pinEncrypted = userObj?.private_key_pin_encrypted ?? null;
-          if (pinEncrypted && cred) {
+          const passEncrypted = (userObj as { private_key_encrypted?: string | null } | null)?.private_key_encrypted ?? null;
+          if (cred) {
             localFailureKind = "credential";
-            rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
+            if (pinEncrypted && /^\d+$/.test(cred)) {
+              rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
+            } else if (passEncrypted) {
+              rawPrivateKeyPem = await decryptPrivateKeyWithPassword(cred, passEncrypted, userObj?.kek_envelope_version);
+            } else if (pinEncrypted) {
+              rawPrivateKeyPem = await decryptPrivateKeyWithPIN(cred, pinEncrypted, userObj?.kek_envelope_version);
+            }
             if (requestId !== previewGeneration.current) return { success: false, failureKind: "cancelled" };
           }
         }
@@ -462,7 +470,7 @@ export function FilePreviewModal({
     }
 
     const vaultKey = getPrivateKey();
-    if (vaultKey && file.is_owner === false && !file.pin_wrapped_key) {
+    if (vaultKey && isRsaKeyWrappedFile(file)) {
       setShowCredentialPrompt(false);
       loadPreview("");
     } else {

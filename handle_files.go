@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -206,7 +207,10 @@ func (cfg *ApiConfig) handlerMoveFileToFolder(w http.ResponseWriter, r *http.Req
 	}
 
 	var body struct {
-		FolderID string `json:"folder_id"`
+		FolderID         string `json:"folder_id"`
+		NewWrappedKey    string `json:"new_wrapped_key"`
+		WrappedKey       string `json:"wrapped_key"`
+		CredentialScheme string `json:"credential_scheme"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body", err)
@@ -217,10 +221,29 @@ func (cfg *ApiConfig) handlerMoveFileToFolder(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	targetFolderID, err := uuid.Parse(body.FolderID)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid folder ID format", err)
-		return
+	var targetFolderUUID uuid.NullUUID
+	targetFolderName := "Raíz"
+	if strings.TrimSpace(body.FolderID) != "root" {
+		targetFolderID, err := uuid.Parse(body.FolderID)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid folder ID format", err)
+			return
+		}
+		folder, err := cfg.dbQueries.GetFolderByID(r.Context(), targetFolderID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				respondWithError(w, http.StatusNotFound, "Target folder not found", err)
+				return
+			}
+			respondWithError(w, http.StatusInternalServerError, "Error retrieving target folder", err)
+			return
+		}
+		if folder.OwnerID != user.ID {
+			respondWithError(w, http.StatusForbidden, "You do not own the target folder", nil)
+			return
+		}
+		targetFolderUUID = uuid.NullUUID{UUID: targetFolderID, Valid: true}
+		targetFolderName = folder.Name
 	}
 
 	file, err := cfg.dbQueries.GetFileByID(r.Context(), fileID)
@@ -236,57 +259,85 @@ func (cfg *ApiConfig) handlerMoveFileToFolder(w http.ResponseWriter, r *http.Req
 		respondWithError(w, http.StatusForbidden, "You do not own this file", nil)
 		return
 	}
+	if !cfg.enforceFolderJailForFile(w, r, file) {
+		return
+	}
+	var destFolderPtr *uuid.UUID
+	if targetFolderUUID.Valid {
+		id := targetFolderUUID.UUID
+		destFolderPtr = &id
+	}
+	if !cfg.enforceFolderJailID(w, r, destFolderPtr, false) {
+		return
+	}
 
-	folder, err := cfg.dbQueries.GetFolderByID(r.Context(), targetFolderID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			respondWithError(w, http.StatusNotFound, "Target folder not found", err)
-			return
+	nextWrappedKey := strings.TrimSpace(body.NewWrappedKey)
+	if nextWrappedKey == "" {
+		nextWrappedKey = strings.TrimSpace(body.WrappedKey)
+	}
+	sameFolder := (!file.FolderID.Valid && !targetFolderUUID.Valid) ||
+		(file.FolderID.Valid && targetFolderUUID.Valid && file.FolderID.UUID == targetFolderUUID.UUID)
+	if sameFolder && nextWrappedKey == "" {
+		var respFolderID interface{}
+		if targetFolderUUID.Valid {
+			respFolderID = targetFolderUUID.UUID
 		}
-		respondWithError(w, http.StatusInternalServerError, "Error retrieving target folder", err)
-		return
-	}
-	if folder.OwnerID != user.ID {
-		respondWithError(w, http.StatusForbidden, "You do not own the target folder", nil)
-		return
-	}
-
-	if file.FolderID.Valid && file.FolderID.UUID == targetFolderID {
 		respondWithJSON(w, http.StatusOK, map[string]any{
 			"status":    "success",
 			"moved":     false,
 			"file_id":   file.ID,
-			"folder_id": targetFolderID,
+			"folder_id": respFolderID,
 		})
 		return
 	}
 
+	now := time.Now().UTC()
 	err = cfg.dbQueries.UpdateFileFolderID(r.Context(), database.UpdateFileFolderIDParams{
-		FolderID:  uuid.NullUUID{UUID: targetFolderID, Valid: true},
-		UpdatedAt: time.Now().UTC(),
+		FolderID:  targetFolderUUID,
+		UpdatedAt: now,
 		ID:        file.ID,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to move file", err)
 		return
 	}
+	if nextWrappedKey != "" {
+		_, _ = cfg.db.ExecContext(r.Context(),
+			`UPDATE file_access_keys SET wrapped_key = $1 WHERE file_id = $2 AND user_id = $3`,
+			nextWrappedKey, file.ID, user.ID,
+		)
+		scheme := strings.TrimSpace(body.CredentialScheme)
+		if scheme == "" && targetFolderUUID.Valid {
+			scheme = "folder"
+		}
+		if scheme != "" {
+			cfg.updateFileMetadataScheme(r.Context(), file, scheme, nextWrappedKey, now)
+		}
+	}
+
+	var targetFolderIDOut interface{}
+	targetFolderIDStr := ""
+	if targetFolderUUID.Valid {
+		targetFolderIDOut = targetFolderUUID.UUID
+		targetFolderIDStr = targetFolderUUID.UUID.String()
+	}
 
 	cfg.insertActivity(r.Context(), user.ID, "file_moved", map[string]interface{}{
 		"file_id":          file.ID.String(),
 		"filename":         file.Filename,
-		"target_folder":    folder.Name,
-		"target_folder_id": targetFolderID.String(),
+		"target_folder":    targetFolderName,
+		"target_folder_id": targetFolderIDStr,
 	})
 	cfg.insertAudit(r.Context(), user.ID, "file.moved", "file", &file.ID, map[string]interface{}{
 		"filename":         file.Filename,
-		"target_folder_id": targetFolderID.String(),
-		"target_folder":    folder.Name,
+		"target_folder_id": targetFolderIDStr,
+		"target_folder":    targetFolderName,
 	}, r)
 
 	respondWithJSON(w, http.StatusOK, map[string]any{
 		"status":    "success",
 		"moved":     true,
 		"file_id":   file.ID,
-		"folder_id": targetFolderID,
+		"folder_id": targetFolderIDOut,
 	})
 }

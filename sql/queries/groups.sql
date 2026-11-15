@@ -69,7 +69,7 @@ SELECT f.*,
 FROM group_file_shares gfs
 JOIN files f ON gfs.file_id = f.id
 JOIN users u ON gfs.created_by = u.id
-WHERE gfs.group_id = $1
+WHERE gfs.group_id = $1 AND f.deleted_at IS NULL
 ORDER BY gfs.created_at DESC;
 
 -- name: GetFilesSharedViaGroups :many
@@ -89,7 +89,7 @@ JOIN groups g ON gfs.group_id = g.id
 JOIN group_members gm ON gfs.group_id = gm.group_id
 JOIN users owner ON f.owner_id = owner.id
 JOIN users sharer ON gfs.created_by = sharer.id
-WHERE gm.user_id = $1
+WHERE gm.user_id = $1 AND f.deleted_at IS NULL
 ORDER BY gfs.created_at DESC;
 
 -- name: RemoveFileFromGroup :exec

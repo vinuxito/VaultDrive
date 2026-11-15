@@ -552,6 +552,13 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	cfg.handlerCreateDropTokenWithUser(w, r, database.User{ID: ownerID})
+}
+
+func (cfg *ApiConfig) handlerCreateDropTokenWithUser(w http.ResponseWriter, r *http.Request, actorUser database.User) {
+	ownerID := actorUser.ID
+	actor, _ := actorFromContext(r.Context())
+
 	var req struct {
 		TargetFolderID  string `json:"target_folder_id"`
 		ExpiresAt       string `json:"expires_at"`
@@ -562,7 +569,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		SealAfterUpload bool   `json:"seal_after_upload"`
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -599,6 +606,9 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		json.NewEncoder(w).Encode(map[string]string{"error": "You must own this folder"})
 		return
 	}
+	if !cfg.enforceFolderJailID(w, r, &folderID, false) {
+		return
+	}
 
 	dropToken, err := generateDropToken()
 	if err != nil {
@@ -625,57 +635,9 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		maxFiles = sql.NullInt32{Int32: int32(req.MaxFiles), Valid: true}
 	}
 
-	if req.Pin == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "pin is required"})
-		return
-	}
-
-	owner, err := cfg.dbQueries.GetUserByID(r.Context(), ownerID)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not load user"})
-		return
-	}
-	if !owner.PinHash.Valid || owner.PinHash.String == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Set your 4-digit PIN in Settings before creating drop links"})
-		return
-	}
-
-	var lockedUntil *time.Time
-	var failedAttempts int
-	cfg.db.QueryRowContext(r.Context(),
-		"SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1", ownerID,
-	).Scan(&failedAttempts, &lockedUntil)
-	if lockedUntil != nil && lockedUntil.After(time.Now()) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusTooManyRequests)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Too many incorrect PIN attempts. Try again after " + lockedUntil.UTC().Format(time.RFC3339)})
-		return
-	}
-
-	if err := auth.CheckPasswordHash(req.Pin, owner.PinHash.String); err != nil {
-		newAttempts := failedAttempts + 1
-		if newAttempts >= 5 {
-			cfg.db.ExecContext(r.Context(),
-				"UPDATE users SET pin_failed_attempts = $1, pin_locked_until = NOW() + INTERVAL '15 minutes' WHERE id = $2",
-				newAttempts, ownerID)
-		} else {
-			cfg.db.ExecContext(r.Context(),
-				"UPDATE users SET pin_failed_attempts = $1 WHERE id = $2",
-				newAttempts, ownerID)
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect PIN"})
-		return
-	}
-	cfg.db.ExecContext(r.Context(),
-		"UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1", ownerID)
+	isAgentActor := actor != nil && actor.AuthType == "agent_api_key"
+	var pinWrappedKeySQL sql.NullString
+	pinProtected := false
 
 	randomKeyBytes := make([]byte, 32)
 	_, err = rand.Read(randomKeyBytes)
@@ -687,12 +649,68 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 	}
 	randomKey := hex.EncodeToString(randomKeyBytes)
 
-	pinWrappedKey, err := auth.WrapKey(req.Pin, randomKey)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Could not wrap key with PIN"})
-		return
+	if !isAgentActor || req.Pin != "" {
+		if req.Pin == "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "pin is required"})
+			return
+		}
+
+		owner, err := cfg.dbQueries.GetUserByID(r.Context(), ownerID)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Could not load user"})
+			return
+		}
+		if !owner.PinHash.Valid || owner.PinHash.String == "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Set your 4-digit PIN in Settings before creating drop links"})
+			return
+		}
+
+		var lockedUntil *time.Time
+		var failedAttempts int
+		cfg.db.QueryRowContext(r.Context(),
+			"SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1", ownerID,
+		).Scan(&failedAttempts, &lockedUntil)
+		if lockedUntil != nil && lockedUntil.After(time.Now()) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusTooManyRequests)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Too many incorrect PIN attempts. Try again after " + lockedUntil.UTC().Format(time.RFC3339)})
+			return
+		}
+
+		if err := auth.CheckPasswordHash(req.Pin, owner.PinHash.String); err != nil {
+			newAttempts := failedAttempts + 1
+			if newAttempts >= 5 {
+				cfg.db.ExecContext(r.Context(),
+					"UPDATE users SET pin_failed_attempts = $1, pin_locked_until = NOW() + INTERVAL '15 minutes' WHERE id = $2",
+					newAttempts, ownerID)
+			} else {
+				cfg.db.ExecContext(r.Context(),
+					"UPDATE users SET pin_failed_attempts = $1 WHERE id = $2",
+					newAttempts, ownerID)
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Incorrect PIN"})
+			return
+		}
+		cfg.db.ExecContext(r.Context(),
+			"UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1", ownerID)
+
+		pinWrappedKey, err := auth.WrapKey(req.Pin, randomKey)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Could not wrap key with PIN"})
+			return
+		}
+		pinWrappedKeySQL = sql.NullString{String: pinWrappedKey, Valid: true}
+		pinProtected = true
 	}
 
 	uploadToken, err := cfg.dbQueries.CreateUploadToken(r.Context(), database.CreateUploadTokenParams{
@@ -703,7 +721,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		MaxFiles:       maxFiles,
 		PasswordHash:   sql.NullString{Valid: false},
 		LinkName:       sql.NullString{String: req.LinkName, Valid: req.LinkName != ""},
-		PinWrappedKey:  sql.NullString{String: pinWrappedKey, Valid: true},
+		PinWrappedKey:  pinWrappedKeySQL,
 		Description:    sql.NullString{String: req.Description, Valid: req.Description != ""},
 	})
 
@@ -737,7 +755,7 @@ func (cfg *ApiConfig) handlerCreateDropToken(w http.ResponseWriter, r *http.Requ
 		"expires_at":        uploadToken.ExpiresAt,
 		"max_files":         uploadToken.MaxFiles,
 		"upload_url":        uploadURL,
-		"pin_protected":     true,
+		"pin_protected":     pinProtected,
 		"seal_after_upload": req.SealAfterUpload,
 	})
 }
@@ -759,6 +777,11 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	cfg.handlerListDropTokensWithUser(w, r, database.User{ID: ownerID})
+}
+
+func (cfg *ApiConfig) handlerListDropTokensWithUser(w http.ResponseWriter, r *http.Request, actorUser database.User) {
+	ownerID := actorUser.ID
 	tokens, err := cfg.dbQueries.ListUploadTokensByOwner(r.Context(), ownerID)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -773,7 +796,7 @@ func (cfg *ApiConfig) handlerListDropTokens(w http.ResponseWriter, r *http.Reque
 		`SELECT u.id::text, MAX(f.created_at) AS last_upload_at
 		 FROM files f
 		 INNER JOIN upload_tokens u ON f.drop_source_id = u.id
-		 WHERE u.owner_user_id = $1
+		 WHERE u.owner_user_id = $1 AND f.deleted_at IS NULL
 		 GROUP BY u.id`, ownerID); err == nil {
 		defer rows.Close()
 		for rows.Next() {

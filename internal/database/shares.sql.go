@@ -59,9 +59,9 @@ func (q *Queries) DeleteShare(ctx context.Context, arg DeleteShareParams) error 
 }
 
 const getFilesBySharedWithUser = `-- name: GetFilesBySharedWithUser :many
-SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash FROM files f
+SELECT f.id, f.owner_id, f.filename, f.file_path, f.file_size, f.encrypted_metadata, f.current_key_version, f.created_at, f.updated_at, f.starred, f.drop_source_id, f.folder_id, f.parent_hash, f.deleted_at, f.deleted_by_actor_type, f.deleted_by_key_id, f.deleted_reason FROM files f
 INNER JOIN file_shares fs ON f.id = fs.file_id
-WHERE fs.shared_with_user_id = $1
+WHERE fs.shared_with_user_id = $1 AND f.deleted_at IS NULL
 ORDER BY f.created_at DESC
 `
 
@@ -88,6 +88,10 @@ func (q *Queries) GetFilesBySharedWithUser(ctx context.Context, sharedWithUserID
 			&i.DropSourceID,
 			&i.FolderID,
 			&i.ParentHash,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 		); err != nil {
 			return nil, err
 		}

@@ -50,6 +50,7 @@ import {
   base64ToArrayBuffer,
   unwrapKey,
   hexToBytes,
+  decryptPrivateKeyWithPassword,
   decryptPrivateKeyWithPIN,
   importRSAPrivateKey,
   unwrapKeyWithRSA,
@@ -103,11 +104,12 @@ import { FilePreviewModal } from "../components/vault/FilePreviewModal";
 import { CreateUploadLinkModal, UploadLinksSection, EncryptionProof } from "../components/upload";
 import { FileRequestsSection } from "../components/vault/FileRequestsSection";
 import { FolderSharedLinksSection } from "../components/vault/FolderSharedLinksSection";
+import { TrashSection } from "../components/vault/TrashSection";
 import { buildMoveTargetOptions } from "../utils/file-move";
 import { collectFilesFromDataTransferItems } from "../utils/drop-drag";
 import type { DragDataTransferItem } from "../utils/drop-drag";
 import { mapDownloadHttpError } from "../utils/download-error";
-import { getFileCredentialScheme } from "../utils/file-credential";
+import { getFileCredentialScheme, isRsaKeyWrappedFile } from "../utils/file-credential";
 import { ensureFolderStructure, getFolderIdForFile } from "../utils/folder-upload";
 import { getStoredUserFromLocalStorage } from "../utils/browser-storage";
 import { useTranslation } from "react-i18next";
@@ -357,6 +359,23 @@ export default function Files() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const [selectedNode, setSelectedNode] = useState<TreeNode>({ type: "all" });
+  const [trashCount, setTrashCount] = useState(0);
+  const refreshTrashCount = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await fetch(`${API_URL}/trash`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { files?: unknown[]; folders?: unknown[] };
+      const fCount = Array.isArray(data?.files) ? data.files.length : 0;
+      const dCount = Array.isArray(data?.folders) ? data.folders.length : 0;
+      setTrashCount(fCount + dCount);
+    } catch {
+      // Ignore quietly when running against legacy backend or offline tests
+    }
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
 
@@ -734,12 +753,20 @@ export default function Files() {
     }
   }, [addToast, t]);
 
+  useEffect(() => {
+    void refreshTrashCount();
+  }, [myFiles.length, folders.length, refreshTrashCount]);
+
   // v12 Step 4: Marquee Selection Hook
   const { lassoRect, handleMouseDown: handleMarqueeMouseDown } = useMarqueeSelection({
     containerRef: fileContainerRef,
     selectedIds: selectedFileIds,
     onSelectionChange: setSelectedFileIds,
-    enabled: selectedNode.type !== "manage-drops" && selectedNode.type !== "manage-requests" && selectedNode.type !== "manage-folder-shares",
+    enabled:
+      selectedNode.type !== "manage-drops" &&
+      selectedNode.type !== "manage-requests" &&
+      selectedNode.type !== "manage-folder-shares" &&
+      selectedNode.type !== "trash",
   });
 
   const handleCanvasContextMenu = useCallback((event: React.MouseEvent) => {
@@ -2217,7 +2244,7 @@ export default function Files() {
           throw new Error("Folder key not found. Please re-open the folder to unlock it.");
         }
         encryptionKey = await unwrapKeyWithAES(folderKey, wrappedKeyB64);
-      } else if (isDropUpload && file.is_owner !== false && (file.pin_wrapped_key || wrappedKeyB64)) {
+      } else if (isDropUpload && credentialScheme !== "rsa" && file.is_owner !== false && (file.pin_wrapped_key || wrappedKeyB64)) {
         failureKind = "credential";
         const pinWrapped = file.pin_wrapped_key || wrappedKeyB64 || "";
         const rawKey = await unwrapKey(credential, pinWrapped);
@@ -2230,7 +2257,7 @@ export default function Files() {
           ["decrypt"]
         );
         failureKind = "unknown";
-      } else if (wrappedKeyB64 && file.is_owner === false) {
+      } else if (wrappedKeyB64 && (credentialScheme === "rsa" || file.is_owner === false)) {
         const sessionKey = sessionVault.getPrivateKey();
         let rsaPrivateKey: CryptoKey;
         if (sessionKey) {
@@ -2238,12 +2265,20 @@ export default function Files() {
         } else {
           const userObj = getStoredUserFromLocalStorage();
           const privateKeyPinEncrypted = userObj?.private_key_pin_encrypted ?? null;
-          if (!privateKeyPinEncrypted) {
+          const privateKeyEncrypted = (userObj as { private_key_encrypted?: string | null } | null)?.private_key_encrypted ?? null;
+          failureKind = "credential";
+          if (privateKeyPinEncrypted && /^\d+$/.test(credential)) {
+            const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted, userObj?.kek_envelope_version);
+            rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+          } else if (privateKeyEncrypted) {
+            const privateKeyPem = await decryptPrivateKeyWithPassword(credential, privateKeyEncrypted, userObj?.kek_envelope_version);
+            rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+          } else if (privateKeyPinEncrypted) {
+            const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted, userObj?.kek_envelope_version);
+            rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
+          } else {
             throw new Error("PIN-encrypted private key not found. Please re-set your PIN in Settings.");
           }
-          failureKind = "credential";
-          const privateKeyPem = await decryptPrivateKeyWithPIN(credential, privateKeyPinEncrypted, userObj?.kek_envelope_version);
-          rsaPrivateKey = await importRSAPrivateKey(privateKeyPem);
           sessionVault.setPrivateKey(rsaPrivateKey);
         }
         failureKind = "unknown";
@@ -2334,7 +2369,7 @@ export default function Files() {
       }
     }
 
-    if (is_owner === false && !pin_wrapped_key && scheme !== "folder") {
+    if (isRsaKeyWrappedFile({ metadata, pin_wrapped_key, is_owner, folder_id })) {
       const sessionKey = sessionVault.getPrivateKey();
       if (sessionKey) {
         setDownloadingFileIds((prev) => { const n = new Set(prev); n.add(fileId); return n; });
@@ -3285,6 +3320,7 @@ trailer << /Root 1 0 R >>
       case "all": return "All Files";
       case "starred": return "Starred";
       case "shared": return "Shared with Me";
+      case "trash": return "Papelera";
       case "folder": return selectedNode.folderName;
       case "manage-folder-shares": return `${selectedNode.folderName} · Shared Links`;
       case "drop-link": return selectedNode.linkName;
@@ -3474,6 +3510,31 @@ trailer << /Root 1 0 R >>
 
             <button
               type="button"
+              data-testid="open-trash-btn"
+              onClick={() => {
+                setCenterModule("files");
+                setMobileHubTab("archivos");
+                setSelectedNode((prev) => (prev.type === "trash" ? { type: "all" } : { type: "trash" }));
+              }}
+              aria-label="Abrir Papelera recuperable"
+              className={cn(
+                "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all active:scale-95 cursor-pointer",
+                selectedNode.type === "trash"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card hover:bg-muted/80 text-foreground"
+              )}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Papelera</span>
+              {trashCount > 0 && (
+                <span className="rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 text-[10px] font-bold">
+                  {trashCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
               data-testid="toggle-inspector-btn"
               onClick={() => setIsInspectorCollapsed((prev) => !prev)}
               title="Mostrar/ocultar panel inspector derecho"
@@ -3570,6 +3631,7 @@ trailer << /Root 1 0 R >>
               allFilesCount={myFiles.length}
               starredCount={starredCount}
               sharedCount={sharedFiles.length}
+              trashCount={trashCount}
               dropReceivedCount={dropReceivedCount}
               totalBytesUsed={totalBytesUsed}
               pinnedFolderIds={pinnedFolderIds}
@@ -3690,6 +3752,15 @@ trailer << /Root 1 0 R >>
                   setTimeout(() => setSuccessMessage(""), 5000);
                 }}
                 refreshKey={folderSharePanelVersion}
+              />
+            ) : selectedNode.type === "trash" ? (
+              <TrashSection
+                onRestored={() => {
+                  void fetchFiles();
+                  void fetchFolders();
+                  void refreshTrashCount();
+                }}
+                onCountChange={setTrashCount}
               />
             ) : (
             <>
@@ -5100,7 +5171,9 @@ trailer << /Root 1 0 R >>
       {showPasswordModal && (() => {
         const credScheme = pendingDownload ? getFileCredentialScheme(pendingDownload) : "password";
         const isUpload = passwordAction === "upload" || passwordAction === "drop-upload" || passwordAction === "smart-upload";
-        const defaultUsePin = isUpload ? ownerUsesPin : credScheme !== "password";
+        const defaultUsePin = isUpload
+          ? ownerUsesPin
+          : (pendingDownload && isRsaKeyWrappedFile(pendingDownload) ? ownerUsesPin : credScheme !== "password");
         const usePin = credentialModeOverride !== null ? credentialModeOverride === "pin" : defaultUsePin;
         return (
         <div
@@ -5346,20 +5419,20 @@ trailer << /Root 1 0 R >>
             <CardHeader className="border-b border-border">
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <Trash2 className="w-5 h-5 text-destructive" />
-                {t("drive:vault.delete.title", { defaultValue: "Delete file" })}
+                {t("drive:vault.delete.title", { defaultValue: "Mover a la Papelera" })}
               </CardTitle>
               <CardDescription className="text-muted-foreground">
-                {t("drive:vault.delete.description", { defaultValue: "Delete this file permanently? This action cannot be undone." })}
+                {t("drive:vault.delete.description", { defaultValue: "¿Quieres mover este archivo a tu Papelera recuperable?" })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-3 bg-muted border border-border rounded-md">
                 <p className="text-sm font-medium truncate text-foreground">{fileToDelete.filename}</p>
               </div>
-              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
                 <p className="text-xs text-foreground flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-destructive" />
-                  <span>{t("drive:vault.delete.warning", { defaultValue: "The encrypted file will be permanently deleted from the server and cannot be recovered." })}</span>
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                  <span>{t("drive:vault.delete.warning", { defaultValue: "Podrás restaurarlo cuando quieras desde Papelera. Solo tú puedes vaciarlo para siempre." })}</span>
                 </p>
               </div>
               <div className="flex gap-2">
@@ -5369,7 +5442,7 @@ trailer << /Root 1 0 R >>
                   disabled={deleting}
                   className="flex-1"
                 >
-                  {t("drive:vault.delete.cancel", { defaultValue: "Keep file" })}
+                  {t("drive:vault.delete.cancel", { defaultValue: "Cancelar" })}
                 </Button>
                 <Button
                   variant="destructive"
@@ -5377,7 +5450,7 @@ trailer << /Root 1 0 R >>
                   disabled={deleting}
                   className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-destructive-foreground border-0"
                 >
-                  {deleting ? t("drive:vault.delete.deleting", { defaultValue: "Deleting…" }) : t("drive:vault.delete.confirm", { defaultValue: "Delete file" })}
+                  {deleting ? t("drive:vault.delete.deleting", { defaultValue: "Moviendo…" }) : t("drive:vault.delete.confirm", { defaultValue: "Mover a Papelera" })}
                 </Button>
               </div>
             </CardContent>
@@ -5391,10 +5464,10 @@ trailer << /Root 1 0 R >>
             <CardHeader className="border-b border-border">
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <Trash2 className="w-5 h-5 text-destructive" />
-                {t("drive:vault.bulkDelete.title", { defaultValue: "Delete {{count}} file", count: bulkDeleteCandidates.length })}
+                {t("drive:vault.bulkDelete.title", { defaultValue: "Mover {{count}} archivo a la Papelera", count: bulkDeleteCandidates.length })}
               </CardTitle>
               <CardDescription className="text-muted-foreground">
-                {t("drive:vault.bulkDelete.description", { defaultValue: "This permanently deletes the owned files in your selection. Shared files stay untouched." })}
+                {t("drive:vault.bulkDelete.description", { defaultValue: "Se moverán tus archivos propios a tu Papelera recuperable. Los compartidos no se tocan." })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -5410,10 +5483,10 @@ trailer << /Root 1 0 R >>
                   </p>
                 )}
               </div>
-              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
                 <p className="text-xs text-foreground flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-destructive" />
-                  <span>{t("drive:vault.bulkDelete.warning", { defaultValue: "This action cannot be undone. Files that fail to delete remain selected so you can retry." })}</span>
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                  <span>{t("drive:vault.bulkDelete.warning", { defaultValue: "Podrás restaurarlos desde Papelera cuando quieras. Solo tú puedes vaciarlos para siempre." })}</span>
                 </p>
               </div>
               <div className="flex gap-2">
@@ -5423,7 +5496,7 @@ trailer << /Root 1 0 R >>
                   disabled={bulkDeleting}
                   className="flex-1"
                 >
-                  {t("drive:vault.bulkDelete.cancel", { defaultValue: "Keep files" })}
+                  {t("drive:vault.bulkDelete.cancel", { defaultValue: "Cancelar" })}
                 </Button>
                 <Button
                   variant="destructive"
@@ -5432,8 +5505,8 @@ trailer << /Root 1 0 R >>
                   className="flex-1 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.9] text-destructive-foreground border-0"
                 >
                   {bulkDeleting
-                    ? t("drive:vault.bulkDelete.deleting", { defaultValue: "Deleting…" })
-                    : t("drive:vault.bulkDelete.confirm", { defaultValue: "Delete {{count}}", count: bulkDeleteCandidates.length })}
+                    ? t("drive:vault.bulkDelete.deleting", { defaultValue: "Moviendo…" })
+                    : t("drive:vault.bulkDelete.confirm", { defaultValue: "Mover {{count}} a Papelera", count: bulkDeleteCandidates.length })}
                 </Button>
               </div>
             </CardContent>

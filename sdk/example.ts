@@ -1,37 +1,45 @@
-import { QuantixClient } from "./client";
+import {
+  AbrnDriveClient,
+  encryptAndUploadForOwner,
+  downloadAndDecryptWithPrivateKey,
+} from "./index.ts";
 
 async function main() {
-  const client = new QuantixClient({
-    baseUrl: process.env.QUANTIX_BASE_URL ?? "https://app.quantixdrive.io/quantix/api",
-    apiKey: process.env.QUANTIX_KEY ?? "",
+  const client = new AbrnDriveClient({
+    baseUrl: process.env.ABRN_BASE_URL ?? "https://app.abrn.mx/abrn/api",
+    apiKey: process.env.ABRN_API_KEY ?? "",
   });
 
   const whoami = await client.introspect();
-  console.log("Auth type:", whoami.data.auth_type);
+  console.log("Auth type:", whoami.data.auth_type, "Kind:", whoami.data.key_kind);
   console.log("Scopes:", whoami.data.scopes);
-
-  const { data: files } = await client.listFiles("invoice");
-  console.log(`Found ${files.length} files matching "invoice"`);
-
-  for (const file of files.slice(0, 3)) {
-    console.log(`  ${file.filename} (${file.file_size} bytes, ${file.origin ?? "vault"})`);
-
-    const trust = await client.getFileTrust(file.id);
-    console.log(`    Protection: ${trust.data.protection}`);
-    console.log(`    Access: ${trust.data.access_state}`);
-
-    const dl = await client.downloadFile(file.id);
-    console.log(`    Downloaded ${dl.ciphertext.byteLength} bytes of ciphertext`);
-    console.log(`    Wrapped key present: ${dl.wrappedKey ? "yes" : "no"}`);
+  if (whoami.data.allowed_folder_ids?.length) {
+    console.log("Folder jail:", whoami.data.allowed_folder_ids);
   }
 
-  const { data: auditEvents } = await client.listAudit({
-    resource_type: "agent_api_key",
-    limit: 5,
+  // Zero-knowledge encrypted upload to owner vault (RSA-OAEP + AES-256-GCM)
+  const uploaded = await encryptAndUploadForOwner(client, {
+    filename: "cfdi-resumen.txt",
+    data: "Factura A-1029 timbrada",
+    mimeType: "text/plain",
   });
-  console.log(`\nRecent agent events: ${auditEvents.length}`);
-  for (const event of auditEvents) {
-    console.log(`  ${event.action} at ${event.created_at}`);
+  console.log(`Uploaded encrypted ciphertext ID=${uploaded.file.id} sha256=${uploaded.sha256}`);
+
+  // Download and decrypt locally when ABRN_RSA_PRIVATE_KEY_PEM is provided
+  const privateKeyPem = process.env.ABRN_RSA_PRIVATE_KEY_PEM;
+  if (privateKeyPem) {
+    const decrypted = await downloadAndDecryptWithPrivateKey(client, uploaded.file.id, privateKeyPem);
+    console.log(`Decrypted ${decrypted.filename} (sha256 verified=${decrypted.sha256Verified}): ${decrypted.text()}`);
+  }
+
+  // Special Delete-Only key soft-delete (recoverable in app Papelera)
+  if (process.env.ABRN_DELETE_API_KEY) {
+    const deleter = new AbrnDriveClient({
+      baseUrl: process.env.ABRN_BASE_URL ?? "https://app.abrn.mx/abrn/api",
+      apiKey: process.env.ABRN_DELETE_API_KEY,
+    });
+    await deleter.softDeleteFile(uploaded.file.id, "Limpieza automatizada de prueba");
+    console.log(`Moved ${uploaded.file.id} to Recoverable Trash via Special Delete-Only key`);
   }
 }
 

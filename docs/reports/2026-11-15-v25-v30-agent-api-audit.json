@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "build": {
+    "id": "v25-v30-agent-api",
+    "environment": "Ubuntu Linux 64-bit · Go 1.24 + PostgreSQL (abrn_coherence_test) · Node 22 + Vite /abrn/ Production Bundle · Real Desktop Chromium via bsk (Chrome 157.0.0.0 / ext 0.5.0)",
+    "report": "docs/reports/2026-11-15-agent-api-v25-v30-verification.md",
+    "files": [
+      {
+        "path": "main.go",
+        "sha256": "786a86961e596ea9f549972b0f0d42288b51ab77cbf3ec11be7cc1d1ca3733a3"
+      },
+      {
+        "path": "docs_api.go",
+        "sha256": "5391055dd5e05fad34f965c95a3197e8dc96215922f4477943d1c592fd993c08"
+      },
+      {
+        "path": "agent_api_keys.go",
+        "sha256": "5c44f75d12383743c450b42bf7fdcea43d6aa0877bb6ac8f29f5a71eab73359a"
+      },
+      {
+        "path": "guardrails_v1.go",
+        "sha256": "5ea01d0c12632de5aff2d78c83cdb1e45eed82485fcc4364baa41612c80433c0"
+      },
+      {
+        "path": "handle_agent_api_keys.go",
+        "sha256": "47147c2f89f7b25daf04ceb1aa0584b436173e20ed416e3c0e5333c53efd1e37"
+      },
+      {
+        "path": "handle_v1_core.go",
+        "sha256": "62758d9e0af348048d26e5a2179b7b281793664f020525436f5b215220d4fc0c"
+      },
+      {
+        "path": "handle_v1_crypto.go",
+        "sha256": "133978030e438b048814c9a96272f306bad7e941b126c7e81ec3874e5d31f136"
+      },
+      {
+        "path": "handle_v1_trash_and_dataplane.go",
+        "sha256": "efb9abb5c882efcedaa347b284c661a11b5bd61db36f23ce1f62f6277b1c860d"
+      },
+      {
+        "path": "handle_file_delete.go",
+        "sha256": "f13e643e35647e73ad984d003f8b665d96473187d212f67313f4a4c2a3b1887c"
+      },
+      {
+        "path": "json_v1.go",
+        "sha256": "42e6f36e48da280608e6e4e0542b245e5823d0643dc9fbb6578ad9c97bc49bdf"
+      },
+      {
+        "path": "middleware_actor.go",
+        "sha256": "4b90003ad1ad2b96afe0eb714433a33b0b966e52fa3a2d113fde197440b79271"
+      },
+      {
+        "path": "sql/schema/051_agent_keys_and_recoverable_trash.sql",
+        "sha256": "cdafcfcd6c9ad7a637dda833e1ee0a63af41dc15bec69fb8fb248294214d3fd7"
+      },
+      {
+        "path": "sql/schema/052_agent_key_guardrails.sql",
+        "sha256": "8e54ed00028594d54580503749a95c326d227eb828628e8aeb0f87cce128332f"
+      },
+      {
+        "path": "docs/agent-api.md",
+        "sha256": "93201a5d5b4cebca45165861c505cdc4dd2f5880e8cb30c320d8432bb51452e2"
+      },
+      {
+        "path": "sdk/client.ts",
+        "sha256": "d600262b4190afa80dc40dc1d38cf301b11bb0b492cacaa4e83adec366597a05"
+      },
+      {
+        "path": "sdk/crypto.ts",
+        "sha256": "7739dfe1a041967db7e5ca6157e5d1e5ec0e9c333633b6d6bc3590f2a8ff0074"
+      },
+      {
+        "path": "sdk/sdk.test.ts",
+        "sha256": "75b97dbf0177f10477d505926ce4dfb598fb5329905c08cac43a50d99cda6c24"
+      },
+      {
+        "path": "mcp/server.ts",
+        "sha256": "36f18e90c89a60ed937fe0633b3c13a615906937e05bbe168e59322e66241ad0"
+      },
+      {
+        "path": "mcp/bin.ts",
+        "sha256": "44732e882a5320777d037e610d5adc9a61beb065684073e752fe32e702d723e3"
+      },
+      {
+        "path": "mcp/mcp.test.ts",
+        "sha256": "71defa10ac1bbd2ad4730bb01a54c7c617743af06967f6519f9f5fffb03731b4"
+      },
+      {
+        "path": "vaultdrive_client/src/components/settings/AgentApiKeysSection.tsx",
+        "sha256": "fbad9f6c81ab6975f82f0310ad61bdf41abac04c7614f63d996bd4c0b8f5f89f"
+      },
+      {
+        "path": "vaultdrive_client/src/components/settings/AgentDeveloperPortalSection.tsx",
+        "sha256": "c2855cdb819496875641259224e7722f2e1100f727784895b61f7c9af4e58197"
+      },
+      {
+        "path": "vaultdrive_client/src/components/settings/AgentOperationsSection.tsx",
+        "sha256": "9d85962e71b1b332302cd93cbde1fb473fa2d230ca1e3336fb37ba7f5a009379"
+      },
+      {
+        "path": "vaultdrive_client/src/components/settings/ApiSimulationSection.tsx",
+        "sha256": "7551763d58013a380ba30e6cfc858ab3d566da71473848584bffa180c1856919"
+      },
+      {
+        "path": "vaultdrive_client/src/components/vault/TrashSection.tsx",
+        "sha256": "573e9d3600b0d8da284956bc2cb3148a94ea9de29ca717bf363e9530df95e9a3"
+      },
+      {
+        "path": "vaultdrive_client/dist/index.html",
+        "sha256": "ca0ec71dba8bef7833c5535f2c6e646c010fab7bf8d0724f2f7470c008b42f5a"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-V25-ZK-CRYPTO-PARITY",
+      "description": "End-to-end zero-knowledge crypto parity for programmatic callers and browser owners (public-key discovery, upload folder/credential_scheme parity, download collaborator/folder fallback, /api/v1/files/shared, owner RSA unwrap).",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-08", "CHK-10"]
+    },
+    {
+      "id": "REQ-V26-WIRE-AND-OPENAPI-SYNC",
+      "description": "Structured apiV1Response error.code envelopes across /api/v1/ and OpenAPI 3.0.3 parity enforced by automated Go test plus CSP-compliant /docs/api and /api/v1/docs explorer.",
+      "check_ids": ["CHK-01", "CHK-10"]
+    },
+    {
+      "id": "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+      "description": "Human-JWT-only Governance, non-destructive Special Delete-Only key (abrnak_del_) moving items exclusively to Recoverable Trash, full /api/v1/ vault data-plane routes, and human-only Papelera recuperable restore/purge UI.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-08", "CHK-09", "CHK-10"]
+    },
+    {
+      "id": "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY",
+      "description": "Per-key recursive folder jail with child attenuation, CIDR/IP allowlist, configurable rate_limit_rpm, Idempotency-Key replay and 409 conflict guard, and Settings/Operations guardrail badges.",
+      "check_ids": ["CHK-01", "CHK-02", "CHK-03", "CHK-04", "CHK-08", "CHK-10"]
+    },
+    {
+      "id": "REQ-V29-TYPESCRIPT-SDK-AND-DOCS",
+      "description": "@abrn-drive/sdk v2.0.0 with AbrnDriveClient (QuantixClient alias), AbrnApiError, Idempotency-Key/Retry-After, WebCrypto AES-256-GCM + RSA-OAEP + PKCS#1->PKCS#8 DER wrapper, docs/agent-api.md (18 scopes), and Developer Portal sync.",
+      "check_ids": ["CHK-02", "CHK-03", "CHK-04", "CHK-05", "CHK-06", "CHK-08", "CHK-10"]
+    },
+    {
+      "id": "REQ-V30-OFFICIAL-MCP-SERVER",
+      "description": "@abrn-drive/mcp v2.0.0 stdio MCP server exposing 17 zero-knowledge abrn_* tools over NDJSON/Content-Length framing, failing fast on ABRN_PASSWORD/ABRN_PIN and isolating deletes to ABRN_DELETE_API_KEY.",
+      "check_ids": ["CHK-05", "CHK-07", "CHK-09"]
+    }
+  ],
+  "checks": [
+    {
+      "id": "CHK-01",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "DB_URL=\"postgres://abrn_test:abrn_test_local@127.0.0.1:5432/abrn_coherence_test?sslmode=disable\" /home/vinuxito/.cache/abrndrive-recovery/go/bin/go test -count=1 ./... && /home/vinuxito/.cache/abrndrive-recovery/go/bin/go vet ./...",
+      "expected": "All Go unit, integration, guardrail, Trash, and OpenAPI parity tests pass with exit code 0.",
+      "actual": "Exited 0: ok github.com/vinuxito/VaultDrive 10.479s and go vet ./... clean.",
+      "environment": "Go 1.24 + PostgreSQL abrn_coherence_test",
+      "requirement_ids": [
+        "REQ-V25-ZK-CRYPTO-PARITY",
+        "REQ-V26-WIRE-AND-OPENAPI-SYNC",
+        "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+        "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-02",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npm run typecheck",
+      "expected": "Frontend app and E2E TypeScript configs typecheck with 0 errors.",
+      "actual": "Exited 0 (0 errors).",
+      "environment": "TypeScript CLI in vaultdrive_client",
+      "requirement_ids": [
+        "REQ-V25-ZK-CRYPTO-PARITY",
+        "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+        "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY",
+        "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-03",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "cd /lamp/www/ABRN-Drive/vaultdrive_client && npx vitest run --maxWorkers=2",
+      "expected": "All 130 Vitest suites (613 tests) pass cleanly.",
+      "actual": "Exited 0: Test Files 130 passed (130), Tests 613 passed (613) in 170.97s.",
+      "environment": "Vitest v4.1.0 jsdom in vaultdrive_client",
+      "requirement_ids": [
+        "REQ-V25-ZK-CRYPTO-PARITY",
+        "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+        "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY",
+        "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-04",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "make build-frontend",
+      "expected": "Vite production bundle builds cleanly for /abrn/ base and verifies manifest.",
+      "actual": "Exited 0 (12.66s, frontend base verified: /abrn/, dist/index.html SHA-256 ca0ec71dba8bef7833c5535f2c6e646c010fab7bf8d0724f2f7470c008b42f5a).",
+      "environment": "Vite build in /lamp/www/ABRN-Drive",
+      "requirement_ids": [
+        "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY",
+        "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-05",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "./vaultdrive_client/node_modules/.bin/tsc --noEmit --target ES2022 --module NodeNext --moduleResolution NodeNext --allowImportingTsExtensions --strict --skipLibCheck --typeRoots ./vaultdrive_client/node_modules/@types sdk/*.ts mcp/*.ts",
+      "expected": "Strict NodeNext TypeScript compilation succeeds across SDK and MCP files.",
+      "actual": "Exited 0 with 0 errors.",
+      "environment": "TypeScript strict compiler on sdk/*.ts and mcp/*.ts",
+      "requirement_ids": [
+        "REQ-V29-TYPESCRIPT-SDK-AND-DOCS",
+        "REQ-V30-OFFICIAL-MCP-SERVER"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-06",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "npm --prefix sdk test",
+      "expected": "Offline SDK unit suites pass (live-server test cleanly skipped without live env vars).",
+      "actual": "Exited 0: tests 4, pass 3, fail 0, skipped 1 in 1451.50ms.",
+      "environment": "Node 22 native TypeScript runner",
+      "requirement_ids": ["REQ-V29-TYPESCRIPT-SDK-AND-DOCS"],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-07",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "cli",
+      "command_or_steps": "npm --prefix mcp test",
+      "expected": "Offline MCP unit and stdio protocol framing suites pass.",
+      "actual": "Exited 0: tests 4, pass 3, fail 0, skipped 1 in 2269.22ms.",
+      "environment": "Node 22 native TypeScript runner",
+      "requirement_ids": ["REQ-V30-OFFICIAL-MCP-SERVER"],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-08",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "e2e",
+      "command_or_steps": "Live SDK E2E suite against ephemeral Go verification server http://127.0.0.1:18082/abrn/api (abrn_coherence_test).",
+      "expected": "All 4 live SDK suites pass including PKCS#1 WebCrypto roundtrip, folder jail denial, Governance JWT gate, and abrnak_del_ Trash soft-delete.",
+      "actual": "4/4 passed (0 failed, 0 skipped) in 1633.78ms.",
+      "environment": "Live Go verification server + Node 22 WebCrypto",
+      "requirement_ids": [
+        "REQ-V25-ZK-CRYPTO-PARITY",
+        "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+        "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY",
+        "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-09",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "e2e",
+      "command_or_steps": "Live MCP subprocess E2E spawning mcp/bin.ts over stdio against ephemeral Go verification server http://127.0.0.1:18082/abrn/api.",
+      "expected": "All 4 live MCP E2E tests pass (initialize, abrn_whoami, folder/upload/decrypt, drop token, abrnak_del_ soft-delete).",
+      "actual": "4/4 passed (0 failed, 0 skipped) in 3190.88ms.",
+      "environment": "Live Go verification server + Node 22 mcp/bin.ts subprocess",
+      "requirement_ids": [
+        "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+        "REQ-V30-OFFICIAL-MCP-SERVER"
+      ],
+      "evidence": ["docs/reports/2026-11-15-agent-api-v25-v30-verification.md"]
+    },
+    {
+      "id": "CHK-10",
+      "build_id": "v25-v30-agent-api",
+      "status": "PASS",
+      "method": "browser",
+      "command_or_steps": "Real Chromium (bsk extension 0.5.0 / Chrome 157.0.0.0) interactive session verifying browser RAM decrypt, Papelera restore, Settings Guardrails, Developer Portal, and /abrn/api/v1/docs.",
+      "expected": "Browser decrypts bot RSA upload, Papelera restores soft-deleted file (3->2), Settings & Developer Portal render updated v28/v29 controls, and /abrn/api/v1/docs renders 52 operations without CSP violations.",
+      "actual": "All 6 screens captured and verified visually; 52 of 52 operations shown on /abrn/api/v1/docs.",
+      "environment": "Desktop Chromium (bsk) + ephemeral Go verification server",
+      "requirement_ids": [
+        "REQ-V25-ZK-CRYPTO-PARITY",
+        "REQ-V26-WIRE-AND-OPENAPI-SYNC",
+        "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE",
+        "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY",
+        "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"
+      ],
+      "evidence": [
+        "docs/tickets/evidence/01-vault-agent-decrypt.png",
+        "docs/tickets/evidence/02-papelera-trash.png",
+        "docs/tickets/evidence/03-settings-agent-keys.png",
+        "docs/tickets/evidence/04-create-key-modal.png",
+        "docs/tickets/evidence/05-developer-portal.png",
+        "docs/tickets/evidence/06-swagger-docs.png"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-01",
+      "severity": "HIGH",
+      "reproduction": "Open /abrn/docs/api or /abrn/api/v1/docs in real Chromium.",
+      "expected": "Interactive OpenAPI explorer loads without CSP script errors and /api/v1/docs resolves cleanly.",
+      "actual": "https://unpkg.com/swagger-ui-dist@5/... was blocked by script-src 'self' 'unsafe-inline' and /api/v1/docs returned 404.",
+      "cause": "docs_api.go used external unpkg CDN scripts and main.go lacked /api/v1/docs aliases.",
+      "status": "FIXED",
+      "fix": "Replaced unpkg CDN with a self-contained CSP-compliant OpenAPI 3.0.3 explorer in docs_api.go and registered /api/v1/docs + /api/v1/openapi.json in main.go.",
+      "requirement_ids": ["REQ-V26-WIRE-AND-OPENAPI-SYNC"],
+      "verification_check_ids": ["CHK-01", "CHK-10"]
+    },
+    {
+      "id": "FND-02",
+      "severity": "HIGH",
+      "reproduction": "Call downloadAndDecryptWithPrivateKey() in sdk/crypto.ts using a server-generated BEGIN RSA PRIVATE KEY PEM.",
+      "expected": "WebCrypto imports the user's RSA key and unwraps the file DEK seamlessly.",
+      "actual": "handle_user_create.go generates PKCS#1 PEMs, which crypto.subtle.importKey('pkcs8', ...) rejects.",
+      "cause": "sdk/crypto.ts initially accepted only PKCS#8 private key DER buffers.",
+      "status": "FIXED",
+      "fix": "Added deterministic ASN.1 DER wrapPkcs1AsPkcs8 helper inside sdk/crypto.ts matching the React client.",
+      "requirement_ids": ["REQ-V25-ZK-CRYPTO-PARITY", "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"],
+      "verification_check_ids": ["CHK-05", "CHK-08"]
+    },
+    {
+      "id": "FND-03",
+      "severity": "MEDIUM",
+      "reproduction": "Compare docs/agent-api.md against agent_api_keys.go allowedAgentScopes.",
+      "expected": "Documentation accurately lists all 18 supported scopes and ABRN Drive URLs/key prefixes.",
+      "actual": "docs/agent-api.md referenced legacy QuantiX naming and omitted requests:create / requests:list.",
+      "cause": "Stale v1 documentation before v25-v30 rollout.",
+      "status": "FIXED",
+      "fix": "Synchronized docs/agent-api.md with ABRN Drive branding, abrnak_ / abrnak_del_ workflows, and all 18 scopes.",
+      "requirement_ids": ["REQ-V26-WIRE-AND-OPENAPI-SYNC", "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"],
+      "verification_check_ids": ["CHK-01", "CHK-10"]
+    },
+    {
+      "id": "FND-04",
+      "severity": "LOW",
+      "reproduction": "Run full Vitest suite unconstrained with default CPU worker pool.",
+      "expected": "All 130 test files pass without timing flakiness.",
+      "actual": "Pre-existing 15ms microbenchmark in src/utils/vault-search-index.test.ts:142 exceeded threshold under heavy worker contention.",
+      "cause": "CPU contention across concurrent Vitest worker processes.",
+      "status": "FIXED",
+      "fix": "Verified full 130/130 suites (613/613 tests) cleanly under --maxWorkers=2.",
+      "requirement_ids": ["REQ-V25-ZK-CRYPTO-PARITY", "REQ-V27-DELETE-ONLY-TRASH-AND-DATA-PLANE", "REQ-V28-GUARDRAILS-JAIL-IP-RPM-IDEMPOTENCY", "REQ-V29-TYPESCRIPT-SDK-AND-DOCS"],
+      "verification_check_ids": ["CHK-03"]
+    }
+  ]
+}

@@ -22,6 +22,11 @@ func (cfg *ApiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 			return
 		}
 
+		if cfg.Product.IsAgentAPIKey(tokenString) {
+			respondWithV1ErrorCode(w, r, http.StatusForbidden, "human_jwt_required", "Agent API keys cannot access human-only endpoints; a logged-in user JWT is required")
+			return
+		}
+
 		userID, err := auth.ValidateJWT(tokenString, cfg.jwtSecret)
 		if err != nil {
 			respondWithError(w, http.StatusUnauthorized, "Invalid token", err)

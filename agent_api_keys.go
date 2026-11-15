@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+const (
+	agentKeyKindStandard   = "standard"
+	agentKeyKindDeleteOnly = "delete_only"
+	scopeFilesSoftDelete   = "files:soft_delete"
+)
+
 var allowedAgentScopes = []string{
 	"activity:read",
 	"api_keys:read",
@@ -17,7 +23,9 @@ var allowedAgentScopes = []string{
 	"files:download_ciphertext",
 	"files:list",
 	"files:read_metadata",
+	"files:soft_delete",
 	"files:upload_ciphertext",
+	"files:write",
 	"folders:read",
 	"folders:write",
 	"requests:create",
@@ -30,9 +38,9 @@ var allowedAgentScopes = []string{
 }
 
 // generateAgentAPIKeyToken mints a new agent API key using the supplied
-// product prefix (e.g. "qx_ak"). Legacy prefixes continue to validate via
-// ProductConfig.IsAgentAPIKey — this function only governs issuance of new
-// keys.
+// product prefix (e.g. "abrnak" -> "abrnak_...", or "abrnak_del" -> "abrnak_del_...").
+// Legacy prefixes continue to validate via ProductConfig.IsAgentAPIKey — this
+// function only governs issuance of new keys.
 func generateAgentAPIKeyToken(keyPrefix string) (string, string, string, error) {
 	if keyPrefix == "" {
 		return "", "", "", fmt.Errorf("generate api key: empty prefix")
@@ -92,4 +100,35 @@ func validateAgentScopes(scopes []string) error {
 		}
 	}
 	return nil
+}
+
+func normalizeAgentKeyConfig(rawKind string, rawScopes []string) (string, []string, error) {
+	kind := strings.TrimSpace(rawKind)
+	if kind == "" {
+		kind = agentKeyKindStandard
+	}
+	scopes := normalizeAgentScopes(rawScopes)
+	switch kind {
+	case agentKeyKindDeleteOnly:
+		if len(scopes) == 0 {
+			scopes = []string{scopeFilesSoftDelete}
+		}
+		if len(scopes) != 1 || scopes[0] != scopeFilesSoftDelete {
+			return "", nil, fmt.Errorf("delete_only keys can only carry the exclusive scope %q", scopeFilesSoftDelete)
+		}
+		return agentKeyKindDeleteOnly, scopes, nil
+	case agentKeyKindStandard:
+		if len(scopes) == 0 {
+			return "", nil, fmt.Errorf("At least one scope is required")
+		}
+		if err := validateAgentScopes(scopes); err != nil {
+			return "", nil, err
+		}
+		if scopeAllowed(scopes, scopeFilesSoftDelete) {
+			return "", nil, fmt.Errorf("Standard agent keys cannot include %q; mint a dedicated delete_only key instead", scopeFilesSoftDelete)
+		}
+		return agentKeyKindStandard, scopes, nil
+	default:
+		return "", nil, fmt.Errorf("unsupported key_kind %q", rawKind)
+	}
 }

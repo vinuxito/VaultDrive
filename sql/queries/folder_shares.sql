@@ -18,5 +18,5 @@ WHERE folder_id = $1;
 -- name: ListFoldersSharedWithUser :many
 SELECT f.*, fs.wrapped_key, fs.shared_by, fs.created_at as shared_at FROM folders f
 INNER JOIN folder_shares fs ON f.id = fs.folder_id
-WHERE fs.user_id = $1
+WHERE fs.user_id = $1 AND f.deleted_at IS NULL
 ORDER BY fs.created_at DESC;

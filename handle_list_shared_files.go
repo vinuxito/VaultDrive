@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/vinuxito/VaultDrive/auth"
 	"github.com/google/uuid"
+	"github.com/vinuxito/VaultDrive/auth"
+	"github.com/vinuxito/VaultDrive/internal/database"
 )
 
 func (cfg *ApiConfig) handlerListSharedFiles(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +99,11 @@ func (cfg *ApiConfig) handlerListFileShares(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	cfg.handlerListFileSharesWithUser(w, r, database.User{ID: userID})
+}
+
+func (cfg *ApiConfig) handlerListFileSharesWithUser(w http.ResponseWriter, r *http.Request, actorUser database.User) {
+	userID := actorUser.ID
 	fileIDStr := r.PathValue("id")
 	if fileIDStr == "" {
 		respondWithError(w, http.StatusBadRequest, "File ID is required", nil)

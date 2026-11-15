@@ -21,7 +21,7 @@ INSERT INTO folders (
   updated_at
 )
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, owner_id, name, parent_id, created_at, updated_at
+RETURNING id, owner_id, name, parent_id, created_at, updated_at, deleted_at, deleted_by_actor_type, deleted_by_key_id, deleted_reason
 `
 
 type CreateFolderParams struct {
@@ -48,6 +48,10 @@ func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (Fol
 		&i.ParentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.DeletedByActorType,
+		&i.DeletedByKeyID,
+		&i.DeletedReason,
 	)
 	return i, err
 }
@@ -68,8 +72,8 @@ func (q *Queries) DeleteFolder(ctx context.Context, arg DeleteFolderParams) erro
 }
 
 const getFolderByID = `-- name: GetFolderByID :one
-SELECT id, owner_id, name, parent_id, created_at, updated_at FROM folders
-WHERE id = $1
+SELECT id, owner_id, name, parent_id, created_at, updated_at, deleted_at, deleted_by_actor_type, deleted_by_key_id, deleted_reason FROM folders
+WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetFolderByID(ctx context.Context, id uuid.UUID) (Folder, error) {
@@ -82,6 +86,10 @@ func (q *Queries) GetFolderByID(ctx context.Context, id uuid.UUID) (Folder, erro
 		&i.ParentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.DeletedByActorType,
+		&i.DeletedByKeyID,
+		&i.DeletedReason,
 	)
 	return i, err
 }
@@ -140,9 +148,9 @@ func (q *Queries) GetFolderPath(ctx context.Context, id uuid.UUID) ([]GetFolderP
 
 const getFolderSubtreeIDs = `-- name: GetFolderSubtreeIDs :many
 WITH RECURSIVE subtree AS (
-  SELECT folders.id FROM folders WHERE folders.id = $1
+  SELECT folders.id FROM folders WHERE folders.id = $1 AND folders.deleted_at IS NULL
   UNION ALL
-  SELECT f.id FROM folders f INNER JOIN subtree s ON f.parent_id = s.id
+  SELECT f.id FROM folders f INNER JOIN subtree s ON f.parent_id = s.id WHERE f.deleted_at IS NULL
 )
 SELECT subtree.id FROM subtree
 `
@@ -171,8 +179,8 @@ func (q *Queries) GetFolderSubtreeIDs(ctx context.Context, id uuid.UUID) ([]uuid
 }
 
 const getFoldersByOwner = `-- name: GetFoldersByOwner :many
-SELECT id, owner_id, name, parent_id, created_at, updated_at FROM folders
-WHERE owner_id = $1
+SELECT id, owner_id, name, parent_id, created_at, updated_at, deleted_at, deleted_by_actor_type, deleted_by_key_id, deleted_reason FROM folders
+WHERE owner_id = $1 AND deleted_at IS NULL
 ORDER BY name ASC
 `
 
@@ -192,6 +200,10 @@ func (q *Queries) GetFoldersByOwner(ctx context.Context, ownerID uuid.UUID) ([]F
 			&i.ParentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 		); err != nil {
 			return nil, err
 		}
@@ -207,8 +219,8 @@ func (q *Queries) GetFoldersByOwner(ctx context.Context, ownerID uuid.UUID) ([]F
 }
 
 const getFoldersByParent = `-- name: GetFoldersByParent :many
-SELECT id, owner_id, name, parent_id, created_at, updated_at FROM folders
-WHERE owner_id = $1 AND parent_id = $2
+SELECT id, owner_id, name, parent_id, created_at, updated_at, deleted_at, deleted_by_actor_type, deleted_by_key_id, deleted_reason FROM folders
+WHERE owner_id = $1 AND parent_id = $2 AND deleted_at IS NULL
 ORDER BY name ASC
 `
 
@@ -233,6 +245,10 @@ func (q *Queries) GetFoldersByParent(ctx context.Context, arg GetFoldersByParent
 			&i.ParentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 		); err != nil {
 			return nil, err
 		}
@@ -248,8 +264,8 @@ func (q *Queries) GetFoldersByParent(ctx context.Context, arg GetFoldersByParent
 }
 
 const getRootFolders = `-- name: GetRootFolders :many
-SELECT id, owner_id, name, parent_id, created_at, updated_at FROM folders
-WHERE owner_id = $1 AND parent_id IS NULL
+SELECT id, owner_id, name, parent_id, created_at, updated_at, deleted_at, deleted_by_actor_type, deleted_by_key_id, deleted_reason FROM folders
+WHERE owner_id = $1 AND parent_id IS NULL AND deleted_at IS NULL
 ORDER BY name ASC
 `
 
@@ -269,6 +285,10 @@ func (q *Queries) GetRootFolders(ctx context.Context, ownerID uuid.UUID) ([]Fold
 			&i.ParentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.DeletedByActorType,
+			&i.DeletedByKeyID,
+			&i.DeletedReason,
 		); err != nil {
 			return nil, err
 		}
@@ -286,8 +306,8 @@ func (q *Queries) GetRootFolders(ctx context.Context, ownerID uuid.UUID) ([]Fold
 const updateFolder = `-- name: UpdateFolder :one
 UPDATE folders
 SET name = $2, parent_id = $3, updated_at = $4
-WHERE id = $1 AND owner_id = $5
-RETURNING id, owner_id, name, parent_id, created_at, updated_at
+WHERE id = $1 AND owner_id = $5 AND deleted_at IS NULL
+RETURNING id, owner_id, name, parent_id, created_at, updated_at, deleted_at, deleted_by_actor_type, deleted_by_key_id, deleted_reason
 `
 
 type UpdateFolderParams struct {
@@ -314,6 +334,10 @@ func (q *Queries) UpdateFolder(ctx context.Context, arg UpdateFolderParams) (Fol
 		&i.ParentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.DeletedByActorType,
+		&i.DeletedByKeyID,
+		&i.DeletedReason,
 	)
 	return i, err
 }

@@ -141,7 +141,7 @@ SELECT
 FROM files f
 INNER JOIN upload_tokens u ON f.drop_source_id = u.id
 INNER JOIN folders fol ON u.target_folder_id = fol.id
-WHERE u.token = $1
+WHERE u.token = $1 AND f.deleted_at IS NULL
 ORDER BY f.created_at DESC
 `
 

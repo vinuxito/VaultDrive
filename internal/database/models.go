@@ -13,6 +13,33 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type AccountRecoveryAttempt struct {
+	ID               uuid.UUID
+	UserID           uuid.UUID
+	CapabilityHash   string
+	VerificationCode string
+	Threshold        int32
+	Status           string
+	ExpiresAt        time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	ConsumedAt       sql.NullTime
+}
+
+type AccountRecoveryAttemptApproval struct {
+	ID                 uuid.UUID
+	AttemptID          uuid.UUID
+	RecoveryShareID    uuid.UUID
+	CustodianID        uuid.UUID
+	ShareIndex         int16
+	Challenge          string
+	Status             string
+	DecryptedSharePart sql.NullString
+	ApprovedAt         sql.NullTime
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
 type AccountRecoveryShare struct {
 	ID                  uuid.UUID
 	UserID              uuid.UUID
@@ -50,6 +77,20 @@ type AgentApiKey struct {
 	Notes               sql.NullString
 	UsageCount          int32
 	LastSeenContextJson json.RawMessage
+	KeyKind             string
+	AllowedFolderIds    pqtype.NullRawMessage
+	AllowedIps          pqtype.NullRawMessage
+	RateLimitRpm        int32
+}
+
+type AgentIdempotencyRecord struct {
+	KeyScope       string
+	IdempotencyKey string
+	RequestHash    string
+	StatusCode     int32
+	ResponseBody   json.RawMessage
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
 }
 
 type AuditLog struct {
@@ -76,19 +117,23 @@ type EmailAccount struct {
 }
 
 type File struct {
-	ID                uuid.UUID
-	OwnerID           uuid.NullUUID
-	Filename          string
-	FilePath          string
-	FileSize          int64
-	EncryptedMetadata sql.NullString
-	CurrentKeyVersion sql.NullInt32
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	Starred           bool
-	DropSourceID      uuid.NullUUID
-	FolderID          uuid.NullUUID
-	ParentHash        sql.NullString
+	ID                 uuid.UUID
+	OwnerID            uuid.NullUUID
+	Filename           string
+	FilePath           string
+	FileSize           int64
+	EncryptedMetadata  sql.NullString
+	CurrentKeyVersion  sql.NullInt32
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	Starred            bool
+	DropSourceID       uuid.NullUUID
+	FolderID           uuid.NullUUID
+	ParentHash         sql.NullString
+	DeletedAt          sql.NullTime
+	DeletedByActorType sql.NullString
+	DeletedByKeyID     uuid.NullUUID
+	DeletedReason      sql.NullString
 }
 
 type FileAccessKey struct {
@@ -138,12 +183,16 @@ type FileVersion struct {
 }
 
 type Folder struct {
-	ID        uuid.UUID
-	OwnerID   uuid.UUID
-	Name      string
-	ParentID  uuid.NullUUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID                 uuid.UUID
+	OwnerID            uuid.UUID
+	Name               string
+	ParentID           uuid.NullUUID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	DeletedAt          sql.NullTime
+	DeletedByActorType sql.NullString
+	DeletedByKeyID     uuid.NullUUID
+	DeletedReason      sql.NullString
 }
 
 type FolderShare struct {

@@ -118,7 +118,7 @@ func (cfg *ApiConfig) applySyncAction(r *http.Request, ownerID uuid.UUID, action
 	}
 	var filename string
 	var hash sql.NullString
-	err = tx.QueryRowContext(r.Context(), `SELECT filename,parent_hash FROM files WHERE id=$1 AND owner_id=$2 FOR UPDATE`, fileID, ownerID).Scan(&filename, &hash)
+	err = tx.QueryRowContext(r.Context(), `SELECT filename,parent_hash FROM files WHERE id=$1 AND owner_id=$2 AND deleted_at IS NULL FOR UPDATE`, fileID, ownerID).Scan(&filename, &hash)
 	if err == sql.ErrNoRows {
 		return fail("not_found", "File not found or access denied; check the current inventory")
 	}
@@ -134,9 +134,17 @@ func (cfg *ApiConfig) applySyncAction(r *http.Request, ownerID uuid.UUID, action
 	auditAction := "file.deleted"
 	if action.Type == "rename" {
 		auditAction = "file.renamed"
-		_, err = tx.ExecContext(r.Context(), `UPDATE files SET filename=$1,parent_hash=NULLIF($2,''),updated_at=NOW() WHERE id=$3 AND owner_id=$4`, action.Filename, action.NewHash, fileID, ownerID)
+		_, err = tx.ExecContext(r.Context(), `UPDATE files SET filename=$1,parent_hash=NULLIF($2,''),updated_at=NOW() WHERE id=$3 AND owner_id=$4 AND deleted_at IS NULL`, action.Filename, action.NewHash, fileID, ownerID)
 	} else {
-		_, err = tx.ExecContext(r.Context(), `DELETE FROM files WHERE id=$1 AND owner_id=$2`, fileID, ownerID)
+		actorType := "human_jwt"
+		var actorKeyID interface{}
+		if actor, ok := actorFromContext(r.Context()); ok && actor != nil && actor.AuthType == "agent_api_key" {
+			actorType = "agent_delete_key"
+			if actor.KeyID != nil {
+				actorKeyID = *actor.KeyID
+			}
+		}
+		_, err = tx.ExecContext(r.Context(), `UPDATE files SET deleted_at=NOW(), deleted_by_actor_type=$1, deleted_by_key_id=$2, deleted_reason='Batch sync delete (recoverable Trash)', updated_at=NOW() WHERE id=$3 AND owner_id=$4 AND deleted_at IS NULL`, actorType, actorKeyID, fileID, ownerID)
 	}
 	if err != nil {
 		return fail("unavailable", "The change could not be applied; your pending action is retained")

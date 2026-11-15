@@ -1,0 +1,17 @@
+{
+  "name": "@abrn-drive/sdk",
+  "version": "2.0.0",
+  "description": "Zero-knowledge TypeScript & WebCrypto SDK for ABRN Drive Agent API",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./client": "./client.ts",
+    "./crypto": "./crypto.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test ./sdk.test.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

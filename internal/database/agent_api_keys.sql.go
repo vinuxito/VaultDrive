@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
 const createAgentAPIKey = `-- name: CreateAgentAPIKey :one
@@ -25,10 +26,14 @@ INSERT INTO agent_api_keys (
   expires_at,
   notes,
   usage_count,
-  last_seen_context_json
+  last_seen_context_json,
+  key_kind,
+  allowed_folder_ids,
+  allowed_ips,
+  rate_limit_rpm
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm
 `
 
 type CreateAgentAPIKeyParams struct {
@@ -43,6 +48,10 @@ type CreateAgentAPIKeyParams struct {
 	Notes               sql.NullString
 	UsageCount          int32
 	LastSeenContextJson json.RawMessage
+	KeyKind             string
+	AllowedFolderIds    pqtype.NullRawMessage
+	AllowedIps          pqtype.NullRawMessage
+	RateLimitRpm        int32
 }
 
 func (q *Queries) CreateAgentAPIKey(ctx context.Context, arg CreateAgentAPIKeyParams) (AgentApiKey, error) {
@@ -58,6 +67,10 @@ func (q *Queries) CreateAgentAPIKey(ctx context.Context, arg CreateAgentAPIKeyPa
 		arg.Notes,
 		arg.UsageCount,
 		arg.LastSeenContextJson,
+		arg.KeyKind,
+		arg.AllowedFolderIds,
+		arg.AllowedIps,
+		arg.RateLimitRpm,
 	)
 	var i AgentApiKey
 	err := row.Scan(
@@ -78,12 +91,16 @@ func (q *Queries) CreateAgentAPIKey(ctx context.Context, arg CreateAgentAPIKeyPa
 		&i.Notes,
 		&i.UsageCount,
 		&i.LastSeenContextJson,
+		&i.KeyKind,
+		&i.AllowedFolderIds,
+		&i.AllowedIps,
+		&i.RateLimitRpm,
 	)
 	return i, err
 }
 
 const getAgentAPIKeyByHash = `-- name: GetAgentAPIKeyByHash :one
-SELECT id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json FROM agent_api_keys
+SELECT id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm FROM agent_api_keys
 WHERE key_hash = $1
 `
 
@@ -108,12 +125,16 @@ func (q *Queries) GetAgentAPIKeyByHash(ctx context.Context, keyHash string) (Age
 		&i.Notes,
 		&i.UsageCount,
 		&i.LastSeenContextJson,
+		&i.KeyKind,
+		&i.AllowedFolderIds,
+		&i.AllowedIps,
+		&i.RateLimitRpm,
 	)
 	return i, err
 }
 
 const getAgentAPIKeyByIDForUser = `-- name: GetAgentAPIKeyByIDForUser :one
-SELECT id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json FROM agent_api_keys
+SELECT id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm FROM agent_api_keys
 WHERE id = $1 AND user_id = $2
 `
 
@@ -143,12 +164,16 @@ func (q *Queries) GetAgentAPIKeyByIDForUser(ctx context.Context, arg GetAgentAPI
 		&i.Notes,
 		&i.UsageCount,
 		&i.LastSeenContextJson,
+		&i.KeyKind,
+		&i.AllowedFolderIds,
+		&i.AllowedIps,
+		&i.RateLimitRpm,
 	)
 	return i, err
 }
 
 const listAgentAPIKeysByUser = `-- name: ListAgentAPIKeysByUser :many
-SELECT id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json FROM agent_api_keys
+SELECT id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm FROM agent_api_keys
 WHERE user_id = $1
 ORDER BY created_at DESC
 `
@@ -180,6 +205,10 @@ func (q *Queries) ListAgentAPIKeysByUser(ctx context.Context, userID uuid.UUID) 
 			&i.Notes,
 			&i.UsageCount,
 			&i.LastSeenContextJson,
+			&i.KeyKind,
+			&i.AllowedFolderIds,
+			&i.AllowedIps,
+			&i.RateLimitRpm,
 		); err != nil {
 			return nil, err
 		}
@@ -198,7 +227,7 @@ const markAgentAPIKeyExpired = `-- name: MarkAgentAPIKeyExpired :one
 UPDATE agent_api_keys
 SET status = 'expired'
 WHERE id = $1
-RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json
+RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm
 `
 
 func (q *Queries) MarkAgentAPIKeyExpired(ctx context.Context, id uuid.UUID) (AgentApiKey, error) {
@@ -222,6 +251,10 @@ func (q *Queries) MarkAgentAPIKeyExpired(ctx context.Context, id uuid.UUID) (Age
 		&i.Notes,
 		&i.UsageCount,
 		&i.LastSeenContextJson,
+		&i.KeyKind,
+		&i.AllowedFolderIds,
+		&i.AllowedIps,
+		&i.RateLimitRpm,
 	)
 	return i, err
 }
@@ -234,7 +267,7 @@ SET last_used_at = $2,
     usage_count = usage_count + 1,
     last_seen_context_json = $5
 WHERE id = $1
-RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json
+RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm
 `
 
 type MarkAgentAPIKeyUsedParams struct {
@@ -272,6 +305,10 @@ func (q *Queries) MarkAgentAPIKeyUsed(ctx context.Context, arg MarkAgentAPIKeyUs
 		&i.Notes,
 		&i.UsageCount,
 		&i.LastSeenContextJson,
+		&i.KeyKind,
+		&i.AllowedFolderIds,
+		&i.AllowedIps,
+		&i.RateLimitRpm,
 	)
 	return i, err
 }
@@ -281,7 +318,7 @@ UPDATE agent_api_keys
 SET status = 'revoked',
     revoked_at = $3
 WHERE id = $1 AND user_id = $2
-RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json
+RETURNING id, user_id, name, key_prefix, key_hash, scopes_json, status, created_at, last_used_at, expires_at, revoked_at, created_by_ip, last_used_ip, last_used_user_agent, notes, usage_count, last_seen_context_json, key_kind, allowed_folder_ids, allowed_ips, rate_limit_rpm
 `
 
 type RevokeAgentAPIKeyParams struct {
@@ -311,6 +348,10 @@ func (q *Queries) RevokeAgentAPIKey(ctx context.Context, arg RevokeAgentAPIKeyPa
 		&i.Notes,
 		&i.UsageCount,
 		&i.LastSeenContextJson,
+		&i.KeyKind,
+		&i.AllowedFolderIds,
+		&i.AllowedIps,
+		&i.RateLimitRpm,
 	)
 	return i, err
 }

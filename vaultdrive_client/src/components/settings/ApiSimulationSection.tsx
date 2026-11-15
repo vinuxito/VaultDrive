@@ -7,7 +7,11 @@ interface AgentKey {
   id: string;
   name: string;
   key_prefix: string;
+  key_kind?: "standard" | "delete_only";
   scopes: string[];
+  allowed_folder_ids?: string[];
+  allowed_ips?: string[];
+  rate_limit_rpm?: number;
   status: string;
 }
 
@@ -25,12 +29,17 @@ interface EndpointDef {
 
 const ENDPOINTS: EndpointDef[] = [
   { method: "GET", path: "/file-requests", scope: "requests:list", label: "List file requests" },
+  { method: "GET", path: "/drop/tokens", scope: "requests:list", label: "List Secure Drop links" },
   { method: "GET", path: "/files", scope: "files:list", label: "List files" },
+  { method: "GET", path: "/files/shared", scope: "files:list", label: "List shared files" },
   { method: "GET", path: "/folders", scope: "folders:read", label: "List folders" },
+  { method: "GET", path: "/folders/shared", scope: "folders:read", label: "List shared folders" },
+  { method: "GET", path: "/shares", scope: "shares:list", label: "List outbound shares" },
+  { method: "GET", path: "/users/me/public-key", scope: "files:upload_ciphertext", label: "Owner RSA public key" },
   { method: "GET", path: "/activity", scope: "activity:read", label: "Activity feed" },
   { method: "GET", path: "/audit", scope: "activity:read", label: "Audit log" },
   { method: "GET", path: "/agent-keys", scope: "api_keys:read", label: "List agent keys" },
-  { method: "GET", path: "/auth/introspect", scope: "(none)", label: "Introspect auth" },
+  { method: "GET", path: "/auth/introspect", scope: "(none)", label: "Introspect auth & guardrails" },
 ];
 
 const METHOD_COLORS: Record<string, string> = {
@@ -119,26 +128,26 @@ export function ApiSimulationSection() {
       <div>
         <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
           <Bot className="w-5 h-5 text-primary" />
-          Filemon operator
+          Simulador de llaves API
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Paste a real agent key, run a real control-plane request, and inspect the exact result Filemon gets back.
+          Pega cualquier llave activa (<code className="text-xs bg-muted px-1 py-0.5 rounded">{branding.agentKeyPrefix}_</code> o <code className="text-xs bg-muted px-1 py-0.5 rounded">abrnak_del_</code>), ejecuta una llamada real y comprueba exactamente qué responde la API.
         </p>
       </div>
 
       {loading ? (
         <div className="rounded-2xl border border-border bg-muted px-4 py-6 text-sm text-muted-foreground">
-          Loading keys...
+          Cargando llaves...
         </div>
       ) : keys.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-muted px-4 py-6 text-center text-sm text-muted-foreground">
-          No active agent keys. Create one first, then simulate requests here.
+          No hay llaves activas. Crea una primero y pruébala aquí.
         </div>
       ) : (
         <>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
-              <label htmlFor="sim-key" className="text-sm font-medium text-foreground">Agent key</label>
+              <label htmlFor="sim-key" className="text-sm font-medium text-foreground">Llave seleccionada</label>
               <div className="relative">
                 <select
                   id="sim-key"
@@ -148,7 +157,7 @@ export function ApiSimulationSection() {
                 >
                   {keys.map((k) => (
                     <option key={k.id} value={k.id}>
-                      {k.name} ({k.key_prefix})
+                      {k.name} ({k.key_prefix}){k.key_kind === "delete_only" ? " · Solo Papelera" : ""}
                     </option>
                   ))}
                 </select>
@@ -177,17 +186,17 @@ export function ApiSimulationSection() {
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="filemon-raw-key" className="text-sm font-medium text-foreground">Raw key for Filemon</label>
+            <label htmlFor="filemon-raw-key" className="text-sm font-medium text-foreground">Secreto de la llave para probar</label>
             <textarea
               id="filemon-raw-key"
               value={rawKey}
               onChange={(e) => setRawKey(e.target.value)}
               rows={3}
-              placeholder={`Paste the full ${branding.agentKeyPrefix}_... value you just copied`}
+              placeholder={`Pega el secreto completo (${branding.agentKeyPrefix}_... o abrnak_del_...) que copiaste al crearla`}
               className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
             />
             <p className="text-xs text-muted-foreground">
-              {`${branding.companyName} only shows the raw key once. Paste it here when you want Filemon to operate the real API surface.`}
+              {`${branding.companyName} solo muestra el secreto una vez. Las pruebas reales respetan jaula de carpetas, lista blanca IP y límite RPM.`}
             </p>
           </div>
 
@@ -203,17 +212,22 @@ export function ApiSimulationSection() {
                 <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
               )}
               <p className={`font-semibold ${allGrantedForEndpoint ? "text-emerald-800 dark:text-emerald-200" : "text-rose-800 dark:text-rose-200"}`}>
-                {allGrantedForEndpoint ? "Authorized" : "Denied — scope not granted"}
+                {allGrantedForEndpoint ? "Autorizada" : "Bloqueada — falta permiso o es llave Solo Papelera"}
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 text-sm">
               <div className="rounded-xl border border-border bg-muted/70 px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Required scope</p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Permiso requerido</p>
                 <code className="text-xs text-foreground font-mono">{scopeRequired}</code>
+                {(selectedKey?.allowed_folder_ids?.length ?? 0) > 0 && (
+                  <p className="text-[11px] text-primary mt-1">
+                    Jaula activa: {selectedKey!.allowed_folder_ids!.length} carpeta(s)
+                  </p>
+                )}
               </div>
               <div className="rounded-xl border border-border bg-muted/70 px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Key scopes ({selectedKey?.scopes.length ?? 0})</p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Permisos de la llave ({selectedKey?.scopes.length ?? 0})</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {selectedKey?.scopes.map((s) => (
                     <span
@@ -232,7 +246,7 @@ export function ApiSimulationSection() {
             </div>
 
             <div className="rounded-lg border border-border bg-muted px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1">Simulated response</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1">Respuesta esperada</p>
               <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed">
                 {allGrantedForEndpoint ? (
                   <span className="text-emerald-400">{`{
@@ -245,7 +259,10 @@ export function ApiSimulationSection() {
                 ) : (
                   <span className="text-rose-400">{`{
   "success": false,
-  "error": "scope '${scopeRequired}' required",
+  "error": {
+    "code": "insufficient_scope",
+    "message": "scope '${scopeRequired}' required"
+  },
   "meta": {
     "request_id": "uuid"
   }

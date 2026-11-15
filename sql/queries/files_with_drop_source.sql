@@ -17,5 +17,5 @@ SELECT
 FROM files f
 LEFT JOIN upload_tokens u ON f.drop_source_id = u.id
 LEFT JOIN folders fol ON u.target_folder_id = fol.id
-WHERE f.owner_id = $1
+WHERE f.owner_id = $1 AND f.deleted_at IS NULL
 ORDER BY f.created_at DESC;

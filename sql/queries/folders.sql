@@ -11,27 +11,27 @@ RETURNING *;
 
 -- name: GetFolderByID :one
 SELECT * FROM folders
-WHERE id = $1;
+WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: GetFoldersByOwner :many
 SELECT * FROM folders
-WHERE owner_id = $1
+WHERE owner_id = $1 AND deleted_at IS NULL
 ORDER BY name ASC;
 
 -- name: GetFoldersByParent :many
 SELECT * FROM folders
-WHERE owner_id = $1 AND parent_id = $2
+WHERE owner_id = $1 AND parent_id = $2 AND deleted_at IS NULL
 ORDER BY name ASC;
 
 -- name: GetRootFolders :many
 SELECT * FROM folders
-WHERE owner_id = $1 AND parent_id IS NULL
+WHERE owner_id = $1 AND parent_id IS NULL AND deleted_at IS NULL
 ORDER BY name ASC;
 
 -- name: UpdateFolder :one
 UPDATE folders
 SET name = $2, parent_id = $3, updated_at = $4
-WHERE id = $1 AND owner_id = $5
+WHERE id = $1 AND owner_id = $5 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: DeleteFolder :exec
@@ -40,9 +40,9 @@ WHERE id = $1 AND owner_id = $2;
 
 -- name: GetFolderSubtreeIDs :many
 WITH RECURSIVE subtree AS (
-  SELECT folders.id FROM folders WHERE folders.id = $1
+  SELECT folders.id FROM folders WHERE folders.id = $1 AND folders.deleted_at IS NULL
   UNION ALL
-  SELECT f.id FROM folders f INNER JOIN subtree s ON f.parent_id = s.id
+  SELECT f.id FROM folders f INNER JOIN subtree s ON f.parent_id = s.id WHERE f.deleted_at IS NULL
 )
 SELECT subtree.id FROM subtree;
 

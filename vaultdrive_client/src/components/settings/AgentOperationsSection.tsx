@@ -48,6 +48,11 @@ const AGENT_ACTIONS: Record<string, { label: string; tone: "good" | "warn" | "in
   "agent_api_key.used": { label: "Request", tone: "info" },
   "agent_api_key.expired": { label: "Key expired", tone: "warn" },
   "agent_api_key.scope_denied": { label: "Scope denied", tone: "warn" },
+  "agent_api_key.folder_denied": { label: "Carpeta bloqueada", tone: "warn" },
+  "agent_api_key.ip_denied": { label: "IP bloqueada", tone: "warn" },
+  "agent_api_key.delete_denied": { label: "Borrado bloqueado", tone: "warn" },
+  "file.soft_deleted": { label: "Movido a Papelera", tone: "info" },
+  "folder.soft_deleted": { label: "Carpeta a Papelera", tone: "info" },
 };
 
 const TONE_STYLES = {
@@ -68,6 +73,7 @@ function extractResource(entry: AuditEntry): string {
   if (typeof meta.resource === "string") return meta.resource;
   if (typeof meta.path === "string") return meta.path as string;
   if (typeof meta.required_scope === "string") return `scope: ${meta.required_scope}`;
+  if (typeof meta.folder_id === "string") return `carpeta: ${meta.folder_id.slice(0, 8)}`;
   return entry.resource_id?.slice(0, 8) ?? "-";
 }
 
@@ -78,7 +84,15 @@ function extractResult(entry: AuditEntry): string {
     if (meta.result === "ok") return method ? `${method} OK` : "OK";
     return meta.result.charAt(0).toUpperCase() + meta.result.slice(1);
   }
-  if (entry.action === "agent_api_key.scope_denied") return "Denied";
+  if (
+    entry.action === "agent_api_key.scope_denied" ||
+    entry.action === "agent_api_key.folder_denied" ||
+    entry.action === "agent_api_key.ip_denied" ||
+    entry.action === "agent_api_key.delete_denied"
+  ) {
+    return "Denied";
+  }
+  if (entry.action === "file.soft_deleted" || entry.action === "folder.soft_deleted") return "Papelera";
   if (entry.action === "agent_api_key.expired") return "Expired";
   if (entry.action === "agent_api_key.revoked") return "Revoked";
   if (entry.action === "agent_api_key.created") return "Active";
