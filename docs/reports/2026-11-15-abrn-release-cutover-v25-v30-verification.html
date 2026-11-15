@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ABRN Drive Production Cutover Verification — v25–v30 (Schema 49 → 52)</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --surface: #ffffff;
+      --border: #e7dfd5;
+      --text: #1c1917;
+      --muted: #57534e;
+      --brand: #7a1f2b;
+      --ok-bg: #ecfdf5;
+      --ok-fg: #065f46;
+      --ok-bd: #a7f3d0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem 1.25rem;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+    header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--brand);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+    h1 { margin: 0 0 0.35rem; font-size: 1.5rem; }
+    .sub { color: var(--muted); font-size: 0.95rem; margin: 0; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+    .kpi .label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .kpi .val { font-size: 1.35rem; font-weight: 700; margin-top: 0.25rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--ok-bg);
+      color: var(--ok-fg);
+      border: 1px solid var(--ok-bd);
+    }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    h2 { margin: 0 0 0.9rem; font-size: 1.1rem; color: var(--brand); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.6rem 0.65rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.82rem; background: #f4efe8; padding: 0.1rem 0.35rem; border-radius: 4px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>ABRN Drive Production Cutover Verification (v25–v30 + Schema 49 → 52)</h1>
+      <p class="sub">
+        Build ID <code>111fbfa53c84c5b0d256b28af6217284fe57b096</code> · Service <code>abrndrive.service</code> · Executed 2026-11-15 UTC
+      </p>
+    </header>
+
+    <div class="kpis">
+      <div class="kpi"><div class="label">Service Status</div><div class="val"><span class="badge">ACTIVE</span> PID 63721</div></div>
+      <div class="kpi"><div class="label">Schema Migration</div><div class="val">49 → 52 (Goose v3.28.0)</div></div>
+      <div class="kpi"><div class="label">Installer Tests</div><div class="val">14 / 14 PASS</div></div>
+      <div class="kpi"><div class="label">Stored Blobs Verified</div><div class="val">1,179 files</div></div>
+    </div>
+
+    <section>
+      <h2>Verification Matrix</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Gate</th><th>Evidence</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>REL-01</code></td><td>Release Installer Suite</td><td><code>py_compile</code> + <code>unittest test_release_installer.py</code> → 14/14 OK (1.021s)</td><td><span class="badge">PASS</span></td></tr>
+          <tr><td><code>REL-02</code></td><td>Cold Go Backend Suite &amp; Vet</td><td><code>go test -count=1 ./...</code> (10.730s) &amp; <code>go vet ./...</code> vs <code>abrn_coherence_test</code></td><td><span class="badge">PASS</span></td></tr>
+          <tr><td><code>REL-03</code></td><td>Schema 50 &amp; 52 Catalog Oracle</td><td><code>SCHEMA_50_VALIDATION_SQL</code> &amp; <code>SCHEMA_52_VALIDATION_SQL</code> returned <code>true</code></td><td><span class="badge">PASS</span></td></tr>
+          <tr><td><code>REL-04</code></td><td>Isolated Build &amp; Stage Checksums</td><td><code>sha256sum -c MANIFEST.sha256</code>: 9/9 OK; cached Goose <code>v3.28.0</code></td><td><span class="badge">PASS</span></td></tr>
+          <tr><td><code>REL-05</code></td><td>Root Cutover Execution</td><td><code>/usr/bin/python3 -I</code> applied 050, 051, 052 → version 52; pre-migration <code>pg_dump</code> verified</td><td><span class="badge">PASS</span></td></tr>
+          <tr><td><code>REL-06</code></td><td>Local &amp; Public Readiness / Health</td><td><code>/ready</code>: <code>ok (version: 52)</code>; <code>/health</code>: <code>111fbfa53c84c5b0d256b28af6217284fe57b096</code></td><td><span class="badge">PASS</span></td></tr>
+          <tr><td><code>REL-07</code></td><td>OpenAPI &amp; Real Browser (<code>bsk</code>)</td><td><code>/abrn/api/v1/openapi.json</code> HTTP 200 (44 paths); <code>dist/index.html</code> 0B delta</td><td><span class="badge">PASS</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Before vs After Production Seals</h2>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Before Cutover</th><th>After Cutover</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Database Schema</td><td><code>49</code></td><td><code>52</code> (migrations <code>050</code>, <code>051</code>, <code>052</code>)</td></tr>
+          <tr><td><code>/health</code> Build Version</td><td><code>"dev"</code></td><td><code>111fbfa53c84c5b0d256b28af6217284fe57b096</code></td></tr>
+          <tr><td><code>/abrn/api/v1/openapi.json</code></td><td><code>404</code></td><td>HTTP <code>200</code> (44 paths incl. <code>/api/v1/auth/introspect</code> &amp; <code>/api/v1/users/me/public-key</code>)</td></tr>
+          <tr><td>Installed Binary SHA-256</td><td>Sep 14 build</td><td><code>ca7856ac6e5783df9a1f4a5a06640a6e6ed45630301e7b46fe7b396735d6bdf3</code></td></tr>
+          <tr><td>Live Frontend Index SHA-256</td><td>Legacy bundle</td><td><code>e5360d7d8500bb0c69f197d921b184d810ac6d61964aebd00a43101d03ca5df7</code></td></tr>
+          <tr><td>Root-Private Backup</td><td>None</td><td><code>/var/backups/abrndrive-release/20261115T211255Z-111fbfa53c84c5b0d256b28af6217284fe57b096</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>
