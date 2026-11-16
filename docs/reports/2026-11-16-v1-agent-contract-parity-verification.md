@@ -4,10 +4,11 @@
 - **Findings Specification:** [`2026-11-15-v1-agent-contract-parity-findings.md`](../plans/2026-11-15-v1-agent-contract-parity-findings.md)
 - **Session Memory:** [`session-2026-11-16-v1-agent-contract-parity.md`](../memories/session-2026-11-16-v1-agent-contract-parity.md)
 - **Date:** `2026-11-16`
-- **Base Commit:** `4f805b8` (`origin/main`)
-- **Frontend Bundle Seal (`vaultdrive_client/dist/index.html` SHA-256):** `89aaf7e727ac43d8d94e0817ee1d10588469c074595284f5b617d3e54727566c` (`frontend base verified: /abrn/`)
-- **Service Safety Boundary:** `abrndrive.service` and production DB `vaultdrive` remained untouched. All tests and live E2E runs used isolated DB `abrn_coherence_test` and ephemeral server `127.0.0.1:18083`.
-- **Overall Verdict:** **PASS (`SEGURO CONTINUAR`)**
+- **Deployed Commit (`BUILD_ID`):** `912893c6a4e5c3b87c5cb4e5f4f38c061981ef58` (from `4f805b8`)
+- **Live Binary SHA-256 (`/usr/local/lib/abrndrive/abrndrive`):** `434582f4d257ba679f3c41d1c50565fa4f10f6a9aabfa23ecbdb53156f860887`
+- **Live Frontend Bundle Seal (`dist/index.html` & `https://abrndrive.filemonprime.net/abrn/` SHA-256):** `23f46f6f5bc473953b152c0598df483fee337799cb2097612eda69dfc0173227` (`0B` delta)
+- **Coherent Production Backup:** `/var/backups/abrndrive-release/20261116T002916Z-912893c6a4e5c3b87c5cb4e5f4f38c061981ef58`
+- **Overall Verdict:** **PASS (`SEGURO CONTINUAR` — LIVE IN PRODUCTION)**
 
 ---
 
@@ -23,7 +24,7 @@
 
 ---
 
-## 2. Cold Verification Matrix (Final Source Tree)
+## 2. Cold Verification & Live Production Cutover Matrix
 
 | Check ID | Verification Gate | Command / Environment | Numerical Outcome | Status |
 |---|---|---|---|---|
@@ -31,15 +32,18 @@
 | `CHK-02` | SDK & MCP Strict `tsc` | `./vaultdrive_client/node_modules/.bin/tsc --noEmit --target es2022 --module nodenext --moduleResolution nodenext --allowImportingTsExtensions --strict --skipLibCheck --typeRoots ./vaultdrive_client/node_modules/@types sdk/*.ts mcp/*.ts` | Exit `0` (`0` TypeScript errors across `sdk/*.ts` and `mcp/*.ts`) | **PASS** |
 | `CHK-03` | Frontend Strict Typecheck | `npm --prefix vaultdrive_client run typecheck` (`tsc -b && tsc -p tsconfig.e2e.json --noEmit`) | Exit `0` (`0` TypeScript errors across app & E2E specs) | **PASS** |
 | `CHK-04` | Full Frontend Vitest Suite | `npx vitest run --maxWorkers=2` (`cwd=/lamp/www/ABRN-Drive/vaultdrive_client`) | Exit `0` — **`130/130` test files, `613/613` tests passed** (`184.86s`, `0` failed, `0` skipped) | **PASS** |
-| `CHK-05` | Production `/abrn/` Bundle & Seal | `make build-frontend && sha256sum vaultdrive_client/dist/index.html` | Exit `0` (`15.51s`, `frontend base verified: /abrn/`, `89aaf7e727ac43d8d94e0817ee1d10588469c074595284f5b617d3e54727566c`) | **PASS** |
-| `CHK-06` | SDK Unit Suite (`@abrn-drive/sdk`) | `npm --prefix sdk test` (`node --experimental-strip-types --test ./sdk.test.ts`) | Exit `0` — `4` unit suites passed, `0` failed (`1` live test skipped without env; `1561.32ms`) | **PASS** |
-| `CHK-07` | MCP Unit Suite (`@abrn-drive/mcp`) | `npm --prefix mcp test` (`node --experimental-strip-types --test ./mcp.test.ts`) | Exit `0` — `3` unit suites passed, `0` failed (`1` live test skipped without env; `2281.49ms`) | **PASS** |
-| `CHK-08` | Live Ephemeral Go HTTP Parity + SDK E2E | Compiled Go binary on `127.0.0.1:18083/abrn/api` (`abrn_coherence_test`, isolated cwd) + `npm --prefix sdk test` | `LIVE_PARITY_HTTP_CHECKS=OK`; SDK **`5/5` passed, `0` failed, `0` skipped** (`1892.01ms`) | **PASS** |
-| `CHK-09` | Live Ephemeral Go MCP Subprocess E2E | `npm --prefix mcp test` against ephemeral `127.0.0.1:18083/abrn/api` | **`4/4` passed, `0` failed, `0` skipped** (`3396.62ms`) | **PASS** |
+| `CHK-05` | SDK Unit Suite (`@abrn-drive/sdk`) | `npm --prefix sdk test` (`node --experimental-strip-types --test ./sdk.test.ts`) | Exit `0` — `4` unit suites passed, `0` failed (`1` live test skipped without env; `1561.32ms`) | **PASS** |
+| `CHK-06` | MCP Unit Suite (`@abrn-drive/mcp`) | `npm --prefix mcp test` (`node --experimental-strip-types --test ./mcp.test.ts`) | Exit `0` — `3` unit suites passed, `0` failed (`1` live test skipped without env; `2281.49ms`) | **PASS** |
+| `CHK-07` | Live Ephemeral Go HTTP Parity + SDK E2E | Compiled Go binary on `127.0.0.1:18083/abrn/api` (`abrn_coherence_test`, isolated cwd) + `npm --prefix sdk test` | `LIVE_PARITY_HTTP_CHECKS=OK`; SDK **`5/5` passed, `0` failed, `0` skipped** (`1892.01ms`) | **PASS** |
+| `CHK-08` | Live Ephemeral Go MCP Subprocess E2E | `npm --prefix mcp test` against ephemeral `127.0.0.1:18083/abrn/api` | **`4/4` passed, `0` failed, `0` skipped** (`3396.62ms`) | **PASS** |
+| `REL-01` | Release Installer Static & Unit Suite | `python3 -m py_compile ... && (cd deploy/release && python3 -m unittest -v test_release_installer.py)` | Exit `0` — **`14/14` passed** (`1.042s`) | **PASS** |
+| `REL-02` | Coordinated Live Cutover (`912893c`) | `sudo /usr/bin/python3 -I /run/abrndrive-release-installer.py "$STAGE"` | Exit `0` — `abrndrive.service` active (MainPID `15591`); backup `20261116T002916Z-912893c6a4e5c3b87c5cb4e5f4f38c061981ef58`; `/ready` `version: 52`, `stored_files: 1187` | **PASS** |
+| `REL-03` | Live Production HTTP & OpenAPI Parity | `curl /health`, `curl https://abrndrive.filemonprime.net/abrn/`, `/abrn/api/v1/openapi.json`, `/abrn/api/v1/docs` | `version: 912893c6a4e5c3b87c5cb4e5f4f38c061981ef58`; `index.html` SHA-256 `23f46f6f...0173227` (`0B` delta); `44` OpenAPI paths live (`200`) | **PASS** |
+| `REL-04` | Real Chromium (`bsk`) Production UI & Docs | `bsk open https://abrndrive.filemonprime.net/abrn/` & `/abrn/api/v1/docs` | Live site & `ABRN Drive OpenAPI & Agent Zero-Knowledge Guide` rendered cleanly | **PASS** |
 
 ---
 
-## 3. Live Ephemeral Server Observations Caught & Verified
+## 3. Observations Caught & Verified
 
 - Verified live `POST /abrn/api/v1/folders` returns existing `parentId` field in response body while accepting both `parent_id` and `parentId` on `POST` create and `PUT` move/update, returning `400 validation_error` on conflicting fields.
 - Verified live `POST /abrn/api/v1/drop/create` requires `target_folder_id`, returns `403 human_jwt_required` when an agent API key supplies `pin`, and returns clean JSON `expires_at: null`, `max_files: null`, and `/abrn/drop/<token>#key=<secret>` when `pin` is omitted.

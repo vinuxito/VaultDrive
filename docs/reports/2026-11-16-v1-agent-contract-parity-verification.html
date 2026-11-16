@@ -159,11 +159,11 @@
       <div class="pill-row">
         <span class="pill">ABRN Drive · /api/v1/* Contract Parity</span>
         <span class="pill">Cuaderno #29841–#29845 · 5/5 Fixed</span>
-        <span class="pill">2026-11-16</span>
-        <span class="pill">Verdict: SEGURO CONTINUAR</span>
+        <span class="pill">Live Release: 912893c</span>
+        <span class="pill">2026-11-16 · LIVE IN PRODUCTION</span>
       </div>
-      <h1>/api/v1/* Agent Contract Parity &amp; Cuaderno Resolution</h1>
-      <p>Zero-regression backend, TypeScript SDK, MCP server, OpenAPI spec, and React share-sheet fixes executed cleanly with zero production mutation.</p>
+      <h1>/api/v1/* Agent Contract Parity &amp; Live Production Cutover</h1>
+      <p>Zero-regression backend, TypeScript SDK, MCP server, OpenAPI spec, and React share-sheet fixes promoted live onto <code>abrndrive.service</code>.</p>
     </section>
 
     <section class="kpis">
@@ -188,9 +188,9 @@
         <div class="sub">5/5 SDK · 4/4 MCP · 0 skipped</div>
       </div>
       <div class="kpi">
-        <div class="label">Bundle Base</div>
-        <div class="value">/abrn/</div>
-        <div class="sub">15.51s · Vite production</div>
+        <div class="label">Production Service</div>
+        <div class="value">PID 15591</div>
+        <div class="sub">schema 52 · 1187 files</div>
       </div>
     </section>
 
@@ -247,7 +247,7 @@
     </section>
 
     <section class="card">
-      <h2>2. Cold Verification Gates</h2>
+      <h2>2. Cold Verification &amp; Live Cutover Gates</h2>
       <table>
         <thead>
           <tr>
@@ -283,15 +283,27 @@
             <td><span class="badge pass">PASS</span></td>
           </tr>
           <tr>
-            <td>Frontend Production Build</td>
-            <td><code>make build-frontend</code></td>
-            <td><code>15.51s</code> · <code>frontend base verified: /abrn/</code></td>
-            <td><span class="badge pass">PASS</span></td>
-          </tr>
-          <tr>
             <td>Live Ephemeral Go SDK + MCP E2E</td>
             <td><code>127.0.0.1:18083/abrn/api</code> (isolated cwd + <code>abrn_coherence_test</code>)</td>
             <td><code>LIVE_PARITY_HTTP_CHECKS=OK</code> · SDK <code>5/5</code> pass · MCP <code>4/4</code> pass · <code>0</code> skipped</td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Release Installer Unit Suite</td>
+            <td><code>python3 -m unittest -v test_release_installer.py</code></td>
+            <td>Exit <code>0</code> · <code>14/14</code> passed · <code>1.042s</code></td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Coordinated Live Cutover</td>
+            <td><code>sudo /usr/bin/python3 -I /run/abrndrive-release-installer.py "$STAGE"</code></td>
+            <td><code>abrndrive.service</code> active (PID <code>15591</code>) · <code>/health</code> <code>912893c6...</code> · <code>/ready</code> schema <code>52</code> · <code>0B</code> index delta</td>
+            <td><span class="badge pass">LIVE</span></td>
+          </tr>
+          <tr>
+            <td>Real Chromium (<code>bsk</code>)</td>
+            <td><code>bsk open https://abrndrive.filemonprime.net/abrn/</code> &amp; <code>/abrn/api/v1/docs</code></td>
+            <td>App &amp; <code>ABRN Drive OpenAPI &amp; Agent Zero-Knowledge Guide</code> rendered live</td>
             <td><span class="badge pass">PASS</span></td>
           </tr>
         </tbody>
@@ -299,14 +311,16 @@
     </section>
 
     <section class="card">
-      <h2>3. Cryptographic &amp; Safety Seals</h2>
+      <h2>3. Cryptographic &amp; Live Production Seals</h2>
       <div class="seal-box">
-        Base Git Commit .................. 4f805b8 (origin/main)<br />
-        dist/index.html SHA-256 .......... 89aaf7e727ac43d8d94e0817ee1d10588469c074595284f5b617d3e54727566c<br />
-        Production Service ............... abrndrive.service UNTOUCHED (no restart / no vaultdrive mutation)<br />
+        Deployed Build ID ................ 912893c6a4e5c3b87c5cb4e5f4f38c061981ef58<br />
+        Binary SHA-256 (/usr/local/lib) .. 434582f4d257ba679f3c41d1c50565fa4f10f6a9aabfa23ecbdb53156f860887<br />
+        Live dist/index.html SHA-256 ..... 23f46f6f5bc473953b152c0598df483fee337799cb2097612eda69dfc0173227<br />
+        Coherent Backup .................. /var/backups/abrndrive-release/20261116T002916Z-912893c6a4e5c3b87c5cb4e5f4f38c061981ef58<br />
+        Production Service ............... abrndrive.service active (MainPID 15591) · schema 52 · 1187 files<br />
         Cuaderno de Guerra ............... abrn-drive queue 5/5 fixed · 0 pending · 0 in_progress
       </div>
-      <p class="note">Next operational decision belongs to the owner: deploy updated Go + <code>dist</code> artifacts onto <code>abrndrive.service</code> using <code>deploy/release/README.md</code> when scheduled.</p>
+      <p class="note">Standard operating policy: every verified ABRN Drive build is promoted live onto <code>abrndrive.service</code> using <code>deploy/release/README.md</code>.</p>
     </section>
   </div>
 </body>
