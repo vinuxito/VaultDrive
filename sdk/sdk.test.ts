@@ -154,6 +154,24 @@ test("Idempotency-Key forwarding, X-Idempotency-Replayed detection, and 429 Retr
       }
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ success: true, data: [], meta: {} }));
+      return;
+    }
+    if (req.url === "/api/v1/auth/introspect" && req.method === "GET") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          success: true,
+          data: {
+            auth_type: "agent_api_key",
+            user_id: "u1",
+            scopes: ["files:list"],
+            key_kind: "standard",
+            owner_public_key: "MIIBIjANBgkqhkiG9w0B...",
+            public_key: "MIIBIjANBgkqhkiG9w0B...",
+          },
+          meta: {},
+        })
+      );
     }
   });
 
@@ -169,6 +187,25 @@ test("Idempotency-Key forwarding, X-Idempotency-Replayed detection, and 429 Retr
     const listed = await client.listFiles();
     assert.equal(listCalls, 2);
     assert.deepEqual(listed.data, []);
+
+    const introspected = await client.introspect();
+    assert.equal(introspected.data.owner_public_key, "MIIBIjANBgkqhkiG9w0B...");
+    assert.equal(introspected.data.public_key, introspected.data.owner_public_key);
+
+    const snakeFolder = await client.createFolder({ name: "SubSnake", parent_id: "fld-parent" });
+    assert.equal(snakeFolder.data.id, "fld-123");
+    await assert.rejects(
+      () => client.createFolder({ name: "Conflict", parentId: "fld-a", parent_id: "fld-b" }),
+      /Conflicting parentId and parent_id/
+    );
+
+    const reqCountBeforePinReject = mock.requests.length;
+    await assert.rejects(
+      () => client.createDropToken({ target_folder_id: "fld-123", pin: "1234" }),
+      (err: unknown) =>
+        err instanceof AbrnApiError && err.status === 403 && err.code === "human_jwt_required"
+    );
+    assert.equal(mock.requests.length, reqCountBeforePinReject);
   } finally {
     await mock.close();
   }
@@ -289,6 +326,46 @@ test("WebCrypto RSA-OAEP & Folder-Key zero-knowledge upload/download roundtrip a
   }
 });
 
+test("uploadEncryptedFile forwards Idempotency-Key and sets replayed=true on X-Idempotency-Replayed", async () => {
+  let calls = 0;
+  const mock = await startMockServer((req, res) => {
+    if (req.url === "/api/v1/files/upload" && req.method === "POST") {
+      calls += 1;
+      const isReplay = calls > 1;
+      res.writeHead(201, {
+        "Content-Type": "application/json",
+        ...(isReplay ? { "X-Idempotency-Replayed": "true" } : {}),
+      });
+      res.end(
+        JSON.stringify({
+          success: true,
+          data: { id: "file-idem-1", filename: "idem.bin", file_size: 4 },
+          meta: { request_id: `req-up-${calls}` },
+        })
+      );
+    }
+  });
+
+  try {
+    const client = new AbrnDriveClient({ baseUrl: mock.baseUrl, apiKey: "abrnak_std_test" });
+    const makeForm = () => {
+      const fd = new FormData();
+      fd.append("file", new Blob([new Uint8Array([1, 2, 3, 4])], { type: "application/octet-stream" }), "idem.bin");
+      fd.append("wrapped_key", "d2hhdGV2ZXI=");
+      return fd;
+    };
+    const first = await client.uploadEncryptedFile(makeForm(), { idempotencyKey: "idem-upload-direct" });
+    const second = await client.uploadEncryptedFile(makeForm(), { idempotencyKey: "idem-upload-direct" });
+    assert.equal(first.replayed, undefined);
+    assert.equal(second.replayed, true);
+    assert.equal(second.data.id, first.data.id);
+    assert.equal(mock.requests[0].headers["idempotency-key"], "idem-upload-direct");
+    assert.equal(mock.requests[1].headers["idempotency-key"], "idem-upload-direct");
+  } finally {
+    await mock.close();
+  }
+});
+
 const liveBaseUrl = process.env.ABRN_TEST_BASE_URL ?? "";
 const liveStdKey = process.env.ABRN_TEST_STANDARD_KEY ?? "";
 const liveDelKey = process.env.ABRN_TEST_DELETE_KEY ?? "";
@@ -304,10 +381,13 @@ test(
     const stdIntrospect = await stdClient.introspect();
     assert.equal(stdIntrospect.data.auth_type, "agent_api_key");
     assert.equal(stdIntrospect.data.key_kind, "standard");
+    assert.ok(stdIntrospect.data.owner_public_key);
+    assert.equal(stdIntrospect.data.owner_public_key, stdIntrospect.data.public_key);
 
     const delIntrospect = await delClient.introspect();
     assert.equal(delIntrospect.data.auth_type, "agent_api_key");
     assert.equal(delIntrospect.data.key_kind, "delete_only");
+    assert.ok(delIntrospect.data.owner_public_key);
 
     const idemKey = `sdk-live-folder-${Date.now()}`;
     const f1 = await stdClient.createFolder({ name: `SDK-Live-${Date.now()}` }, { idempotencyKey: idemKey });

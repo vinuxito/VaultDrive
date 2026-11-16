@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -342,15 +340,120 @@ func (r *idempotencyResponseRecorder) Write(p []byte) (int, error) {
 	return r.body.Write(p)
 }
 
+func resolveV1IdempotencyScope(w http.ResponseWriter, r *http.Request, user database.User) (idemKey, keyScope string, ok bool) {
+	idemKey = strings.TrimSpace(r.Header.Get("Idempotency-Key"))
+	if idemKey == "" {
+		return "", "", true
+	}
+	if len(idemKey) > 128 {
+		respondWithV1ErrorCode(w, r, http.StatusBadRequest, "bad_request", "Idempotency-Key must be 128 characters or fewer")
+		return "", "", false
+	}
+	keyScope = "user:" + user.ID.String()
+	if actor, hasActor := actorFromContext(r.Context()); hasActor && actor != nil && actor.KeyID != nil {
+		keyScope = "key:" + actor.KeyID.String()
+	}
+	return idemKey, keyScope, true
+}
+
+func buildV1MultipartUploadIdempotencyHash(
+	r *http.Request,
+	file io.ReadSeeker,
+	filename, rawFolderID, wrappedKey, metadataJSON, credentialScheme string,
+) (string, error) {
+	fileHasher := sha256.New()
+	hashedSize, err := io.Copy(fileHasher, file)
+	if err != nil {
+		return "", err
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return "", err
+	}
+
+	h := sha256.New()
+	writePart := func(val string) {
+		_, _ = fmt.Fprintf(h, "%d:%s;", len(val), val)
+	}
+	for _, part := range []string{
+		r.Method,
+		r.URL.Path,
+		filename,
+		fmt.Sprintf("%d", hashedSize),
+		hex.EncodeToString(fileHasher.Sum(nil)),
+		rawFolderID,
+		wrappedKey,
+		metadataJSON,
+		credentialScheme,
+		r.FormValue("iv"),
+		r.FormValue("algorithm"),
+		r.FormValue("salt"),
+	} {
+		writePart(part)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+func (cfg *ApiConfig) tryReplayV1Idempotency(w http.ResponseWriter, r *http.Request, keyScope, idemKey, reqHash string) bool {
+	existing, err := cfg.dbQueries.GetAgentIdempotencyRecord(r.Context(), database.GetAgentIdempotencyRecordParams{
+		KeyScope:       keyScope,
+		IdempotencyKey: idemKey,
+	})
+	if err != nil {
+		return false
+	}
+	if existing.RequestHash != reqHash {
+		respondWithV1ErrorCode(w, r, http.StatusConflict, "idempotency_conflict", "Idempotency-Key was already used with a different request")
+		return true
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Idempotency-Replayed", "true")
+	w.WriteHeader(int(existing.StatusCode))
+	_, _ = w.Write(existing.ResponseBody)
+	return true
+}
+
+func (cfg *ApiConfig) recordAndFlushV1Idempotency(
+	w http.ResponseWriter,
+	r *http.Request,
+	keyScope, idemKey, reqHash string,
+	exec func(http.ResponseWriter),
+) {
+	rec := &idempotencyResponseRecorder{
+		header:     make(http.Header),
+		statusCode: http.StatusOK,
+	}
+	exec(rec)
+
+	for k, vals := range rec.header {
+		for _, v := range vals {
+			w.Header().Add(k, v)
+		}
+	}
+
+	rawResp := rec.body.Bytes()
+	if rec.statusCode >= 200 && rec.statusCode < 300 && json.Valid(rawResp) {
+		_ = cfg.dbQueries.UpsertAgentIdempotencyRecord(r.Context(), database.UpsertAgentIdempotencyRecordParams{
+			KeyScope:       keyScope,
+			IdempotencyKey: idemKey,
+			RequestHash:    reqHash,
+			StatusCode:     int32(rec.statusCode),
+			ResponseBody:   json.RawMessage(rawResp),
+			ExpiresAt:      time.Now().UTC().Add(24 * time.Hour),
+		})
+	}
+
+	w.WriteHeader(rec.statusCode)
+	_, _ = w.Write(rawResp)
+}
+
 func (cfg *ApiConfig) withV1Idempotency(next authedHandler) authedHandler {
 	return func(w http.ResponseWriter, r *http.Request, user database.User) {
-		idemKey := strings.TrimSpace(r.Header.Get("Idempotency-Key"))
-		if idemKey == "" {
-			next(w, r, user)
+		idemKey, keyScope, ok := resolveV1IdempotencyScope(w, r, user)
+		if !ok {
 			return
 		}
-		if len(idemKey) > 128 {
-			respondWithV1ErrorCode(w, r, http.StatusBadRequest, "bad_request", "Idempotency-Key must be 128 characters or fewer")
+		if idemKey == "" {
+			next(w, r, user)
 			return
 		}
 
@@ -369,56 +472,11 @@ func (cfg *ApiConfig) withV1Idempotency(next authedHandler) authedHandler {
 		h.Write(bodyBytes)
 		reqHash := hex.EncodeToString(h.Sum(nil))
 
-		keyScope := "user:" + user.ID.String()
-		if actor, ok := actorFromContext(r.Context()); ok && actor != nil && actor.KeyID != nil {
-			keyScope = "key:" + actor.KeyID.String()
+		if cfg.tryReplayV1Idempotency(w, r, keyScope, idemKey, reqHash) {
+			return
 		}
-
-		existing, err := cfg.dbQueries.GetAgentIdempotencyRecord(r.Context(), database.GetAgentIdempotencyRecordParams{
-			KeyScope:       keyScope,
-			IdempotencyKey: idemKey,
+		cfg.recordAndFlushV1Idempotency(w, r, keyScope, idemKey, reqHash, func(recW http.ResponseWriter) {
+			next(recW, r, user)
 		})
-		if err == nil {
-			if existing.RequestHash != reqHash {
-				respondWithV1ErrorCode(w, r, http.StatusConflict, "idempotency_conflict", "Idempotency-Key was already used with a different request")
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.Header().Set("X-Idempotency-Replayed", "true")
-			w.WriteHeader(int(existing.StatusCode))
-			_, _ = w.Write(existing.ResponseBody)
-			return
-		}
-		if !errors.Is(err, sql.ErrNoRows) {
-			next(w, r, user)
-			return
-		}
-
-		rec := &idempotencyResponseRecorder{
-			header:     make(http.Header),
-			statusCode: http.StatusOK,
-		}
-		next(rec, r, user)
-
-		for k, vals := range rec.header {
-			for _, v := range vals {
-				w.Header().Add(k, v)
-			}
-		}
-
-		rawResp := rec.body.Bytes()
-		if rec.statusCode >= 200 && rec.statusCode < 300 && json.Valid(rawResp) {
-			_ = cfg.dbQueries.UpsertAgentIdempotencyRecord(r.Context(), database.UpsertAgentIdempotencyRecordParams{
-				KeyScope:       keyScope,
-				IdempotencyKey: idemKey,
-				RequestHash:    reqHash,
-				StatusCode:     int32(rec.statusCode),
-				ResponseBody:   json.RawMessage(rawResp),
-				ExpiresAt:      time.Now().UTC().Add(24 * time.Hour),
-			})
-		}
-
-		w.WriteHeader(rec.statusCode)
-		_, _ = w.Write(rawResp)
 	}
 }

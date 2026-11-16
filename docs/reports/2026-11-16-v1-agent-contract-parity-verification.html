@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABRN Drive · /api/v1/* Agent Contract Parity Verification (#29841–#29845)</title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --card: #ffffff;
+      --ink: #171923;
+      --muted: #5a6275;
+      --border: #e6dfd7;
+      --burgundy: #7a1f2b;
+      --burgundy-soft: #f9eeee;
+      --emerald: #0d7a52;
+      --emerald-soft: #e9f8f1;
+      --slate-soft: #f1f5f9;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: "Libre Baskerville", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 20px 64px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      background: linear-gradient(135deg, #7a1f2b 0%, #4d1018 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 28px 32px;
+      box-shadow: 0 18px 42px rgba(122, 31, 43, 0.16);
+      margin-bottom: 24px;
+    }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-family: var(--serif);
+      font-size: 27px;
+      line-height: 1.25;
+    }
+    .hero p { margin: 0; opacity: 0.92; font-size: 15px; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .kpi .label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .kpi .value {
+      font-size: 26px;
+      font-weight: 800;
+      margin-top: 6px;
+      color: var(--burgundy);
+    }
+    .kpi .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 19px;
+      color: var(--burgundy);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: var(--bg);
+    }
+    code {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      background: var(--slate-soft);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge.pass { background: var(--emerald-soft); color: var(--emerald); }
+    .badge.safe { background: var(--burgundy-soft); color: var(--burgundy); }
+    .seal-box {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      background: #141720;
+      color: #e2e8f0;
+      padding: 14px 16px;
+      border-radius: 12px;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    .note {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="pill-row">
+        <span class="pill">ABRN Drive · /api/v1/* Contract Parity</span>
+        <span class="pill">Cuaderno #29841–#29845 · 5/5 Fixed</span>
+        <span class="pill">2026-11-16</span>
+        <span class="pill">Verdict: SEGURO CONTINUAR</span>
+      </div>
+      <h1>/api/v1/* Agent Contract Parity &amp; Cuaderno Resolution</h1>
+      <p>Zero-regression backend, TypeScript SDK, MCP server, OpenAPI spec, and React share-sheet fixes executed cleanly with zero production mutation.</p>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="label">Cuaderno Queue</div>
+        <div class="value">5 / 5 Fixed</div>
+        <div class="sub">#29841..#29845 · 0 open</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Go Test + Vet</div>
+        <div class="value">10.736s</div>
+        <div class="sub">exit 0 · abrn_coherence_test</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Frontend Vitest</div>
+        <div class="value">613 / 613</div>
+        <div class="sub">130/130 files · 184.86s</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Live SDK + MCP E2E</div>
+        <div class="value">9 / 9 Pass</div>
+        <div class="sub">5/5 SDK · 4/4 MCP · 0 skipped</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Bundle Base</div>
+        <div class="value">/abrn/</div>
+        <div class="sub">15.51s · Vite production</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Resolved Cuaderno Tickets (#29841 – #29845)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>Contract Parity Issue</th>
+            <th>Implemented Fix</th>
+            <th>Verified Targets</th>
+            <th>State</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>#29841</code></td>
+            <td><code>GET /api/v1/auth/introspect</code> missing <code>owner_public_key</code></td>
+            <td>Emits <code>data.owner_public_key</code> alongside compatibility alias <code>data.public_key</code>; typed in SDK and synced in docs.</td>
+            <td><code>handle_agent_api_keys.go</code> · <code>sdk/client.ts</code> · <code>docs/agent-api.md</code> · <code>agent_v1_crypto_test.go</code></td>
+            <td><span class="badge pass">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>#29842</code></td>
+            <td><code>POST/PUT /api/v1/folders</code> rejected or ignored <code>parent_id</code></td>
+            <td>Added shared <code>decodeV1FolderWriteRequest</code> accepting <code>parent_id</code> or <code>parentId</code> with <code>400 validation_error</code> on mismatch; SDK normalizes inputs cleanly.</td>
+            <td><code>handle_v1_core.go</code> · <code>sdk/client.ts</code> · <code>docs_api.go</code> · <code>agent_v1_guardrails_test.go</code> · <code>sdk/sdk.test.ts</code></td>
+            <td><span class="badge pass">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>#29843</code></td>
+            <td><code>POST /api/v1/files/upload</code> lacked streaming <code>Idempotency-Key</code></td>
+            <td>Added streaming <code>io.ReadSeeker</code> SHA-256 + length-prefixed form hashing, atomic replay/<code>409</code> guard, and SDK <code>replayed</code> flag from <code>X-Idempotency-Replayed</code>.</td>
+            <td><code>guardrails_v1.go</code> · <code>handle_v1_core.go</code> · <code>sdk/client.ts</code> · <code>sdk/crypto.ts</code> · <code>agent_v1_guardrails_test.go</code></td>
+            <td><span class="badge pass">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>#29844</code></td>
+            <td><code>POST /api/v1/drop/create</code> leaked <code>sql.Null*</code> &amp; raw relative URLs</td>
+            <td>Serialized optional <code>expires_at</code> / <code>max_files</code> as clean JSON <code>null</code> or scalars; resolved origin in <code>MobileFolderShareSheet.tsx</code>.</td>
+            <td><code>handle_drop.go</code> · <code>MobileFolderShareSheet.tsx</code> · <code>sdk/client.ts</code> · <code>agent_v1_trash_dataplane_test.go</code></td>
+            <td><span class="badge pass">FIXED</span></td>
+          </tr>
+          <tr>
+            <td><code>#29845</code></td>
+            <td><code>agent_api_key</code> could supply master <code>pin</code> on Drop create</td>
+            <td>Rejected non-empty <code>pin</code> on agent keys with <code>403 human_jwt_required</code> before key generation or <code>pin_failed_attempts</code> increment; added SDK fail-fast guard.</td>
+            <td><code>handle_drop.go</code> · <code>sdk/client.ts</code> · <code>docs_api.go</code> · <code>agent_v1_trash_dataplane_test.go</code> · <code>sdk/sdk.test.ts</code></td>
+            <td><span class="badge pass">FIXED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>2. Cold Verification Gates</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Command</th>
+            <th>Observed Result</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Go Test &amp; Vet</td>
+            <td><code>DB_URL=.../abrn_coherence_test go test -count=1 ./... &amp;&amp; go vet ./...</code></td>
+            <td><code>ok github.com/vinuxito/VaultDrive 10.736s</code> · <code>go vet</code> clean</td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>SDK &amp; MCP TypeScript</td>
+            <td><code>tsc --noEmit --strict --allowImportingTsExtensions ... sdk/*.ts mcp/*.ts</code></td>
+            <td>Exit <code>0</code> · <code>0</code> type errors</td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Frontend Typecheck</td>
+            <td><code>npm --prefix vaultdrive_client run typecheck</code></td>
+            <td>Exit <code>0</code> · <code>tsc -b &amp;&amp; tsc -p tsconfig.e2e.json --noEmit</code></td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Full Vitest Suite</td>
+            <td><code>npx vitest run --maxWorkers=2</code> (in <code>vaultdrive_client/</code>)</td>
+            <td><code>130/130</code> files · <code>613/613</code> tests passed · <code>184.86s</code></td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Frontend Production Build</td>
+            <td><code>make build-frontend</code></td>
+            <td><code>15.51s</code> · <code>frontend base verified: /abrn/</code></td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td>Live Ephemeral Go SDK + MCP E2E</td>
+            <td><code>127.0.0.1:18083/abrn/api</code> (isolated cwd + <code>abrn_coherence_test</code>)</td>
+            <td><code>LIVE_PARITY_HTTP_CHECKS=OK</code> · SDK <code>5/5</code> pass · MCP <code>4/4</code> pass · <code>0</code> skipped</td>
+            <td><span class="badge pass">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>3. Cryptographic &amp; Safety Seals</h2>
+      <div class="seal-box">
+        Base Git Commit .................. 4f805b8 (origin/main)<br />
+        dist/index.html SHA-256 .......... 89aaf7e727ac43d8d94e0817ee1d10588469c074595284f5b617d3e54727566c<br />
+        Production Service ............... abrndrive.service UNTOUCHED (no restart / no vaultdrive mutation)<br />
+        Cuaderno de Guerra ............... abrn-drive queue 5/5 fixed · 0 pending · 0 in_progress
+      </div>
+      <p class="note">Next operational decision belongs to the owner: deploy updated Go + <code>dist</code> artifacts onto <code>abrndrive.service</code> using <code>deploy/release/README.md</code> when scheduled.</p>
+    </section>
+  </div>
+</body>
+</html>

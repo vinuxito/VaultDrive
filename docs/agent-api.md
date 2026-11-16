@@ -218,8 +218,9 @@ Agent key records returned by the server use this shape:
 
 | Concept | Live implementation | Agent-key capable | Notes |
 |---|---|---:|---|
-| `GET /api/v1/auth/introspect` | `GET /api/v1/auth/introspect` | Yes | Returns `actor_type`, `key_kind`, `scopes`, and guardrail constraints (`allowed_folder_ids`, `allowed_ips`, `rate_limit_rpm`). |
+| `GET /api/v1/auth/introspect` | `GET /api/v1/auth/introspect` | Yes | Returns `actor_type`, `key_kind`, `scopes`, `owner_public_key` (`public_key` alias), and guardrail constraints (`allowed_folder_ids`, `allowed_ips`, `rate_limit_rpm`). |
 | `GET /api/v1/users/me/public-key` | `GET /api/v1/users/me/public-key` | Yes | Returns caller's RSA-OAEP SPKI public key so agents can wrap zero-knowledge DEKs. |
+| `POST /api/v1/folders` & `PUT /api/v1/folders/{id}` | `POST /api/v1/folders`, `PUT /api/v1/folders/{id}` | Yes | Requires `folders:write`; accepts both `parentId` and `parent_id` (400 if both differ). |
 | `DELETE /api/v1/files/{id}` | `DELETE /api/v1/files/{id}` | Delete-Only Key (`abrnak_del_`) | Soft-deletes to Recoverable Trash (`403 delete_key_required` for standard keys). |
 | `DELETE /api/v1/folders/{id}` | `DELETE /api/v1/folders/{id}` | Delete-Only Key (`abrnak_del_`) | Soft-deletes folder subtree to Recoverable Trash. |
 | `GET /api/v1/shares` | `GET /api/v1/shares` | Yes | Supported with `shares:list`. |
@@ -228,6 +229,7 @@ Agent key records returned by the server use this shape:
 | `GET /api/v1/requests` | `GET /api/v1/file-requests` | Yes | Canonical path for listing file requests (`requests:list`). |
 | `POST /api/v1/requests` | `POST /api/v1/file-requests` | Yes | Canonical path for creating file requests (`requests:create`). |
 | `DELETE /api/v1/requests/{id}` | `DELETE /api/v1/file-requests/{id}` | Yes | Canonical path for revoking file requests (`requests:revoke`). |
+| `POST /api/v1/drop/create` | `POST /api/v1/drop/create` | Yes (`#key=` only) | Returns nullable `expires_at`/`max_files` (`null` or RFC3339/number) and web-root-relative `upload_url` (`<BasePath>drop/<token>#key=<secret>`). Submitting `pin` with an agent key fails closed with `403 human_jwt_required`. |
 | `GET/PUT /api/v1/governance/settings` | `GET/PUT /api/v1/governance/settings` | No (Human JWT) | Strictly rejected for all agent keys (`403 human_jwt_required`). |
 
 ## Endpoints
@@ -411,7 +413,10 @@ For an agent-key caller:
     "auth_type": "agent_api_key",
     "user_id": "3c8e5d9a-54f1-4f86-a652-08df2f6a3de9",
     "scopes": ["activity:read", "files:list"],
-    "key_id": "9f4c6a2e-8b2a-4d9f-a5a2-f1a6f2d22d3b"
+    "key_id": "9f4c6a2e-8b2a-4d9f-a5a2-f1a6f2d22d3b",
+    "key_kind": "standard",
+    "owner_public_key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...",
+    "public_key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A..."
   },
   "meta": {
     "request_id": "..."
@@ -534,6 +539,10 @@ Optional parts:
 - `salt`
 - `algorithm`
 - `credential_scheme` (`password` by default if omitted)
+
+Optional headers:
+
+- `Idempotency-Key` (max 128 chars): streaming-safe deduplication using full ciphertext SHA-256 + form metadata digest (`X-Idempotency-Replayed: true` on exact retry, `409 idempotency_conflict` on mismatch).
 
 #### Response body
 

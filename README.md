@@ -481,6 +481,10 @@ The pass counts and completion language in the dated documents below describe th
 | `docs/memories/session-2026-11-15-abrn-release-cutover-v25-v30.md` | Session memory for coordinated ABRN production release cutover (`49 -> 52`) |
 | `docs/reports/2026-11-15-abrn-release-cutover-v25-v30-verification.md` | Production release cutover verification report (Markdown) |
 | `docs/reports/2026-11-15-abrn-release-cutover-v25-v30-verification.html` | Production release cutover verification dashboard (HTML) |
+| `docs/plans/2026-11-15-v1-agent-contract-parity-findings.md` | `/api/v1/*` contract parity audit & resolution trace (`#29841`–`#29845`) |
+| `docs/memories/session-2026-11-16-v1-agent-contract-parity.md` | Session memory for `/api/v1/*` contract parity & Cuaderno resolution (`#29841`–`#29845`) |
+| `docs/reports/2026-11-16-v1-agent-contract-parity-verification.md` | Verification report for `/api/v1/*` contract parity rollout (Markdown) |
+| `docs/reports/2026-11-16-v1-agent-contract-parity-verification.html` | Executive verification dashboard for `/api/v1/*` contract parity (HTML) |
 
 ---
 

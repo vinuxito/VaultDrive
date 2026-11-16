@@ -121,6 +121,8 @@ export interface IntrospectResult {
   allowed_ips?: string[];
   rate_limit_rpm?: number;
   owner_public_key?: string;
+  /** Compatibility alias emitted by the backend alongside `owner_public_key`. */
+  public_key?: string;
 }
 
 export interface PublicKeyRecord {
@@ -128,6 +130,18 @@ export interface PublicKeyRecord {
   email: string;
   public_key: string;
   kek_envelope_version?: number;
+}
+
+export interface DropTokenRecord {
+  id: string;
+  token: string;
+  target_folder_id: string;
+  expires_at: string | null;
+  max_files: number | null;
+  /** Web-root-relative path (`<BasePath>drop/<token>#key=<secret>`); prepend your Vault origin if sharing externally. */
+  upload_url: string;
+  pin_protected: boolean;
+  seal_after_upload: boolean;
 }
 
 export interface DownloadResult {
@@ -265,6 +279,10 @@ export class AbrnDriveClient {
       });
     }
 
+    return this.parseV1SuccessResponse<T>(res, rawText);
+  }
+
+  private parseV1SuccessResponse<T>(res: Response, rawText: string): V1Response<T> {
     const parsed = (rawText ? JSON.parse(rawText) : { success: true, data: null, meta: {} }) as V1Response<T>;
     if (res.headers.get("X-Idempotency-Replayed") === "true") {
       parsed.replayed = true;
@@ -363,7 +381,7 @@ export class AbrnDriveClient {
         raw: parsedErr.raw,
       });
     }
-    return JSON.parse(rawText) as V1Response<FileRecord>;
+    return this.parseV1SuccessResponse<FileRecord>(res, rawText);
   }
 
   async downloadFile(fileId: string): Promise<DownloadResult> {
@@ -448,20 +466,32 @@ export class AbrnDriveClient {
     return this.request("GET", `/folders/${encodeURIComponent(folderId)}/files`);
   }
 
+  private normalizeFolderInput(input: { name: string; parentId?: string; parent_id?: string }) {
+    const camel = input.parentId?.trim();
+    const snake = input.parent_id?.trim();
+    if (camel && snake && camel !== snake) {
+      throw new Error("Conflicting parentId and parent_id values");
+    }
+    const resolvedParent = camel || snake;
+    return resolvedParent !== undefined
+      ? { name: input.name, parentId: resolvedParent }
+      : { name: input.name };
+  }
+
   async createFolder(
-    input: string | { name: string; parentId?: string },
+    input: string | { name: string; parentId?: string; parent_id?: string },
     opts?: RequestOptions
   ): Promise<V1Response<FolderRecord>> {
-    const body = typeof input === "string" ? { name: input } : input;
+    const body = typeof input === "string" ? { name: input } : this.normalizeFolderInput(input);
     return this.request("POST", "/folders", body, opts);
   }
 
   async updateFolder(
     folderId: string,
-    input: { name: string; parentId?: string },
+    input: { name: string; parentId?: string; parent_id?: string },
     opts?: RequestOptions
   ): Promise<V1Response<FolderRecord>> {
-    return this.request("PUT", `/folders/${encodeURIComponent(folderId)}`, input, opts);
+    return this.request("PUT", `/folders/${encodeURIComponent(folderId)}`, this.normalizeFolderInput(input), opts);
   }
 
   // Trust & Access Control
@@ -564,11 +594,19 @@ export class AbrnDriveClient {
       description?: string;
       expires_at?: string;
       max_files?: number;
+      /** @deprecated Human-JWT only; rejected with `403 human_jwt_required` when called with an `abrnak_` agent API key. */
       pin?: string;
       seal_after_upload?: boolean;
     },
     opts?: RequestOptions
-  ): Promise<V1Response<unknown>> {
+  ): Promise<V1Response<DropTokenRecord>> {
+    if (this.apiKey.startsWith("abrnak_") && body.pin && body.pin.trim() !== "") {
+      throw new AbrnApiError({
+        status: 403,
+        code: "human_jwt_required",
+        message: "Agent API keys cannot submit or verify owner master PINs; omit pin to create a cryptographic #key= Secure Drop link",
+      });
+    }
     return this.request("POST", "/drop/create", body, opts);
   }
 

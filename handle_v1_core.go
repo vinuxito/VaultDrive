@@ -153,6 +153,11 @@ func (cfg *ApiConfig) handlerV1GetFileMetadata(w http.ResponseWriter, r *http.Re
 }
 
 func (cfg *ApiConfig) handlerV1CreateFile(w http.ResponseWriter, r *http.Request, user database.User) {
+	idemKey, keyScope, ok := resolveV1IdempotencyScope(w, r, user)
+	if !ok {
+		return
+	}
+
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		respondWithV1Error(w, r, http.StatusBadRequest, "Could not parse multipart form")
 		return
@@ -164,8 +169,9 @@ func (cfg *ApiConfig) handlerV1CreateFile(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	rawFolderID := strings.TrimSpace(r.FormValue("folder_id"))
 	var folderUUID uuid.NullUUID
-	if rawFolderID := strings.TrimSpace(r.FormValue("folder_id")); rawFolderID != "" {
+	if rawFolderID != "" {
 		parsedFolderID, err := uuid.Parse(rawFolderID)
 		if err != nil {
 			respondWithV1Error(w, r, http.StatusBadRequest, "Invalid folder_id")
@@ -222,77 +228,106 @@ func (cfg *ApiConfig) handlerV1CreateFile(w http.ResponseWriter, r *http.Request
 	}
 	defer file.Close()
 
-	uploadDir := uploadStorageDir()
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not create uploads directory")
-		return
-	}
-	filename := uuid.New().String() + filepath.Ext(handler.Filename)
-	filePath := filepath.Join(uploadDir, filename)
-	dst, err := os.Create(filePath)
-	if err != nil {
-		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not create file on server")
-		return
-	}
-	defer dst.Close()
-	if _, err := io.Copy(dst, file); err != nil {
-		_ = os.Remove(filePath)
-		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not save file")
-		return
-	}
-
-	dbFile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
-		OwnerID:           uuid.NullUUID{UUID: user.ID, Valid: true},
-		Filename:          handler.Filename,
-		FilePath:          filePath,
-		FileSize:          handler.Size,
-		EncryptedMetadata: sql.NullString{String: metadataJSON, Valid: true},
-		CurrentKeyVersion: sql.NullInt32{Int32: 1, Valid: true},
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-		DropSourceID:      uuid.NullUUID{},
-		FolderID:          folderUUID,
-	})
-	if err != nil {
-		_ = os.Remove(filePath)
-		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not create file entry")
-		return
+	reqHash := ""
+	if idemKey != "" {
+		var hashErr error
+		reqHash, hashErr = buildV1MultipartUploadIdempotencyHash(
+			r,
+			file,
+			handler.Filename,
+			rawFolderID,
+			wrappedKey,
+			metadataJSON,
+			credentialScheme,
+		)
+		if hashErr != nil {
+			respondWithV1Error(w, r, http.StatusInternalServerError, "Could not fingerprint uploaded file for idempotency")
+			return
+		}
+		if cfg.tryReplayV1Idempotency(w, r, keyScope, idemKey, reqHash) {
+			return
+		}
 	}
 
-	if _, err := cfg.dbQueries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
-		FileID:     uuid.NullUUID{UUID: dbFile.ID, Valid: true},
-		UserID:     uuid.NullUUID{UUID: user.ID, Valid: true},
-		WrappedKey: wrappedKey,
-	}); err != nil {
-		_ = os.Remove(filePath)
-		_ = cfg.dbQueries.DeleteFile(r.Context(), dbFile.ID)
-		respondWithV1Error(w, r, http.StatusInternalServerError, "Could not save file access key")
+	executeUpload := func(outW http.ResponseWriter) {
+		uploadDir := uploadStorageDir()
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			respondWithV1Error(outW, r, http.StatusInternalServerError, "Could not create uploads directory")
+			return
+		}
+		filename := uuid.New().String() + filepath.Ext(handler.Filename)
+		filePath := filepath.Join(uploadDir, filename)
+		dst, err := os.Create(filePath)
+		if err != nil {
+			respondWithV1Error(outW, r, http.StatusInternalServerError, "Could not create file on server")
+			return
+		}
+		defer dst.Close()
+		if _, err := io.Copy(dst, file); err != nil {
+			_ = os.Remove(filePath)
+			respondWithV1Error(outW, r, http.StatusInternalServerError, "Could not save file")
+			return
+		}
+
+		dbFile, err := cfg.dbQueries.CreateFile(r.Context(), database.CreateFileParams{
+			OwnerID:           uuid.NullUUID{UUID: user.ID, Valid: true},
+			Filename:          handler.Filename,
+			FilePath:          filePath,
+			FileSize:          handler.Size,
+			EncryptedMetadata: sql.NullString{String: metadataJSON, Valid: true},
+			CurrentKeyVersion: sql.NullInt32{Int32: 1, Valid: true},
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			DropSourceID:      uuid.NullUUID{},
+			FolderID:          folderUUID,
+		})
+		if err != nil {
+			_ = os.Remove(filePath)
+			respondWithV1Error(outW, r, http.StatusInternalServerError, "Could not create file entry")
+			return
+		}
+
+		if _, err := cfg.dbQueries.CreateFileAccessKey(r.Context(), database.CreateFileAccessKeyParams{
+			FileID:     uuid.NullUUID{UUID: dbFile.ID, Valid: true},
+			UserID:     uuid.NullUUID{UUID: user.ID, Valid: true},
+			WrappedKey: wrappedKey,
+		}); err != nil {
+			_ = os.Remove(filePath)
+			_ = cfg.dbQueries.DeleteFile(r.Context(), dbFile.ID)
+			respondWithV1Error(outW, r, http.StatusInternalServerError, "Could not save file access key")
+			return
+		}
+		cfg.insertActivity(r.Context(), user.ID, "file_upload", map[string]interface{}{
+			"file_id":   dbFile.ID.String(),
+			"filename":  dbFile.Filename,
+			"file_size": dbFile.FileSize,
+		})
+		cfg.insertAudit(r.Context(), user.ID, "file.uploaded", "file", &dbFile.ID, map[string]interface{}{
+			"filename":          dbFile.Filename,
+			"file_size":         dbFile.FileSize,
+			"credential_scheme": credentialScheme,
+		}, r)
+
+		var respFolderID any
+		if dbFile.FolderID.Valid {
+			respFolderID = dbFile.FolderID.UUID.String()
+		}
+		respondWithV1(outW, r, http.StatusCreated, map[string]interface{}{
+			"id":                 dbFile.ID.String(),
+			"filename":           dbFile.Filename,
+			"file_size":          dbFile.FileSize,
+			"folder_id":          respFolderID,
+			"credential_scheme":  credentialScheme,
+			"wrapped_key_stored": true,
+			"created_at":         dbFile.CreatedAt,
+		}, nil)
+	}
+
+	if idemKey != "" {
+		cfg.recordAndFlushV1Idempotency(w, r, keyScope, idemKey, reqHash, executeUpload)
 		return
 	}
-	cfg.insertActivity(r.Context(), user.ID, "file_upload", map[string]interface{}{
-		"file_id":   dbFile.ID.String(),
-		"filename":  dbFile.Filename,
-		"file_size": dbFile.FileSize,
-	})
-	cfg.insertAudit(r.Context(), user.ID, "file.uploaded", "file", &dbFile.ID, map[string]interface{}{
-		"filename":          dbFile.Filename,
-		"file_size":         dbFile.FileSize,
-		"credential_scheme": credentialScheme,
-	}, r)
-
-	var respFolderID any
-	if dbFile.FolderID.Valid {
-		respFolderID = dbFile.FolderID.UUID.String()
-	}
-	respondWithV1(w, r, http.StatusCreated, map[string]interface{}{
-		"id":                 dbFile.ID.String(),
-		"filename":           dbFile.Filename,
-		"file_size":          dbFile.FileSize,
-		"folder_id":          respFolderID,
-		"credential_scheme":  credentialScheme,
-		"wrapped_key_stored": true,
-		"created_at":         dbFile.CreatedAt,
-	}, nil)
+	executeUpload(w)
 }
 
 func (cfg *ApiConfig) handlerV1DownloadFile(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -438,13 +473,40 @@ func (cfg *ApiConfig) handlerV1ListFolders(w http.ResponseWriter, r *http.Reques
 	respondWithV1(w, r, http.StatusOK, items, map[string]int{"count": len(items)})
 }
 
-func (cfg *ApiConfig) handlerV1CreateFolder(w http.ResponseWriter, r *http.Request, user database.User) {
-	var req struct {
-		Name     string `json:"name"`
-		ParentID string `json:"parentId,omitempty"`
+type v1FolderWritePayload struct {
+	Name     string
+	ParentID string
+}
+
+func decodeV1FolderWriteRequest(w http.ResponseWriter, r *http.Request) (v1FolderWritePayload, bool) {
+	var raw struct {
+		Name          string `json:"name"`
+		ParentID      string `json:"parentId,omitempty"`
+		ParentIDSnake string `json:"parent_id,omitempty"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
 		respondWithV1Error(w, r, http.StatusBadRequest, "Invalid request body")
+		return v1FolderWritePayload{}, false
+	}
+	camel := strings.TrimSpace(raw.ParentID)
+	snake := strings.TrimSpace(raw.ParentIDSnake)
+	if camel != "" && snake != "" && camel != snake {
+		respondWithV1ErrorCode(w, r, http.StatusBadRequest, "validation_error", "Conflicting parentId and parent_id values")
+		return v1FolderWritePayload{}, false
+	}
+	parentID := camel
+	if parentID == "" {
+		parentID = snake
+	}
+	return v1FolderWritePayload{
+		Name:     raw.Name,
+		ParentID: parentID,
+	}, true
+}
+
+func (cfg *ApiConfig) handlerV1CreateFolder(w http.ResponseWriter, r *http.Request, user database.User) {
+	req, ok := decodeV1FolderWriteRequest(w, r)
+	if !ok {
 		return
 	}
 	if req.Name == "" {
@@ -488,12 +550,8 @@ func (cfg *ApiConfig) handlerV1CreateFolder(w http.ResponseWriter, r *http.Reque
 }
 
 func (cfg *ApiConfig) handlerV1UpdateFolder(w http.ResponseWriter, r *http.Request, user database.User) {
-	var req struct {
-		Name     string `json:"name"`
-		ParentID string `json:"parentId,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithV1Error(w, r, http.StatusBadRequest, "Invalid request body")
+	req, ok := decodeV1FolderWriteRequest(w, r)
+	if !ok {
 		return
 	}
 	folderID, err := uuid.Parse(r.PathValue("id"))

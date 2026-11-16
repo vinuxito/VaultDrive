@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -461,7 +462,7 @@ func TestGovernanceJWTOnlyAndDataPlaneV1Routes(t *testing.T) {
 		t.Fatalf("DELETE /api/v1/files/{id}/revoke/{user_id} failed: %d %s", revokeFileRec.Code, revokeFileRec.Body.String())
 	}
 
-	// Drop token create without PIN as agent + list
+	// Drop token create without PIN as agent + list (verify clean null vs populated expires_at/max_files and upload_url)
 	dropCreate := doJSONReq(t, mux, http.MethodPost, "/api/v1/drop/create", ownerKey, map[string]interface{}{
 		"target_folder_id": f2ID,
 		"link_name":        "Agente SAT Inbox",
@@ -469,7 +470,70 @@ func TestGovernanceJWTOnlyAndDataPlaneV1Routes(t *testing.T) {
 	if dropCreate.Code != http.StatusCreated {
 		t.Fatalf("POST /api/v1/drop/create failed: %d %s", dropCreate.Code, dropCreate.Body.String())
 	}
-	assertV1Envelope(t, dropCreate.Body.Bytes(), true)
+	dropEnv := assertV1Envelope(t, dropCreate.Body.Bytes(), true)
+	dropData := dropEnv["data"].(map[string]interface{})
+	if val, exists := dropData["expires_at"]; !exists || val != nil {
+		t.Fatalf("expected expires_at=nil when omitted, got %#v", val)
+	}
+	if val, exists := dropData["max_files"]; !exists || val != nil {
+		t.Fatalf("expected max_files=nil when omitted, got %#v", val)
+	}
+	if u, _ := dropData["upload_url"].(string); !strings.HasPrefix(u, "/abrn/drop/") || !strings.Contains(u, "#key=") {
+		t.Fatalf("unexpected upload_url: %q", u)
+	}
+
+	exp := time.Now().UTC().Add(2 * time.Hour).Truncate(time.Second).Format(time.RFC3339)
+	dropBounded := doJSONReq(t, mux, http.MethodPost, "/api/v1/drop/create", ownerKey, map[string]interface{}{
+		"target_folder_id": f2ID,
+		"link_name":        "Agente Bounded Drop",
+		"expires_at":       exp,
+		"max_files":        3,
+	})
+	if dropBounded.Code != http.StatusCreated {
+		t.Fatalf("bounded POST /api/v1/drop/create failed: %d %s", dropBounded.Code, dropBounded.Body.String())
+	}
+	boundedData := assertV1Envelope(t, dropBounded.Body.Bytes(), true)["data"].(map[string]interface{})
+	if _, ok := boundedData["expires_at"].(string); !ok {
+		t.Fatalf("expected RFC3339 string expires_at, got %#v", boundedData["expires_at"])
+	}
+	if mf, ok := boundedData["max_files"].(float64); !ok || mf != 3 {
+		t.Fatalf("expected max_files=3, got %#v", boundedData["max_files"])
+	}
+
+	// Regression (#6): agent_api_key sending pin must be rejected with 403 human_jwt_required and NEVER increment pin_failed_attempts.
+	ownerPinHash, err := auth.HashPassword("4321")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := cfg.db.Exec(`UPDATE users SET pin_hash = $1, pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $2`, ownerPinHash, owner.ID); err != nil {
+		t.Fatal(err)
+	}
+	for attempt := 0; attempt < 6; attempt++ {
+		badPinRec := doJSONReq(t, mux, http.MethodPost, "/api/v1/drop/create", ownerKey, map[string]interface{}{
+			"target_folder_id": f2ID,
+			"link_name":        "Pin Abuse Attempt",
+			"pin":              "9999",
+		})
+		assertV1ErrorCode(t, badPinRec, http.StatusForbidden, "human_jwt_required")
+	}
+	var failedAttempts int
+	var lockedUntil *time.Time
+	if err := cfg.db.QueryRow(`SELECT pin_failed_attempts, pin_locked_until FROM users WHERE id = $1`, owner.ID).Scan(&failedAttempts, &lockedUntil); err != nil {
+		t.Fatal(err)
+	}
+	if failedAttempts != 0 || lockedUntil != nil {
+		t.Fatalf("expected owner PIN lockout counters untouched after agent attempts, got failedAttempts=%d lockedUntil=%v", failedAttempts, lockedUntil)
+	}
+	// Human JWT with valid PIN must still succeed unblocked.
+	humanPinDrop := doJSONReq(t, mux, http.MethodPost, "/api/v1/drop/create", ownerJWT, map[string]interface{}{
+		"target_folder_id": f2ID,
+		"link_name":        "Human Valid Pin Drop",
+		"pin":              "4321",
+	})
+	if humanPinDrop.Code != http.StatusCreated {
+		t.Fatalf("expected human JWT drop creation with valid PIN to stay unblocked, got %d %s", humanPinDrop.Code, humanPinDrop.Body.String())
+	}
+
 	if r := doJSONReq(t, mux, http.MethodGet, "/api/v1/drop/tokens", ownerKey, nil); r.Code != http.StatusOK {
 		t.Fatalf("GET /api/v1/drop/tokens failed: %d", r.Code)
 	} else {

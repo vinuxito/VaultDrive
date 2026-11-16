@@ -636,6 +636,16 @@ func (cfg *ApiConfig) handlerCreateDropTokenWithUser(w http.ResponseWriter, r *h
 	}
 
 	isAgentActor := actor != nil && actor.AuthType == "agent_api_key"
+	if isAgentActor && strings.TrimSpace(req.Pin) != "" {
+		respondWithV1ErrorCode(
+			w,
+			r,
+			http.StatusForbidden,
+			"human_jwt_required",
+			"Agent API keys cannot submit or verify owner master PINs; omit pin to create a cryptographic #key= Secure Drop link",
+		)
+		return
+	}
 	var pinWrappedKeySQL sql.NullString
 	pinProtected := false
 
@@ -649,7 +659,7 @@ func (cfg *ApiConfig) handlerCreateDropTokenWithUser(w http.ResponseWriter, r *h
 	}
 	randomKey := hex.EncodeToString(randomKeyBytes)
 
-	if !isAgentActor || req.Pin != "" {
+	if !isAgentActor {
 		if req.Pin == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -745,15 +755,29 @@ func (cfg *ApiConfig) handlerCreateDropTokenWithUser(w http.ResponseWriter, r *h
 		"link_name": req.LinkName,
 	}, r)
 
-	uploadURL := fmt.Sprintf("%sdrop/%s#key=%s", cfg.Product.BasePath, dropToken, randomKey)
+	basePath := cfg.Product.BasePath
+	if basePath == "" {
+		basePath = "/"
+	}
+	uploadURL := fmt.Sprintf("%sdrop/%s#key=%s", basePath, dropToken, randomKey)
+	var expiresAtOut *time.Time
+	if uploadToken.ExpiresAt.Valid {
+		tVal := uploadToken.ExpiresAt.Time
+		expiresAtOut = &tVal
+	}
+	var maxFilesOut *int32
+	if uploadToken.MaxFiles.Valid {
+		mVal := uploadToken.MaxFiles.Int32
+		maxFilesOut = &mVal
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"id":                uploadToken.ID,
 		"token":             dropToken,
 		"target_folder_id":  uploadToken.TargetFolderID,
-		"expires_at":        uploadToken.ExpiresAt,
-		"max_files":         uploadToken.MaxFiles,
+		"expires_at":        expiresAtOut,
+		"max_files":         maxFilesOut,
 		"upload_url":        uploadURL,
 		"pin_protected":     pinProtected,
 		"seal_after_upload": req.SealAfterUpload,

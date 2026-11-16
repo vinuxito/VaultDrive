@@ -326,6 +326,7 @@ func (cfg *ApiConfig) handlerAgentAuthIntrospect(w http.ResponseWriter, r *http.
 		}
 	}
 	if publicKey != "" {
+		data["owner_public_key"] = publicKey
 		data["public_key"] = publicKey
 	}
 	respondWithV1(w, r, http.StatusOK, data, nil)

@@ -267,7 +267,7 @@ export async function unwrapKeyAesGcm(wrappingKey: CryptoKey, wrappedB64: string
 
 export interface EncryptUploadClient {
   getMyPublicKey(): Promise<{ data: { public_key: string } }>;
-  uploadEncryptedFile(formData: FormData, opts?: { idempotencyKey?: string }): Promise<{ data: { id: string; filename: string; file_size: number; folder_id?: string | null; metadata?: string } }>;
+  uploadEncryptedFile(formData: FormData, opts?: { idempotencyKey?: string }): Promise<{ replayed?: boolean; data: { id: string; filename: string; file_size: number; folder_id?: string | null; metadata?: string } }>;
 }
 
 export interface DownloadDecryptClient {
@@ -343,6 +343,7 @@ export async function encryptAndUploadForOwner(
   const uploaded = await client.uploadEncryptedFile(formData, { idempotencyKey: options.idempotencyKey });
   return {
     file: uploaded.data,
+    replayed: uploaded.replayed,
     sha256: plainSha256,
     wrappedKey,
     ivBase64,
@@ -404,6 +405,7 @@ export async function encryptAndUploadWithFolderKey(
   const uploaded = await client.uploadEncryptedFile(formData, { idempotencyKey: options.idempotencyKey });
   return {
     file: uploaded.data,
+    replayed: uploaded.replayed,
     sha256: plainSha256,
     wrappedKey,
     ivBase64,

@@ -377,11 +377,14 @@ export function MobileFolderShareSheet({
         }
 
         const data = (await res.json()) as { upload_url: string };
-        setDropUrl(data.upload_url);
+        const fullDropUrl = data.upload_url.startsWith("http")
+          ? data.upload_url
+          : `${window.location.origin}${data.upload_url}`;
+        setDropUrl(fullDropUrl);
         playTumblerClick();
         onDropCreated?.();
         showQuickToast(`Buzón Drop activo para «${folder.name}»`);
-        return data.upload_url;
+        return fullDropUrl;
       } catch (err) {
         setDropError(err instanceof Error ? err.message : "Error al activar Buzón Drop.");
         return null;

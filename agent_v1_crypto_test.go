@@ -145,6 +145,9 @@ func TestV1PublicKeyDiscoveryAndRSAOwnerUploadRoundtrip(t *testing.T) {
 	if err := json.Unmarshal(introRec.Body.Bytes(), &introPayload); err != nil {
 		t.Fatal(err)
 	}
+	if introPayload.Data["owner_public_key"] != owner.PublicKey {
+		t.Fatalf("expected introspect owner_public_key to match owner public key")
+	}
 	if introPayload.Data["public_key"] != owner.PublicKey {
 		t.Fatalf("expected introspect public_key to match owner public key")
 	}

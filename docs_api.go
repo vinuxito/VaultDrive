@@ -66,7 +66,7 @@ func buildOpenAPIV1Paths() map[string]interface{} {
 		// Folders
 		"/api/v1/folders": map[string]interface{}{
 			"get":  opDoc("List accessible folders", "Requires folders:read. Respects folder-jailing when configured.", "AgentBearerKey"),
-			"post": opDoc("Create folder", "Requires folders:write. Supports optional parent_id and Idempotency-Key.", "AgentBearerKey"),
+			"post": opDoc("Create folder", "Requires folders:write. Supports optional parent_id / parentId and Idempotency-Key.", "AgentBearerKey"),
 		},
 		"/api/v1/folders/shared": map[string]interface{}{
 			"get": opDoc("List folders shared with caller", "Returns folders shared with the owner or bot account including wrapped folder keys.", "AgentBearerKey"),
@@ -96,7 +96,7 @@ func buildOpenAPIV1Paths() map[string]interface{} {
 			"get": opDoc("List files shared with caller", "Requires files:list. Includes direct file shares and shared-folder files with wrapped keys.", "AgentBearerKey"),
 		},
 		"/api/v1/files/upload": map[string]interface{}{
-			"post": opDoc("Upload pre-encrypted ciphertext", "Requires files:upload_ciphertext. Accepts multipart form (file, wrapped_key, iv, algorithm, credential_scheme=rsa|folder|pin|password, optional folder_id & metadata JSON). Server never sees plaintext.", "AgentBearerKey"),
+			"post": opDoc("Upload pre-encrypted ciphertext", "Requires files:upload_ciphertext. Accepts multipart form (file, wrapped_key, iv, algorithm, credential_scheme=rsa|folder|pin|password, optional folder_id & metadata JSON) and supports Idempotency-Key.", "AgentBearerKey"),
 		},
 		"/api/v1/files/{id}": map[string]interface{}{
 			"get":    opDoc("Get file metadata", "Requires files:read_metadata.", "AgentBearerKey"),
@@ -154,7 +154,7 @@ func buildOpenAPIV1Paths() map[string]interface{} {
 			"delete": opDoc("Revoke file collection request", "Requires requests:revoke.", "AgentBearerKey"),
 		},
 		"/api/v1/drop/create": map[string]interface{}{
-			"post": opDoc("Create client Secure Drop upload link", "Requires requests:create. Generates a public zero-knowledge drop link targeting an owned folder.", "AgentBearerKey"),
+			"post": opDoc("Create client Secure Drop upload link", "Requires requests:create. Generates a public zero-knowledge drop link targeting an owned folder. Returns nullable expires_at/max_files and a web-root-relative upload_url (<BasePath>drop/<token>#key=<secret>). Agent API keys must omit pin (403 human_jwt_required).", "AgentBearerKey"),
 		},
 		"/api/v1/drop/tokens": map[string]interface{}{
 			"get": opDoc("List Secure Drop upload links", "Requires requests:list.", "AgentBearerKey"),

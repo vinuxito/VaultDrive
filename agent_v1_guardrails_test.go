@@ -238,19 +238,44 @@ func TestFolderJailingIsolationAndSubtreeInheritance(t *testing.T) {
 		t.Fatalf("expected nested file download 200, got %d body=%s", rr.Code, rr.Body.String())
 	}
 
-	// 6. Folder create/update inside vs outside jail (including dynamic SubSubFolder inheritance & escape-to-root prevention).
+	// 6. Folder create/update inside vs outside jail (including dynamic SubSubFolder inheritance, parent_id parity, & escape-to-root prevention).
 	assertV1ErrorCode(t, doJSONReq(t, mux, http.MethodPost, "/api/v1/folders", jailedKey, map[string]string{"name": "EscapeRoot"}), http.StatusForbidden, "folder_scope_denied")
 	assertV1ErrorCode(t, doJSONReq(t, mux, http.MethodPost, "/api/v1/folders", jailedKey, map[string]string{"name": "InSibling", "parentId": siblingSecretID}), http.StatusForbidden, "folder_scope_denied")
+	assertV1ErrorCode(t, doJSONReq(t, mux, http.MethodPost, "/api/v1/folders", jailedKey, map[string]string{"name": "InSiblingSnake", "parent_id": siblingSecretID}), http.StatusForbidden, "folder_scope_denied")
+	if rr := doJSONReq(t, mux, http.MethodPost, "/api/v1/folders", jailedKey, map[string]string{"name": "Mismatch", "parentId": subAllowedID, "parent_id": siblingSecretID}); rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for conflicting parentId/parent_id, got %d body=%s", rr.Code, rr.Body.String())
+	}
 
 	subSubID := makeFolder(jailedKey, "SubSubAllowed", subAllowedID)
+	snakeCreateRR := doJSONReq(t, mux, http.MethodPost, "/api/v1/folders", jailedKey, map[string]string{"name": "SubSubSnake", "parent_id": subAllowedID})
+	if snakeCreateRR.Code != http.StatusCreated {
+		t.Fatalf("expected folder create with parent_id to succeed inside jail, got %d body=%s", snakeCreateRR.Code, snakeCreateRR.Body.String())
+	}
+	var snakeCreated struct {
+		Data struct {
+			ID       string `json:"id"`
+			ParentID string `json:"parentId"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(snakeCreateRR.Body.Bytes(), &snakeCreated); err != nil {
+		t.Fatal(err)
+	}
+	if snakeCreated.Data.ID == "" || snakeCreated.Data.ParentID != subAllowedID {
+		t.Fatalf("unexpected created folder with parent_id: %+v", snakeCreated.Data)
+	}
+	if rr := doJSONReq(t, mux, http.MethodPut, "/api/v1/folders/"+snakeCreated.Data.ID, jailedKey, map[string]string{"name": "SubSubSnakeMoved", "parent_id": subSubID}); rr.Code != http.StatusOK {
+		t.Fatalf("expected folder update with parent_id inside jail to succeed, got %d body=%s", rr.Code, rr.Body.String())
+	}
+
 	dynamicFileID := uploadRSAFileViaV1(t, cfg, mux, jailedKey, &priv.PublicKey, subSubID, "dynamic.bin", []byte("dynamic-subtree"))
 	if dynamicFileID == "" {
 		t.Fatal("expected dynamic subtree upload to succeed")
 	}
 
-	// Attempting to move SubAllowed to root (omitting parentId) or to SiblingSecret must fail with 403 folder_scope_denied.
+	// Attempting to move SubAllowed to root (omitting parentId) or to SiblingSecret (via parentId or parent_id) must fail with 403 folder_scope_denied.
 	assertV1ErrorCode(t, doJSONReq(t, mux, http.MethodPut, "/api/v1/folders/"+subAllowedID, jailedKey, map[string]string{"name": "DetachAttempt"}), http.StatusForbidden, "folder_scope_denied")
 	assertV1ErrorCode(t, doJSONReq(t, mux, http.MethodPut, "/api/v1/folders/"+subAllowedID, jailedKey, map[string]string{"name": "ReparentEscape", "parentId": siblingSecretID}), http.StatusForbidden, "folder_scope_denied")
+	assertV1ErrorCode(t, doJSONReq(t, mux, http.MethodPut, "/api/v1/folders/"+subAllowedID, jailedKey, map[string]string{"name": "ReparentEscapeSnake", "parent_id": siblingSecretID}), http.StatusForbidden, "folder_scope_denied")
 	// Renaming RootAllowed in-place (root stays root) must succeed.
 	if rr := doJSONReq(t, mux, http.MethodPut, "/api/v1/folders/"+rootAllowedID, jailedKey, map[string]string{"name": "RootAllowedRenamed"}); rr.Code != http.StatusOK {
 		t.Fatalf("expected renaming RootAllowed in-place to succeed, got %d body=%s", rr.Code, rr.Body.String())
@@ -541,4 +566,98 @@ func TestIPAllowlistPerKeyRateLimitAndIdempotency(t *testing.T) {
 	// Mutated payload with same Idempotency-Key -> 409 idempotency_conflict.
 	conflictRR := doCustomJSONReq(t, mux, http.MethodPost, "/api/v1/folders", idemKey, "10.20.1.5:5000", headers, map[string]string{"name": "Mutated Box"})
 	assertV1ErrorCode(t, conflictRR, http.StatusConflict, "idempotency_conflict")
+
+	// 4. Streaming-safe Idempotency-Key replay & conflict for >2 MiB multipart file uploads.
+	uploadIdemKeyRR := doJSONReq(t, mux, http.MethodPost, "/api/v1/agent-keys", humanJWT, map[string]interface{}{
+		"name":           "Upload Idem Key",
+		"scopes":         []string{"files:list", "files:upload_ciphertext"},
+		"rate_limit_rpm": 60,
+	})
+	if uploadIdemKeyRR.Code != http.StatusCreated {
+		t.Fatalf("create upload idem key status=%d body=%s", uploadIdemKeyRR.Code, uploadIdemKeyRR.Body.String())
+	}
+	var uploadKeyResp struct {
+		Data struct {
+			PlaintextKey string `json:"plaintext_key"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(uploadIdemKeyRR.Body.Bytes(), &uploadKeyResp)
+	uploadKey := uploadKeyResp.Data.PlaintextKey
+
+	largeCipher := bytes.Repeat([]byte("Z"), 2*1024*1024+512*1024) // 2.5 MiB (>2 MiB limit of buffered middleware)
+	uploadMeta := map[string]string{
+		"wrapped_key":       "d2hhdGV2ZXItd3JhcHBlZC1rZXk=",
+		"iv":                "MTIzNDU2Nzg5MDEy",
+		"algorithm":         "AES-256-GCM",
+		"credential_scheme": "rsa",
+	}
+
+	upReq1 := buildEncryptedUploadRequest(t, "/api/v1/files/upload", uploadKey, "large-idem.bin", largeCipher, uploadMeta)
+	upReq1.Header.Set("Idempotency-Key", "idem-upload-big-001")
+	upRR1 := httptest.NewRecorder()
+	mux.ServeHTTP(upRR1, upReq1)
+	if upRR1.Code != http.StatusCreated {
+		t.Fatalf("first >2MiB idem upload status=%d body=%s", upRR1.Code, upRR1.Body.String())
+	}
+	if upRR1.Header().Get("X-Idempotency-Replayed") != "" {
+		t.Fatalf("unexpected replay header on first upload: %q", upRR1.Header().Get("X-Idempotency-Replayed"))
+	}
+	var firstUploaded struct {
+		Data struct {
+			ID       string `json:"id"`
+			FileSize int64  `json:"file_size"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(upRR1.Body.Bytes(), &firstUploaded); err != nil {
+		t.Fatal(err)
+	}
+	if firstUploaded.Data.ID == "" || firstUploaded.Data.FileSize != int64(len(largeCipher)) {
+		t.Fatalf("unexpected first upload payload: %+v", firstUploaded.Data)
+	}
+
+	upReq2 := buildEncryptedUploadRequest(t, "/api/v1/files/upload", uploadKey, "large-idem.bin", largeCipher, uploadMeta)
+	upReq2.Header.Set("Idempotency-Key", "idem-upload-big-001")
+	upRR2 := httptest.NewRecorder()
+	mux.ServeHTTP(upRR2, upReq2)
+	if upRR2.Code != http.StatusCreated {
+		t.Fatalf("replay >2MiB idem upload status=%d body=%s", upRR2.Code, upRR2.Body.String())
+	}
+	if upRR2.Header().Get("X-Idempotency-Replayed") != "true" {
+		t.Fatalf("expected X-Idempotency-Replayed=true on upload replay, got %q", upRR2.Header().Get("X-Idempotency-Replayed"))
+	}
+	var replayedUploaded struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(upRR2.Body.Bytes(), &replayedUploaded)
+	if replayedUploaded.Data.ID != firstUploaded.Data.ID {
+		t.Fatalf("expected replayed upload file ID %s, got %s", firstUploaded.Data.ID, replayedUploaded.Data.ID)
+	}
+
+	listRR := doJSONReq(t, mux, http.MethodGet, "/api/v1/files", uploadKey, nil)
+	var listedFiles struct {
+		Data []struct {
+			Filename string `json:"filename"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(listRR.Body.Bytes(), &listedFiles)
+	bigCount := 0
+	for _, f := range listedFiles.Data {
+		if f.Filename == "large-idem.bin" {
+			bigCount++
+		}
+	}
+	if bigCount != 1 {
+		t.Fatalf("expected exactly 1 file row after >2MiB upload replay, got %d", bigCount)
+	}
+
+	// Mutate 1 byte AFTER 2 MiB offset -> proves full-stream SHA-256 digest (not truncated at 2 MiB).
+	mutatedCipher := append([]byte(nil), largeCipher...)
+	mutatedCipher[2*1024*1024+100] ^= 0xff
+	upReqConflict := buildEncryptedUploadRequest(t, "/api/v1/files/upload", uploadKey, "large-idem.bin", mutatedCipher, uploadMeta)
+	upReqConflict.Header.Set("Idempotency-Key", "idem-upload-big-001")
+	upRRConflict := httptest.NewRecorder()
+	mux.ServeHTTP(upRRConflict, upReqConflict)
+	assertV1ErrorCode(t, upRRConflict, http.StatusConflict, "idempotency_conflict")
 }
